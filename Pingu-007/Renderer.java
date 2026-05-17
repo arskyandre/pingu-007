@@ -7,7 +7,7 @@ public class Renderer {
     // Controle para ativar/desativar os visuais de teste
     public boolean modoDebug = true;
 
-    public void renderizar(Graphics2D g2, Player quadrado, InputManager input, int telaLargura, int telaAltura) {
+    public void renderizar(Graphics2D g2, Player quadrado, InputManager input, int telaLargura, int telaAltura, LevelManager lm) {
         // Limpa tela / Background
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, telaLargura, telaAltura);
@@ -16,6 +16,7 @@ public class Renderer {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         // A ordem das chamadas define o Z-index
+        renderMap(g2,lm);
         renderDashEffect(g2, quadrado);
         renderPlayer(g2, quadrado);
 
@@ -24,6 +25,11 @@ public class Renderer {
         }
 
         renderMouse(g2, input);
+    }
+
+    private void renderMap(Graphics2D g2, LevelManager lm) {
+        // TODO: Renderizar o mapa do jeito certinho
+        lm.draw(g2);
     }
 
     private void renderDashEffect(Graphics2D g2, Player quadrado) {

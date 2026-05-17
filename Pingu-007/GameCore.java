@@ -13,14 +13,27 @@ public class GameCore extends Canvas implements Runnable {
     private final InputManager input;
     private final Renderer renderer;
 
+    // Coisas do Level Creator
+    private LevelManager levelManager;
+
+    public final static int tiles_default_size = 16;
+    public final static float scale = 3f;
+    public final static int tiles_in_width = 26;
+    public final static int tiles_in_height = 14;
+    public final static int tiles_size = (int) (tiles_default_size * scale);
+    public final static int game_width = tiles_size * tiles_in_width;
+    public final static int game_height = tiles_size * tiles_in_height;
+
+
     public GameCore() {
-        setPreferredSize(new Dimension(800, 600));
+        setPreferredSize(new Dimension(game_width, game_height));
         setBackground(Color.BLACK);
 
         // Inicialização dos Módulos
         input = new InputManager();
         player = new Player(380, 560, 70, 70);
         renderer = new Renderer();
+        levelManager = new LevelManager(this);
 
         addKeyListener(input);
         addMouseMotionListener(input);
@@ -32,15 +45,16 @@ public class GameCore extends Canvas implements Runnable {
     public void update() {
         // Passa a responsabilidade de atualização para as entidades
         player.update(input, getWidth(), getHeight());
+        levelManager.update();
     }
 
     public void render(BufferStrategy bs) {
+        
         do {
             do {
                 Graphics2D g2 = (Graphics2D) bs.getDrawGraphics();
-
                 // Repassa o Graphics2D para o renderizador
-                renderer.renderizar(g2, player, input, getWidth(), getHeight());
+                renderer.renderizar(g2, player, input, getWidth(), getHeight(),levelManager);
 
                 g2.dispose();
             } while (bs.contentsRestored());
