@@ -1,9 +1,10 @@
 
 import java.awt.event.*;
 
-public class InputManager extends KeyAdapter implements MouseMotionListener {
+public class InputManager extends KeyAdapter implements MouseMotionListener, MouseListener {
 
     private final boolean[] teclas = new boolean[256];
+    private final boolean[] botoes = new boolean[4];
     private int mouseX = 0;
     private int mouseY = 0;
 
@@ -38,6 +39,36 @@ public class InputManager extends KeyAdapter implements MouseMotionListener {
         if (keyCode >= 0 && keyCode < teclas.length) {
             return teclas[keyCode];
         }
+        return false;
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        if (e.getButton() < botoes.length)
+            botoes[e.getButton()] = true;
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        if (e.getButton() < botoes.length)
+            botoes[e.getButton()] = false;
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+    }
+
+    public boolean isMouseButtonPressed(int button) {
+        if (button >= 0 && button < botoes.length)
+            return botoes[button];
         return false;
     }
 

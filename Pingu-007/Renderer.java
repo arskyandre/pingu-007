@@ -7,7 +7,8 @@ public class Renderer {
     // Controle para ativar/desativar os visuais de teste
     public boolean modoDebug = true;
 
-    public void renderizar(Graphics2D g2, Player quadrado, InputManager input, int telaLargura, int telaAltura, LevelManager lm) {
+    public void renderizar(Graphics2D g2, Player quadrado, InputManager input, int telaLargura, int telaAltura,
+            LevelManager lm, BulletManager bulletmanager, LootManager lootmanager) {
         // Limpa tela / Background
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, telaLargura, telaAltura);
@@ -16,7 +17,9 @@ public class Renderer {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         // A ordem das chamadas define o Z-index
-        renderMap(g2,lm);
+        renderMap(g2, lm);
+        renderBullets(g2, bulletmanager);
+        renderLoot(g2, lootmanager);
         renderDashEffect(g2, quadrado);
         renderPlayer(g2, quadrado);
 
@@ -25,6 +28,14 @@ public class Renderer {
         }
 
         renderMouse(g2, input);
+    }
+
+    private void renderLoot(Graphics2D g2, LootManager lootmanager) {
+        lootmanager.draw(g2);
+    }
+
+    private void renderBullets(Graphics2D g2, BulletManager bulletmanager) {
+        bulletmanager.draw(g2);
     }
 
     private void renderMap(Graphics2D g2, LevelManager lm) {
@@ -59,8 +70,7 @@ public class Renderer {
                 quadrado.getX(),
                 quadrado.getY(),
                 quadrado.getLargura(),
-                quadrado.getAltura()
-        ));
+                quadrado.getAltura()));
     }
 
     private void renderDebug(Graphics2D g2, Player quadrado, InputManager input) {
