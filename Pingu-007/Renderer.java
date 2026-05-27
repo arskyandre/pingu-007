@@ -8,7 +8,7 @@ public class Renderer {
     public boolean modoDebug = true;
 
     public void renderizar(Graphics2D g2, Player quadrado, InputManager input, int telaLargura, int telaAltura,
-            LevelManager lm, BulletManager bulletmanager, LootManager lootmanager) {
+            LevelManager lm, BulletManager bulletmanager, LootManager lootmanager, EnemyManager enemyManager) {
         // Limpa tela / Background
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, telaLargura, telaAltura);
@@ -22,6 +22,7 @@ public class Renderer {
         renderLoot(g2, lootmanager);
         renderDashEffect(g2, quadrado);
         renderPlayer(g2, quadrado);
+        renderEnemies(g2, enemyManager);
 
         if (modoDebug) {
             renderDebug(g2, quadrado, input);
@@ -71,6 +72,10 @@ public class Renderer {
                 quadrado.getY(),
                 quadrado.getLargura(),
                 quadrado.getAltura()));
+    }
+
+    private void renderEnemies(Graphics2D g2, EnemyManager enemyManager){
+        enemyManager.draw(g2);
     }
 
     private void renderDebug(Graphics2D g2, Player quadrado, InputManager input) {

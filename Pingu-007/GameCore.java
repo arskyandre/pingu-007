@@ -9,6 +9,7 @@ public class GameCore extends Canvas implements Runnable {
     boolean running = true;
 
     // Componentes do Jogo
+    private EnemyManager enemyManager;
     private final Player player;
     private BulletManager bulletmanager;
     private LootManager lootmanager;
@@ -38,6 +39,8 @@ public class GameCore extends Canvas implements Runnable {
         player = new Player(380, 560, 70, 70, bulletmanager);
         renderer = new Renderer();
         levelManager = new LevelManager(this);
+        enemyManager = new EnemyManager();
+
 
         addKeyListener(input);
         addMouseMotionListener(input);
@@ -54,6 +57,7 @@ public class GameCore extends Canvas implements Runnable {
         player.update(input, getWidth(), getHeight());
 
         lootmanager.update(player);
+        enemyManager.update(player);
         levelManager.update();
     }
 
@@ -63,7 +67,7 @@ public class GameCore extends Canvas implements Runnable {
             do {
                 Graphics2D g2 = (Graphics2D) bs.getDrawGraphics();
                 // Repassa o Graphics2D para o renderizador
-                renderer.renderizar(g2, player, input, getWidth(), getHeight(), levelManager, bulletmanager, lootmanager);
+                renderer.renderizar(g2, player, input, getWidth(), getHeight(), levelManager, bulletmanager, lootmanager, enemyManager);
 
                 g2.dispose();
             } while (bs.contentsRestored());
