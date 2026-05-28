@@ -36,11 +36,12 @@ public class GameCore extends Canvas implements Runnable {
 
         // Inicialização dos Módulos
         input = new InputManager();
-        player = new Player(380, 560, 70, 70, bulletmanager);
+        player = new Player(380, 500, tiles_size-1, tiles_size-1, bulletmanager);
         renderer = new Renderer();
         levelManager = new LevelManager(this);
-        enemyManager = new EnemyManager();
+        enemyManager = new EnemyManager(levelManager);
 
+        player.loadLvlData(levelManager.getCurLevelData());
 
         addKeyListener(input);
         addMouseMotionListener(input);

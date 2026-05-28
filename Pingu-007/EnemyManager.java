@@ -4,13 +4,18 @@ import java.util.ArrayList;
 public class EnemyManager {
     
     private ArrayList<Enemy> enemies = new ArrayList<>();
+    private LevelManager levelManager;
+    private int[][] lvlData;
 
-    public EnemyManager(){
-    enemies.add(new Enemy(100, 100, 40 ,40));
+    public EnemyManager(LevelManager levelManager){
+        this.levelManager = levelManager;
+        lvlData = levelManager.getCurLevelData();
 
-    enemies.add(new Enemy(500, 400, 40 ,40));
+        enemies.add(new Enemy(100, 100, 40 ,40, lvlData));
+
+        enemies.add(new Enemy(500, 400, 40 ,40, lvlData));
     
-}
+    }
 
     public void update(Player player){
         for(Enemy enemy: enemies){

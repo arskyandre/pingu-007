@@ -47,6 +47,13 @@ public class LevelManager{
     public void update() {
 
     }
+    
+    public Level getCurLevel(){
+        return level_1;
+    }
 
+    public int[][] getCurLevelData(){
+        return getCurLevel().getLevelData();
+    }
 
 }

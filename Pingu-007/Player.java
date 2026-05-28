@@ -1,5 +1,7 @@
 import java.awt.event.MouseEvent;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
+//import static HelpMethods.CanMoveHere;
 
 public class Player {
 
@@ -41,13 +43,24 @@ public class Player {
     private int reloadCooldownTimer = 0;
     private final int reloadCooldown = 30;
 
+    //hitbox e  talvez hurtbox provavelmente nao
+    protected Rectangle hitbox;
+    protected Rectangle hurtbox;//possivelmente mas acho q nao
+    //digo isso por que acho que seria bom se parte do sprite
+    //não colidisse com blocos especificamente acima dele
+    //pra criar uma ilusão de 3d mais não tenho certeza
+    //então por enquanto só hitbox
+    private int [][] lvlData;
+
     public Player(double x, double y, double largura, double altura, BulletManager bulmgr) {
         this.x = x;
         this.y = y;
         this.bulletmanager = bulmgr;
         this.largura = largura;
         this.altura = altura;
+        hitbox = new Rectangle((int)x, (int)y, (int)largura, (int)altura);
     }
+
 
     //TEMPORARIO(TESTE): Adiciona loot de municao no chao com o clique direito, remover essa funcao e deletar a chamada no GameCore dps
     private int muniCOoldownTimer = 0;
@@ -57,7 +70,7 @@ public class Player {
             muniCOoldownTimer--;
         }
         if (input.isMouseButtonPressed(MouseEvent.BUTTON3)) {
-            if (input.isMouseButtonPressed(MouseEvent.BUTTON3) && muniCOoldownTimer == 0 ) {
+            if (muniCOoldownTimer == 0 ) {
                 double mouseX = input.getMouseX();
                 double mouseY = input.getMouseY();
                 //instancia e spawna a municao
@@ -181,9 +194,6 @@ public class Player {
         velX = Math.max(-velocidadeMax, Math.min(velX, velocidadeMax));
         velY = Math.max(-velocidadeMax, Math.min(velY, velocidadeMax));
 
-        x += velX;
-        y += velY;
-
         // Aplicação de Atrito
         double atritoAtual = emDash ? atritoDash : atritoNormal;
         velX *= atritoAtual;
@@ -195,6 +205,38 @@ public class Player {
         if (Math.abs(velY) < 0.01) {
             velY = 0;
         }
+
+        //COLISAO Com Tiles
+        int proxX = (int)(hitbox.x + velX);
+        int proxY = (int)(hitbox.y + velY);
+        if(!HelpMethods.CanMoveHere(proxX,hitbox.y,hitbox.width,hitbox.height,lvlData)){
+            if(velX>0){
+                hitbox.x = (int)(proxX - ((proxX+largura)%GameCore.tiles_size)-1);
+            }
+            else if(velX<0){
+                hitbox.x = (int)(proxX + (GameCore.tiles_size-(proxX%GameCore.tiles_size)));
+            }
+            velX=0;
+        }
+        else{
+            hitbox.x += velX;
+        }
+        x = hitbox.x;
+        
+        if(!HelpMethods.CanMoveHere(hitbox.x,proxY,largura,altura,lvlData)){
+            if(velY>0){
+                hitbox.y = (int)(proxY - ((proxY+altura)%GameCore.tiles_size)-1);
+            }
+            else if(velY<0){
+                hitbox.y = (int)(proxY + (GameCore.tiles_size-(proxY%GameCore.tiles_size)));
+            }
+            velY=0;
+        }
+        else{
+            hitbox.y += velY;
+        }
+        y = hitbox.y;
+        //
 
         // Colisões com as bordas da tela
         if (x < 0) {
@@ -246,6 +288,11 @@ public class Player {
         System.out.println("coletou " + String.valueOf(qtd) + " total: " + String.valueOf(municao));
     }
 
+    //pegar info do mapa
+    public void loadLvlData(int [][] lvlData){
+        this.lvlData = lvlData;
+    }
+
     // Getters para a Renderização
     public double getX() {
         return x;
@@ -277,5 +324,9 @@ public class Player {
 
     public double getDashDirY() {
         return dashDirY;
+    }
+
+    public Rectangle getHitbox(){
+        return hitbox;
     }
 }
