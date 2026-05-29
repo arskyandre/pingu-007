@@ -1,18 +1,15 @@
-import java.awt.event.MouseEvent;
-import java.awt.Rectangle;
+
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 //import static HelpMethods.CanMoveHere;
 
-public class Player {
+public class Player extends Entity {
 
-    private double x, y;
     final private double largura, altura;
 
     private Direction direction = Direction.DOWN;
 
     // Física e Movimentação
-    private double velX = 0;
-    private double velY = 0;
     private final double aceleracao = 1.0;
     private final double atritoNormal = 0.85;
     private final double velocidadeMax = 30;
@@ -43,49 +40,67 @@ public class Player {
     private int reloadCooldownTimer = 0;
     private final int reloadCooldown = 30;
 
-    //hitbox e  talvez hurtbox provavelmente nao
-    protected Rectangle hitbox;
-    protected Rectangle hurtbox;//possivelmente mas acho q nao
-    //digo isso por que acho que seria bom se parte do sprite
-    //não colidisse com blocos especificamente acima dele
-    //pra criar uma ilusão de 3d mais não tenho certeza
-    //então por enquanto só hitbox
-    private int [][] lvlData;
+    // iframes
+    private int iFramesTimer = 0;
+    private final int iFramesDanoDuration = 60;
+    private final int iFramesDashGrace = 15;
 
-    public Player(double x, double y, double largura, double altura, BulletManager bulmgr) {
-        this.x = x;
-        this.y = y;
-        this.bulletmanager = bulmgr;
+    // hitbox e  talvez hurtbox provavelmente nao
+    // protected Rectangle hitbox;
+    // protected Rectangle hurtbox;
+    // possivelmente mas acho q nao
+    // digo isso por que acho que seria bom se parte do sprite
+    // não colidisse com blocos especificamente acima dele
+    // pra criar uma ilusão de 3d mais não tenho certeza
+    // então por enquanto só hitbox
+    private int[][] lvlData;
+
+    public Player(double startX, double startY, double largura, double altura, BulletManager bulmgr) {
+        this.x = startX;
+        this.y = startY;
         this.largura = largura;
         this.altura = altura;
-        hitbox = new Rectangle((int)x, (int)y, (int)largura, (int)altura);
+        this.bulletmanager = bulmgr;
+        this.bodyCollider = new Collider(0, altura / 2.0, largura, altura / 2.0);
+        this.hurtbox = new Collider(0, 0, largura, altura);
+        this.vidaMaxima = 100;
+        this.vida = this.vidaMaxima;
     }
-
 
     //TEMPORARIO(TESTE): Adiciona loot de municao no chao com o clique direito, remover essa funcao e deletar a chamada no GameCore dps
     private int muniCOoldownTimer = 0;
     private final int muniCooldown = 60;
-    public void testemunicao(InputManager input, int telaLargura, int telaAltura, LootManager lootmanager){
+
+    public void testemunicao(InputManager input, int telaLargura, int telaAltura, LootManager lootmanager, CameraManager camera) {
         if (muniCOoldownTimer > 0) {
             muniCOoldownTimer--;
         }
         if (input.isMouseButtonPressed(MouseEvent.BUTTON3)) {
-            if (muniCOoldownTimer == 0 ) {
-                double mouseX = input.getMouseX();
-                double mouseY = input.getMouseY();
-                //instancia e spawna a municao
-                Ammo am = new Ammo(mouseX, mouseY, 32);
+            if (muniCOoldownTimer == 0) {
+                // Converte as coordenadas da tela para o mundo
+                double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+                double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+
+                // Instancia e spawna a municao na posição do mundo
+                Ammo am = new Ammo(mouseXWorld, mouseYWorld, 32);
                 lootmanager.spawn(am);
                 muniCOoldownTimer = muniCooldown;
                 System.out.println("Spawnou municao");
             }
-
         }
     }
     //FIM TESTE
 
-    public void update(InputManager input, int telaLargura, int telaAltura) {
+    @Override
+    public void receberDano(int dano) {
+        if (iFramesTimer == 0 && !emDash) {
+            super.receberDano(dano);
+            iFramesTimer = iFramesDanoDuration;
+            System.out.println("Player tomou dano! Vida: " + vida);
+        }
+    }
 
+    public void update(InputManager input, int telaLargura, int telaAltura, CameraManager camera) {
         // Gerenciamento dos Timers de Dash
         if (!podeDash) {
             dashCooldownTimer--;
@@ -98,7 +113,12 @@ public class Player {
             dashDuracaoTimer--;
             if (dashDuracaoTimer <= 0) {
                 emDash = false;
+                iFramesTimer = iFramesDashGrace;
             }
+        }
+        // Timer de iFrames
+        if (iFramesTimer > 0) {
+            iFramesTimer--;
         }
 
         double controleAtual = emDash ? controleDash : 1.0;
@@ -137,19 +157,20 @@ public class Player {
         if (shootCooldownTimer > 0) {
             shootCooldownTimer--;
         }
+
+        double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+        double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+
         if (input.isMouseButtonPressed(MouseEvent.BUTTON1)) {
-            if (input.isMouseButtonPressed(MouseEvent.BUTTON1) && shootCooldownTimer == 0 && pente > 0) {
-                double mouseX = input.getMouseX();
-                double mouseY = input.getMouseY();
+            if (shootCooldownTimer == 0 && pente > 0) {
                 double centerX = x + largura / 2.0;
                 double centerY = y + altura / 2.0;
-                bulletmanager.shoot(centerX, centerY, mouseX - centerX, mouseY - centerY, BulletOwner.PLAYER);
+
+                bulletmanager.shoot(centerX, centerY, mouseXWorld - centerX, mouseYWorld - centerY, BulletOwner.PLAYER);
                 shootCooldownTimer = shootCooldown;
                 pente--;
-                System.out.println(
-                        "Atirou, pente: " + String.valueOf(pente) + " municao total: " + String.valueOf(municao));
+                System.out.println("Atirou, pente: " + pente + " municao total: " + municao);
             }
-
         }
 
         if (input.isKeyPressed(KeyEvent.VK_R)) {
@@ -166,7 +187,6 @@ public class Player {
                 }
             }
         }
-        bulletmanager.update(telaLargura, telaAltura);
 
         // Lógica de Dash
         if (input.isKeyPressed(KeyEvent.VK_SPACE) && podeDash && !emDash) {
@@ -207,38 +227,12 @@ public class Player {
         }
 
         //COLISAO Com Tiles
-        int proxX = (int)(hitbox.x + velX);
-        int proxY = (int)(hitbox.y + velY);
-        if(!HelpMethods.CanMoveHere(proxX,hitbox.y,hitbox.width,hitbox.height,lvlData)){
-            if(velX>0){
-                hitbox.x = (int)(proxX - ((proxX+largura)%GameCore.tiles_size)-1);
-            }
-            else if(velX<0){
-                hitbox.x = (int)(proxX + (GameCore.tiles_size-(proxX%GameCore.tiles_size)));
-            }
-            velX=0;
-        }
-        else{
-            hitbox.x += velX;
-        }
-        x = hitbox.x;
-        
-        if(!HelpMethods.CanMoveHere(hitbox.x,proxY,largura,altura,lvlData)){
-            if(velY>0){
-                hitbox.y = (int)(proxY - ((proxY+altura)%GameCore.tiles_size)-1);
-            }
-            else if(velY<0){
-                hitbox.y = (int)(proxY + (GameCore.tiles_size-(proxY%GameCore.tiles_size)));
-            }
-            velY=0;
-        }
-        else{
-            hitbox.y += velY;
-        }
-        y = hitbox.y;
-        //
+        moveAndCollideWithMap(lvlData);
 
-        // Colisões com as bordas da tela
+        // Colisões com as bordas do Mapa
+        int mapaLargura = lvlData[0].length * GameCore.tiles_size;
+        int mapaAltura = lvlData.length * GameCore.tiles_size;
+
         if (x < 0) {
             x = 0;
             velX = 0;
@@ -247,19 +241,19 @@ public class Player {
             y = 0;
             velY = 0;
         }
-        if (x + largura > telaLargura) {
-            x = telaLargura - largura;
+        if (x + largura > mapaLargura) {
+            x = mapaLargura - largura;
             velX = 0;
         }
-        if (y + altura > telaAltura) {
-            y = telaAltura - altura;
+        if (y + altura > mapaAltura) {
+            y = mapaAltura - altura;
             velY = 0;
         }
 
-        updatePlayerDirection(input.getMouseX(), input.getMouseY());
+        updatePlayerDirection(mouseXWorld, mouseYWorld);
     }
 
-    private void updatePlayerDirection(int mouseX, int mouseY) {
+    private void updatePlayerDirection(double mouseX, double mouseY) {
         double centerX = x + largura / 2.0;
         double centerY = y + altura / 2.0;
 
@@ -283,25 +277,17 @@ public class Player {
         }
     }
 
-    public void addMunicao(int qtd){
+    public void addMunicao(int qtd) {
         municao += qtd;
         System.out.println("coletou " + String.valueOf(qtd) + " total: " + String.valueOf(municao));
     }
 
     //pegar info do mapa
-    public void loadLvlData(int [][] lvlData){
+    public void loadLvlData(int[][] lvlData) {
         this.lvlData = lvlData;
     }
 
     // Getters para a Renderização
-    public double getX() {
-        return x;
-    }
-
-    public double getY() {
-        return y;
-    }
-
     public double getLargura() {
         return largura;
     }
@@ -326,7 +312,4 @@ public class Player {
         return dashDirY;
     }
 
-    public Rectangle getHitbox(){
-        return hitbox;
-    }
 }

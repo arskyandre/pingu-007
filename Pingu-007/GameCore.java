@@ -7,7 +7,8 @@ public class GameCore extends Canvas implements Runnable {
 
     JFrame frame;
     boolean running = true;
-
+    // Camera
+    private final CameraManager camera;
     // Componentes do Jogo
     private EnemyManager enemyManager;
     private final Player player;
@@ -16,10 +17,7 @@ public class GameCore extends Canvas implements Runnable {
     private final InputManager input;
     private final Renderer renderer;
     // Coisas do Level Creator
-    private LevelManager levelManager;
-
-    //
-
+    private final LevelManager levelManager;
     public final static int tiles_default_size = 16;
     public final static float scale = 3f;
     public final static int tiles_in_width = 26;
@@ -36,10 +34,11 @@ public class GameCore extends Canvas implements Runnable {
 
         // Inicialização dos Módulos
         input = new InputManager();
-        player = new Player(380, 500, tiles_size-1, tiles_size-1, bulletmanager);
+        player = new Player(380, 500, tiles_size - 1, tiles_size - 1, bulletmanager);
         renderer = new Renderer();
         levelManager = new LevelManager(this);
         enemyManager = new EnemyManager(levelManager);
+        camera = new CameraManager(player.getX(), player.getY(), 1.0);
 
         player.loadLvlData(levelManager.getCurLevelData());
 
@@ -52,23 +51,27 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void update() {
-        //REMOVER
-        player.testemunicao(input, getWidth(), getHeight(), lootmanager);
+        //DEBUG REMOVER DEPOIS
+        player.testemunicao(input, getWidth(), getHeight(), lootmanager, camera);
         // Passa a responsabilidade de atualização para as entidades
-        player.update(input, getWidth(), getHeight());
+        player.update(input, getWidth(), getHeight(), camera);
 
         lootmanager.update(player);
         enemyManager.update(player);
+
+        bulletmanager.update(camera, getWidth(), getHeight(), player, enemyManager.getEnemies());
+
         levelManager.update();
+        camera.update(player, input, getWidth(), getHeight());
     }
 
     public void render(BufferStrategy bs) {
-
         do {
             do {
                 Graphics2D g2 = (Graphics2D) bs.getDrawGraphics();
                 // Repassa o Graphics2D para o renderizador
-                renderer.renderizar(g2, player, input, getWidth(), getHeight(), levelManager, bulletmanager, lootmanager, enemyManager);
+                // Atualize a chamada do renderizar:
+                renderer.renderizar(g2, camera, player, input, getWidth(), getHeight(), levelManager, bulletmanager, lootmanager, enemyManager);
 
                 g2.dispose();
             } while (bs.contentsRestored());

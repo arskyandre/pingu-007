@@ -7,41 +7,49 @@ public class Renderer {
     // Controle para ativar/desativar os visuais de teste
     public boolean modoDebug = true;
 
-    public void renderizar(Graphics2D g2, Player quadrado, InputManager input, int telaLargura, int telaAltura,
+    public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura, int telaAltura,
             LevelManager lm, BulletManager bulletmanager, LootManager lootmanager, EnemyManager enemyManager) {
         // Limpa tela / Background
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, telaLargura, telaAltura);
-
         // Suavização
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+        AffineTransform originalTransform = g2.getTransform();
+        g2.scale(camera.getZoom(), camera.getZoom());
+        g2.translate(-camera.getX(), -camera.getY());
+
         // A ordem das chamadas define o Z-index
-        renderMap(g2, lm);
-        renderBullets(g2, bulletmanager);
-        renderLoot(g2, lootmanager);
+        renderMap(g2, lm, camera, telaLargura, telaAltura);
+        renderBullets(g2, bulletmanager, camera, telaLargura, telaAltura);
+        renderLoot(g2, lootmanager, camera, telaLargura, telaAltura);
         renderDashEffect(g2, quadrado);
         renderPlayer(g2, quadrado);
-        renderEnemies(g2, enemyManager);
+        renderEnemies(g2, enemyManager, camera, telaLargura, telaAltura);
 
         if (modoDebug) {
-            renderDebug(g2, quadrado, input);
+            renderDebug(g2, camera, quadrado, input);
         }
-
+        g2.setTransform(originalTransform);
         renderMouse(g2, input);
     }
 
-    private void renderLoot(Graphics2D g2, LootManager lootmanager) {
-        lootmanager.draw(g2);
+    private void renderLoot(Graphics2D g2, LootManager lootmanager, CameraManager camera, int telaLargura, int telaAltura) {
+        lootmanager.draw(g2, camera, telaLargura, telaAltura);
     }
 
-    private void renderBullets(Graphics2D g2, BulletManager bulletmanager) {
-        bulletmanager.draw(g2);
+    private void renderBullets(Graphics2D g2, BulletManager bulletmanager, CameraManager camera, int telaLargura, int telaAltura) {
+        bulletmanager.draw(g2, camera, telaLargura, telaAltura);
     }
 
-    private void renderMap(Graphics2D g2, LevelManager lm) {
-        // TODO: Renderizar o mapa do jeito certinho
-        lm.draw(g2);
+    private void renderMap(Graphics2D g2, LevelManager lm, CameraManager camera, int telaLargura, int telaAltura) {
+        // FIXED?: Renderizar o mapa do jeito certinho
+        // TODO: Alex, em teoria eu dei uma consertada na renderização do mapa, checa depois
+        lm.draw(g2, camera, telaLargura, telaAltura);
+    }
+
+    private void renderEnemies(Graphics2D g2, EnemyManager enemyManager, CameraManager camera, int telaLargura, int telaAltura) {
+        enemyManager.draw(g2, camera, telaLargura, telaAltura);
     }
 
     private void renderDashEffect(Graphics2D g2, Player quadrado) {
@@ -74,11 +82,7 @@ public class Renderer {
                 quadrado.getAltura()));
     }
 
-    private void renderEnemies(Graphics2D g2, EnemyManager enemyManager){
-        enemyManager.draw(g2);
-    }
-
-    private void renderDebug(Graphics2D g2, Player quadrado, InputManager input) {
+    private void renderDebug(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input) {
         double centerX = quadrado.getX() + quadrado.getLargura() / 2.0;
         double centerY = quadrado.getY() + quadrado.getAltura() / 2.0;
 
@@ -118,10 +122,10 @@ public class Renderer {
         }
 
         // Debug linha do mouse
-        int mouseX = input.getMouseX();
-        int mouseY = input.getMouseY();
+        double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+        double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
         g2.setColor(Color.WHITE);
-        g2.drawLine((int) centerX, (int) centerY, mouseX, mouseY);
+        g2.drawLine((int) centerX, (int) centerY, (int) mouseXWorld, (int) mouseYWorld);
     }
 
     private void renderMouse(Graphics2D g2, InputManager input) {
