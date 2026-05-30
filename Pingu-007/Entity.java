@@ -12,6 +12,10 @@ public abstract class Entity {
     protected int vida;
     protected boolean isDead = false;
 
+    protected double aceleracao = 1.0;
+    protected double atritoPadrao = 0.85;
+    protected double velocidadeMax = 30.0;
+
     public void receberDano(int dano) {
         vida -= dano;
         if (vida <= 0) {
@@ -24,6 +28,21 @@ public abstract class Entity {
         return isDead;
     }
 
+    protected void aplicarFisicaBasica() {
+        velX = Math.max(-velocidadeMax, Math.min(velX, velocidadeMax));
+        velY = Math.max(-velocidadeMax, Math.min(velY, velocidadeMax));
+
+        velX *= atritoPadrao;
+        velY *= atritoPadrao;
+
+        if (Math.abs(velX) < 0.01) {
+            velX = 0;
+        }
+        if (Math.abs(velY) < 0.01) {
+            velY = 0;
+        }
+    }
+
     // Lógica universal de colisão com o mapa de Tiles
     protected void moveAndCollideWithMap(int[][] lvlData) {
         double cbX = x + bodyCollider.getOffsetX();
@@ -31,28 +50,31 @@ public abstract class Entity {
         double cbW = bodyCollider.getWidth();
         double cbH = bodyCollider.getHeight();
 
-        int proxX = (int) (cbX + velX);
-        int proxY = (int) (cbY + velY);
+        double proxX = cbX + velX;
+        double proxY = cbY + velY;
 
         // Movimento Horizontal
         if (!HelpMethods.CanMoveHere(proxX, cbY, cbW, cbH, lvlData)) {
             if (velX > 0) {
-                x = (proxX - ((proxX + cbW) % GameCore.tiles_size) - 1) - bodyCollider.getOffsetX();
+                int tileX = (int) ((proxX + cbW) / GameCore.tiles_size);
+                x = (tileX * GameCore.tiles_size) - cbW - 0.1 - bodyCollider.getOffsetX();
             } else if (velX < 0) {
-                x = (proxX + (GameCore.tiles_size - (proxX % GameCore.tiles_size))) - bodyCollider.getOffsetX();
+                int tileX = (int) (proxX / GameCore.tiles_size);
+                x = ((tileX + 1) * GameCore.tiles_size) + 0.1 - bodyCollider.getOffsetX();
             }
             velX = 0;
         } else {
             x += velX;
         }
-
         // Movimento Vertical
         cbX = x + bodyCollider.getOffsetX();
         if (!HelpMethods.CanMoveHere(cbX, proxY, cbW, cbH, lvlData)) {
             if (velY > 0) {
-                y = (proxY - ((proxY + cbH) % GameCore.tiles_size) - 1) - bodyCollider.getOffsetY();
+                int tileY = (int) ((proxY + cbH) / GameCore.tiles_size);
+                y = (tileY * GameCore.tiles_size) - cbH - 0.1 - bodyCollider.getOffsetY();
             } else if (velY < 0) {
-                y = (proxY + (GameCore.tiles_size - (proxX % GameCore.tiles_size))) - bodyCollider.getOffsetY();
+                int tileY = (int) (proxY / GameCore.tiles_size);
+                y = ((tileY + 1) * GameCore.tiles_size) + 0.1 - bodyCollider.getOffsetY();
             }
             velY = 0;
         } else {

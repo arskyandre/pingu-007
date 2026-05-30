@@ -10,9 +10,6 @@ public class Player extends Entity {
     private Direction direction = Direction.DOWN;
 
     // Física e Movimentação
-    private final double aceleracao = 1.0;
-    private final double atritoNormal = 0.85;
-    private final double velocidadeMax = 30;
     private double dirX = 0;
     private double dirY = 0;
 
@@ -45,11 +42,7 @@ public class Player extends Entity {
     private final int iFramesDanoDuration = 60;
     private final int iFramesDashGrace = 15;
 
-    // hitbox e  talvez hurtbox provavelmente nao
-    // protected Rectangle hitbox;
-    // protected Rectangle hurtbox;
-    // possivelmente mas acho q nao
-    // digo isso por que acho que seria bom se parte do sprite
+    // TODO: digo isso por que acho que seria bom se parte do sprite
     // não colidisse com blocos especificamente acima dele
     // pra criar uma ilusão de 3d mais não tenho certeza
     // então por enquanto só hitbox
@@ -58,6 +51,9 @@ public class Player extends Entity {
     public Player(double startX, double startY, double largura, double altura, BulletManager bulmgr) {
         this.x = startX;
         this.y = startY;
+        this.aceleracao = 1.0;
+        this.atritoPadrao = 0.85;
+        this.velocidadeMax = 30;
         this.largura = largura;
         this.altura = altura;
         this.bulletmanager = bulmgr;
@@ -211,20 +207,14 @@ public class Player extends Entity {
         }
 
         // Limitação de Velocidade e Aplicação na Posição
-        velX = Math.max(-velocidadeMax, Math.min(velX, velocidadeMax));
-        velY = Math.max(-velocidadeMax, Math.min(velY, velocidadeMax));
-
-        // Aplicação de Atrito
-        double atritoAtual = emDash ? atritoDash : atritoNormal;
-        velX *= atritoAtual;
-        velY *= atritoAtual;
-
-        if (Math.abs(velX) < 0.01) {
-            velX = 0;
+        double atritoSalvo = this.atritoPadrao;
+        // Se estiver no dash, muda o atrito temporariamente para deslizar mais
+        if (emDash) {
+            this.atritoPadrao = atritoDash;
         }
-        if (Math.abs(velY) < 0.01) {
-            velY = 0;
-        }
+        aplicarFisicaBasica();
+        // Retorna o atrito normal
+        this.atritoPadrao = atritoSalvo;
 
         //COLISAO Com Tiles
         moveAndCollideWithMap(lvlData);
