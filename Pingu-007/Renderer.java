@@ -1,11 +1,35 @@
 
 import java.awt.*;
 import java.awt.geom.*;
+import java.awt.image.BufferedImage;
 
 public class Renderer {
 
     // Controle para ativar/desativar os visuais de teste
-    public boolean modoDebug = true;
+    public boolean modoDebug = false;
+    //pingu
+    private BufferedImage[] pinguSprites;
+    private int pSpriteNum = 21;
+    Boolean preDash = false;
+    //
+    private int animIndex=0, animTick=0, xx=1, inv=1, animSp=0, ds=0;
+    private int animSpeed = 120;
+    private double dirX=0, dirY=0;
+
+
+    public Renderer() {
+        //Importa os Sprites e separa eles no vetor
+        BufferedImage img = LoadSave.GetSpriteAtlas("pingu_sprite_sheet.png");
+
+        pinguSprites = new BufferedImage[pSpriteNum];
+        for (int j = 0; j < 3; j++) {
+            for (int i = 0; i < 7; i++) {
+                int index = j * 7 + i;
+                pinguSprites[index] = img.getSubimage(i * 16, j * 16, 16, 16);
+            }
+        }
+
+    }
 
     public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura, int telaAltura,
             LevelManager lm, BulletManager bulletmanager, LootManager lootmanager, EnemyManager enemyManager) {
@@ -14,6 +38,8 @@ public class Renderer {
         g2.fillRect(0, 0, telaLargura, telaAltura);
         // Suavização
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        
+
 
         AffineTransform originalTransform = g2.getTransform();
         g2.scale(camera.getZoom(), camera.getZoom());
@@ -60,7 +86,7 @@ public class Renderer {
         // TODO: implementar sistema de sprites
         Direction dir = quadrado.getDirection();
         Color cor = Color.YELLOW;
-
+        /*
         if (dir != null) {
             cor = switch (dir) {
                 case UP ->
@@ -73,13 +99,110 @@ public class Renderer {
                     Color.YELLOW;
             };
         }
-
         g2.setColor(cor);
         g2.fill(new Rectangle2D.Double(
                 quadrado.getX(),
                 quadrado.getY(),
                 quadrado.getLargura(),
                 quadrado.getAltura()));
+
+        
+        */
+        
+        xx = (int) quadrado.getX();
+        inv=1;
+        if (preDash == false && quadrado.isEmDash() == true){
+            ds = animIndex = animTick = 0;
+            dirX = quadrado.getDashDirX();
+            dirY = quadrado.getDashDirY();
+        }
+        else if (!quadrado.isEmDash()){
+            // Tick de animação
+            animTick++;
+            if(animTick >= animSpeed){
+                animTick = 0;
+                animIndex++;
+                if(animIndex>=4){
+                    animIndex = 0;
+                }
+            }
+            
+            switch (dir) {
+                case UP:
+                    if(animIndex%2==0)
+                        animSp = 14;
+                    else{
+                        if(animIndex==1)
+                        animSp = 15;
+                        else if(animIndex == 3)
+                        animSp = 16;   
+                    }
+                break;
+                case RIGHT:
+                    if(animIndex%2==0)
+                        animSp = 7;
+                    else{
+                        if(animIndex==1)
+                        animSp = 8;
+                        else if(animIndex == 3)
+                        animSp = 9;   
+                    }
+                break;
+                case LEFT:
+                    xx = (int)(quadrado.getX() + GameCore.tiles_size);
+                    inv = -1;
+                    if(animIndex%2==0)
+                        animSp = 7;
+                    else{
+                        if(animIndex==1)
+                        animSp = 8;
+                        else if(animIndex == 3)
+                        animSp = 9;   
+                    }
+                break;
+                default:
+                    if(animIndex%2==0)
+                        animSp = 0;
+                    else{
+                        if(animIndex==1)
+                        animSp = 1;
+                        else if(animIndex == 3)
+                        animSp = 2;   
+                    }
+                break;
+            };
+        }
+        else if (quadrado.isEmDash()){
+            // Tick de animação
+            animTick++;
+            if(animTick >= animSpeed){
+                animTick = 0;
+                animIndex++;
+                if(animIndex>=4){
+                    animIndex = 3;
+                }
+            }
+            
+            if(dirX<0){
+                xx = (int)(quadrado.getX() + GameCore.tiles_size);
+                inv = -1;
+                animSp = 10 + animIndex;
+            }
+            else if(dirX>0){
+                animSp = 10 + animIndex;
+            }
+            else if(dirY>0){
+                animSp = 3 + animIndex;
+            }
+            else{
+                animSp = 17 + animIndex;
+            }
+        }
+        
+        g2.drawImage(pinguSprites[animSp], xx, (int)quadrado.getY(),
+                            inv*GameCore.tiles_size, GameCore.tiles_size, null);
+        preDash = quadrado.isEmDash();
+        
     }
 
     private void renderDebug(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input) {
