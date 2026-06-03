@@ -15,9 +15,9 @@ public class Dasher extends Enemy {
     // Configurações do Dasher
     private final double distAtivacao = 200.0; // distancia ele tenta atacar
     private final int tempoPreparo = 60;       // frames parado avisando o golpe
-    private final int tempoDash = 20;          // frames de duração do dash
+    private final int tempoDash = 25;          // frames de duração do dash
     private final int tempoCooldown = 120;     // frames antes de poder dar dash de novo
-    private final double forcaDash = 18.0;     // Força / distancia do dash     
+    private final double forcaDash = 22.0;     // Força / distancia do dash     
     private final double atritoDash = 0.94;
 
     public boolean interromperNoTiro = true;
@@ -108,7 +108,7 @@ public class Dasher extends Enemy {
         // Destrava a velocidade e muda o atrito apenas durante o dash
         if (estadoAtual == Status.DASHING) {
             this.atritoPadrao = atritoDash;
-            this.velocidadeMax = 50.0;
+            this.velocidadeMax = 45.0;
         }
 
         aplicarFisicaBasica();

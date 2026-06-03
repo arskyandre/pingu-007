@@ -35,16 +35,38 @@ public abstract class Enemy extends Entity {
         return height;
     }
 
-    public void separarempilhamento(Enemy outro) {
-        double dx = x - outro.x;
-        double dy = y - outro.y;
-        double distancia = Math.sqrt(dx * dx + dy * dy);
-        double minDistancia = width;
+    public void separarempilhamento(Entity outro) {
+        if (this == outro || this.isDead || outro.isDead) {
+            return;
+        }
 
-        if (distancia < minDistancia && distancia > 0) {
-            double sob = minDistancia - distancia;
-            x += (dx / distancia) * sob * 0.5;
-            y += (dy / distancia) * sob * 0.5;
+        double meuCenterX = this.x + bodyCollider.getOffsetX() + (bodyCollider.getWidth() / 2.0);
+        double meuCenterY = this.y + bodyCollider.getOffsetY() + (bodyCollider.getHeight() / 2.0);
+
+        double outroCenterX = outro.x + outro.bodyCollider.getOffsetX() + (outro.bodyCollider.getWidth() / 2.0);
+        double outroCenterY = outro.y + outro.bodyCollider.getOffsetY() + (outro.bodyCollider.getHeight() / 2.0);
+
+        double dx = meuCenterX - outroCenterX;
+        double dy = meuCenterY - outroCenterY;
+        double dist = Math.sqrt(dx * dx + dy * dy);
+
+        double distMinima = (this.bodyCollider.getWidth() / 2.0) + (outro.bodyCollider.getWidth() / 2.0);
+
+        if (dist < distMinima) {
+            // Trava de segurança
+            if (dist == 0.0) {
+                dx = Math.random() - 0.5;
+                dy = Math.random() - 0.5;
+                dist = Math.sqrt(dx * dx + dy * dy);
+            }
+            double intensidade = (distMinima - dist) / distMinima;
+
+            double forcaRepulsao = 3.0;
+
+            double pushX = (dx / dist) * intensidade * forcaRepulsao;
+            double pushY = (dy / dist) * intensidade * forcaRepulsao;
+            this.velX += pushX;
+            this.velY += pushY;
         }
     }
 }

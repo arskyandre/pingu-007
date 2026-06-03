@@ -33,7 +33,7 @@ public class Player extends Entity {
     private final int maxpente = 15;
     private int municao = 45;
     private int shootCooldownTimer = 0;
-    private final int shootCooldown = 30;
+    private final int shootCooldown = 20;
     private int reloadCooldownTimer = 0;
     private final int reloadCooldown = 30;
 
@@ -302,8 +302,8 @@ public class Player extends Entity {
         return dashDirY;
     }
 
-    public Boolean isMovendo(){
-        return (velX > 0.2 || velX < -0.2 ) || (velY > 0.2 || velY < -0.2);
+    public Boolean isMovendo() {
+        return (velX > 0.2 || velX < -0.2) || (velY > 0.2 || velY < -0.2);
     }
 
 }

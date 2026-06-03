@@ -12,10 +12,9 @@ public class Renderer {
     private int pSpriteNum = 21;
     Boolean preDash = false;
     //
-    private int animIndex=0, animTick=0, xx=1, inv=1, animSp=0, ds=0;
+    private int animIndex = 0, animTick = 0, xx = 1, inv = 1, animSp = 0, ds = 0;
     private int animSpeed = 120;
-    private double dirX=0, dirY=0;
-
+    private double dirX = 0, dirY = 0;
 
     public Renderer() {
         //Importa os Sprites e separa eles no vetor
@@ -38,8 +37,6 @@ public class Renderer {
         g2.fillRect(0, 0, telaLargura, telaAltura);
         // Suavização
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        
-
 
         AffineTransform originalTransform = g2.getTransform();
         g2.scale(camera.getZoom(), camera.getZoom());
@@ -107,102 +104,101 @@ public class Renderer {
                 quadrado.getAltura()));
 
         
-        */
-        
+         */
+
         xx = (int) quadrado.getX();
-        inv=1;
-        if (preDash == false && quadrado.isEmDash() == true){
+        inv = 1;
+        if (preDash == false && quadrado.isEmDash() == true) {
             ds = animIndex = animTick = 0;
             dirX = quadrado.getDashDirX();
             dirY = quadrado.getDashDirY();
-        }
-        else if (!quadrado.isEmDash()){
+        } else if (!quadrado.isEmDash()) {
             // Tick de animação
             animTick++;
-            if(animTick >= animSpeed){
+            if (animTick >= animSpeed) {
                 animTick = 0;
                 animIndex++;
-                if(animIndex>=4){
+                if (animIndex >= 4) {
                     animIndex = 0;
                 }
             }
-            
+
             switch (dir) {
-                case UP:
-                    if(animIndex%2==0)
+                case UP -> {
+                    if (animIndex % 2 == 0) {
                         animSp = 14;
-                    else{
-                        if(animIndex==1)
-                        animSp = 15;
-                        else if(animIndex == 3)
-                        animSp = 16;   
+                    } else {
+                        if (animIndex == 1) {
+                            animSp = 15;
+                        } else if (animIndex == 3) {
+                            animSp = 16;
+                        }
                     }
-                break;
-                case RIGHT:
-                    if(animIndex%2==0)
+                }
+                case RIGHT -> {
+                    if (animIndex % 2 == 0) {
                         animSp = 7;
-                    else{
-                        if(animIndex==1)
-                        animSp = 8;
-                        else if(animIndex == 3)
-                        animSp = 9;   
+                    } else {
+                        if (animIndex == 1) {
+                            animSp = 8;
+                        } else if (animIndex == 3) {
+                            animSp = 9;
+                        }
                     }
-                break;
-                case LEFT:
-                    xx = (int)(quadrado.getX() + GameCore.tiles_size);
+                }
+                case LEFT -> {
+                    xx = (int) (quadrado.getX() + GameCore.tiles_size);
                     inv = -1;
-                    if(animIndex%2==0)
+                    if (animIndex % 2 == 0) {
                         animSp = 7;
-                    else{
-                        if(animIndex==1)
-                        animSp = 8;
-                        else if(animIndex == 3)
-                        animSp = 9;   
+                    } else {
+                        if (animIndex == 1) {
+                            animSp = 8;
+                        } else if (animIndex == 3) {
+                            animSp = 9;
+                        }
                     }
-                break;
-                default:
-                    if(animIndex%2==0)
+                }
+                default -> {
+                    if (animIndex % 2 == 0) {
                         animSp = 0;
-                    else{
-                        if(animIndex==1)
-                        animSp = 1;
-                        else if(animIndex == 3)
-                        animSp = 2;   
+                    } else {
+                        if (animIndex == 1) {
+                            animSp = 1;
+                        } else if (animIndex == 3) {
+                            animSp = 2;
+                        }
                     }
-                break;
-            };
-        }
-        else if (quadrado.isEmDash()){
+                }
+            }
+        } else if (quadrado.isEmDash()) {
             // Tick de animação
             animTick++;
-            if(animTick >= animSpeed){
+            if (animTick >= animSpeed) {
                 animTick = 0;
                 animIndex++;
-                if(animIndex>=4){
+                if (animIndex >= 4) {
                     animIndex = 3;
                 }
             }
-            
-            if(dirX<0){
-                xx = (int)(quadrado.getX() + GameCore.tiles_size);
+
+            if (dirX < 0) {
+                xx = (int) (quadrado.getX() + GameCore.tiles_size);
                 inv = -1;
                 animSp = 10 + animIndex;
-            }
-            else if(dirX>0){
+            } else if (dirX > 0) {
                 animSp = 10 + animIndex;
-            }
-            else if(dirY>0){
+            } else if (dirY > 0) {
                 animSp = 3 + animIndex;
-            }
-            else{
+            } else {
                 animSp = 17 + animIndex;
             }
         }
-        
-        g2.drawImage(pinguSprites[animSp], xx, (int)quadrado.getY(),
-                            inv*GameCore.tiles_size, GameCore.tiles_size, null);
+
+        g2.drawImage(pinguSprites[animSp], xx, (int) quadrado.getY(),
+                inv * GameCore.tiles_size, GameCore.tiles_size, null);
         preDash = quadrado.isEmDash();
-        
+
     }
 
     private void renderDebug(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input) {

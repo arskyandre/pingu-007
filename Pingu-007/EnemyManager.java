@@ -6,12 +6,16 @@ public class EnemyManager {
 
     private final ArrayList<Enemy> enemies = new ArrayList<>();
     private final LevelManager levelManager;
+    private final BulletManager bulmgr;
     private final int[][] lvlData;
 
-    public EnemyManager(LevelManager levelManager) {
+    public EnemyManager(LevelManager levelManager, BulletManager bulletManager) {
         this.levelManager = levelManager;
         lvlData = levelManager.getCurLevelData();
 
+        this.bulmgr = bulletManager;
+        enemies.add(new Jumper(100, 100, 40, 40, this.lvlData, this.bulmgr));
+        enemies.add(new Shooter(100, 100, 60, 60, this.lvlData, this.bulmgr));
         enemies.add(new Dasher(100, 100, 40, 40, lvlData));
         enemies.add(new BasicEnemy(500, 400, 40, 40, lvlData));
     }

@@ -37,7 +37,7 @@ public class GameCore extends Canvas implements Runnable {
         player = new Player(380, 500, tiles_size - 1, tiles_size - 1, bulletmanager);
         renderer = new Renderer();
         levelManager = new LevelManager(this);
-        enemyManager = new EnemyManager(levelManager);
+        enemyManager = new EnemyManager(levelManager, bulletmanager);
         camera = new CameraManager(player.getX(), player.getY(), 1.0);
 
         player.loadLvlData(levelManager.getCurLevelData());

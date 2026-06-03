@@ -39,9 +39,9 @@ public class Bullet {
             desativar();
         }
 
-        if (!camera.onScreen(x, y, largura, altura, telaLargura, telaAltura)) {
+        /*if (!camera.onScreen(x, y, largura, altura, telaLargura, telaAltura)) {
             desativar();
-        }
+        }*/
     }
 
     public void desativar() {

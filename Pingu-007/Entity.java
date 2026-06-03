@@ -45,40 +45,71 @@ public abstract class Entity {
 
     // Lógica universal de colisão com o mapa de Tiles
     protected void moveAndCollideWithMap(int[][] lvlData) {
-        double cbX = x + bodyCollider.getOffsetX();
-        double cbY = y + bodyCollider.getOffsetY();
         double cbW = bodyCollider.getWidth();
         double cbH = bodyCollider.getHeight();
 
-        double proxX = cbX + velX;
-        double proxY = cbY + velY;
+        // Descobre a maior velocidade que a entidade está tentando atingir neste frame
+        double maxVel = Math.max(Math.abs(velX), Math.abs(velY));
 
-        // Movimento Horizontal
-        if (!HelpMethods.CanMoveHere(proxX, cbY, cbW, cbH, lvlData)) {
-            if (velX > 0) {
-                int tileX = (int) ((proxX + cbW) / GameCore.tiles_size);
-                x = (tileX * GameCore.tiles_size) - cbW - 0.1 - bodyCollider.getOffsetX();
-            } else if (velX < 0) {
-                int tileX = (int) (proxX / GameCore.tiles_size);
-                x = ((tileX + 1) * GameCore.tiles_size) + 0.1 - bodyCollider.getOffsetX();
-            }
-            velX = 0;
-        } else {
-            x += velX;
+        // Dividimos pelo raio do tile para garantir precisão absoluta.
+        int steps = (int) Math.ceil(maxVel / (GameCore.tiles_size / 2.0));
+
+        // Se a velocidade for muito baixa, dá pelo menos 1 passo normal
+        if (steps == 0) {
+            steps = 1;
         }
-        // Movimento Vertical
-        cbX = x + bodyCollider.getOffsetX();
-        if (!HelpMethods.CanMoveHere(cbX, proxY, cbW, cbH, lvlData)) {
-            if (velY > 0) {
-                int tileY = (int) ((proxY + cbH) / GameCore.tiles_size);
-                y = (tileY * GameCore.tiles_size) - cbH - 0.1 - bodyCollider.getOffsetY();
-            } else if (velY < 0) {
-                int tileY = (int) (proxY / GameCore.tiles_size);
-                y = ((tileY + 1) * GameCore.tiles_size) + 0.1 - bodyCollider.getOffsetY();
+
+        double stepX = velX / steps;
+        double stepY = velY / steps;
+
+        for (int i = 0; i < steps; i++) {
+            double cbX = x + bodyCollider.getOffsetX();
+            double cbY = y + bodyCollider.getOffsetY();
+
+            double proxX = cbX + stepX;
+            double proxY = cbY + stepY;
+
+            // Movimento Horizontal
+            if (!HelpMethods.CanMoveHere(proxX, cbY, cbW, cbH, lvlData)) {
+                if (stepX > 0) { // Colisão na parede direita
+                    int tileX = (int) ((proxX + cbW) / GameCore.tiles_size);
+                    x = (tileX * GameCore.tiles_size) - cbW - 0.1 - bodyCollider.getOffsetX();
+                } else if (stepX < 0) { // Colisão na parede esquerda
+                    int tileX = (int) (proxX / GameCore.tiles_size);
+                    x = ((tileX + 1) * GameCore.tiles_size) + 0.1 - bodyCollider.getOffsetX();
+                }
+
+                // Zera as variáveis porque batemos em uma parede
+                velX = 0;
+                stepX = 0;
+            } else {
+                x += stepX;
             }
-            velY = 0;
-        } else {
-            y += velY;
+
+            // Atualiza a posição X real
+            cbX = x + bodyCollider.getOffsetX();
+
+            // Movimento Vertical
+            if (!HelpMethods.CanMoveHere(cbX, proxY, cbW, cbH, lvlData)) {
+                if (stepY > 0) {
+                    int tileY = (int) ((proxY + cbH) / GameCore.tiles_size);
+                    y = (tileY * GameCore.tiles_size) - cbH - 0.1 - bodyCollider.getOffsetY();
+                } else if (stepY < 0) {
+                    int tileY = (int) (proxY / GameCore.tiles_size);
+                    y = ((tileY + 1) * GameCore.tiles_size) + 0.1 - bodyCollider.getOffsetY();
+                }
+
+                // Zera as variáveis porque batemos no chão/teto
+                velY = 0;
+                stepY = 0;
+            } else {
+                y += stepY;
+            }
+
+            // Se bateu numa quina e as duas velocidades zeraram no meio do loop.
+            if (stepX == 0 && stepY == 0) {
+                break;
+            }
         }
     }
 
