@@ -155,22 +155,21 @@ public class Jumper extends Enemy {
     }
 
     @Override
-    public void receberDano(int dano) {
-        // INVULNERABILIDADE
+    public void receberDano(int dano, double sourceX, double sourceY, double knockbackForce) {
+        // Invulnerabilidade Total
         if (estadoAtual == Status.PULANDO || estadoAtual == Status.FLUTUANDO) {
             return;
         }
 
-        super.receberDano(dano);
+        super.receberDano(dano, sourceX, sourceY, knockbackForce);
 
-        // STUN
+        // Stun
         if (estadoAtual == Status.PREPARANDO) {
             estadoAtual = Status.COOLDOWN;
             timer = tempoCooldown;
             pulosDados = 0;
             velX = 0;
             velY = 0;
-            System.out.println("Jumper teve as pernas quebradas no preparo!");
         }
     }
 

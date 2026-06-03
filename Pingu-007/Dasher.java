@@ -128,10 +128,10 @@ public class Dasher extends Enemy {
     }
 
     @Override
-    public void receberDano(int dano) {
+    public void receberDano(int dano, double sourceX, double sourceY, double knockbackForce) {
         // caso queira que ele seja imune a tiros durante o dash
         // if (estadoAtual == Estado.DASHING) return; 
-        super.receberDano(dano);
+        super.receberDano(dano, sourceX, sourceY, knockbackForce);
         // Stun se for atingindo no meio do dash, vale decidir se isso fica no jogo ou não
         if (interromperNoTiro && estadoAtual == Status.DASHING) {
             estadoAtual = Status.COOLDOWN;

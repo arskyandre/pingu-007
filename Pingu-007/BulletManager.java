@@ -24,7 +24,7 @@ public class BulletManager {
             if (b.getOwner() == BulletOwner.PLAYER) {
                 for (Enemy e : enemies) {
                     if (b.getCollider().intersects(b.getX(), b.getY(), e.getHurtbox(), e.getX(), e.getY())) {
-                        e.receberDano(b.getDano());
+                        e.receberDano(b.getDano(), b.getX(), b.getY(), b.getKnockback());
                         b.desativar(); // Destroi a bala
                         break; // Sai do loop para a mesma bala não acertar dois inimigos
                     }

@@ -22,6 +22,24 @@ public abstract class Enemy extends Entity {
     // O método update agora é abstrato. Cada tipo de inimigo (Zumbi, Dasher, Boss) cria a sua própria IA
     public abstract void update(Player player);
 
+    // Knockback Direcional
+    public void receberDano(int dano, double sourceX, double sourceY, double knockbackForce) {
+        this.receberDano(dano); // Chama o dano normal que subtrai vida
+
+        double meuCenterX = this.x + bodyCollider.getOffsetX() + (bodyCollider.getWidth() / 2.0);
+        double meuCenterY = this.y + bodyCollider.getOffsetY() + (bodyCollider.getHeight() / 2.0);
+
+        double dx = meuCenterX - sourceX;
+        double dy = meuCenterY - sourceY;
+        double dist = Math.sqrt(dx * dx + dy * dy);
+
+        // Aplica o Knockback
+        if (dist > 0) {
+            this.velX += (dx / dist) * knockbackForce;
+            this.velY += (dy / dist) * knockbackForce;
+        }
+    }
+
     public void draw(Graphics2D g2) {
         g2.setColor(cor);
         g2.fill(new Rectangle2D.Double(x, y, width, height));

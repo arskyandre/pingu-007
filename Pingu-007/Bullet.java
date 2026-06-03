@@ -8,6 +8,7 @@ public class Bullet {
     private final double velX, velY;
     final private double speed = 5.0;
     private boolean active = true;
+    private final double KnockbackForce = 20;
 
     private final double maxDistancia = 600.0;
 
@@ -79,5 +80,9 @@ public class Bullet {
 
     public int getDano() {
         return dano;
+    }
+
+    public double getKnockback() {
+        return KnockbackForce;
     }
 }
