@@ -114,6 +114,7 @@ public class Renderer {
             dirY = quadrado.getDashDirY();
         } else if (!quadrado.isEmDash()) {
             // Tick de animação
+            Boolean parado = !quadrado.isMovendo();
             animTick++;
             if (animTick >= animSpeed) {
                 animTick = 0;
@@ -125,7 +126,7 @@ public class Renderer {
 
             switch (dir) {
                 case UP -> {
-                    if (animIndex % 2 == 0) {
+                    if (animIndex % 2 == 0 || parado) {
                         animSp = 14;
                     } else {
                         if (animIndex == 1) {
@@ -136,7 +137,7 @@ public class Renderer {
                     }
                 }
                 case RIGHT -> {
-                    if (animIndex % 2 == 0) {
+                    if (animIndex % 2 == 0 || parado) {
                         animSp = 7;
                     } else {
                         if (animIndex == 1) {
@@ -149,7 +150,7 @@ public class Renderer {
                 case LEFT -> {
                     xx = (int) (quadrado.getX() + GameCore.tiles_size);
                     inv = -1;
-                    if (animIndex % 2 == 0) {
+                    if (animIndex % 2 == 0 || parado) {
                         animSp = 7;
                     } else {
                         if (animIndex == 1) {
@@ -160,7 +161,7 @@ public class Renderer {
                     }
                 }
                 default -> {
-                    if (animIndex % 2 == 0) {
+                    if (animIndex % 2 == 0 || parado) {
                         animSp = 0;
                     } else {
                         if (animIndex == 1) {

@@ -40,6 +40,7 @@ public class EnemyManager {
         for (Enemy e : enemies) {
             if (camera.onScreen(e.getX(), e.getY(), e.getLargura(), e.getAltura(), telaLargura, telaAltura)) {
                 e.draw(g2);
+                e.animate(g2);
             }
         }
     }

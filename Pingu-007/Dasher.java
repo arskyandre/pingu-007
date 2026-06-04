@@ -1,5 +1,7 @@
 
 import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 
 public class Dasher extends Enemy {
 
@@ -11,6 +13,10 @@ public class Dasher extends Enemy {
     private int timer = 0;
     private double dashDirX = 0;
     private double dashDirY = 0;
+    private int animTick = 0;
+    private int animIndex = 0;
+    private int dirS=0;
+    
 
     // Configurações do Dasher
     private final double distAtivacao = 200.0; // distancia ele tenta atacar
@@ -21,6 +27,8 @@ public class Dasher extends Enemy {
     private final double atritoDash = 0.94;
 
     public boolean interromperNoTiro = true;
+
+    private BufferedImage[] Sprites;
 
     public Dasher(double startX, double startY, double width, double height, int[][] lvlData) {
         super(startX, startY, width, height, lvlData);
@@ -34,6 +42,16 @@ public class Dasher extends Enemy {
         this.hurtbox = new Collider(0, 0, width, height);
         this.hitbox = new Collider(4, 4, width - 8, height - 8);
         this.cor = Color.CYAN;
+
+        BufferedImage img = LoadSave.GetSpriteAtlas("narval_sprite_sheet.png");
+        Sprites = new BufferedImage[9];
+        for(int j=0; j<2; j++){
+            for(int i=0; i<4; i++){
+                int index = j*4 + i;
+                Sprites[index] = img.getSubimage(i * 16, j * 16, 16, 16);
+            }
+        }
+        Sprites[8] = img.getSubimage(0, 32, 19, 16);
     }
 
     @Override
@@ -125,6 +143,56 @@ public class Dasher extends Enemy {
                 player.receberDano(danoContato);
             }
         }
+          
+        if(velX > 0)
+            dirS = 1;
+        else if(velX < 0)
+            dirS = 0;
+    }
+
+    @Override
+    public void animate(Graphics2D g2){
+        int xx = (int)x;
+        int inv = 1;
+
+        if(dirS == 0){
+            inv = -1;
+            xx =(int) (x + width);
+        }
+        
+
+        if(estadoAtual == Status.DASHING){
+            g2.drawImage(Sprites[8],xx,(int)y,inv * (int) (19 * width / 16),(int)height,null);
+        }
+        else{
+            if(estadoAtual == Status.PREPARANDO){
+                if(timer>54)
+                    animIndex = 3;
+                else if(timer>48)
+                    animIndex = 4;
+                else if(timer>42)
+                    animIndex = 5;
+                else if(timer>36)
+                    animIndex = 6;
+                else
+                    animIndex = 7;
+            }
+            else{
+                animTick++;
+                if(animTick>=90){
+                    animTick = 0;
+                    animIndex++;
+                    if(animIndex>=3)
+                        animIndex = 0;
+                }
+            }
+            g2.drawImage(Sprites[animIndex],xx,(int)y,inv * (int)width,(int)height,null);
+        }
+    }
+    
+    @Override
+    public void draw(Graphics2D g2){
+        //para cancelar o draw dele
     }
 
     @Override
