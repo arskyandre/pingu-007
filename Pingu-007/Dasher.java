@@ -143,7 +143,7 @@ public class Dasher extends Enemy {
                 player.receberDano(danoContato);
             }
         }
-          
+        //direção esquerda(0) ou direita(1)
         if(velX > 0)
             dirS = 1;
         else if(velX < 0)
@@ -179,10 +179,10 @@ public class Dasher extends Enemy {
             }
             else{
                 animTick++;
-                if(animTick>=90){
+                if(animTick >= 90){
                     animTick = 0;
                     animIndex++;
-                    if(animIndex>=3)
+                    if(animIndex >= 3)
                         animIndex = 0;
                 }
             }
