@@ -63,10 +63,10 @@ public class Player extends Entity {
         this.vida = this.vidaMaxima;
     }
 
-    //TEMPORARIO(TESTE): Adiciona loot de municao no chao com o clique direito, remover essa funcao e deletar a chamada no GameCore dps
     private int muniCOoldownTimer = 0;
     private final int muniCooldown = 60;
-
+    
+    //TEMPORARIO(TESTE): Adiciona loot de municao no chao com o clique direito, remover essa funcao e deletar a chamada no GameCore dps
     public void testemunicao(InputManager input, int telaLargura, int telaAltura, LootManager lootmanager, CameraManager camera) {
         if (muniCOoldownTimer > 0) {
             muniCOoldownTimer--;
@@ -305,5 +305,7 @@ public class Player extends Entity {
     public Boolean isMovendo() {
         return (velX > 0.2 || velX < -0.2) || (velY > 0.2 || velY < -0.2);
     }
+
+
 
 }

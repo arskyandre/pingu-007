@@ -7,7 +7,7 @@ public class Renderer {
 
     // Controle para ativar/desativar os visuais de teste
     public boolean modoDebug = false;
-    //pingu
+    // pingu
     private BufferedImage[] pinguSprites;
     private int pSpriteNum = 21;
     Boolean preDash = false;
@@ -17,7 +17,7 @@ public class Renderer {
     private double dirX = 0, dirY = 0;
 
     public Renderer() {
-        //Importa os Sprites e separa eles no vetor
+        // Importa os Sprites e separa eles no vetor
         BufferedImage img = LoadSave.GetSpriteAtlas("pingu_sprite_sheet.png");
 
         pinguSprites = new BufferedImage[pSpriteNum];
@@ -30,8 +30,9 @@ public class Renderer {
 
     }
 
-    public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura, int telaAltura,
-            LevelManager lm, BulletManager bulletmanager, LootManager lootmanager, EnemyManager enemyManager) {
+    public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura,
+            int telaAltura,
+            LevelManager lm, BulletManager bulletmanager, LootManager lootmanager, EnemyManager enemyManager, Hud HUD) {
         // Limpa tela / Background
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, telaLargura, telaAltura);
@@ -55,23 +56,33 @@ public class Renderer {
         }
         g2.setTransform(originalTransform);
         renderMouse(g2, input);
+        renderHUD(g2, telaLargura, telaAltura, camera, HUD, quadrado, enemyManager);
     }
 
-    private void renderLoot(Graphics2D g2, LootManager lootmanager, CameraManager camera, int telaLargura, int telaAltura) {
+    private void renderHUD(Graphics2D g2, int telaLargura, int telaAltura, CameraManager camera, Hud hud, Player player,
+            EnemyManager enemymanager) {
+        hud.draw(g2, telaLargura, telaAltura, camera, player, enemymanager);
+    }
+
+    private void renderLoot(Graphics2D g2, LootManager lootmanager, CameraManager camera, int telaLargura,
+            int telaAltura) {
         lootmanager.draw(g2, camera, telaLargura, telaAltura);
     }
 
-    private void renderBullets(Graphics2D g2, BulletManager bulletmanager, CameraManager camera, int telaLargura, int telaAltura) {
+    private void renderBullets(Graphics2D g2, BulletManager bulletmanager, CameraManager camera, int telaLargura,
+            int telaAltura) {
         bulletmanager.draw(g2, camera, telaLargura, telaAltura);
     }
 
     private void renderMap(Graphics2D g2, LevelManager lm, CameraManager camera, int telaLargura, int telaAltura) {
         // FIXED?: Renderizar o mapa do jeito certinho
-        // TODO: Alex, em teoria eu dei uma consertada na renderização do mapa, checa depois
+        // TODO: Alex, em teoria eu dei uma consertada na renderização do mapa, checa
+        // depois
         lm.draw(g2, camera, telaLargura, telaAltura);
     }
 
-    private void renderEnemies(Graphics2D g2, EnemyManager enemyManager, CameraManager camera, int telaLargura, int telaAltura) {
+    private void renderEnemies(Graphics2D g2, EnemyManager enemyManager, CameraManager camera, int telaLargura,
+            int telaAltura) {
         enemyManager.draw(g2, camera, telaLargura, telaAltura);
     }
 
@@ -84,26 +95,26 @@ public class Renderer {
         Direction dir = quadrado.getDirection();
         Color cor = Color.YELLOW;
         /*
-        if (dir != null) {
-            cor = switch (dir) {
-                case UP ->
-                    Color.BLUE;
-                case DOWN ->
-                    Color.RED;
-                case LEFT ->
-                    Color.GREEN;
-                default ->
-                    Color.YELLOW;
-            };
-        }
-        g2.setColor(cor);
-        g2.fill(new Rectangle2D.Double(
-                quadrado.getX(),
-                quadrado.getY(),
-                quadrado.getLargura(),
-                quadrado.getAltura()));
-
-        
+         * if (dir != null) {
+         * cor = switch (dir) {
+         * case UP ->
+         * Color.BLUE;
+         * case DOWN ->
+         * Color.RED;
+         * case LEFT ->
+         * Color.GREEN;
+         * default ->
+         * Color.YELLOW;
+         * };
+         * }
+         * g2.setColor(cor);
+         * g2.fill(new Rectangle2D.Double(
+         * quadrado.getX(),
+         * quadrado.getY(),
+         * quadrado.getLargura(),
+         * quadrado.getAltura()));
+         * 
+         * 
          */
 
         xx = (int) quadrado.getX();

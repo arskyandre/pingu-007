@@ -12,6 +12,7 @@ public class GameCore extends Canvas implements Runnable {
     // Componentes do Jogo
     private EnemyManager enemyManager;
     private final Player player;
+    private final Hud hud;
     private BulletManager bulletmanager;
     private LootManager lootmanager;
     private final InputManager input;
@@ -39,7 +40,7 @@ public class GameCore extends Canvas implements Runnable {
         levelManager = new LevelManager(this);
         enemyManager = new EnemyManager(levelManager, bulletmanager);
         camera = new CameraManager(player.getX(), player.getY(), 1.0);
-
+        hud = new Hud();
         player.loadLvlData(levelManager.getCurLevelData());
 
         addKeyListener(input);
@@ -71,7 +72,7 @@ public class GameCore extends Canvas implements Runnable {
                 Graphics2D g2 = (Graphics2D) bs.getDrawGraphics();
                 // Repassa o Graphics2D para o renderizador
                 // Atualize a chamada do renderizar:
-                renderer.renderizar(g2, camera, player, input, getWidth(), getHeight(), levelManager, bulletmanager, lootmanager, enemyManager);
+                renderer.renderizar(g2, camera, player, input, getWidth(), getHeight(), levelManager, bulletmanager, lootmanager, enemyManager, hud);
 
                 g2.dispose();
             } while (bs.contentsRestored());

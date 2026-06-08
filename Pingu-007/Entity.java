@@ -128,6 +128,14 @@ public abstract class Entity {
         return y;
     }
 
+    public int getVida(){
+        return vida;
+
+    }
+    public int getVidaMax(){
+        return vidaMaxima;
+    }
+
     public Collider getHitbox() {
         return hitbox;
     }
