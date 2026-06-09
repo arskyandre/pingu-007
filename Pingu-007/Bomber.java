@@ -1,6 +1,7 @@
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 public class Bomber extends Enemy {
@@ -21,6 +22,11 @@ public class Bomber extends Enemy {
     private final int danoExplosao = 30;
     private final double forcaExplosao = 25.0; // Knockback massivo gerado pela explosão
 
+    private int dirS=0;
+    private int animTick = 0;
+    private int animIndex = 0;
+    private BufferedImage[] Sprites;
+
     // Variações mutáveis do inimigo
     public boolean soltaBalas = true;
     public boolean danoAosInimigos = true;
@@ -40,6 +46,15 @@ public class Bomber extends Enemy {
         this.bodyCollider = new Collider(0, height / 2.0, width, height / 2.0);
         this.hurtbox = new Collider(0, 0, width, height);
         this.hitbox = new Collider(4, 4, width - 8, height - 8);
+
+        BufferedImage img = LoadSave.GetSpriteAtlas("nineeleven_sprite_sheet.png");
+        Sprites = new BufferedImage[21];
+        for(int i = 0; i<3; i++){
+            for(int j = 0; j<7; j++){
+                int index = i*7 + j;
+                Sprites[index] = img.getSubimage(j*16, i*16, 16, 16);
+            }
+        }
     }
 
     @Override
@@ -81,6 +96,11 @@ public class Bomber extends Enemy {
 
         aplicarFisicaBasica();
         moveAndCollideWithMap(lvlData);
+
+        if(velY > 0)
+            dirS = 1;
+        else if (velY < 0)
+            dirS = 0;
     }
 
     private void detonar(Player player, double meuCenterX, double meuCenterY) {
@@ -142,6 +162,7 @@ public class Bomber extends Enemy {
 
     @Override
     public void draw(Graphics2D g2) {
+        
         int drawX = (int) x;
         int drawY = (int) y;
         int w = (int) width;
@@ -162,7 +183,40 @@ public class Bomber extends Enemy {
             g2.fillOval(rx, ry, (int) raioExplosao * 2, (int) raioExplosao * 2);
         }
 
-        g2.setColor(cor);
-        g2.fillOval(drawX, drawY, w, h);
+        //g2.setColor(cor);
+        //g2.fillOval(drawX, drawY, w, h);
+        
+    }
+
+    @Override
+    public void animate(Graphics2D g2){
+        if(estadoAtual == Status.PERSEGUINDO){
+            animTick++;
+            if(animTick >= 90){
+                animTick = 0;
+                animIndex++;
+                if(animIndex >= 7)
+                    animIndex = 0;
+            }
+            if(dirS == 0)
+                g2.drawImage(Sprites[animIndex+7], (int)x, (int)y, (int)width, (int)height, null);
+            else
+                g2.drawImage(Sprites[animIndex], (int)x, (int)y, (int)width, (int)height, null);
+        }
+        else if(estadoAtual == Status.ACIONADO){
+            if(timer > 34)
+                animIndex = 14;
+            else if(timer > 28)
+                animIndex = 15;
+            else if(timer > 22)
+                animIndex = 16;
+            else if(timer > 16)
+                animIndex = 17;
+            else if(timer > 10)
+                animIndex = 18;
+            else
+                animIndex = 19;
+            g2.drawImage(Sprites[animIndex], (int)x, (int)y, (int)width, (int)height, null);
+        }
     }
 }
