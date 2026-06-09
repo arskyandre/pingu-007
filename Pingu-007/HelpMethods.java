@@ -26,12 +26,15 @@ public class HelpMethods {
         try {
             tile = lvlData[(int) yIndex][(int) xIndex];
         } catch (Exception e) {
-            System.out.println("Out of bounds");
-            tile = -1;
+            return true;
         }
 
         //System.out.println(tile);
-        return (tile >= 80 || tile < 0 || (tile != 17));
+        if(tile == 0 || tile == 17 || tile == 27 || tile == 18 || tile == 28 || tile == 76 || tile == 77){
+            return false;
+        }
+
+        return true;
     }
 
 }

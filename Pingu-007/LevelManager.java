@@ -17,7 +17,7 @@ public class LevelManager {
         //Por enquanto o GetLevelData so pega o do level 1
         //mas em breve poderemos passar pela função o nivel que
         //ele quer carregar
-        level_1 = new Level(LoadSave.GetLevelData());
+        level_1 = new Level(LoadSave.GetLevelData(LoadSave.LEVEL_1_DATA));
 
     }
 
@@ -58,12 +58,16 @@ public class LevelManager {
 
                 int index = level_1.getSpriteIndex(i, j);
 
-                g2.drawImage(levelSprite[index],
+
+                if(index > 0){
+                    int javaIndex = index-1;
+                g2.drawImage(levelSprite[javaIndex],
                         i * GameCore.tiles_size,
                         j * GameCore.tiles_size,
                         GameCore.tiles_size,
                         GameCore.tiles_size,
                         null);
+                }
             }
         }
     }

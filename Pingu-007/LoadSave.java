@@ -3,6 +3,8 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 
@@ -12,7 +14,7 @@ public class LoadSave {
 
     //public static final String PLAYER_ATLAS = "player_sprites.png";
     public static final String LEVEL_ATLAS = "tileset_placeholder.png";
-    public static final String LEVEL_1_DATA = "LEVEL_1_DATA.png";
+    public static final String LEVEL_1_DATA = "LEVEL_1_DATA.json";
     
     public static BufferedImage GetSpriteAtlas(String filename){
         BufferedImage img = null;
@@ -32,26 +34,35 @@ public class LoadSave {
     }
     
 
-    //TODO: Implementar para que a função receba qual
-    //level ele quer pegar data, por enquanto so pega do level 1
-    public static int[][] GetLevelData(){
+    //Agora a função pode receber o nome do arquivo, permitindo carregar qualquer level!
+    public static int[][] GetLevelData(String filename){
         int[][] lvlData = new int [GameCore.tiles_in_height][GameCore.tiles_in_width];
-        BufferedImage img = GetSpriteAtlas(LEVEL_1_DATA);
+        InputStream is = LoadSave.class.getResourceAsStream("/" + filename);
 
-        for(int j=0; j<img.getHeight(); j++){
-            for(int i=0; i<img.getWidth(); i++){
-                Color color = new Color(img.getRGB(i, j));
-                int value = color.getRed();
-                if(value>=80)
-                    value=18;
-                lvlData[j][i] = value;
-                //Debug
-                    //System.out.print(value+" ");
+        try(Scanner scanner = new Scanner(is, StandardCharsets.UTF_8.name())){
+            String jsonText = scanner.useDelimiter("\\A").next();
+
+            int startIndex = jsonText.indexOf("\"data\":[") + 8;
+            int endIndex = jsonText.indexOf("]", startIndex);
+            
+            String dataString = jsonText.substring(startIndex, endIndex);
+            String[] stringValues = dataString.split(",");
+
+            int index = 0;
+
+            for(int j = 0; j < GameCore.tiles_in_height; j++){
+                for(int i = 0; i < GameCore.tiles_in_width; i++){
+                    int tileValue = Integer.parseInt(stringValues[index].trim());
+
+                    lvlData[j][i] = tileValue;
+                    index++;
+                }
             }
-            //Debug
-                //System.out.println();
-
+        }catch(Exception e){
+            System.err.println("Erro ao ler arquivo JSON do mapa: " + filename);
+            e.printStackTrace();
         }
+
         return lvlData;
     }
     
