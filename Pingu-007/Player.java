@@ -36,7 +36,7 @@ public class Player extends Entity {
     private final int shootCooldown = 20;
     private int reloadCooldownTimer = 0;
     private final int reloadCooldown = 30;
-
+    private boolean danoRecebidoFlag = false;
     // iframes
     private int iFramesTimer = 0;
     private final int iFramesDanoDuration = 60;
@@ -65,9 +65,11 @@ public class Player extends Entity {
 
     private int muniCOoldownTimer = 0;
     private final int muniCooldown = 60;
-    
-    //TEMPORARIO(TESTE): Adiciona loot de municao no chao com o clique direito, remover essa funcao e deletar a chamada no GameCore dps
-    public void testemunicao(InputManager input, int telaLargura, int telaAltura, LootManager lootmanager, CameraManager camera) {
+
+    // TEMPORARIO(TESTE): Adiciona loot de municao no chao com o clique direito,
+    // remover essa funcao e deletar a chamada no GameCore dps
+    public void testemunicao(InputManager input, int telaLargura, int telaAltura, LootManager lootmanager,
+            CameraManager camera) {
         if (muniCOoldownTimer > 0) {
             muniCOoldownTimer--;
         }
@@ -85,15 +87,22 @@ public class Player extends Entity {
             }
         }
     }
-    //FIM TESTE
+    // FIM TESTE
 
     @Override
     public void receberDano(int dano) {
         if (iFramesTimer == 0 && !emDash) {
             super.receberDano(dano);
             iFramesTimer = iFramesDanoDuration;
+            danoRecebidoFlag = true;
             System.out.println("Player tomou dano! Vida: " + vida);
         }
+    }
+
+    public boolean consumirDanoFlag() {
+        boolean val = danoRecebidoFlag;
+        danoRecebidoFlag = false;
+        return val;
     }
 
     public void update(InputManager input, int telaLargura, int telaAltura, CameraManager camera) {
@@ -216,7 +225,7 @@ public class Player extends Entity {
         // Retorna o atrito normal
         this.atritoPadrao = atritoSalvo;
 
-        //COLISAO Com Tiles
+        // COLISAO Com Tiles
         moveAndCollideWithMap(lvlData);
 
         // Colisões com as bordas do Mapa
@@ -272,7 +281,7 @@ public class Player extends Entity {
         System.out.println("coletou " + String.valueOf(qtd) + " total: " + String.valueOf(municao));
     }
 
-    //pegar info do mapa
+    // pegar info do mapa
     public void loadLvlData(int[][] lvlData) {
         this.lvlData = lvlData;
     }
@@ -305,7 +314,5 @@ public class Player extends Entity {
     public Boolean isMovendo() {
         return (velX > 0.2 || velX < -0.2) || (velY > 0.2 || velY < -0.2);
     }
-
-
 
 }
