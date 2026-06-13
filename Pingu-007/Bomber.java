@@ -192,7 +192,7 @@ public class Bomber extends Enemy {
     public void animate(Graphics2D g2){
         if(estadoAtual == Status.PERSEGUINDO){
             animTick++;
-            if(animTick >= 90){
+            if(animTick >= 12){
                 animTick = 0;
                 animIndex++;
                 if(animIndex >= 7)

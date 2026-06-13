@@ -1,6 +1,8 @@
 
+import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 //import static HelpMethods.CanMoveHere;
 
 public class Player extends Entity {
@@ -41,11 +43,14 @@ public class Player extends Entity {
     private int iFramesTimer = 0;
     private final int iFramesDanoDuration = 60;
     private final int iFramesDashGrace = 15;
+    //animate
+    private BufferedImage[] Sprites;
+    private int animIndex = 0;
+    private int animTick = 0;
+    private int animSp = 0;
+    int t=0;
+    
 
-    // TODO: digo isso por que acho que seria bom se parte do sprite
-    // não colidisse com blocos especificamente acima dele
-    // pra criar uma ilusão de 3d mais não tenho certeza
-    // então por enquanto só hitbox
     private int[][] lvlData;
 
     public Player(double startX, double startY, double largura, double altura, BulletManager bulmgr) {
@@ -61,6 +66,16 @@ public class Player extends Entity {
         this.hurtbox = new Collider(0, 0, largura, altura);
         this.vidaMaxima = 100;
         this.vida = this.vidaMaxima;
+        // Importa os Sprites e separa eles no vetor
+        BufferedImage img = LoadSave.GetSpriteAtlas("pingu_sprite_sheet.png");
+
+        Sprites = new BufferedImage[21];
+        for (int j = 0; j < 3; j++) {
+            for (int i = 0; i < 7; i++) {
+                int index = j * 7 + i;
+                Sprites[index] = img.getSubimage(i * 16, j * 16, 16, 16);
+            }
+        }
     }
 
     private int muniCOoldownTimer = 0;
@@ -276,6 +291,73 @@ public class Player extends Entity {
         }
     }
 
+    @Override
+    public void animate(Graphics2D g2){
+        int inv=1;
+        int xx = (int)x;
+
+        
+        if(dashDuracaoTimer > 0){
+            if(dashDirX < 0){
+                inv = -1; xx = (int)(x + GameCore.tiles_size);
+            }
+            if(dashDuracaoTimer > 26){
+                animIndex = 0;
+            }
+            else if(dashDuracaoTimer > 24){
+                animIndex = 1;
+            }
+            else if(dashDuracaoTimer > 22){
+                animIndex = 2;
+            }
+            else{
+                animIndex = 3;
+            }
+            if(dashDirX != 0){
+                animSp = 10;
+            }
+            else if (dashDirY < 0){
+                animSp = 17;
+            }
+            else{
+                animSp = 3;
+            }
+        }
+
+        else{
+            if(direction == Direction.LEFT){
+                inv = -1; xx = (int)(x + GameCore.tiles_size);
+            }
+            animTick++;
+            if(animTick>=12){
+                animTick=0;
+                t++;
+                if(t>=4){
+                    t = 0;
+                }     
+                if(t%2==0)
+                    animIndex = 0;
+                else{
+                    if(t==1) animIndex = 1;
+                    if(t==3) animIndex = 2;
+                }
+            }
+            if(direction == Direction.DOWN){
+                animSp = 0;
+            }
+            else if (direction == Direction.UP){
+                animSp = 14;
+            }
+            else{
+                animSp = 7;
+            }
+        }
+        if(!isMoving())
+            animIndex = 0;
+        g2.drawImage(Sprites[animSp+animIndex], xx, (int)y,48*inv,48,null);
+
+    }
+
     public void addMunicao(int qtd) {
         municao += qtd;
         System.out.println("coletou " + String.valueOf(qtd) + " total: " + String.valueOf(municao));
@@ -311,7 +393,7 @@ public class Player extends Entity {
         return dashDirY;
     }
 
-    public Boolean isMovendo() {
+    public Boolean isMoving() {
         return (velX > 0.2 || velX < -0.2) || (velY > 0.2 || velY < -0.2);
     }
 

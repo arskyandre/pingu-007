@@ -15,11 +15,11 @@ public class EnemyManager {
 
         this.bulmgr = bulletManager;
         //enemies.add(new Jumper(100, 100, 40, 40, this.lvlData, this.bulmgr));
-        //enemies.add(new Shooter(100, 100, 60, 60, this.lvlData, this.bulmgr));
-        enemies.add(new Dasher(100, 100, 40, 40, lvlData));
-        enemies.add(new BasicEnemy(500, 400, 40, 40, lvlData));
-        enemies.add(new Bomber(100, 100, 40, 40, lvlData, bulmgr, enemies));
-        enemies.add(new Bomber(100, 100, 40, 40, lvlData, bulmgr, enemies));
+        enemies.add(new Shooter(100, 100, 60, 60, this.lvlData, this.bulmgr));
+        enemies.add(new Dasher(100, 100, 48, 48, lvlData));
+        enemies.add(new BasicEnemy(500, 400, 48, 48, lvlData));
+        enemies.add(new Bomber(100, 100, 48, 48, lvlData, bulmgr, enemies));
+        enemies.add(new Bomber(100, 100, 48, 48, lvlData, bulmgr, enemies));
     }
 
     public void update(Player player) {

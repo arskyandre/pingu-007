@@ -67,7 +67,7 @@ public class BasicEnemy extends Enemy {
         }
         
         animTick++;
-        if(animTick >= 90){
+        if(animTick >= 12){
             animTick = 0;
             animIndex++;
             if(animIndex >= 6)

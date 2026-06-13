@@ -21,10 +21,7 @@ public abstract class Enemy extends Entity {
     // O método update agora é abstrato. Cada tipo de inimigo (Zumbi, Dasher, Boss) cria a sua própria IA
     public abstract void update(Player player);
 
-    // Metodo abstrato, cada tipo de inimgo tem sprites e animaçõe diferentes. Mas ta assim por enquanto.
-    public void animate(Graphics2D g2){
-
-    }
+    
 
     // Knockback Direcional
     public void receberDano(int dano, double sourceX, double sourceY, double knockbackForce) {

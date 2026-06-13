@@ -1,3 +1,4 @@
+import java.awt.Graphics2D;
 
 public abstract class Entity {
 
@@ -26,6 +27,11 @@ public abstract class Entity {
 
     public boolean isDead() {
         return isDead;
+    }
+
+    // Metodo abstrato, cada tipo de inimgo tem sprites e animaçõe diferentes. Mas ta assim por enquanto.
+    public void animate(Graphics2D g2){
+
     }
 
     protected void aplicarFisicaBasica() {

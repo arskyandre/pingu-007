@@ -6,7 +6,7 @@ public class Bullet {
     private final BulletOwner owner;
     private final double largura, altura;
     private final double velX, velY;
-    final private double speed = 5.0;
+    final private double speed = 10.0;
     private boolean active = true;
     private final double KnockbackForce = 20;
 

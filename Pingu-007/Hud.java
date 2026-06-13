@@ -8,6 +8,7 @@ import java.util.Iterator;
 import javax.imageio.ImageIO;
 
 import java.awt.geom.RoundRectangle2D;
+//TODO: consertar corações que não aparecem, e a vida dos inimigos 
 
 public class Hud {
     private static final int HEART_SIZE = 9;

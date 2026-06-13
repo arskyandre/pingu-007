@@ -16,19 +16,6 @@ public class Renderer {
     private int animSpeed = 120;
     private double dirX = 0, dirY = 0;
 
-    public Renderer() {
-        // Importa os Sprites e separa eles no vetor
-        BufferedImage img = LoadSave.GetSpriteAtlas("pingu_sprite_sheet.png");
-
-        pinguSprites = new BufferedImage[pSpriteNum];
-        for (int j = 0; j < 3; j++) {
-            for (int i = 0; i < 7; i++) {
-                int index = j * 7 + i;
-                pinguSprites[index] = img.getSubimage(i * 16, j * 16, 16, 16);
-            }
-        }
-
-    }
 
     public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura,
             int telaAltura,
@@ -91,9 +78,9 @@ public class Renderer {
     }
 
     private void renderPlayer(Graphics2D g2, Player quadrado) {
-        // TODO: implementar sistema de sprites
         Direction dir = quadrado.getDirection();
         Color cor = Color.YELLOW;
+        quadrado.animate(g2);
         /*
          * if (dir != null) {
          * cor = switch (dir) {
@@ -117,7 +104,7 @@ public class Renderer {
          * 
          */
 
-        xx = (int) quadrado.getX();
+        /*xx = (int) quadrado.getX();
         inv = 1;
         if (preDash == false && quadrado.isEmDash() == true) {
             ds = animIndex = animTick = 0;
@@ -209,7 +196,7 @@ public class Renderer {
 
         g2.drawImage(pinguSprites[animSp], xx, (int) quadrado.getY(),
                 inv * GameCore.tiles_size, GameCore.tiles_size, null);
-        preDash = quadrado.isEmDash();
+        preDash = quadrado.isEmDash(); */
 
     }
 

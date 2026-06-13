@@ -39,7 +39,8 @@ public class GameCore extends Canvas implements Runnable {
         renderer = new Renderer();
         levelManager = new LevelManager(this);
         enemyManager = new EnemyManager(levelManager, bulletmanager);
-        camera = new CameraManager(player.getX(), player.getY(), 1.0);
+        //TODO: Consertar a hud quando alteramos o zoom;
+        camera = new CameraManager(player.getX(), player.getY(), 1);
         hud = new Hud();
         player.loadLvlData(levelManager.getCurLevelData());
 
