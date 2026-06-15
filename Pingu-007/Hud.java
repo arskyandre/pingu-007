@@ -41,7 +41,7 @@ public class Hud {
 
     public Hud() {
         try {
-            heartSheet = ImageIO.read(new File("heart_sprites.png"));
+            heartSheet = LoadSave.GetSpriteAtlas("heart_sprites.png");
         } catch (Exception e) {
             System.err.println("Erro ao carregar heart_sprites.png: " + e.getMessage());
         }
