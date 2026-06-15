@@ -17,6 +17,10 @@ public class Hud {
     private static final int HEART_GAP = 2;
     private static final int HEARTS_MAX = 10;
 
+    private static final int AMMO_BAR_WIDTH = 160;
+    private static final int AMMO_BAR_HEIGHT = 14;
+    private static final int AMMO_BAR_MARGIN = 16;
+
     private BufferedImage heartSheet;
 
     // ── Partículas ──────────────────────────────────────────────────────────────
@@ -58,6 +62,54 @@ public class Hud {
         player_hearts(g2, p);
         updateAndDrawParticles(g2);
         healthbar_inimigos(g2, telaLargura, telaAltura, camera, em);
+        ammobar(g2, telaLargura, telaAltura, p);
+    }
+
+    void ammobar(Graphics2D g2, int telaLargura, int telaAltura, Player p) {
+        int pente = p.getPente();
+        int penteMax = p.getPenteMax();
+        int municaoTotal = p.getMunicao();
+
+        if (penteMax <= 0)
+            return;
+
+        int barX = telaLargura - AMMO_BAR_WIDTH - AMMO_BAR_MARGIN;
+        int barY = telaAltura - AMMO_BAR_HEIGHT - AMMO_BAR_MARGIN;
+
+        g2.setColor(new Color(20, 20, 20, 180));
+        g2.fill(new RoundRectangle2D.Double(barX, barY,
+                AMMO_BAR_WIDTH, AMMO_BAR_HEIGHT, 6, 6));
+
+        int fillW = (int) ((AMMO_BAR_WIDTH - 4) * (double) pente / penteMax);
+        if (fillW > 0) {
+
+            GradientPaint grad = new GradientPaint(
+                    barX + 2, barY, new Color(200, 100, 10),
+                    barX + 2, barY + AMMO_BAR_HEIGHT, new Color(255, 165, 30));
+            Paint prev = g2.getPaint();
+            g2.setPaint(grad);
+            g2.fill(new RoundRectangle2D.Double(barX + 2, barY + 2,
+                    fillW, AMMO_BAR_HEIGHT - 4, 4, 4));
+            g2.setPaint(prev);
+        }
+
+        g2.setFont(new Font("Monospaced", Font.BOLD, 10));
+        String texto;
+        if (p.isReloading()) {
+            g2.setFont(new Font("Monospaced", Font.BOLD, 12));
+            texto = "Reloading...";
+        } else {
+            texto = pente + " / " + municaoTotal;
+        }
+        FontMetrics fm = g2.getFontMetrics();
+        int tx = barX + AMMO_BAR_WIDTH - fm.stringWidth(texto) - 4;
+        int ty = barY - 4;
+
+        g2.setColor(Color.BLACK);
+        g2.drawString(texto, tx + 1, ty + 1);
+
+        g2.setColor(new Color(255, 200, 80));
+        g2.drawString(texto, tx, ty);
     }
 
     private void spawnHeartParticles(Player p) {
@@ -174,7 +226,6 @@ public class Hud {
         double camY = camera.getY();
         double camzoom = camera.getZoom();
         ArrayList<Enemy> enemies = em.getEnemies();
-
         for (Enemy enemy : enemies) {
             int envida = enemy.getVida();
             int envidamax = enemy.getVidaMax();
@@ -184,11 +235,15 @@ public class Hud {
             double enX = enemy.getX();
             double enY = enemy.getY();
 
+            double screenX = (enX - camX) * camzoom;
+            double screenY = (enY - 32 - camY) * camzoom;
+
             g2.setColor(Color.BLACK);
-            g2.fill(new RoundRectangle2D.Double(enX - camX, enY - 32 - camY, 48, 8, 4, 4));
+            g2.fill(new RoundRectangle2D.Double(screenX, screenY, 48 * camzoom, 8 * camzoom, 4, 4));
             g2.setColor(Color.RED);
-            g2.fill(new RoundRectangle2D.Double((enX - camX + 1) / camzoom, (enY + 2 - 32 - camY) / camzoom,
-                    48 * (1.0 * envida / envidamax) - 2, 4, 2, 2));
+            g2.fill(new RoundRectangle2D.Double(screenX + 1 * camzoom, screenY + 2 * camzoom,
+                    (48 * (1.0 * envida / envidamax) - 2) * camzoom, 4 * camzoom, 2, 2));
+
         }
     }
 }

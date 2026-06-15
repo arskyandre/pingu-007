@@ -39,17 +39,17 @@ public class Player extends Entity {
     private int reloadCooldownTimer = 0;
     private final int reloadCooldown = 30;
     private boolean danoRecebidoFlag = false;
+    private boolean reloading = false;
     // iframes
     private int iFramesTimer = 0;
     private final int iFramesDanoDuration = 60;
     private final int iFramesDashGrace = 15;
-    //animate
+    // animate
     private BufferedImage[] Sprites;
     private int animIndex = 0;
     private int animTick = 0;
     private int animSp = 0;
-    int t=0;
-    
+    int t = 0;
 
     private int[][] lvlData;
 
@@ -193,10 +193,16 @@ public class Player extends Entity {
             }
         }
 
-        if (input.isKeyPressed(KeyEvent.VK_R)) {
-            if (municao == 0) {
-                System.out.println("sem municao");
-            } else {
+        // Inicia o reload
+        if (input.isKeyPressed(KeyEvent.VK_R) && !reloading && pente < maxpente && municao > 0) {
+            reloading = true;
+            reloadCooldownTimer = reloadCooldown;
+        }
+
+        // Processa o timer de reload
+        if (reloading) {
+            reloadCooldownTimer--;
+            if (reloadCooldownTimer <= 0) {
                 int diff = maxpente - pente;
                 if (municao >= diff) {
                     pente = maxpente;
@@ -205,6 +211,7 @@ public class Player extends Entity {
                     pente += municao;
                     municao = 0;
                 }
+                reloading = false;
             }
         }
 
@@ -292,75 +299,87 @@ public class Player extends Entity {
     }
 
     @Override
-    public void animate(Graphics2D g2){
-        int inv=1;
-        int xx = (int)x;
+    public void animate(Graphics2D g2) {
+        int inv = 1;
+        int xx = (int) x;
 
-        
-        if(dashDuracaoTimer > 0){
-            if(dashDirX < 0){
-                inv = -1; xx = (int)(x + GameCore.tiles_size);
+        if (dashDuracaoTimer > 0) {
+            if (dashDirX < 0) {
+                inv = -1;
+                xx = (int) (x + GameCore.tiles_size);
             }
-            if(dashDuracaoTimer > 26){
+            if (dashDuracaoTimer > 26) {
                 animIndex = 0;
-            }
-            else if(dashDuracaoTimer > 24){
+            } else if (dashDuracaoTimer > 24) {
                 animIndex = 1;
-            }
-            else if(dashDuracaoTimer > 22){
+            } else if (dashDuracaoTimer > 22) {
                 animIndex = 2;
-            }
-            else{
+            } else {
                 animIndex = 3;
             }
-            if(dashDirX != 0){
+            if (dashDirX != 0) {
                 animSp = 10;
-            }
-            else if (dashDirY < 0){
+            } else if (dashDirY < 0) {
                 animSp = 17;
-            }
-            else{
+            } else {
                 animSp = 3;
             }
         }
 
-        else{
-            if(direction == Direction.LEFT){
-                inv = -1; xx = (int)(x + GameCore.tiles_size);
+        else {
+            if (direction == Direction.LEFT) {
+                inv = -1;
+                xx = (int) (x + GameCore.tiles_size);
             }
             animTick++;
-            if(animTick>=12){
-                animTick=0;
+            if (animTick >= 12) {
+                animTick = 0;
                 t++;
-                if(t>=4){
+                if (t >= 4) {
                     t = 0;
-                }     
-                if(t%2==0)
+                }
+                if (t % 2 == 0)
                     animIndex = 0;
-                else{
-                    if(t==1) animIndex = 1;
-                    if(t==3) animIndex = 2;
+                else {
+                    if (t == 1)
+                        animIndex = 1;
+                    if (t == 3)
+                        animIndex = 2;
                 }
             }
-            if(direction == Direction.DOWN){
+            if (direction == Direction.DOWN) {
                 animSp = 0;
-            }
-            else if (direction == Direction.UP){
+            } else if (direction == Direction.UP) {
                 animSp = 14;
-            }
-            else{
+            } else {
                 animSp = 7;
             }
         }
-        if(!isMoving())
+        if (!isMoving())
             animIndex = 0;
-        g2.drawImage(Sprites[animSp+animIndex], xx, (int)y,48*inv,48,null);
+        g2.drawImage(Sprites[animSp + animIndex], xx, (int) y, 48 * inv, 48, null);
 
     }
 
     public void addMunicao(int qtd) {
         municao += qtd;
         System.out.println("coletou " + String.valueOf(qtd) + " total: " + String.valueOf(municao));
+    }
+
+    public int getPente() {
+        return pente;
+    }
+
+    public int getPenteMax() {
+        return maxpente;
+    }
+
+    public int getMunicao() {
+        return municao;
+    }
+
+    public boolean isReloading() {
+        return reloading;
     }
 
     // pegar info do mapa
