@@ -81,122 +81,28 @@ public class Renderer {
         Direction dir = quadrado.getDirection();
         Color cor = Color.YELLOW;
         quadrado.animate(g2);
-        /*
-         * if (dir != null) {
-         * cor = switch (dir) {
-         * case UP ->
-         * Color.BLUE;
-         * case DOWN ->
-         * Color.RED;
-         * case LEFT ->
-         * Color.GREEN;
-         * default ->
-         * Color.YELLOW;
-         * };
-         * }
-         * g2.setColor(cor);
-         * g2.fill(new Rectangle2D.Double(
-         * quadrado.getX(),
-         * quadrado.getY(),
-         * quadrado.getLargura(),
-         * quadrado.getAltura()));
-         * 
-         * 
-         */
-
-        /*xx = (int) quadrado.getX();
-        inv = 1;
-        if (preDash == false && quadrado.isEmDash() == true) {
-            ds = animIndex = animTick = 0;
-            dirX = quadrado.getDashDirX();
-            dirY = quadrado.getDashDirY();
-        } else if (!quadrado.isEmDash()) {
-            // Tick de animação
-            Boolean parado = !quadrado.isMovendo();
-            animTick++;
-            if (animTick >= animSpeed) {
-                animTick = 0;
-                animIndex++;
-                if (animIndex >= 4) {
-                    animIndex = 0;
-                }
-            }
-
-            switch (dir) {
-                case UP -> {
-                    if (animIndex % 2 == 0 || parado) {
-                        animSp = 14;
-                    } else {
-                        if (animIndex == 1) {
-                            animSp = 15;
-                        } else if (animIndex == 3) {
-                            animSp = 16;
-                        }
-                    }
-                }
-                case RIGHT -> {
-                    if (animIndex % 2 == 0 || parado) {
-                        animSp = 7;
-                    } else {
-                        if (animIndex == 1) {
-                            animSp = 8;
-                        } else if (animIndex == 3) {
-                            animSp = 9;
-                        }
-                    }
-                }
-                case LEFT -> {
-                    xx = (int) (quadrado.getX() + GameCore.tiles_size);
-                    inv = -1;
-                    if (animIndex % 2 == 0 || parado) {
-                        animSp = 7;
-                    } else {
-                        if (animIndex == 1) {
-                            animSp = 8;
-                        } else if (animIndex == 3) {
-                            animSp = 9;
-                        }
-                    }
-                }
-                default -> {
-                    if (animIndex % 2 == 0 || parado) {
-                        animSp = 0;
-                    } else {
-                        if (animIndex == 1) {
-                            animSp = 1;
-                        } else if (animIndex == 3) {
-                            animSp = 2;
-                        }
-                    }
-                }
-            }
-        } else if (quadrado.isEmDash()) {
-            // Tick de animação
-            animTick++;
-            if (animTick >= animSpeed) {
-                animTick = 0;
-                animIndex++;
-                if (animIndex >= 4) {
-                    animIndex = 3;
-                }
-            }
-
-            if (dirX < 0) {
-                xx = (int) (quadrado.getX() + GameCore.tiles_size);
-                inv = -1;
-                animSp = 10 + animIndex;
-            } else if (dirX > 0) {
-                animSp = 10 + animIndex;
-            } else if (dirY > 0) {
-                animSp = 3 + animIndex;
-            } else {
-                animSp = 17 + animIndex;
-            }
-        }
-
-        g2.drawImage(pinguSprites[animSp], xx, (int) quadrado.getY(),
-                inv * GameCore.tiles_size, GameCore.tiles_size, null);
-        preDash = quadrado.isEmDash(); */
+        
+        if (dir != null) {
+        cor = switch (dir) {
+         case UP ->
+         Color.BLUE;
+         case DOWN ->
+         Color.RED;
+         case LEFT ->
+         Color.GREEN;
+         default ->
+         Color.YELLOW;
+         };
+         }
+         g2.setColor(cor);
+         g2.fill(new Rectangle2D.Double(
+         quadrado.getX(),
+         quadrado.getY()+(quadrado.getAltura()/2),
+         quadrado.getLargura(),
+         quadrado.getAltura()/2));
+         
+         
+         
 
     }
 

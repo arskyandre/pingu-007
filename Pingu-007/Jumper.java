@@ -1,6 +1,7 @@
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 
 public class Jumper extends Enemy {
 
@@ -23,6 +24,11 @@ public class Jumper extends Enemy {
 
     private final double distAtivacao = 250.0; // Distância limite para descarregar o círculo de balas
 
+    // animate
+    private BufferedImage[] Sprites;
+    private double alt = 0;
+    private double squash = 0;
+
     public Jumper(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr) {
         super(startX, startY, width, height, lvlData);
         this.bulletManager = bulmgr;
@@ -39,6 +45,15 @@ public class Jumper extends Enemy {
         this.hitbox = new Collider(4, 4, width - 8, height - 8);
 
         this.timer = tempoPreparo;
+
+        BufferedImage img = LoadSave.GetSpriteAtlas("boneve_sprite_sheet.png");
+        Sprites = new BufferedImage[14];
+        for(int i = 0; i < 2; i++){
+            for(int j = 0; j < 7; j++){
+                int index = i*7 + j;
+                Sprites[index] = img.getSubimage(j*16, i*16, 16, 16);
+            }
+        }
     }
 
     @Override
@@ -171,6 +186,71 @@ public class Jumper extends Enemy {
             velX = 0;
             velY = 0;
         }
+    }
+    @Override
+    public void animate(Graphics2D g2){
+        int spIndex = 0;
+        if(estadoAtual == Status.FLUTUANDO){
+            squash = 0;
+            if(alt < 45){
+                alt += 0.4;
+            }
+            if(timer > 54){
+                spIndex = 1;
+            }
+            else if(timer > 48){
+                spIndex = 2;
+            }
+            else if(timer > 42){
+                spIndex = 3;
+            }
+            else if(timer > 36){
+                spIndex = 4;
+            }
+            else if(timer > 0){
+                spIndex = 5;
+            }
+        }
+        else if(estadoAtual == Status.COOLDOWN){
+            alt = 0;
+            squash = 0;
+            if(timer > 155){
+                spIndex = 7;
+            }
+            else if(timer > 130){
+                spIndex = 8;
+            }
+            else if(timer > 105){
+                spIndex = 9;
+            }
+            else if(timer > 80){
+                spIndex = 10;
+            }
+            else if(timer > 55){
+                spIndex = 11;
+            }
+            else if(timer > 30){
+                spIndex = 12;
+            }
+            else if(timer > 0){
+                spIndex = 13;
+            }
+        }
+        else if(estadoAtual == Status.PULANDO){
+            squash = 0;
+            alt = 15;
+        }
+        else if(estadoAtual == Status.PREPARANDO){
+            alt = 0;
+            if(squash < 10)
+                squash += 0.4;
+        }
+        g2.drawImage(Sprites[spIndex],
+                     (int)x - (int) squash/2,
+                     (int)(y - alt) + (int)squash, 
+                     (int)width + (int)squash, 
+                     (int)height - (int)squash, 
+                     null);
     }
 
     @Override

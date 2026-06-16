@@ -26,11 +26,12 @@ public class HelpMethods {
         try {
             tile = lvlData[(int) yIndex][(int) xIndex];
         } catch (Exception e) {
+            System.out.println("FORA DA MATRIZ");
             return true;
         }
 
-        //System.out.println(tile);
-        if(tile == 0 || tile == 17 || tile == 27 || tile == 18 || tile == 28 || tile == 76 || tile == 77){
+        
+        if(tile == 17 || tile == 18 || tile == 28 || tile == 76 || tile == 77){
             return false;
         }
 

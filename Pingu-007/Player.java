@@ -355,7 +355,7 @@ public class Player extends Entity {
                 animSp = 7;
             }
         }
-        if (!isMoving())
+        if(!isMoving()&&!emDash)
             animIndex = 0;
         g2.drawImage(Sprites[animSp + animIndex], xx, (int) y, 48 * inv, 48, null);
 
