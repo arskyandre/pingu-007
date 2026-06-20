@@ -2,6 +2,7 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 public class Dasher extends Enemy {
 
@@ -15,28 +16,28 @@ public class Dasher extends Enemy {
     private double dashDirY = 0;
     private int animTick = 0;
     private int animIndex = 0;
-    private int dirS=0;
-    
+    private int dirS = 0;
 
-    // Configurações do Dasher
-    private final double distAtivacao = 200.0; // distancia ele tenta atacar
-    private final int tempoPreparo = 60;       // frames parado avisando o golpe
-    private final int tempoDash = 25;          // frames de duração do dash
-    private final int tempoCooldown = 120;     // frames antes de poder dar dash de novo
-    private final double forcaDash = 22.0;     // Força / distancia do dash     
-    private final double atritoDash = 0.94;
+    private final double distAtivacao = 200.0;
+    private final int tempoPreparo = 60;
+    private final int tempoDash = 30;
+    private final int tempoCooldown = 120;
+    private final double forcaDash = 30.0;
+    private final double atritoDash = 0.96;
 
     public boolean interromperNoTiro = true;
-
     private BufferedImage[] Sprites;
 
     public Dasher(double startX, double startY, double width, double height, int[][] lvlData) {
         super(startX, startY, width, height, lvlData);
         this.vidaMaxima = 45;
         this.vida = this.vidaMaxima;
+        this.podePularBuracos = true;
 
-        this.velocidadeMax = 3.5;
+        this.velocidadeAndar = 3.5;
+        this.velocidadeMax = 45.0;
         this.aceleracao = 0.8;
+        this.peso = 1.0;
 
         this.bodyCollider = new Collider(0, height / 2.0, width, height / 2.0);
         this.hurtbox = new Collider(0, 0, width, height);
@@ -45,9 +46,9 @@ public class Dasher extends Enemy {
 
         BufferedImage img = LoadSave.GetSpriteAtlas("narval_sprite_sheet.png");
         Sprites = new BufferedImage[9];
-        for(int j=0; j<2; j++){
-            for(int i=0; i<4; i++){
-                int index = j*4 + i;
+        for (int j = 0; j < 2; j++) {
+            for (int i = 0; i < 4; i++) {
+                int index = j * 4 + i;
                 Sprites[index] = img.getSubimage(i * 16, j * 16, 16, 16);
             }
         }
@@ -55,7 +56,13 @@ public class Dasher extends Enemy {
     }
 
     @Override
-    public void update(Player player) {
+    public void update(Player player, ArrayList<JumpLink> jumpLinks) {
+        if (isDead) {
+            return;
+        }
+
+        atualizarTimersKnockback();
+
         double centerX = x + width / 2.0;
         double centerY = y + height / 2.0;
         double pCenterX = player.getX() + player.getLargura() / 2.0;
@@ -63,150 +70,157 @@ public class Dasher extends Enemy {
 
         double dx = pCenterX - centerX;
         double dy = pCenterY - centerY;
-        double dist = Math.sqrt(dx * dx + dy * dy);
-        // Controle da IA baseada em Estados
-        switch (estadoAtual) {
-            case PERSEGUINDO -> {
-                if (dist < distAtivacao) {
-                    estadoAtual = Status.PREPARANDO;
-                    timer = tempoPreparo;
-                    velX = 0;
-                    velY = 0;
-                } else if (dist > 0) {
-                    // Anda até o jogador normalmente
-                    velX += (dx / dist) * aceleracao;
-                    velY += (dy / dist) * aceleracao;
-                }
-            }
+        double dist = Math.hypot(dx, dy);
 
-            case PREPARANDO -> {
-                timer--;
-                // Fica parado carregando o ataque (Atrito zera o movimento)
-                velX = 0;
-                velY = 0;
-                if (timer <= 0) {
-                    estadoAtual = Status.DASHING;
-                    timer = tempoDash;
-                    if (dist > 0) {
-                        dashDirX = dx / dist; // Trava a direção final pro dash
-                        dashDirY = dy / dist;
-
-                        velX = dashDirX * forcaDash;
-                        velY = dashDirY * forcaDash;
+        if (!isPuxado && !isCaindo) {
+            if (isAirborne) {
+                seguirCaminhoAStar(player, jumpLinks);
+            } else {
+                switch (estadoAtual) {
+                    case PERSEGUINDO -> {
+                        if (dist < distAtivacao) {
+                            estadoAtual = Status.PREPARANDO;
+                            timer = tempoPreparo;
+                        } else {
+                            seguirCaminhoAStar(player, jumpLinks);
+                        }
                     }
-                }
-            }
 
-            case DASHING -> {
-                timer--;
-                this.atritoPadrao = atritoDash;
+                    case PREPARANDO -> {
+                        timer--;
+                        if (timer <= 0) {
+                            estadoAtual = Status.DASHING;
+                            timer = tempoDash;
+                            if (dist > 0) {
+                                dashDirX = dx / dist;
+                                dashDirY = dy / dist;
+                                velX = dashDirX * forcaDash;
+                                velY = dashDirY * forcaDash;
+                            }
+                        }
+                    }
 
-                if (timer <= 0) {
-                    estadoAtual = Status.COOLDOWN;
-                    timer = tempoCooldown;
-                }
-            }
+                    case DASHING -> {
+                        timer--;
+                        this.velX *= atritoDash;
+                        this.velY *= atritoDash;
+                        if (timer <= 0) {
+                            estadoAtual = Status.COOLDOWN;
+                            timer = tempoCooldown;
+                        }
+                    }
 
-            case COOLDOWN -> {
-                timer--;
-                if (dist > 0) {
-                    // Volta a perseguir de leve enquanto recarrega
-                    velX += (dx / dist) * (aceleracao * 0.5);
-                    velY += (dy / dist) * (aceleracao * 0.5);
-                }
-                if (timer <= 0) {
-                    estadoAtual = Status.PERSEGUINDO;
+                    case COOLDOWN -> {
+                        timer--;
+                        double oldAccel = this.aceleracao;
+                        this.aceleracao *= 0.5;
+                        seguirCaminhoAStar(player, jumpLinks);
+                        this.aceleracao = oldAccel;
+
+                        if (timer <= 0) {
+                            estadoAtual = Status.PERSEGUINDO;
+                        }
+                    }
                 }
             }
         }
 
-        double atritoSalvo = this.atritoPadrao;
-        double velMaxSalva = this.velocidadeMax;
+        double andarSalvo = this.velocidadeAndar;
+        double atritoSalvo = this.atritoAtual;
 
-        // Destrava a velocidade e muda o atrito apenas durante o dash
         if (estadoAtual == Status.DASHING) {
-            this.atritoPadrao = atritoDash;
-            this.velocidadeMax = 45.0;
+            this.velocidadeAndar = 45.0;
+            this.atritoAtual = atritoDash;
+        } else if (isAirborne) {
+            this.velocidadeAndar = 45.0;
+            this.atritoAtual = 0.95;
+        } else if (estadoAtual == Status.PREPARANDO) {
+            aplicarFreioDePreparacao(0.25);
         }
 
         aplicarFisicaBasica();
 
-        // Devolve os limites normais
-        this.atritoPadrao = atritoSalvo;
-        this.velocidadeMax = velMaxSalva;
+        this.velocidadeAndar = andarSalvo;
+        this.atritoAtual = atritoSalvo;
 
         moveAndCollideWithMap(lvlData);
 
-        // Causa dano no jogador
-        if (this.hitbox != null && player.getHurtbox() != null) {
-            if (this.hitbox.intersects(this.x, this.y, player.getHurtbox(), player.getX(), player.getY())) {
-                player.receberDano(danoContato);
-            }
-        }
-        //direção esquerda(0) ou direita(1)
-        if(velX > 0)
-            dirS = 1;
-        else if(velX < 0)
-            dirS = 0;
-    }
-
-    @Override
-    public void animate(Graphics2D g2){
-        int xx = (int)x;
-        int inv = 1;
-
-        if(dirS == 0){
-            inv = -1;
-            xx =(int) (x + width);
-        }
-        
-
-        if(estadoAtual == Status.DASHING){
-            g2.drawImage(Sprites[8],xx,(int)y,inv * (int) (19 * width / 16),(int)height,null);
-        }
-        else{
-            if(estadoAtual == Status.PREPARANDO){
-                if(timer>54)
-                    animIndex = 3;
-                else if(timer>48)
-                    animIndex = 4;
-                else if(timer>42)
-                    animIndex = 5;
-                else if(timer>36)
-                    animIndex = 6;
-                else
-                    animIndex = 7;
-            }
-            else{
-                animTick++;
-                if(animTick >= 90){
-                    animTick = 0;
-                    animIndex++;
-                    if(animIndex >= 3)
-                        animIndex = 0;
+        if (!isDead && !isCaindo) {
+            if (this.hitbox != null && player.getHurtbox() != null) {
+                if (this.hitbox.intersects(this.x, this.y, player.getHurtbox(), player.getX(), player.getY())) {
+                    player.receberDano(danoContato);
                 }
             }
-            g2.drawImage(Sprites[animIndex],xx,(int)y,inv * (int)width,(int)height,null);
+        }
+
+        if (velX > 0) {
+            dirS = 1;
+        } else if (velX < 0) {
+            dirS = 0;
         }
     }
-    
+
     @Override
-    public void draw(Graphics2D g2){
-        //para cancelar o draw dele
+    public void animate(Graphics2D g2) {
+        int xx = (int) x;
+        int inv = 1;
+
+        if (dirS == 0) {
+            inv = -1;
+            xx = (int) (x + width);
+        }
+
+        if (estadoAtual == Status.DASHING || isAirborne) {
+            g2.drawImage(Sprites[8], xx, (int) y, inv * (int) (19 * width / 16), (int) height, null);
+        } else {
+            if (estadoAtual == Status.PREPARANDO) {
+                if (timer > 54) {
+                    animIndex = 3;
+                } else if (timer > 48) {
+                    animIndex = 4;
+                } else if (timer > 42) {
+                    animIndex = 5;
+                } else if (timer > 36) {
+                    animIndex = 6;
+                } else {
+                    animIndex = 7;
+                }
+            } else {
+                animTick++;
+                if (animTick >= 90) {
+                    animTick = 0;
+                    animIndex++;
+                    if (animIndex >= 3) {
+                        animIndex = 0;
+                    }
+                }
+            }
+            g2.drawImage(Sprites[animIndex], xx, (int) y, inv * (int) width, (int) height, null);
+        }
+    }
+
+    @Override
+    public void draw(Graphics2D g2) {
     }
 
     @Override
     public void receberDano(int dano, double sourceX, double sourceY, double knockbackForce) {
-        // caso queira que ele seja imune a tiros durante o dash
-        // if (estadoAtual == Estado.DASHING) return; 
         super.receberDano(dano, sourceX, sourceY, knockbackForce);
-        // Stun se for atingindo no meio do dash, vale decidir se isso fica no jogo ou não
-        if (interromperNoTiro && estadoAtual == Status.DASHING) {
-            estadoAtual = Status.COOLDOWN;
-            timer = tempoCooldown;
-            velX = 0;
-            velY = 0;
-            System.out.println("Dasher atordoado no ar!");
+
+        if (interromperNoTiro) {
+            if (estadoAtual == Status.DASHING || isAirborne) {
+                estadoAtual = Status.COOLDOWN;
+                timer = tempoCooldown;
+
+                if (isAirborne) {
+                    isAirborne = false;
+                    System.out.println("Tiro perfeito! Dasher perdeu o salto e vai cair!");
+                } else {
+                    velX = 0;
+                    velY = 0;
+                    System.out.println("Dasher atordoado no chão!");
+                }
+            }
         }
     }
 }

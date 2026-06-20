@@ -20,14 +20,13 @@ public class Bomber extends Enemy {
 
     private final double raioExplosao = 140.0;
     private final int danoExplosao = 30;
-    private final double forcaExplosao = 25.0; // Knockback massivo gerado pela explosão
+    private final double forcaExplosao = 25.0;
 
-    private int dirS=0;
+    private int dirS = 0;
     private int animTick = 0;
     private int animIndex = 0;
     private BufferedImage[] Sprites;
 
-    // Variações mutáveis do inimigo
     public boolean soltaBalas = true;
     public boolean danoAosInimigos = true;
     private boolean jaExplodiu = false;
@@ -40,8 +39,10 @@ public class Bomber extends Enemy {
         this.vidaMaxima = 15;
         this.vida = this.vidaMaxima;
 
-        this.velocidadeMax = 2.0;
+        this.velocidadeAndar = 5.0;
+        this.velocidadeMax = 30.0;
         this.aceleracao = 0.4;
+        this.peso = 0.5;
 
         this.bodyCollider = new Collider(0, height / 2.0, width, height / 2.0);
         this.hurtbox = new Collider(0, 0, width, height);
@@ -49,22 +50,26 @@ public class Bomber extends Enemy {
 
         BufferedImage img = LoadSave.GetSpriteAtlas("nineeleven_sprite_sheet.png");
         Sprites = new BufferedImage[21];
-        for(int i = 0; i<3; i++){
-            for(int j = 0; j<7; j++){
-                int index = i*7 + j;
-                Sprites[index] = img.getSubimage(j*16, i*16, 16, 16);
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 7; j++) {
+                int index = i * 7 + j;
+                Sprites[index] = img.getSubimage(j * 16, i * 16, 16, 16);
             }
         }
     }
 
     @Override
-    public void update(Player player) {
+    public void update(Player player, ArrayList<JumpLink> jumpLinks) {
         if (jaExplodiu) {
             return;
         }
+        if (isDead) {
+            return;
+        }
+        atualizarTimersKnockback();
+
         double centerX = x + width / 2.0;
         double centerY = y + height / 2.0;
-
         double pCenterX = player.getX() + player.getLargura() / 2.0;
         double pCenterY = player.getY() + player.getAltura() / 2.0;
 
@@ -78,12 +83,10 @@ public class Bomber extends Enemy {
                     estadoAtual = Status.ACIONADO;
                     timer = tempoPavio;
                 } else if (dist > 0) {
-                    velX += (dx / dist) * aceleracao;
-                    velY += (dy / dist) * aceleracao;
+                    seguirCaminhoAStar(player, jumpLinks);
                 }
             }
             case ACIONADO -> {
-                // Freia bruscamente enquanto o pavio queima
                 velX *= 0.8;
                 velY *= 0.8;
 
@@ -97,10 +100,11 @@ public class Bomber extends Enemy {
         aplicarFisicaBasica();
         moveAndCollideWithMap(lvlData);
 
-        if(velY > 0)
+        if (velX > 0) {
             dirS = 1;
-        else if (velY < 0)
+        } else if (velX < 0) {
             dirS = 0;
+        }
     }
 
     private void detonar(Player player, double meuCenterX, double meuCenterY) {
@@ -116,20 +120,16 @@ public class Bomber extends Enemy {
                 if (outro == this || outro.isDead()) {
                     continue;
                 }
-
                 double outroCenterX = outro.getX() + outro.getLargura() / 2.0;
                 double outroCenterY = outro.getY() + outro.getAltura() / 2.0;
-                double distInimigo = Math.sqrt(Math.pow(outroCenterX - meuCenterX, 2)
-                        + Math.pow(outroCenterY - meuCenterY, 2));
+                double distInimigo = Math.sqrt(Math.pow(outroCenterX - meuCenterX, 2) + Math.pow(outroCenterY - meuCenterY, 2));
 
                 if (distInimigo <= raioExplosao) {
-                    // Causa dano e arremessa o inimigo para longe da explosão
                     outro.receberDano(danoExplosao, meuCenterX, meuCenterY, forcaExplosao);
                 }
             }
         }
 
-        // Tiro em Círculo
         if (soltaBalas) {
             int numBalas = 8;
             for (int i = 0; i < numBalas; i++) {
@@ -137,7 +137,6 @@ public class Bomber extends Enemy {
                 bulletManager.shoot(meuCenterX, meuCenterY, Math.cos(angulo), Math.sin(angulo), BulletOwner.ENEMY);
             }
         }
-
         this.vida = 0;
         this.isDead = true;
     }
@@ -146,15 +145,11 @@ public class Bomber extends Enemy {
     public void receberDano(int dano, double sourceX, double sourceY, double knockbackForce) {
         super.receberDano(dano, sourceX, sourceY, knockbackForce * 2.0);
 
-        // Se o tiro o matou e ele ainda não explodiu, força a explosão
         if (this.vida <= 0 && !jaExplodiu) {
-            this.isDead = false; // Ressuscita por 1 frame para não ser deletado pelo Manager
+            this.isDead = false;
             this.vida = 1;
-
             this.estadoAtual = Status.ACIONADO;
             this.timer = 16;
-
-            // Congela o Bomber
             this.velX = 0;
             this.velY = 0;
         }
@@ -162,61 +157,48 @@ public class Bomber extends Enemy {
 
     @Override
     public void draw(Graphics2D g2) {
-        
-        int drawX = (int) x;
-        int drawY = (int) y;
         int w = (int) width;
         int h = (int) height;
 
-        cor = Color.BLACK;
-
         if (estadoAtual == Status.ACIONADO) {
-            if (timer % 10 > 4) {
-                cor = Color.RED;
-            } else {
-                cor = Color.WHITE;
-            }
-
             g2.setColor(new Color(255, 0, 0, 50));
             int rx = (int) (x + w / 2.0 - raioExplosao);
             int ry = (int) (y + h / 2.0 - raioExplosao);
             g2.fillOval(rx, ry, (int) raioExplosao * 2, (int) raioExplosao * 2);
         }
-
-        //g2.setColor(cor);
-        //g2.fillOval(drawX, drawY, w, h);
-        
     }
 
     @Override
-    public void animate(Graphics2D g2){
-        if(estadoAtual == Status.PERSEGUINDO){
+    public void animate(Graphics2D g2) {
+        if (estadoAtual == Status.PERSEGUINDO) {
             animTick++;
-            if(animTick >= 12){
+            if (animTick >= 12) {
                 animTick = 0;
                 animIndex++;
-                if(animIndex >= 7)
+                if (animIndex >= 7) {
                     animIndex = 0;
+                }
             }
-            if(dirS == 0)
-                g2.drawImage(Sprites[animIndex+7], (int)x, (int)y, (int)width, (int)height, null);
-            else
-                g2.drawImage(Sprites[animIndex], (int)x, (int)y, (int)width, (int)height, null);
-        }
-        else if(estadoAtual == Status.ACIONADO){
-            if(timer > 34)
+            if (dirS == 0) {
+                g2.drawImage(Sprites[animIndex + 7], (int) x, (int) y, (int) width, (int) height, null);
+            } else {
+                g2.drawImage(Sprites[animIndex], (int) x, (int) y, (int) width, (int) height, null);
+            }
+        } else if (estadoAtual == Status.ACIONADO) {
+            if (timer > 34) {
                 animIndex = 14;
-            else if(timer > 28)
+            } else if (timer > 28) {
                 animIndex = 15;
-            else if(timer > 22)
+            } else if (timer > 22) {
                 animIndex = 16;
-            else if(timer > 16)
+            } else if (timer > 16) {
                 animIndex = 17;
-            else if(timer > 10)
+            } else if (timer > 10) {
                 animIndex = 18;
-            else
+            } else {
                 animIndex = 19;
-            g2.drawImage(Sprites[animIndex], (int)x, (int)y, (int)width, (int)height, null);
+            }
+            g2.drawImage(Sprites[animIndex], (int) x, (int) y, (int) width, (int) height, null);
         }
     }
 }

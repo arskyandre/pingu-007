@@ -8,8 +8,8 @@ public class Bullet {
     private final double velX, velY;
     final private double speed = 10.0;
     private boolean active = true;
-    private final double KnockbackForce = 20;
 
+    private double KnockbackForce = 20;
     private final double maxDistancia = 600.0;
 
     private final Collider collider;
@@ -39,10 +39,6 @@ public class Bullet {
         if (distPercorrida > maxDistancia) {
             desativar();
         }
-
-        /*if (!camera.onScreen(x, y, largura, altura, telaLargura, telaAltura)) {
-            desativar();
-        }*/
     }
 
     public void desativar() {
@@ -69,7 +65,6 @@ public class Bullet {
         return altura;
     }
 
-    // Getters para Hit Registration
     public Collider getCollider() {
         return collider;
     }

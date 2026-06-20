@@ -1,21 +1,18 @@
+
 import java.awt.*;
-import java.awt.geom.*;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
-
-import javax.imageio.ImageIO;
-
-import java.awt.geom.RoundRectangle2D;
 //TODO: consertar corações que não aparecem, e a vida dos inimigos 
 
 public class Hud {
+
     private static final int HEART_SIZE = 9;
     private static final int HEART_SCALE = 3;
     private static final int HEART_RENDER = HEART_SIZE * HEART_SCALE;
     private static final int HEART_GAP = 2;
-    private static final int HEARTS_MAX = 10;
+    private static final int HEARTS_MAX = 5;
 
     private static final int AMMO_BAR_WIDTH = 160;
     private static final int AMMO_BAR_HEIGHT = 14;
@@ -25,6 +22,7 @@ public class Hud {
 
     // ── Partículas ──────────────────────────────────────────────────────────────
     private static class HeartParticle {
+
         double x, y; // posição na tela (espaço HUD)
         double velX, velY; // velocidade em px/frame
         int life; // frames restantes
@@ -70,8 +68,9 @@ public class Hud {
         int penteMax = p.getPenteMax();
         int municaoTotal = p.getMunicao();
 
-        if (penteMax <= 0)
+        if (penteMax <= 0) {
             return;
+        }
 
         int barX = telaLargura - AMMO_BAR_WIDTH - AMMO_BAR_MARGIN;
         int barY = telaAltura - AMMO_BAR_HEIGHT - AMMO_BAR_MARGIN;
@@ -113,8 +112,9 @@ public class Hud {
     }
 
     private void spawnHeartParticles(Player p) {
-        if (heartSheet == null)
+        if (heartSheet == null) {
             return;
+        }
 
         int vida = p.getVida();
         int vidaMax = p.getVidaMax();
@@ -123,8 +123,9 @@ public class Hud {
         int coracaoAfetado = 0;
         for (int i = 0; i < HEARTS_MAX; i++) {
             float vidaRestante = vida - i * vidaPorCoracao;
-            if (vidaRestante > 0)
+            if (vidaRestante > 0) {
                 coracaoAfetado = i + 1;
+            }
         }
 
         double origemX = 16 + coracaoAfetado * (HEART_RENDER + HEART_GAP) + HEART_RENDER / 2.0;
@@ -149,8 +150,9 @@ public class Hud {
     }
 
     private void updateAndDrawParticles(Graphics2D g2) {
-        if (heartSheet == null)
+        if (heartSheet == null) {
             return;
+        }
 
         // Sprite de meio-coração (índice 1)
         BufferedImage halfHeart = heartSheet.getSubimage(1 * HEART_SIZE, 0, HEART_SIZE, HEART_SIZE);
@@ -188,8 +190,9 @@ public class Hud {
     }
 
     void player_hearts(Graphics2D g2, Player p) {
-        if (heartSheet == null)
+        if (heartSheet == null) {
             return;
+        }
 
         int vida = p.getVida();
         int vidaMax = p.getVidaMax();

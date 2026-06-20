@@ -1,0 +1,80 @@
+{
+    "activeFile": "Code Projects/Unesp/jogo-poo/pingu-007/Pingu-007/teste_level_pingu.tmx",
+    "expandedProjectPaths": [
+    ],
+    "fileStates": {
+        "": {
+            "scaleInDock": 1
+        },
+        "Code Projects/Unesp/jogo-poo/pingu-007/Pingu-007/teste_level_pingu.tmx": {
+            "scale": 0.1694661458333333,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 2687.852477910104,
+                "y": 1537.1801767191705
+            }
+        },
+        "Code Projects/Unesp/jogo-poo/pingu-007/Pingu-007/tile_set_pingu.tsx": {
+            "scaleInDock": 1
+        },
+        "teste_level_pingu.tmx": {
+            "expandedObjectLayers": [
+                19,
+                17,
+                18,
+                16
+            ],
+            "scale": 5.5,
+            "selectedLayer": 8,
+            "viewCenter": {
+                "x": 1889.3636363636365,
+                "y": 646.2727272727273
+            }
+        },
+        "teste_level_pingu_2.tmx": {
+            "expandedObjectLayers": [
+                4
+            ],
+            "scale": 2,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 82.25,
+                "y": 111.75
+            }
+        },
+        "tile_op.tsx": {
+            "scaleInDock": 8
+        },
+        "tile_set_pingu.tsx": {
+            "scaleInDock": 3,
+            "scaleInEditor": 1
+        }
+    },
+    "last.exportedFilePath": "C:/Users/paofe/Documents/Code Projects/Unesp/jogo-poo/pingu-007/Pingu-007",
+    "last.externalTilesetPath": "C:/Users/paofe/Documents/Code Projects/Unesp/jogo-poo/pingu-007/Pingu-007",
+    "last.imagePath": "C:/Users/paofe/Downloads",
+    "map.fixedSize": true,
+    "map.height": 16,
+    "map.lastUsedExportFilter": "Arquivos de mapa JSON (*.tmj *.json)",
+    "map.lastUsedFormat": "tmx",
+    "map.tileHeight": 16,
+    "map.tileWidth": 16,
+    "map.width": 16,
+    "openFiles": [
+        "tile_set_pingu.tsx",
+        "Code Projects/Unesp/jogo-poo/pingu-007/Pingu-007/teste_level_pingu.tmx"
+    ],
+    "project": "idk.tiled-project",
+    "property.type": "string",
+    "recentFiles": [
+        "tile_set_pingu.tsx",
+        "Code Projects/Unesp/jogo-poo/pingu-007/Pingu-007/teste_level_pingu.tmx",
+        "teste_level_pingu_2.tmx",
+        "teste_level_pingu.tmx"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 16
+    }
+}

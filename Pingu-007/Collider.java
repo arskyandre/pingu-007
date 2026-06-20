@@ -1,4 +1,9 @@
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
+
 public class Collider {
 
     public enum Type {
@@ -26,14 +31,12 @@ public class Collider {
         this.radius = radius;
     }
 
-    // Checa colisão contra outro Collider (Entity vs Entity / Area vs Area)
     public boolean intersects(double myX, double myY, Collider other, double otherX, double otherY) {
         if (this.type == Type.RECTANGLE && other.type == Type.RECTANGLE) {
             return rectVsRect(myX, myY, other, otherX, otherY);
         } else if (this.type == Type.CIRCLE && other.type == Type.CIRCLE) {
             return circleVsCircle(myX, myY, other, otherX, otherY);
         } else {
-            // Um é círculo e o outro é retângulo
             if (this.type == Type.CIRCLE) {
                 return circleVsRect(myX, myY, this, otherX, otherY, other);
             } else {
@@ -72,7 +75,6 @@ public class Collider {
         double rectTop = ry + rect.offsetY;
         double rectBottom = rectTop + rect.height;
 
-        // Encontra o ponto no retângulo mais próximo do centro do círculo
         double closestX = Math.max(rectLeft, Math.min(circleCenterX, rectRight));
         double closestY = Math.max(rectTop, Math.min(circleCenterY, rectBottom));
 
@@ -80,6 +82,16 @@ public class Collider {
         double dy = circleCenterY - closestY;
 
         return (dx * dx + dy * dy) < (circle.radius * circle.radius);
+    }
+
+    // Desenha as bordas da hitbox para debug
+    public void drawDebug(Graphics2D g2, double entityX, double entityY, Color color) {
+        g2.setColor(color);
+        if (type == Type.RECTANGLE) {
+            g2.draw(new Rectangle2D.Double(entityX + offsetX, entityY + offsetY, width, height));
+        } else if (type == Type.CIRCLE) {
+            g2.draw(new Ellipse2D.Double(entityX + offsetX, entityY + offsetY, radius * 2, radius * 2));
+        }
     }
 
     // Getters

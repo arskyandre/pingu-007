@@ -3,32 +3,28 @@ import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-//import static HelpMethods.CanMoveHere;
+// TODO: TERMINAR DE ADICIONAR A VARA DE PESCA
 
 public class Player extends Entity {
 
     final private double largura, altura;
-
     private Direction direction = Direction.DOWN;
 
-    // Física e Movimentação
     private double dirX = 0;
     private double dirY = 0;
 
-    // Dash
     private boolean podeDash = true;
     private boolean emDash = false;
-    private final int dashCooldown = 35;
+    private final int dashCooldown = 60;
     private int dashCooldownTimer = 0;
     private final int dashDuracao = 28;
     private int dashDuracaoTimer = 0;
-    private final double dashForca = 22;
+    private final double dashForca = 15;
     private final double atritoDash = 0.90;
     private final double controleDash = 0.50;
     private double dashDirX = 0;
     private double dashDirY = 0;
 
-    // Armas e balas
     private final BulletManager bulletmanager;
     private int armas = 1;
     private int pente = 15;
@@ -40,11 +36,11 @@ public class Player extends Entity {
     private final int reloadCooldown = 30;
     private boolean danoRecebidoFlag = false;
     private boolean reloading = false;
-    // iframes
+
     private int iFramesTimer = 0;
     private final int iFramesDanoDuration = 60;
     private final int iFramesDashGrace = 15;
-    // animate
+
     private BufferedImage[] Sprites;
     private int animIndex = 0;
     private int animTick = 0;
@@ -57,16 +53,16 @@ public class Player extends Entity {
         this.x = startX;
         this.y = startY;
         this.aceleracao = 1.0;
-        this.atritoPadrao = 0.85;
+        this.atritoAtual = 0.85;
         this.velocidadeMax = 30;
         this.largura = largura;
         this.altura = altura;
         this.bulletmanager = bulmgr;
         this.bodyCollider = new Collider(0, altura / 2.0, largura, altura / 2.0);
         this.hurtbox = new Collider(0, 0, largura, altura);
-        this.vidaMaxima = 100;
+        this.vidaMaxima = 50;
         this.vida = this.vidaMaxima;
-        // Importa os Sprites e separa eles no vetor
+
         BufferedImage img = LoadSave.GetSpriteAtlas("pingu_sprite_sheet.png");
 
         Sprites = new BufferedImage[21];
@@ -81,20 +77,16 @@ public class Player extends Entity {
     private int muniCOoldownTimer = 0;
     private final int muniCooldown = 60;
 
-    // TEMPORARIO(TESTE): Adiciona loot de municao no chao com o clique direito,
-    // remover essa funcao e deletar a chamada no GameCore dps
-    public void testemunicao(InputManager input, int telaLargura, int telaAltura, LootManager lootmanager,
-            CameraManager camera) {
+    public void testemunicao(InputManager input, int telaLargura, int telaAltura, LootManager lootmanager, CameraManager camera) {
         if (muniCOoldownTimer > 0) {
             muniCOoldownTimer--;
         }
+
         if (input.isMouseButtonPressed(MouseEvent.BUTTON3)) {
             if (muniCOoldownTimer == 0) {
-                // Converte as coordenadas da tela para o mundo
                 double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
                 double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
 
-                // Instancia e spawna a municao na posição do mundo
                 Ammo am = new Ammo(mouseXWorld, mouseYWorld, 32);
                 lootmanager.spawn(am);
                 muniCOoldownTimer = muniCooldown;
@@ -102,11 +94,10 @@ public class Player extends Entity {
             }
         }
     }
-    // FIM TESTE
 
     @Override
     public void receberDano(int dano) {
-        if (iFramesTimer == 0 && !emDash) {
+        if ((iFramesTimer == 0 && !emDash) || isCaindo) {
             super.receberDano(dano);
             iFramesTimer = iFramesDanoDuration;
             danoRecebidoFlag = true;
@@ -121,7 +112,6 @@ public class Player extends Entity {
     }
 
     public void update(InputManager input, int telaLargura, int telaAltura, CameraManager camera) {
-        // Gerenciamento dos Timers de Dash
         if (!podeDash) {
             dashCooldownTimer--;
             if (dashCooldownTimer <= 0) {
@@ -133,17 +123,17 @@ public class Player extends Entity {
             dashDuracaoTimer--;
             if (dashDuracaoTimer <= 0) {
                 emDash = false;
+                this.isAirborne = false;
                 iFramesTimer = iFramesDashGrace;
             }
         }
-        // Timer de iFrames
+
         if (iFramesTimer > 0) {
             iFramesTimer--;
         }
 
         double controleAtual = emDash ? controleDash : 1.0;
 
-        // Leitura de Entradas
         boolean andaX = false, andaY = false;
         if (input.isKeyPressed(KeyEvent.VK_D)) {
             velX += aceleracao * controleAtual;
@@ -173,7 +163,6 @@ public class Player extends Entity {
             dirY = 0;
         }
 
-        // Atirar e recarregar
         if (shootCooldownTimer > 0) {
             shootCooldownTimer--;
         }
@@ -189,17 +178,14 @@ public class Player extends Entity {
                 bulletmanager.shoot(centerX, centerY, mouseXWorld - centerX, mouseYWorld - centerY, BulletOwner.PLAYER);
                 shootCooldownTimer = shootCooldown;
                 pente--;
-                System.out.println("Atirou, pente: " + pente + " municao total: " + municao);
             }
         }
 
-        // Inicia o reload
         if (input.isKeyPressed(KeyEvent.VK_R) && !reloading && pente < maxpente && municao > 0) {
             reloading = true;
             reloadCooldownTimer = reloadCooldown;
         }
 
-        // Processa o timer de reload
         if (reloading) {
             reloadCooldownTimer--;
             if (reloadCooldownTimer <= 0) {
@@ -215,9 +201,7 @@ public class Player extends Entity {
             }
         }
 
-        // Lógica de Dash
         if (input.isKeyPressed(KeyEvent.VK_SPACE) && podeDash && !emDash) {
-
             if (dirX != 0 || dirY != 0) {
                 double tamanho = Math.sqrt(dirX * dirX + dirY * dirY);
                 dirX /= tamanho;
@@ -231,26 +215,22 @@ public class Player extends Entity {
 
                 podeDash = false;
                 emDash = true;
+                this.isAirborne = true;
 
                 dashCooldownTimer = dashCooldown;
                 dashDuracaoTimer = dashDuracao;
             }
         }
 
-        // Limitação de Velocidade e Aplicação na Posição
-        double atritoSalvo = this.atritoPadrao;
-        // Se estiver no dash, muda o atrito temporariamente para deslizar mais
+        double atritoSalvo = this.atritoAtual;
         if (emDash) {
-            this.atritoPadrao = atritoDash;
+            this.atritoAtual = atritoDash;
         }
         aplicarFisicaBasica();
-        // Retorna o atrito normal
-        this.atritoPadrao = atritoSalvo;
+        this.atritoAtual = atritoSalvo;
 
-        // COLISAO Com Tiles
         moveAndCollideWithMap(lvlData);
 
-        // Colisões com as bordas do Mapa
         int mapaLargura = lvlData[0].length * GameCore.tiles_size;
         int mapaAltura = lvlData.length * GameCore.tiles_size;
 
@@ -277,10 +257,8 @@ public class Player extends Entity {
     private void updatePlayerDirection(double mouseX, double mouseY) {
         double centerX = x + largura / 2.0;
         double centerY = y + altura / 2.0;
-
         double dx = mouseX - centerX;
         double dy = mouseY - centerY;
-
         double angle = Math.toDegrees(Math.atan2(dy, dx));
 
         if (angle < 0) {
@@ -317,6 +295,7 @@ public class Player extends Entity {
             } else {
                 animIndex = 3;
             }
+
             if (dashDirX != 0) {
                 animSp = 10;
             } else if (dashDirY < 0) {
@@ -324,9 +303,7 @@ public class Player extends Entity {
             } else {
                 animSp = 3;
             }
-        }
-
-        else {
+        } else {
             if (direction == Direction.LEFT) {
                 inv = -1;
                 xx = (int) (x + GameCore.tiles_size);
@@ -338,13 +315,15 @@ public class Player extends Entity {
                 if (t >= 4) {
                     t = 0;
                 }
-                if (t % 2 == 0)
+                if (t % 2 == 0) {
                     animIndex = 0;
-                else {
-                    if (t == 1)
+                } else {
+                    if (t == 1) {
                         animIndex = 1;
-                    if (t == 3)
+                    }
+                    if (t == 3) {
                         animIndex = 2;
+                    }
                 }
             }
             if (direction == Direction.DOWN) {
@@ -355,10 +334,10 @@ public class Player extends Entity {
                 animSp = 7;
             }
         }
-        if(!isMoving()&&!emDash)
+        if (!isMoving() && !emDash) {
             animIndex = 0;
+        }
         g2.drawImage(Sprites[animSp + animIndex], xx, (int) y, 48 * inv, 48, null);
-
     }
 
     public void addMunicao(int qtd) {
@@ -382,12 +361,10 @@ public class Player extends Entity {
         return reloading;
     }
 
-    // pegar info do mapa
     public void loadLvlData(int[][] lvlData) {
         this.lvlData = lvlData;
     }
 
-    // Getters para a Renderização
     public double getLargura() {
         return largura;
     }
@@ -415,5 +392,4 @@ public class Player extends Entity {
     public Boolean isMoving() {
         return (velX > 0.2 || velX < -0.2) || (velY > 0.2 || velY < -0.2);
     }
-
 }

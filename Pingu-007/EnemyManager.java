@@ -1,52 +1,64 @@
 
-import java.awt.Graphics2D;
 import java.util.ArrayList;
 
 public class EnemyManager {
 
     private final ArrayList<Enemy> enemies = new ArrayList<>();
-    private final LevelManager levelManager;
+
     private final BulletManager bulmgr;
-    private final int[][] lvlData;
+    private final LevelManager levelManager;
+    private int[][] lvlData;
 
-    public EnemyManager(LevelManager levelManager, BulletManager bulletManager) {
-        this.levelManager = levelManager;
-        lvlData = levelManager.getCurLevelData();
-
-        this.bulmgr = bulletManager;
-        enemies.add(new Jumper(100, 100, 48, 48, this.lvlData, this.bulmgr));
-        //enemies.add(new Shooter(100, 100, 60, 60, this.lvlData, this.bulmgr));
-        //enemies.add(new Dasher(100, 100, 48, 48, lvlData));
-        //enemies.add(new BasicEnemy(500, 400, 48, 48, lvlData));
-        //enemies.add(new Bomber(100, 100, 48, 48, lvlData, bulmgr, enemies));
-        //enemies.add(new Bomber(100, 100, 48, 48, lvlData, bulmgr, enemies));
+    public EnemyManager(LevelManager lm, BulletManager bm) {
+        levelManager = lm;
+        bulmgr = bm;
+        lvlData = lm.getMapData().getMainLayer();
     }
 
-    public void update(Player player) {
-        enemies.removeIf(Entity::isDead);
+    public void update(Player player, ArrayList<JumpLink> links) {
+        enemies.removeIf(Enemy::isDead);
 
-        for (Enemy enemy : enemies) {
-            enemy.update(player);
+        for (int i = 0; i < enemies.size(); i++) {
+            Enemy e1 = enemies.get(i);
 
-            for (Enemy outro : enemies) {
-                if (enemy != outro) {
-                    enemy.separarempilhamento(outro);
-                }
+            e1.update(player, links);
+
+            for (int j = i + 1; j < enemies.size(); j++) {
+                Enemy e2 = enemies.get(j);
+                e1.separarEmpilhamento(e2);
             }
         }
     }
 
-    public void draw(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura) {
-        for (Enemy e : enemies) {
-            if (camera.onScreen(e.getX(), e.getY(), e.getLargura(), e.getAltura(), telaLargura, telaAltura)) {
-                e.draw(g2);
-                e.animate(g2);
-            }
+    public void adicionarInimigo(String tipo, double x, double y, int horda, int arena) {
+        adicionarE_RetornarInimigo(tipo, x, y, horda, arena);
+    }
+
+    public Enemy adicionarE_RetornarInimigo(String tipo, double x, double y, int horda, int arena) {
+        Enemy novo = null;
+        switch (tipo.toLowerCase()) {
+            case "lobo" ->
+                novo = new BasicEnemy(x, y, 48, 48, lvlData);
+            case "jumper" ->
+                novo = new Jumper(x, y, 48, 48, lvlData, bulmgr);
+            case "shooter" ->
+                novo = new Shooter(x, y, 60, 60, lvlData, bulmgr);
+            case "dasher" ->
+                novo = new Dasher(x, y, 48, 48, lvlData);
+            case "bomber" ->
+                novo = new Bomber(x, y, 48, 48, lvlData, bulmgr, enemies);
         }
+        if (novo != null) {
+            enemies.add(novo);
+        }
+        return novo;
+    }
+
+    public void limparTudo() {
+        enemies.clear();
     }
 
     public ArrayList<Enemy> getEnemies() {
         return enemies;
     }
-
 }
