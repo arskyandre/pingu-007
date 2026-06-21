@@ -4,7 +4,6 @@ import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
-//TODO: consertar corações que não aparecem, e a vida dos inimigos 
 
 public class Hud {
 
