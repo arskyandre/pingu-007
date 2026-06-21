@@ -39,8 +39,14 @@ public class PathfindingPreCompiler {
                                     if (TileProperties.isSolid(rayTile)) {
                                         break;
                                     } else if (!TileProperties.isHole(rayTile)) {
-                                        links.add(new JumpLink(col, row, rayCol, rayRow, dist));
-                                        break;
+                                        if (!TileProperties.isTilePerigosoParaSalto(rayRow, rayCol, lvlData)) {
+                                            links.add(new JumpLink(col, row, rayCol, rayRow, dist));
+                                            break;
+                                        }
+                                        if (dist >= maxDashDistance - 1) {
+                                            links.add(new JumpLink(col, row, rayCol, rayRow, dist));
+                                            break;
+                                        }
                                     }
                                 }
                             }

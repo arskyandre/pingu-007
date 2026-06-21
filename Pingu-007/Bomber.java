@@ -66,6 +66,7 @@ public class Bomber extends Enemy {
         if (isDead) {
             return;
         }
+        atualizarAggro(player);
         atualizarTimersKnockback();
 
         double centerX = x + width / 2.0;
@@ -79,7 +80,7 @@ public class Bomber extends Enemy {
 
         switch (estadoAtual) {
             case PERSEGUINDO -> {
-                if (dist <= distAtivacao) {
+                if (dist <= distAtivacao && temAggro()) {
                     estadoAtual = Status.ACIONADO;
                     timer = tempoPavio;
                 } else if (dist > 0) {

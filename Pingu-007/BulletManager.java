@@ -35,7 +35,7 @@ public class BulletManager {
 
                 // Evita OutOfBounds e checa se é parede (ID 1)
                 if (tileX >= 0 && tileX < lvlData[0].length && tileY >= 0 && tileY < lvlData.length) {
-                    if (lvlData[tileY][tileX] == 1) {
+                    if (TileProperties.isSolid(lvlData[tileY][tileX])) {
                         b.desativar();
                         continue;
                     }

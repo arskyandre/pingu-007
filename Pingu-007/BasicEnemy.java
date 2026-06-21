@@ -37,6 +37,7 @@ public class BasicEnemy extends Enemy {
         if (isDead) {
             return;
         }
+        atualizarAggro(player);
         atualizarTimersKnockback();
 
         seguirCaminhoAStar(player, jumpLinks);

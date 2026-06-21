@@ -14,7 +14,7 @@ public class GameCore extends Canvas implements Runnable {
     private final Player player;
     private final Hud hud;
     private BulletManager bulletmanager;
-    private LootManager lootmanager;
+    private ItemManager itemManager;
     private final InputManager input;
     private final Renderer renderer;
     private final LevelManager levelManager;
@@ -36,7 +36,7 @@ public class GameCore extends Canvas implements Runnable {
         setBackground(Color.BLACK);
 
         bulletmanager = new BulletManager();
-        lootmanager = new LootManager();
+        itemManager = new ItemManager();
         input = new InputManager();
         player = new Player(380, 500, tiles_size - 1, tiles_size - 1, bulletmanager);
 
@@ -44,7 +44,9 @@ public class GameCore extends Canvas implements Runnable {
         renderer.modoDebug = false;
         levelManager = new LevelManager(this);
 
+        itemManager = new ItemManager();
         enemyManager = new EnemyManager(levelManager, bulletmanager);
+        enemyManager.setItemManager(itemManager);
         arenaManager = new ArenaManager(enemyManager, levelManager);
         camera = new CameraManager(player.getX(), player.getY(), 1.25);
         hud = new Hud();
@@ -61,10 +63,10 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void update() {
-        player.testemunicao(input, getWidth(), getHeight(), lootmanager, camera);
+        player.testemunicao(input, getWidth(), getHeight(), itemManager, camera);
 
         player.update(input, getWidth(), getHeight(), camera);
-        lootmanager.update(player);
+        itemManager.update(player);
 
         ArrayList<JumpLink> linksAtuais = levelManager.getJumpLinks();
         enemyManager.update(player, linksAtuais);
@@ -90,8 +92,28 @@ public class GameCore extends Canvas implements Runnable {
             debugSpawnCooldown = 30;
         }
 
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_L) && debugSpawnCooldown <= 0) {
+            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+            KeyItem chave = new KeyItem(mouseXWorld, mouseYWorld);
+            itemManager.spawn(chave);
+            System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
+            debugSpawnCooldown = 30;
+        }
+
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_0) && debugSpawnCooldown <= 0) {
+            renderer.modoDebug = !renderer.modoDebug;
+            if (renderer.modoDebug) {
+                System.out.println("DEBUG: Visão dos Triggers e Objetos Ativada");
+            } else {
+                System.out.println("DEBUG: Visão dos Triggers e Objetos Desativada");
+            }
+
+            debugSpawnCooldown = 30;
+        }
+
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_E) && debugSpawnCooldown <= 0) {
-            //arenaManager.interagir(player, chavesQueOPlayerTem);
+            arenaManager.interagir(player, player.getChaves());
         }
 
         if (mapLoadCooldown > 0) {
@@ -115,6 +137,7 @@ public class GameCore extends Canvas implements Runnable {
     public void processarNovoMapa(ArrayList<TiledObject> objetosDoMapa) {
         enemyManager.limparTudo();
         bulletmanager.limparTudo();
+        itemManager.limparTudo();
 
         for (TiledObject obj : objetosDoMapa) {
             if (!obj.isScaled) {
@@ -153,7 +176,11 @@ public class GameCore extends Canvas implements Runnable {
             }
         }
 
-        player.loadLvlData(levelManager.getCurLevelData());
+        int[][] levelData = levelManager.getCurLevelData();
+        player.loadLvlData(levelData);
+        enemyManager.setLvlData(levelData);
+        bulletmanager.setLvlData(levelData);
+        itemManager.setLvlData(levelData);
     }
 
     public void render(BufferStrategy bs) {
@@ -162,7 +189,7 @@ public class GameCore extends Canvas implements Runnable {
                 Graphics2D g2 = (Graphics2D) bs.getDrawGraphics();
                 renderer.renderizar(g2, camera, player, input,
                         getWidth(), getHeight(),
-                        levelManager, bulletmanager, lootmanager,
+                        levelManager, bulletmanager, itemManager,
                         enemyManager, arenaManager, hud);
                 g2.dispose();
             } while (bs.contentsRestored());

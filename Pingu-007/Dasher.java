@@ -56,11 +56,19 @@ public class Dasher extends Enemy {
     }
 
     @Override
+    protected void prepararSaltoAStar(Node noDestino) {
+        this.pendingJumpNode = noDestino;
+        this.estadoAtual = Status.PREPARANDO;
+        this.timer = tempoPreparo;
+    }
+
+    @Override
     public void update(Player player, ArrayList<JumpLink> jumpLinks) {
         if (isDead) {
             return;
         }
 
+        atualizarAggro(player);
         atualizarTimersKnockback();
 
         double centerX = x + width / 2.0;
@@ -73,33 +81,46 @@ public class Dasher extends Enemy {
         double dist = Math.hypot(dx, dy);
 
         if (!isPuxado && !isCaindo) {
-            if (isAirborne) {
+            if (emSaltoCinematico) {
+                executarSaltoCinematico();
+                if (!emSaltoCinematico) { // Terminou o LERP
+                    estadoAtual = Status.COOLDOWN;
+                    timer = tempoCooldown;
+                }
+            } else if (isAirborne) {
                 seguirCaminhoAStar(player, jumpLinks);
             } else {
                 switch (estadoAtual) {
                     case PERSEGUINDO -> {
-                        if (dist < distAtivacao) {
-                            estadoAtual = Status.PREPARANDO;
-                            timer = tempoPreparo;
+                        if (dist < distAtivacao && temAggro()) {
+                            if (!podePularBuracos && !temLinhaDeVisaoLivre(player)) {
+                                seguirCaminhoAStar(player, jumpLinks);
+                            } else {
+                                estadoAtual = Status.PREPARANDO;
+                                timer = tempoPreparo;
+                            }
                         } else {
                             seguirCaminhoAStar(player, jumpLinks);
                         }
                     }
-
                     case PREPARANDO -> {
                         timer--;
                         if (timer <= 0) {
                             estadoAtual = Status.DASHING;
-                            timer = tempoDash;
-                            if (dist > 0) {
-                                dashDirX = dx / dist;
-                                dashDirY = dy / dist;
-                                velX = dashDirX * forcaDash;
-                                velY = dashDirY * forcaDash;
+                            if (pendingJumpNode != null) {
+                                iniciarSaltoCinematico(pendingJumpNode, tempoDash);
+                                pendingJumpNode = null;
+                            } else {
+                                timer = tempoDash;
+                                if (dist > 0) {
+                                    dashDirX = dx / dist;
+                                    dashDirY = dy / dist;
+                                    velX = dashDirX * forcaDash;
+                                    velY = dashDirY * forcaDash;
+                                }
                             }
                         }
                     }
-
                     case DASHING -> {
                         timer--;
                         this.velX *= atritoDash;
@@ -109,7 +130,6 @@ public class Dasher extends Enemy {
                             timer = tempoCooldown;
                         }
                     }
-
                     case COOLDOWN -> {
                         timer--;
                         double oldAccel = this.aceleracao;
@@ -125,25 +145,28 @@ public class Dasher extends Enemy {
             }
         }
 
-        double andarSalvo = this.velocidadeAndar;
-        double atritoSalvo = this.atritoAtual;
+        // Aplica física padrão SOMENTE se não estiver em Salto Cinemático
+        if (!emSaltoCinematico) {
+            double andarSalvo = this.velocidadeAndar;
+            double atritoSalvo = this.atritoAtual;
 
-        if (estadoAtual == Status.DASHING) {
-            this.velocidadeAndar = 45.0;
-            this.atritoAtual = atritoDash;
-        } else if (isAirborne) {
-            this.velocidadeAndar = 45.0;
-            this.atritoAtual = 0.95;
-        } else if (estadoAtual == Status.PREPARANDO) {
-            aplicarFreioDePreparacao(0.25);
+            if (estadoAtual == Status.DASHING) {
+                this.velocidadeAndar = 45.0;
+                this.atritoAtual = atritoDash;
+            } else if (isAirborne) {
+                this.velocidadeAndar = 45.0;
+                this.atritoAtual = 0.95;
+            } else if (estadoAtual == Status.PREPARANDO) {
+                aplicarFreioDePreparacao(0.25);
+            }
+
+            aplicarFisicaBasica();
+
+            this.velocidadeAndar = andarSalvo;
+            this.atritoAtual = atritoSalvo;
+
+            moveAndCollideWithMap(lvlData);
         }
-
-        aplicarFisicaBasica();
-
-        this.velocidadeAndar = andarSalvo;
-        this.atritoAtual = atritoSalvo;
-
-        moveAndCollideWithMap(lvlData);
 
         if (!isDead && !isCaindo) {
             if (this.hitbox != null && player.getHurtbox() != null) {
@@ -208,13 +231,21 @@ public class Dasher extends Enemy {
         super.receberDano(dano, sourceX, sourceY, knockbackForce);
 
         if (interromperNoTiro) {
-            if (estadoAtual == Status.DASHING || isAirborne) {
+            if (emSaltoCinematico) {
+                emSaltoCinematico = false;
+                isAirborne = true; // Religa a gravidade da engine
+                velX = 0;
+                velY = 0;
+                estadoAtual = Status.COOLDOWN;
+                timer = tempoCooldown;
+                System.out.println("Tiro perfeito! Dasher teve o salto cinemático interrompido e vai cair!");
+            } else if (estadoAtual == Status.DASHING || isAirborne) {
                 estadoAtual = Status.COOLDOWN;
                 timer = tempoCooldown;
 
                 if (isAirborne) {
                     isAirborne = false;
-                    System.out.println("Tiro perfeito! Dasher perdeu o salto e vai cair!");
+                    System.out.println("Tiro perfeito! Dasher perdeu o salto orgânico e vai cair!");
                 } else {
                     velX = 0;
                     velY = 0;

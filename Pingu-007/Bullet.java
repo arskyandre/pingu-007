@@ -26,9 +26,14 @@ public class Bullet {
 
         this.collider = new Collider(0, 0, largura / 2.0);
 
-        double len = Math.sqrt(dirX * dirX + dirY * dirY);
-        this.velX = (dirX / len) * speed;
-        this.velY = (dirY / len) * speed;
+        double len = Math.hypot(dirX, dirY);
+        if (len < 0.0001) {
+            this.velX = 0;
+            this.velY = -speed;
+        } else {
+            this.velX = (dirX / len) * speed;
+            this.velY = (dirY / len) * speed;
+        }
     }
 
     public void update(CameraManager camera, int telaLargura, int telaAltura) {

@@ -30,6 +30,9 @@ public class LoadSave {
         ArrayList<TiledObject> objects = new ArrayList<>();
 
         InputStream is = LoadSave.class.getResourceAsStream("/" + filename);
+        if (is == null) {
+            throw new RuntimeException("Arquivo não encontrado: " + filename);
+        }
 
         try (Scanner scanner = new Scanner(is, StandardCharsets.UTF_8.name())) {
             String json = scanner.useDelimiter("\\A").next();

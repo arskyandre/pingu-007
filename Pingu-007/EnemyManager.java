@@ -7,6 +7,7 @@ public class EnemyManager {
 
     private final BulletManager bulmgr;
     private final LevelManager levelManager;
+    private ItemManager itemManager;
     private int[][] lvlData;
 
     public EnemyManager(LevelManager lm, BulletManager bm) {
@@ -15,17 +16,50 @@ public class EnemyManager {
         lvlData = lm.getMapData().getMainLayer();
     }
 
-    public void update(Player player, ArrayList<JumpLink> links) {
-        enemies.removeIf(Enemy::isDead);
+    public void setItemManager(ItemManager itemManager) {
+        this.itemManager = itemManager;
+    }
 
-        for (int i = 0; i < enemies.size(); i++) {
+    public void setLvlData(int[][] lvlData) {
+        this.lvlData = lvlData;
+        for (Enemy enemy : enemies) {
+            enemy.setLvlData(lvlData);
+        }
+    }
+
+    public void update(Player player, ArrayList<JumpLink> links) {
+
+        for (int i = enemies.size() - 1; i >= 0; i--) {
             Enemy e1 = enemies.get(i);
 
-            e1.update(player, links);
+            if (!e1.isDead()) {
+                e1.update(player, links);
+            }
 
-            for (int j = i + 1; j < enemies.size(); j++) {
+            if (e1.isDead()) {
+                if (itemManager != null && !e1.isLootProcessado() && e1.podeDropar) {
+                    itemManager.gerarDropDeInimigo(e1);
+                }
+                enemies.remove(i);
+                continue;
+            }
+
+            double e1CX = e1.getX() + e1.getLargura() / 2.0;
+            double e1CY = e1.getY() + e1.getAltura() / 2.0;
+            double maxSepDistSq = (GameCore.tiles_size * 3.0) * (GameCore.tiles_size * 3.0);
+
+            for (int j = i - 1; j >= 0; j--) {
                 Enemy e2 = enemies.get(j);
-                e1.separarEmpilhamento(e2);
+
+                if (e2.isDead()) {
+                    continue;
+                }
+                double dx = e1CX - (e2.getX() + e2.getLargura() / 2.0);
+                double dy = e1CY - (e2.getY() + e2.getAltura() / 2.0);
+
+                if (dx * dx + dy * dy <= maxSepDistSq) {
+                    e1.separarEmpilhamento(e2);
+                }
             }
         }
     }

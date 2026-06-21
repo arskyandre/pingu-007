@@ -10,7 +10,7 @@ public class Renderer {
     Boolean preDash = false;
 
     public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura,
-            int telaAltura, LevelManager lm, BulletManager bulletmanager, LootManager lootmanager, EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD) {
+            int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager, EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD) {
 
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, telaLargura, telaAltura);
@@ -22,19 +22,24 @@ public class Renderer {
 
         lm.drawBackground(g2, camera, telaLargura, telaAltura);
         lm.drawGround(g2, camera, telaLargura, telaAltura);
-        lootmanager.draw(g2, camera, telaLargura, telaAltura);
-        ArrayList<Entity> renderQueue = new ArrayList<>();
+
+        if (arenaManager != null) {
+            arenaManager.drawOverlays(g2);
+        }
+
+        ArrayList<Object> renderQueue = new ArrayList<>();
         renderQueue.add(quadrado);
         renderQueue.addAll(enemyManager.getEnemies());
+        renderQueue.addAll(itemManager.getItems());
 
-        renderQueue.sort((Entity e1, Entity e2) -> {
-            double base1 = e1.getY() + (e1.getBodyCollider() != null ? (e1.getBodyCollider().getOffsetY() + e1.getBodyCollider().getHeight()) : 48);
-            double base2 = e2.getY() + (e2.getBodyCollider() != null ? (e2.getBodyCollider().getOffsetY() + e2.getBodyCollider().getHeight()) : 48);
+        renderQueue.sort((Object o1, Object o2) -> {
+            double base1 = getRenderBaseY(o1);
+            double base2 = getRenderBaseY(o2);
             return Double.compare(base1, base2);
         });
 
-        for (Entity e : renderQueue) {
-            switch (e) {
+        for (Object entidade : renderQueue) {
+            switch (entidade) {
                 case Enemy enemy -> {
                     if (!enemy.isDead()) {
                         enemy.draw(g2);
@@ -45,6 +50,11 @@ public class Renderer {
                     renderDashEffect(g2, p);
                     p.animate(g2);
                 }
+                case Item item -> {
+                    if (item.isAtivo() && camera.onScreen(item.getX(), item.getY(), item.getLargura(), item.getAltura(), telaLargura, telaAltura)) {
+                        item.draw(g2);
+                    }
+                }
                 default -> {
                 }
             }
@@ -52,6 +62,7 @@ public class Renderer {
 
         bulletmanager.draw(g2, camera, telaLargura, telaAltura);
         lm.drawForeground(g2, camera, telaLargura, telaAltura);
+
         if (modoDebug) {
             renderDebug(g2, camera, quadrado, input); // Hitboxes and Mouse Lines
 
@@ -89,6 +100,17 @@ public class Renderer {
 
         renderMouse(g2, input);
         HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager);
+    }
+
+    private double getRenderBaseY(Object entidade) {
+        if (entidade instanceof Entity e) {
+            return e.getY() + (e.getBodyCollider() != null
+                    ? (e.getBodyCollider().getOffsetY() + e.getBodyCollider().getHeight()) : 48);
+        }
+        if (entidade instanceof Item item) {
+            return item.getSortBaseY();
+        }
+        return 0;
     }
 
     private void drawDebugColliders(Graphics2D g2, Entity e) {

@@ -16,9 +16,17 @@ public abstract class Enemy extends Entity {
     protected int currentPathIndex = 0;
     protected double aStarDelay = 0;
     protected double tempoRecalculoAStar = 30;
-    protected int pathfindingCooldown = 0;
     public boolean podePularBuracos = false;
     public boolean isInvulneravel = false;
+
+    /**
+     * Circular detection radius — enemy ignores player until they enter this
+     * range.
+     */
+    public double raioDeteccao = GameCore.tiles_size * 8.0;
+    protected boolean aggroPermanente = false;
+    protected boolean lootProcessado = false;
+    public boolean podeDropar = true;
 
     protected int timerPuxado = 0;
 
@@ -29,7 +37,49 @@ public abstract class Enemy extends Entity {
         this.height = height;
         this.lvlData = lvlData;
         this.peso = 1.0;
-        this.pathfindingCooldown = (int) (Math.random() * tempoRecalculoAStar);
+        this.aStarDelay = (int) (Math.random() * tempoRecalculoAStar);
+    }
+
+    public void setLvlData(int[][] lvlData) {
+        this.lvlData = lvlData;
+        this.caminhoAStar = null;
+        this.currentPathIndex = 0;
+    }
+
+    public boolean temAggro() {
+        return aggroPermanente;
+    }
+
+    public boolean isLootProcessado() {
+        return lootProcessado;
+    }
+
+    public void marcarLootProcessado() {
+        lootProcessado = true;
+    }
+
+    protected boolean atualizarAggro(Player player) {
+        if (aggroPermanente) {
+            return true;
+        }
+
+        double meuCenterX = this.x + (this.bodyCollider != null
+                ? this.bodyCollider.getOffsetX() + this.bodyCollider.getWidth() / 2.0 : this.width / 2.0);
+        double meuCenterY = this.y + (this.bodyCollider != null
+                ? this.bodyCollider.getOffsetY() + this.bodyCollider.getHeight() / 2.0 : this.height / 2.0);
+        double playerCenterX = player.getX() + player.getLargura() / 2.0;
+        double playerCenterY = player.getY() + player.getAltura() / 2.0;
+
+        double dist = Math.hypot(playerCenterX - meuCenterX, playerCenterY - meuCenterY);
+        if (dist <= raioDeteccao && temLinhaDeVisaoLivre(player)) {
+            aggroPermanente = true;
+        }
+        return aggroPermanente;
+    }
+
+    protected void aplicarComportamentoIdle() {
+        velX *= 0.85;
+        velY *= 0.85;
     }
 
     public abstract void update(Player player, ArrayList<JumpLink> jumpLinks);
@@ -87,6 +137,11 @@ public abstract class Enemy extends Entity {
             return;
         }
 
+        if (!atualizarAggro(player)) {
+            aplicarComportamentoIdle();
+            return;
+        }
+
         if (isAirborne && Math.abs(velX) < 1.0 && Math.abs(velY) < 1.0) {
             this.isAirborne = false;
         }
@@ -98,7 +153,7 @@ public abstract class Enemy extends Entity {
 
         double distToPlayer = Math.hypot(playerCenterX - meuCenterX, playerCenterY - meuCenterY);
 
-        if (!isAirborne && distToPlayer < (GameCore.tiles_size * 6) && temLinhaDeVisaoLivre(player)) {
+        if (!isAirborne && distToPlayer < raioDeteccao && temLinhaDeVisaoLivre(player)) {
             double dx = player.getX() - this.x;
             double dy = player.getY() - this.y;
             double distP = Math.hypot(dx, dy);
@@ -154,7 +209,7 @@ public abstract class Enemy extends Entity {
             if (currentPathIndex < caminhoAStar.size()) {
                 Node proximo = caminhoAStar.get(currentPathIndex);
                 if (proximo.requerSalto) {
-                    iniciarSaltoAStar(proximo);
+                    prepararSaltoAStar(proximo); // <--- Delega o preparo do pulo para a classe filha
                 } else {
                     this.isAirborne = false;
                 }
@@ -170,20 +225,59 @@ public abstract class Enemy extends Entity {
         }
     }
 
-    protected void iniciarSaltoAStar(Node noDestino) {
-        this.isAirborne = true;
+// Novas variáveis para LERP
+    protected boolean emSaltoCinematico = false;
+    protected double lerpStartX, lerpStartY, lerpTargetX, lerpTargetY;
+    protected int lerpFramesMax = 0;
+    protected int lerpFrameAtual = 0;
+    protected Node pendingJumpNode = null;
+
+    // Novo método vazio para delegar à máquina de estados das subclasses
+    protected void prepararSaltoAStar(Node noDestino) {
+    }
+
+    // Configura o pulo LERP
+    protected void iniciarSaltoCinematico(Node noDestino, int durationFrames) {
+        this.emSaltoCinematico = true;
+        this.lerpFrameAtual = 0;
+        this.lerpFramesMax = durationFrames;
+        this.lerpStartX = this.x;
+        this.lerpStartY = this.y;
+
+        // Snapping perfeito no centro da tile de destino
         double alvoX = noDestino.coluna * GameCore.tiles_size + (GameCore.tiles_size / 2.0) - (this.width / 2.0);
         double alvoY = noDestino.linha * GameCore.tiles_size + (GameCore.tiles_size / 2.0) - (this.height / 2.0);
-        double dx = alvoX - this.x;
-        double dy = alvoY - this.y;
+        this.lerpTargetX = alvoX;
+        this.lerpTargetY = alvoY;
 
-        double dist = Math.hypot(dx, dy);
+        // Desliga inércia
+        this.velX = 0;
+        this.velY = 0;
+    }
 
-        if (dist > 0) {
-            double forcaDoPulo = dist * 0.18;
-            this.velocidadeMax = Math.max(this.velocidadeMax, forcaDoPulo + 5.0);
-            this.velX = (dx / dist) * forcaDoPulo;
-            this.velY = (dy / dist) * forcaDoPulo;
+    // Processa a interpolação linear
+    protected void executarSaltoCinematico() {
+        if (!emSaltoCinematico) {
+            return;
+        }
+
+        lerpFrameAtual++;
+        double t = (double) lerpFrameAtual / lerpFramesMax;
+
+        if (t >= 1.0) {
+            t = 1.0;
+            this.emSaltoCinematico = false;
+            // Aterrissagem forçada no alvo seguro (Zera inércia de gelo)
+            this.x = lerpTargetX;
+            this.y = lerpTargetY;
+            this.velX = 0;
+            this.velY = 0;
+            this.isAirborne = false;
+            this.isCaindo = false;
+            this.timerLedgeSnap = 0;
+        } else {
+            this.x = lerpStartX + (lerpTargetX - lerpStartX) * t;
+            this.y = lerpStartY + (lerpTargetY - lerpStartY) * t;
         }
     }
 

@@ -22,7 +22,7 @@ public class Jumper extends Enemy {
     private final int tempoFlutuando = 60;
     private final int tempoCooldown = 180;
 
-    private final double distAtivacao = 250.0;
+    private final double distAtivacao = 300.0;
 
     private BufferedImage[] Sprites;
     private double alt = 0;
@@ -56,11 +56,19 @@ public class Jumper extends Enemy {
     }
 
     @Override
+    protected void prepararSaltoAStar(Node noDestino) {
+        this.pendingJumpNode = noDestino;
+        this.estadoAtual = Status.PREPARANDO;
+        this.timer = tempoPreparo;
+    }
+
+    @Override
     public void update(Player player, ArrayList<JumpLink> jumpLinks) {
         if (isDead) {
             return;
         }
 
+        atualizarAggro(player);
         atualizarTimersKnockback();
 
         double centerX = x + width / 2.0;
@@ -77,51 +85,73 @@ public class Jumper extends Enemy {
                 aplicarFreioDePreparacao(0.25);
                 timer--;
                 if (timer <= 0) {
-                    estadoAtual = Status.PULANDO;
-                    timer = tempoPulo;
-                    this.isAirborne = true;
+                    if (!podePularBuracos && !temLinhaDeVisaoLivre(player)) {
+                        estadoAtual = Status.COOLDOWN;
+                        timer = tempoCooldown;
+                    } else {
+                        estadoAtual = Status.PULANDO;
+                        timer = tempoPulo;
+                        this.isAirborne = true;
 
-                    if (dist > 0) {
-                        double atritoNoAr = 0.94;
-                        double forcaDinamica = dist * (1.0 - atritoNoAr);
+                        if (dist > 0) {
+                            double atritoNoAr = 0.94;
+                            double forcaDinamica = dist * (1.0 - atritoNoAr);
 
-                        if (forcaDinamica > 25.0) {
-                            forcaDinamica = 25.0;
+                            if (forcaDinamica > 25.0) {
+                                forcaDinamica = 25.0;
+                            }
+                            if (forcaDinamica < 6.0) {
+                                forcaDinamica = 6.0;
+                            }
+
+                            double jumpDx = dx / dist;
+                            double jumpDy = dy / dist;
+                            if (isSlippery) {
+                                double[] proj = preverDeslocamentoGelo(3);
+                                jumpDx = (dx - proj[0]) / dist;
+                                jumpDy = (dy - proj[1]) / dist;
+                                forcaDinamica += 1.5;
+                            }
+
+                            velX = jumpDx * forcaDinamica;
+                            velY = jumpDy * forcaDinamica;
+                            timerLedgeSnap = isSlippery ? 22 : 14;
                         }
-                        if (forcaDinamica < 6.0) {
-                            forcaDinamica = 6.0;
-                        }
-
-                        velX = (dx / dist) * forcaDinamica;
-                        velY = (dy / dist) * forcaDinamica;
                     }
                 }
             }
-
             case PULANDO -> {
-                this.velocidadeMax = 40.0;
-                this.atritoAtual = 0.94;
-                timer--;
+                if (emSaltoCinematico) {
+                    executarSaltoCinematico();
+                    if (!emSaltoCinematico) {
+                        pulosDados++;
+                        estadoAtual = Status.PREPARANDO;
+                        timer = tempoPreparo;
+                    }
+                } else {
+                    this.velocidadeMax = 40.0;
+                    this.atritoAtual = 0.94;
+                    timer--;
 
-                if (timer <= 0) {
-                    if (pulosDados >= pulosParaAtirar - 1) {
-                        if (dist <= distAtivacao) {
-                            estadoAtual = Status.FLUTUANDO;
-                            timer = tempoFlutuando;
+                    if (timer <= 0) {
+                        if (pulosDados >= pulosParaAtirar - 1) {
+                            if (dist <= distAtivacao && temAggro()) {
+                                estadoAtual = Status.FLUTUANDO;
+                                timer = tempoFlutuando;
+                            } else {
+                                estadoAtual = Status.PREPARANDO;
+                                timer = tempoPreparo;
+                                this.isAirborne = false;
+                            }
                         } else {
+                            pulosDados++;
                             estadoAtual = Status.PREPARANDO;
                             timer = tempoPreparo;
                             this.isAirborne = false;
                         }
-                    } else {
-                        pulosDados++;
-                        estadoAtual = Status.PREPARANDO;
-                        timer = tempoPreparo;
-                        this.isAirborne = false;
                     }
                 }
             }
-
             case FLUTUANDO -> {
                 aplicarFreioDePreparacao(0.25);
                 timer--;
@@ -129,7 +159,6 @@ public class Jumper extends Enemy {
                     estadoAtual = Status.ATIRANDO;
                 }
             }
-
             case ATIRANDO -> {
                 int numBalas = 12;
                 for (int i = 0; i < numBalas; i++) {
@@ -142,7 +171,6 @@ public class Jumper extends Enemy {
                 timer = tempoCooldown;
                 this.isAirborne = false;
             }
-
             case COOLDOWN -> {
                 this.velocidadeMax = 0.8;
                 if (dist > 0) {
@@ -158,13 +186,16 @@ public class Jumper extends Enemy {
                 }
             }
         }
+
         this.isInvulneravel = (estadoAtual == Status.PULANDO || estadoAtual == Status.FLUTUANDO);
-        aplicarFisicaBasica();
 
-        this.atritoAtual = atritoSalvo;
-        this.velocidadeMax = velMaxSalva;
-
-        moveAndCollideWithMap(lvlData);
+        // Isola fisicamente durante o LERP
+        if (!emSaltoCinematico) {
+            aplicarFisicaBasica();
+            this.atritoAtual = atritoSalvo;
+            this.velocidadeMax = velMaxSalva;
+            moveAndCollideWithMap(lvlData);
+        }
 
         if (this.hitbox != null && player.getHurtbox() != null) {
             if (this.hitbox.intersects(this.x, this.y, player.getHurtbox(), player.getX(), player.getY())) {
@@ -175,9 +206,24 @@ public class Jumper extends Enemy {
 
     @Override
     public void receberDano(int dano, double sourceX, double sourceY, double knockbackForce) {
+        // Tiro Perfeito: Sobrepõe a invulnerabilidade e pune o Jumper jogando-o no buraco
+        if (emSaltoCinematico) {
+            emSaltoCinematico = false;
+            isAirborne = true; // Religa a física da fase
+            velX = 0;
+            velY = 0;
+            estadoAtual = Status.COOLDOWN;
+            timer = tempoCooldown;
+            pulosDados = 0;
+            super.receberDano(dano, sourceX, sourceY, knockbackForce);
+            System.out.println("Tiro perfeito! Jumper perdeu o salto cinemático e caiu no buraco!");
+            return;
+        }
+
         if (estadoAtual == Status.PULANDO || estadoAtual == Status.FLUTUANDO) {
             return;
         }
+
         super.receberDano(dano, sourceX, sourceY, knockbackForce);
 
         if (estadoAtual == Status.PREPARANDO) {

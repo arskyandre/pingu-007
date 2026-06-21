@@ -68,7 +68,7 @@ public abstract class Entity {
 
     protected void moveAndCollideWithMap(int[][] lvlData) {
         if (this.isAirborne) {
-            this.timerLedgeSnap = 5;
+            this.timerLedgeSnap = isSlippery ? 18 : 10;
         } else if (this.timerLedgeSnap > 0) {
             this.timerLedgeSnap--;
         }
@@ -108,6 +108,7 @@ public abstract class Entity {
                 stepX = 0;
                 if (isAirborne) {
                     isAirborne = false;
+                    renovarTimerLedgeSnapPosAterragem(lvlData);
                 }
             } else {
                 x += stepX;
@@ -128,6 +129,7 @@ public abstract class Entity {
                 stepY = 0;
                 if (isAirborne) {
                     isAirborne = false;
+                    renovarTimerLedgeSnapPosAterragem(lvlData);
                 }
             } else {
                 y += stepY;
@@ -253,10 +255,19 @@ public abstract class Entity {
             }
         }
 
-        // REGRA DOS 40%
-        if ((areaSeguraAcumulada / areaTotal) >= 0.40 && melhorTileX != -1) {
+        double limiarSnap = isSlippery ? 0.30 : 0.40;
+        if (isSlippery && (Math.abs(velX) > 0.5 || Math.abs(velY) > 0.5)) {
+            limiarSnap = 0.22;
+        }
+
+        if ((areaSeguraAcumulada / areaTotal) >= limiarSnap && melhorTileX != -1) {
             double centroAlvoX = melhorTileX + (GameCore.tiles_size / 2.0);
             double centroAlvoY = melhorTileY + (GameCore.tiles_size / 2.0);
+
+            if (isSlippery) {
+                centroAlvoX -= Math.signum(velX) * Math.min(Math.abs(velX) * 1.5, GameCore.tiles_size * 0.15);
+                centroAlvoY -= Math.signum(velY) * Math.min(Math.abs(velY) * 1.5, GameCore.tiles_size * 0.15);
+            }
 
             this.x = centroAlvoX - (this.bodyCollider.getOffsetX() + colW / 2.0);
             this.y = centroAlvoY - (this.bodyCollider.getOffsetY() + colH / 2.0);
@@ -270,6 +281,28 @@ public abstract class Entity {
         }
 
         return false;
+    }
+
+    protected void renovarTimerLedgeSnapPosAterragem(int[][] lvlData) {
+        int centroCol = (int) ((x + bodyCollider.getOffsetX() + bodyCollider.getWidth() / 2.0) / GameCore.tiles_size);
+        int centroRow = (int) ((y + bodyCollider.getOffsetY() + bodyCollider.getHeight() / 2.0) / GameCore.tiles_size);
+
+        boolean aterrouNoGelo = false;
+        if (centroRow >= 0 && centroRow < lvlData.length && centroCol >= 0 && centroCol < lvlData[0].length) {
+            aterrouNoGelo = TileProperties.isIce(lvlData[centroRow][centroCol]);
+        }
+
+        this.timerLedgeSnap = aterrouNoGelo ? 20 : 12;
+    }
+
+    protected double[] preverDeslocamentoGelo(int frames) {
+        double projX = velX;
+        double projY = velY;
+        for (int i = 0; i < frames; i++) {
+            projX *= atritoAtual;
+            projY *= atritoAtual;
+        }
+        return new double[]{projX * frames * 0.35, projY * frames * 0.35};
     }
 
     protected void atualizarFisicaDoChao(int[][] lvlData) {

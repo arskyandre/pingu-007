@@ -1,6 +1,7 @@
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 
 public class PathFinder {
 
@@ -11,19 +12,19 @@ public class PathFinder {
             ArrayList<JumpLink> jumpLinks) {
 
         ArrayList<Node> openList = new ArrayList<>();
-        ArrayList<Node> closedList = new ArrayList<>();
+        HashMap<Long, Node> openMap = new HashMap<>();
+        HashMap<Long, Node> closedMap = new HashMap<>();
 
         Node startNode = new Node(startCol, startRow);
         Node targetNode = new Node(targetCol, targetRow);
         openList.add(startNode);
+        openMap.put(nodeKey(startCol, startRow), startNode);
 
-        int limiteTentativas = 0; // A TRAVA ANTI-FREEZE
+        int limiteTentativas = 0;
 
         while (!openList.isEmpty()) {
 
             limiteTentativas++;
-            // Se testou mais de 300 blocos e não achou, o player está inalcançável
-            // Aborta para salvar a CPU e forçar o inimigo a usar o modo de perseguição burra
             if (limiteTentativas > 300) {
                 return null;
             }
@@ -38,30 +39,41 @@ public class PathFinder {
             }
 
             openList.remove(current);
-            closedList.add(current);
+            openMap.remove(nodeKey(current.coluna, current.linha));
+            closedMap.put(nodeKey(current.coluna, current.linha), current);
 
             if (current.coluna == targetNode.coluna
                     && current.linha == targetNode.linha) {
                 return construirCaminho(current);
             }
 
-            for (Node vizinho : getVizinhos(current, lvlData, jumpLinks, closedList)) {
+            for (Node vizinho : getVizinhos(current, lvlData, jumpLinks, closedMap)) {
+                long key = nodeKey(vizinho.coluna, vizinho.linha);
+                int moveCost = current.gCost + calcularMoveCost(current, vizinho, lvlData);
+                Node existingOpen = openMap.get(key);
 
-                int moveCost = current.gCost + calcularDistancia(current, vizinho);
-                boolean inOpen = inList(openList, vizinho.coluna, vizinho.linha);
-
-                if (moveCost < vizinho.gCost || !inOpen) {
+                if (existingOpen != null) {
+                    if (moveCost < existingOpen.gCost) {
+                        existingOpen.gCost = moveCost;
+                        existingOpen.hCost = calcularDistancia(existingOpen, targetNode);
+                        existingOpen.calcularFCost();
+                        existingOpen.parent = current;
+                    }
+                } else {
                     vizinho.gCost = moveCost;
                     vizinho.hCost = calcularDistancia(vizinho, targetNode);
                     vizinho.calcularFCost();
                     vizinho.parent = current;
-                    if (!inOpen) {
-                        openList.add(vizinho);
-                    }
+                    openList.add(vizinho);
+                    openMap.put(key, vizinho);
                 }
             }
         }
         return null;
+    }
+
+    private static long nodeKey(int col, int row) {
+        return ((long) col << 32) | (row & 0xFFFFFFFFL);
     }
 
     private static boolean isCaminhavel(int tileId) {
@@ -72,7 +84,7 @@ public class PathFinder {
             Node current,
             int[][] lvlData,
             ArrayList<JumpLink> jumpLinks,
-            ArrayList<Node> closedList) {
+            HashMap<Long, Node> closedMap) {
 
         ArrayList<Node> vizinhos = new ArrayList<>();
         int maxRow = lvlData.length;
@@ -87,7 +99,7 @@ public class PathFinder {
 
             if (nCol >= 0 && nCol < maxCol && nRow >= 0 && nRow < maxRow) {
                 if (isCaminhavel(lvlData[nRow][nCol])
-                        && !inList(closedList, nCol, nRow)) {
+                        && !closedMap.containsKey(nodeKey(nCol, nRow))) {
                     vizinhos.add(new Node(nCol, nRow));
                 }
             }
@@ -97,7 +109,7 @@ public class PathFinder {
             for (JumpLink link : jumpLinks) {
                 if (link.origemCol == current.coluna
                         && link.origemRow == current.linha
-                        && !inList(closedList, link.destinoCol, link.destinoRow)) {
+                        && !closedMap.containsKey(nodeKey(link.destinoCol, link.destinoRow))) {
 
                     Node jumpNode = new Node(link.destinoCol, link.destinoRow);
                     jumpNode.requerSalto = true;
@@ -106,7 +118,7 @@ public class PathFinder {
 
                 } else if (link.destinoCol == current.coluna
                         && link.destinoRow == current.linha
-                        && !inList(closedList, link.origemCol, link.origemRow)) {
+                        && !closedMap.containsKey(nodeKey(link.origemCol, link.origemRow))) {
 
                     Node jumpNode = new Node(link.origemCol, link.origemRow);
                     jumpNode.requerSalto = true;
@@ -122,13 +134,43 @@ public class PathFinder {
         return (Math.abs(a.coluna - b.coluna) + Math.abs(a.linha - b.linha)) * 10;
     }
 
-    private static boolean inList(ArrayList<Node> lista, int col, int row) {
-        for (Node n : lista) {
-            if (n.coluna == col && n.linha == row) {
-                return true;
+    // --- LÓGICA DE EVITAR SUICÍDIO NO GELO ---
+    private static boolean temBuracoAdjacente(int row, int col, int[][] lvlData) {
+        int[] dirX = {1, -1, 0, 0};
+        int[] dirY = {0, 0, 1, -1};
+        for (int i = 0; i < 4; i++) {
+            int r = row + dirY[i];
+            int c = col + dirX[i];
+            if (r >= 0 && r < lvlData.length && c >= 0 && c < lvlData[0].length) {
+                if (TileProperties.isHole(lvlData[r][c])) {
+                    return true;
+                }
             }
         }
         return false;
+    }
+
+    private static int calcularMoveCost(Node from, Node to, int[][] lvlData) {
+        int base;
+        if (to.requerSalto && to.distanciaTiles > 0) {
+            base = to.distanciaTiles * 10;
+            int destHazard = TileProperties.getHazardMoveCost(to.linha, to.coluna, lvlData);
+            base += destHazard;
+            if (TileProperties.isTilePerigosoParaSalto(to.linha, to.coluna, lvlData)) {
+                base += 20;
+            }
+        } else {
+            base = calcularDistancia(from, to);
+            base += TileProperties.getHazardMoveCost(to.linha, to.coluna, lvlData);
+
+            // HAZARD AVOIDANCE EXTREMO: Se é Gelo colado num buraco, taxa altíssima de risco!
+            if (TileProperties.isIce(lvlData[to.linha][to.coluna])) {
+                if (temBuracoAdjacente(to.linha, to.coluna, lvlData)) {
+                    base += 40; // Ele preferirá quase qualquer outra rota, mas andará se não houver saída.
+                }
+            }
+        }
+        return base;
     }
 
     private static ArrayList<Node> construirCaminho(Node targetNode) {

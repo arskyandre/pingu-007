@@ -27,6 +27,7 @@ public class Player extends Entity {
 
     private final BulletManager bulletmanager;
     private int armas = 1;
+    private int chaves = 0;
     private int pente = 15;
     private final int maxpente = 15;
     private int municao = 45;
@@ -77,7 +78,7 @@ public class Player extends Entity {
     private int muniCOoldownTimer = 0;
     private final int muniCooldown = 60;
 
-    public void testemunicao(InputManager input, int telaLargura, int telaAltura, LootManager lootmanager, CameraManager camera) {
+    public void testemunicao(InputManager input, int telaLargura, int telaAltura, ItemManager itemManager, CameraManager camera) {
         if (muniCOoldownTimer > 0) {
             muniCOoldownTimer--;
         }
@@ -87,8 +88,7 @@ public class Player extends Entity {
                 double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
                 double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
 
-                Ammo am = new Ammo(mouseXWorld, mouseYWorld, 32);
-                lootmanager.spawn(am);
+                itemManager.spawn(new AmmoPackItem(mouseXWorld, mouseYWorld, 32));
                 muniCOoldownTimer = muniCooldown;
                 System.out.println("Spawnou municao");
             }
@@ -343,6 +343,25 @@ public class Player extends Entity {
     public void addMunicao(int qtd) {
         municao += qtd;
         System.out.println("coletou " + String.valueOf(qtd) + " total: " + String.valueOf(municao));
+    }
+
+    public void curar(int qtd) {
+        vida = Math.min(vidaMaxima, vida + qtd);
+        System.out.println("coletou cura +" + qtd + " vida: " + vida);
+    }
+
+    public void adicionarChave(int qtd) {
+        chaves += qtd;
+        System.out.println("coletou chave total: " + chaves);
+    }
+
+    public int getChaves() {
+        return chaves;
+    }
+
+    public void equiparArma(String tipoArma) {
+        armas++;
+        System.out.println("equipou arma: " + tipoArma + " total: " + armas);
     }
 
     public int getPente() {

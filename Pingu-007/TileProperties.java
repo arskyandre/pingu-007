@@ -38,4 +38,56 @@ public class TileProperties {
         }
         return false;
     }
+
+    public static boolean isAdjacentToHole(int row, int col, int[][] lvlData) {
+        int maxRow = lvlData.length;
+        int maxCol = lvlData[0].length;
+        int[] dr = {-1, 1, 0, 0};
+        int[] dc = {0, 0, -1, 1};
+
+        for (int i = 0; i < 4; i++) {
+            int nr = row + dr[i];
+            int nc = col + dc[i];
+            if (nr >= 0 && nr < maxRow && nc >= 0 && nc < maxCol) {
+                if (isHole(lvlData[nr][nc])) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Extra A* move cost for hazard tiles. High enough to bias away from holes,
+     * low enough that enemies may still cross when it is the only route.
+     */
+    public static int getHazardMoveCost(int row, int col, int[][] lvlData) {
+        if (row < 0 || row >= lvlData.length || col < 0 || col >= lvlData[0].length) {
+            return 0;
+        }
+
+        int tile = lvlData[row][col];
+        int cost = 0;
+
+        if (isIce(tile) && isAdjacentToHole(row, col, lvlData)) {
+            cost += 35;
+        } else if (isAdjacentToHole(row, col, lvlData)) {
+            cost += 18;
+        }
+
+        if (isIce(tile)) {
+            cost += 4;
+        }
+
+        return cost;
+    }
+
+    public static boolean isTilePerigosoParaSalto(int row, int col, int[][] lvlData) {
+        if (row < 0 || row >= lvlData.length || col < 0 || col >= lvlData[0].length) {
+            return true;
+        }
+        int tile = lvlData[row][col];
+        return isHole(tile) || isSolid(tile)
+                || (isIce(tile) && isAdjacentToHole(row, col, lvlData));
+    }
 }

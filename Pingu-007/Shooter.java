@@ -49,6 +49,7 @@ public class Shooter extends Enemy {
             return;
         }
 
+        atualizarAggro(player);
         atualizarTimersKnockback();
 
         double centerX = x + width / 2.0;
@@ -62,7 +63,7 @@ public class Shooter extends Enemy {
 
         switch (estadoAtual) {
             case PERSEGUINDO -> {
-                if (dist < distAtivacao) {
+                if (dist < distAtivacao && temAggro()) {
                     estadoAtual = Status.PREPARANDO;
                     timer = tempoPreparo;
                     velX = 0;
@@ -149,8 +150,8 @@ public class Shooter extends Enemy {
     }
 
     @Override
-    public void receberDano(int dano) {
-        super.receberDano(dano);
+    public void receberDano(int dano, double sourceX, double sourceY, double knockbackForce) {
+        super.receberDano(dano, sourceX, sourceY, knockbackForce);
         if (interromperNoTiro && (estadoAtual == Status.PREPARANDO || estadoAtual == Status.ATIRANDO)) {
             estadoAtual = Status.COOLDOWN;
             timer = tempoCooldown;
