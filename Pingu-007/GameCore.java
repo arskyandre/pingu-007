@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 import javax.swing.*;
+import java.awt.event.KeyEvent;
 
 public class GameCore extends Canvas implements Runnable {
 
@@ -19,6 +20,7 @@ public class GameCore extends Canvas implements Runnable {
     private final Renderer renderer;
     private final LevelManager levelManager;
     private ArenaManager arenaManager;
+    private DialogueManager dialogueManager;
 
     private int debugSpawnCooldown = 0;
     private int mapLoadCooldown = 0;
@@ -48,8 +50,10 @@ public class GameCore extends Canvas implements Runnable {
         enemyManager = new EnemyManager(levelManager, bulletmanager);
         enemyManager.setItemManager(itemManager);
         arenaManager = new ArenaManager(enemyManager, levelManager);
+        dialogueManager = new DialogueManager();
         camera = new CameraManager(player.getX(), player.getY(), 1.25);
         hud = new Hud();
+
 
         levelManager.inicializarPrimeiroNivel();
 
@@ -63,6 +67,20 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void update() {
+
+      if(input.isKeyPressed(KeyEvent.VK_T)){
+        if(!dialogueManager.isAtivo()){
+          dialogueManager.iniciarDialogo(new String[]{
+            "PINGU: Entrando na base de operações.", "RADIO: Cuidado, 007. Os lobos estao em alerta maximo",
+              "PINGU: Eles nao vao nem ver de onde veio."
+          });
+        }
+      }
+
+      if(dialogueManager.isAtivo()){
+        dialogueManager.atualizar(input);
+      }
+      else{
         player.testemunicao(input, getWidth(), getHeight(), itemManager, camera);
 
         player.update(input, getWidth(), getHeight(), camera);
@@ -132,6 +150,7 @@ public class GameCore extends Canvas implements Runnable {
             levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
             mapLoadCooldown = 60;
         }
+      }
     }
 
     public void processarNovoMapa(ArrayList<TiledObject> objetosDoMapa) {
@@ -190,7 +209,7 @@ public class GameCore extends Canvas implements Runnable {
                 renderer.renderizar(g2, camera, player, input,
                         getWidth(), getHeight(),
                         levelManager, bulletmanager, itemManager,
-                        enemyManager, arenaManager, hud);
+                        enemyManager, arenaManager, hud, dialogueManager);
                 g2.dispose();
             } while (bs.contentsRestored());
             bs.show();

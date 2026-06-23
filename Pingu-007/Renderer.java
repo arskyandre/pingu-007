@@ -10,7 +10,7 @@ public class Renderer {
     Boolean preDash = false;
 
     public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura,
-            int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager, EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD) {
+            int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager, EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager) {
 
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, telaLargura, telaAltura);
@@ -98,8 +98,13 @@ public class Renderer {
         }
         g2.setTransform(originalTransform);
 
-        renderMouse(g2, input);
+        
         HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager);
+
+        if(dialogueManager != null && dialogueManager.isAtivo()){
+          dialogueManager.renderizar(g2,telaLargura,telaAltura);
+        }
+        renderMouse(g2, input);
     }
 
     private double getRenderBaseY(Object entidade) {
