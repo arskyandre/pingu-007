@@ -149,7 +149,7 @@ public class LoadSave {
                     tObj.colision = extractBoolProp(processStr, "colision", true);
                     //tObj.key = extractIntProp(processStr, "key", 0);
                     tObj.id_button = extractIntProp(processStr, "id_button", -1);
-                    //tObj.isPressed = extractBoolProp(processStr, "isPressed", false);
+                    tObj.isToggle = extractBoolProp(processStr, "isToggle", false);
 
                     if (processStr.contains("\"point\":true")) {
                         tObj.isPoint = true;

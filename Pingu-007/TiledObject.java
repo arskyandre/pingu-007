@@ -18,7 +18,7 @@ public class TiledObject {
     public boolean colision = true;
     //public int key = 0;
     public int id_button = -1;
-    //public boolean isPressed = false;
+    public boolean isToggle = false;
     public int timer = 0;
 
     public boolean isPoint = false;

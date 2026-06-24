@@ -1240,14 +1240,19 @@
                  "opacity":1,
                  "properties":[
                         {
+                         "name":"id_arena",
+                         "type":"int",
+                         "value":101
+                        }, 
+                        {
                          "name":"id_button",
                          "type":"int",
                          "value":4
                         }, 
                         {
-                         "name":"isPressed",
+                         "name":"isToggle",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }, 
                         {
                          "name":"type",
@@ -1269,14 +1274,19 @@
                  "opacity":1,
                  "properties":[
                         {
+                         "name":"id_arena",
+                         "type":"int",
+                         "value":101
+                        }, 
+                        {
                          "name":"id_button",
                          "type":"int",
                          "value":3
                         }, 
                         {
-                         "name":"isPressed",
+                         "name":"isToggle",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }, 
                         {
                          "name":"type",
@@ -1298,14 +1308,19 @@
                  "opacity":1,
                  "properties":[
                         {
+                         "name":"id_arena",
+                         "type":"int",
+                         "value":101
+                        }, 
+                        {
                          "name":"id_button",
                          "type":"int",
                          "value":1
                         }, 
                         {
-                         "name":"isPressed",
+                         "name":"isToggle",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }, 
                         {
                          "name":"type",
@@ -1327,14 +1342,19 @@
                  "opacity":1,
                  "properties":[
                         {
+                         "name":"id_arena",
+                         "type":"int",
+                         "value":101
+                        }, 
+                        {
                          "name":"id_button",
                          "type":"int",
                          "value":2
                         }, 
                         {
-                         "name":"isPressed",
+                         "name":"isToggle",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }, 
                         {
                          "name":"type",
@@ -1385,14 +1405,19 @@
                  "opacity":1,
                  "properties":[
                         {
+                         "name":"id_arena",
+                         "type":"int",
+                         "value":101
+                        }, 
+                        {
                          "name":"id_button",
                          "type":"int",
                          "value":5
                         }, 
                         {
-                         "name":"isPressed",
+                         "name":"isToggle",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }, 
                         {
                          "name":"type",
@@ -1414,14 +1439,19 @@
                  "opacity":1,
                  "properties":[
                         {
+                         "name":"id_arena",
+                         "type":"int",
+                         "value":101
+                        }, 
+                        {
                          "name":"id_button",
                          "type":"int",
                          "value":6
                         }, 
                         {
-                         "name":"isPressed",
+                         "name":"isToggle",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }, 
                         {
                          "name":"type",
@@ -1438,35 +1468,9 @@
                 {
                  "gid":11,
                  "height":16,
-                 "id":835,
+                 "id":837,
                  "name":"",
                  "opacity":1,
-                 "properties":[
-                        {
-                         "name":"action",
-                         "type":"string",
-                         "value":"pescar"
-                        }, 
-                        {
-                         "name":"colision",
-                         "type":"bool",
-                         "value":false
-                        }, 
-                        {
-                         "name":"need",
-                         "type":"string",
-                         "value":"rod"
-                        }, 
-                        {
-                         "name":"podePescar",
-                         "type":"bool",
-                         "value":false
-                        }, 
-                        {
-                         "name":"type",
-                         "type":"string",
-                         "value":"interativo"
-                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -16083,7 +16087,7 @@
          "y":0
         }],
  "nextlayerid":24,
- "nextobjectid":836,
+ "nextobjectid":838,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",

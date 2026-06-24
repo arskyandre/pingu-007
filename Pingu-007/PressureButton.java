@@ -4,11 +4,18 @@ import java.awt.Graphics2D;
 public class PressureButton extends ArenaObject {
 
     private boolean pressed = false;
+    private boolean playerPisando = false;
     private int releaseTimer = 0;
     private int[][] visualSnapshot;
+    private boolean isToggleMode = false;
 
     public PressureButton(TiledObject data) {
         super(data);
+        //this.pressed = data.ativa;
+
+        if (data.isToggle) {
+            this.isToggleMode = true;
+        }
     }
 
     @Override
@@ -20,25 +27,46 @@ public class PressureButton extends ArenaObject {
         return pressed;
     }
 
+    public boolean isPlayerPisando() {
+        return playerPisando;
+    }
+
+    public boolean isToggleMode() {
+        return isToggleMode;
+    }
+
+    public void setPlayerPisando(boolean pisando) {
+        this.playerPisando = pisando;
+    }
+
+    public void toggle(ArenaContext context) {
+        setPressed(context, !this.pressed);
+    }
+
     @Override
     public void onLoad(ArenaContext context) {
-        setPressed(context, false);
+        setPressed(context, this.pressed);
     }
 
     @Override
     public void update(ArenaContext context, Player player) {
         boolean playerOnTop = ArenaTriggers.collides(data, player);
+        this.playerPisando = playerOnTop;
+
+        if (isToggleMode) {
+            return;
+        }
 
         if (playerOnTop && !pressed) {
             setPressed(context, true);
             releaseTimer = 0;
-            System.out.println("Botão " + data.id_button + " pressionado!");
+            System.out.println("Botão Clássico " + data.id_button + " pressionado!");
         } else if (!playerOnTop && pressed) {
             releaseTimer++;
             if (releaseTimer >= 360) {
                 setPressed(context, false);
                 releaseTimer = 0;
-                System.out.println("Botão " + data.id_button + " desarmou por falta de peso!");
+                System.out.println("Botão Clássico " + data.id_button + " desarmou por falta de peso!");
             }
         }
     }

@@ -9,8 +9,7 @@ public class ArenaManager {
     private final ArenaContext context;
 
     //public boolean flagArena16Ativada = false;
-    public boolean puzzleBotoesConcluido = false;
-
+    //public boolean puzzleBotoesConcluido = false;
     public static class Arena {
 
         int id;
@@ -45,7 +44,7 @@ public class ArenaManager {
         collisionBlocks.clear();
         allObjects.clear();
         //flagArena16Ativada = false;
-        puzzleBotoesConcluido = false;
+        //puzzleBotoesConcluido = false;
 
         for (TiledObject obj : objetos) {
             String tipo = obj.tipo != null ? obj.tipo.toLowerCase().trim() : "";
@@ -147,24 +146,91 @@ public class ArenaManager {
     }
 
     private void atualizarBotoes(Player player) {
-        //TODO: FAZER PUZZLE DOS BOTÕES
-        if (puzzleBotoesConcluido) {
-            return;
-        }
+        PressureButton botaoLightsOutAcionado = null;
 
-        boolean todosApertados = true;
+        boolean todosNormaisAtivados = true;
+        boolean temBotaoNormal = false;
 
         for (PressureButton button : buttons) {
+            boolean pisavaAntes = button.isPlayerPisando();
             button.update(context, player);
-            if (!button.isPressed()) {
-                todosApertados = false;
+
+            if (button.isToggleMode()) {
+                if (button.isPlayerPisando() && !pisavaAntes) {
+                    botaoLightsOutAcionado = button;
+                }
+            } else {
+                temBotaoNormal = true;
+                if (!button.isPressed()) {
+                    todosNormaisAtivados = false;
+                }
             }
         }
 
-        if (!buttons.isEmpty() && todosApertados) {
-            puzzleBotoesConcluido = true;
-            System.out.println("=== PUZZLE DOS BOTÕES CONCLUÍDO! ===");
-            resolverPuzzle101(player);
+        if (temBotaoNormal && todosNormaisAtivados) {
+            //if (temBotaoNormal && todosNormaisAtivados && !puzzleBotoesConcluido) {
+            System.out.println("=== PUZZLE DOS BOTÕES NORMAIS CONCLUÍDO! ===");
+            /*puzzleBotoesConcluido = true;
+            setWallState(idArena, false, player);
+            arena.concluida = true;
+            itemManager.spawn(new KeyItem(5029, 4200));*/
+        }
+
+        if (botaoLightsOutAcionado != null) {
+            alternarLightsOut(botaoLightsOutAcionado, player);
+        }
+    }
+
+    private void alternarLightsOut(PressureButton origem, Player player) {
+        origem.toggle(context);
+
+        double espacamentoGrade = GameCore.tiles_size * 3;
+        double origemX = origem.getData().x;
+        double origemY = origem.getData().y;
+
+        for (PressureButton vizinho : buttons) {
+            if (vizinho == origem || !vizinho.isToggleMode()) {
+                continue;
+            }
+
+            if (vizinho.getData().id_arena != origem.getData().id_arena) {
+                continue;
+            }
+
+            double dx = Math.abs(origemX - vizinho.getData().x);
+            double dy = Math.abs(origemY - vizinho.getData().y);
+
+            if ((Math.abs(dx - espacamentoGrade) < 2 && dy < 2) || (Math.abs(dy - espacamentoGrade) < 2 && dx < 2)) {
+                vizinho.toggle(context);
+            }
+        }
+        verificarVitoriaLightsOut(origem.getData().id_arena, player);
+    }
+
+    private void verificarVitoriaLightsOut(int idArena, Player player) {
+        Arena arena = getOuCriarArena(idArena);
+        if (arena.concluida) {
+            return;
+        }
+
+        boolean todosLightsOutAtivados = true;
+        boolean temBotaoLightsOut = false;
+
+        for (PressureButton btn : buttons) {
+            if (btn.isToggleMode() && btn.getData().id_arena == idArena) {
+                temBotaoLightsOut = true;
+                if (!btn.isPressed()) {
+                    todosLightsOutAtivados = false;
+                    break;
+                }
+            }
+        }
+
+        if (temBotaoLightsOut && todosLightsOutAtivados) {
+            System.out.println("=== PUZZLE LIGHTS OUT DA ARENA " + idArena + " CONCLUÍDO! ===");
+            setWallState(idArena, false, player);
+            arena.concluida = true;
+            itemManager.spawn(new KeyItem(5029, 4200));
         }
     }
 
@@ -255,13 +321,6 @@ public class ArenaManager {
             default ->
                 setWallState(id, false, player);
         }
-    }
-
-    public void resolverPuzzle101(Player player) {
-        itemManager.spawn(new KeyItem(5029, 4200));
-        setWallState(101, false, player);
-        Arena arena = getOuCriarArena(101);
-        arena.concluida = true;
     }
 
     private void iniciarTransicaoDeFase(String mapaDestino) {
