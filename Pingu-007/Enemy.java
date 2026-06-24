@@ -19,14 +19,16 @@ public abstract class Enemy extends Entity {
     public boolean podePularBuracos = false;
     public boolean isInvulneravel = false;
 
-    /**
-     * Circular detection radius — enemy ignores player until they enter this
-     * range.
-     */
     public double raioDeteccao = GameCore.tiles_size * 8.0;
     protected boolean aggroPermanente = false;
     protected boolean lootProcessado = false;
     public boolean podeDropar = true;
+
+    protected boolean emSaltoCinematico = false;
+    protected double lerpStartX, lerpStartY, lerpTargetX, lerpTargetY;
+    protected int lerpFramesMax = 0;
+    protected int lerpFrameAtual = 0;
+    protected Node pendingJumpNode = null;
 
     protected int timerPuxado = 0;
 
@@ -121,7 +123,6 @@ public abstract class Enemy extends Entity {
             timerPuxado--;
             if (timerPuxado <= 0) {
                 isPuxado = false;
-                // Força o recálculo do A* imediatamente após o atordoamento para ele não ir contra a parede
                 aStarDelay = tempoRecalculoAStar;
             }
         }
@@ -209,7 +210,7 @@ public abstract class Enemy extends Entity {
             if (currentPathIndex < caminhoAStar.size()) {
                 Node proximo = caminhoAStar.get(currentPathIndex);
                 if (proximo.requerSalto) {
-                    prepararSaltoAStar(proximo); // <--- Delega o preparo do pulo para a classe filha
+                    prepararSaltoAStar(proximo);
                 } else {
                     this.isAirborne = false;
                 }
@@ -225,18 +226,9 @@ public abstract class Enemy extends Entity {
         }
     }
 
-// Novas variáveis para LERP
-    protected boolean emSaltoCinematico = false;
-    protected double lerpStartX, lerpStartY, lerpTargetX, lerpTargetY;
-    protected int lerpFramesMax = 0;
-    protected int lerpFrameAtual = 0;
-    protected Node pendingJumpNode = null;
-
-    // Novo método vazio para delegar à máquina de estados das subclasses
     protected void prepararSaltoAStar(Node noDestino) {
     }
 
-    // Configura o pulo LERP
     protected void iniciarSaltoCinematico(Node noDestino, int durationFrames) {
         this.emSaltoCinematico = true;
         this.lerpFrameAtual = 0;
@@ -244,18 +236,15 @@ public abstract class Enemy extends Entity {
         this.lerpStartX = this.x;
         this.lerpStartY = this.y;
 
-        // Snapping perfeito no centro da tile de destino
         double alvoX = noDestino.coluna * GameCore.tiles_size + (GameCore.tiles_size / 2.0) - (this.width / 2.0);
         double alvoY = noDestino.linha * GameCore.tiles_size + (GameCore.tiles_size / 2.0) - (this.height / 2.0);
         this.lerpTargetX = alvoX;
         this.lerpTargetY = alvoY;
 
-        // Desliga inércia
         this.velX = 0;
         this.velY = 0;
     }
 
-    // Processa a interpolação linear
     protected void executarSaltoCinematico() {
         if (!emSaltoCinematico) {
             return;
@@ -267,7 +256,6 @@ public abstract class Enemy extends Entity {
         if (t >= 1.0) {
             t = 1.0;
             this.emSaltoCinematico = false;
-            // Aterrissagem forçada no alvo seguro (Zera inércia de gelo)
             this.x = lerpTargetX;
             this.y = lerpTargetY;
             this.velX = 0;

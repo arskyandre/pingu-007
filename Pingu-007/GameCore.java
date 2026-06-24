@@ -1,9 +1,9 @@
 
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 import javax.swing.*;
-import java.awt.event.KeyEvent;
 
 public class GameCore extends Canvas implements Runnable {
 
@@ -49,11 +49,10 @@ public class GameCore extends Canvas implements Runnable {
         itemManager = new ItemManager();
         enemyManager = new EnemyManager(levelManager, bulletmanager);
         enemyManager.setItemManager(itemManager);
-        arenaManager = new ArenaManager(enemyManager, levelManager);
+        arenaManager = new ArenaManager(enemyManager, levelManager, itemManager);
         dialogueManager = new DialogueManager();
         camera = new CameraManager(player.getX(), player.getY(), 1.25);
         hud = new Hud();
-
 
         levelManager.inicializarPrimeiroNivel();
 
@@ -68,89 +67,88 @@ public class GameCore extends Canvas implements Runnable {
 
     public void update() {
 
-      if(input.isKeyPressed(KeyEvent.VK_T)){
-        if(!dialogueManager.isAtivo()){
-          dialogueManager.iniciarDialogo(new String[]{
-            "PINGU: Entrando na base de operações.", "RADIO: Cuidado, 007. Os lobos estao em alerta maximo",
-              "PINGU: Eles nao vao nem ver de onde veio."
-          });
-        }
-      }
-
-      if(dialogueManager.isAtivo()){
-        dialogueManager.atualizar(input);
-      }
-      else{
-        player.testemunicao(input, getWidth(), getHeight(), itemManager, camera);
-
-        player.update(input, getWidth(), getHeight(), camera);
-        itemManager.update(player);
-
-        ArrayList<JumpLink> linksAtuais = levelManager.getJumpLinks();
-        enemyManager.update(player, linksAtuais);
-
-        arenaManager.update(player);
-
-        bulletmanager.update(camera, getWidth(), getHeight(),
-                player, enemyManager.getEnemies());
-
-        levelManager.update();
-        camera.update(player, input, getWidth(), getHeight());
-
-        // FUNÇÕES DE DEBUG
-        if (debugSpawnCooldown > 0) {
-            debugSpawnCooldown--;
+        if (input.isKeyPressed(KeyEvent.VK_T)) {
+            if (!dialogueManager.isAtivo()) {
+                dialogueManager.iniciarDialogo(new String[]{
+                    "PINGU: Entrando na base de operações.", "RADIO: Cuidado, 007. Os lobos estao em alerta maximo",
+                    "PINGU: Eles nao vao nem ver de onde veio."
+                });
+            }
         }
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_K) && debugSpawnCooldown <= 0) {
-            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-            enemyManager.adicionarInimigo("jumper", mouseXWorld, mouseYWorld, 0, -1);
-            System.out.println("DEBUG: Dasher spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
-            debugSpawnCooldown = 30;
-        }
+        if (dialogueManager.isAtivo()) {
+            dialogueManager.atualizar(input);
+        } else {
+            player.testemunicao(input, getWidth(), getHeight(), itemManager, camera);
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_L) && debugSpawnCooldown <= 0) {
-            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-            KeyItem chave = new KeyItem(mouseXWorld, mouseYWorld);
-            itemManager.spawn(chave);
-            System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
-            debugSpawnCooldown = 30;
-        }
+            player.update(input, getWidth(), getHeight(), camera);
+            itemManager.update(player);
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_0) && debugSpawnCooldown <= 0) {
-            renderer.modoDebug = !renderer.modoDebug;
-            if (renderer.modoDebug) {
-                System.out.println("DEBUG: Visão dos Triggers e Objetos Ativada");
-            } else {
-                System.out.println("DEBUG: Visão dos Triggers e Objetos Desativada");
+            ArrayList<JumpLink> linksAtuais = levelManager.getJumpLinks();
+            enemyManager.update(player, linksAtuais);
+
+            arenaManager.update(player);
+
+            bulletmanager.update(camera, getWidth(), getHeight(),
+                    player, enemyManager.getEnemies());
+
+            levelManager.update();
+            camera.update(player, input, getWidth(), getHeight());
+
+            // FUNÇÕES DE DEBUG
+            if (debugSpawnCooldown > 0) {
+                debugSpawnCooldown--;
             }
 
-            debugSpawnCooldown = 30;
-        }
+            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_K) && debugSpawnCooldown <= 0) {
+                double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+                double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+                enemyManager.adicionarInimigo("jumper", mouseXWorld, mouseYWorld, 0, -1);
+                System.out.println("DEBUG: Dasher spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
+                debugSpawnCooldown = 30;
+            }
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_E) && debugSpawnCooldown <= 0) {
-            arenaManager.interagir(player, player.getChaves());
-        }
+            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_L) && debugSpawnCooldown <= 0) {
+                double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+                double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+                //itemManager.spawn(new KeyItem(12839, 4870));
+                itemManager.spawn(new KeyItem(mouseXWorld, mouseYWorld));
+                System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
+                debugSpawnCooldown = 30;
+            }
 
-        if (mapLoadCooldown > 0) {
-            mapLoadCooldown--;
-        }
+            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_0) && debugSpawnCooldown <= 0) {
+                renderer.modoDebug = !renderer.modoDebug;
+                if (renderer.modoDebug) {
+                    System.out.println("DEBUG: Visão dos Triggers e Objetos Ativada");
+                } else {
+                    System.out.println("DEBUG: Visão dos Triggers e Objetos Desativada");
+                }
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_1) && mapLoadCooldown <= 0) {
-            System.out.println("Voltando para o Mapa 1...");
-            levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
-            mapLoadCooldown = 60;
-        }
+                debugSpawnCooldown = 30;
+            }
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_2) && mapLoadCooldown <= 0) {
-            System.out.println("Indo para o Mapa 2 de Testes...");
-            // Substitua pelo nome exato do seu arquivo JSON de teste
-            levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
-            mapLoadCooldown = 60;
+            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_E) && debugSpawnCooldown <= 0) {
+                arenaManager.interagir(player, player.getChaves());
+            }
+
+            if (mapLoadCooldown > 0) {
+                mapLoadCooldown--;
+            }
+
+            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_1) && mapLoadCooldown <= 0) {
+                System.out.println("Voltando para o Mapa 1...");
+                levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
+                mapLoadCooldown = 60;
+            }
+
+            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_2) && mapLoadCooldown <= 0) {
+                System.out.println("Indo para o Mapa 2 de Testes...");
+                // Substitua pelo nome exato do seu arquivo JSON de teste
+                levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
+                mapLoadCooldown = 60;
+            }
         }
-      }
     }
 
     public void processarNovoMapa(ArrayList<TiledObject> objetosDoMapa) {

@@ -1,10 +1,7 @@
+
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
-/**
- * Central atlas accessor for arena visuals sourced from tile_set.png.
- * Tile IDs match the map matrix convention (1-based GID values).
- */
 public final class ArenaAtlas {
 
     private static BufferedImage[] tileSprites;
@@ -47,6 +44,10 @@ public final class ArenaAtlas {
             return;
         }
         g2.drawImage(sprite, (int) worldX, (int) worldY, (int) worldW, (int) worldH, null);
+    }
+
+    public static int getStoolTileId() {
+        return 11;
     }
 
     public static int getDefaultWallTileId() {

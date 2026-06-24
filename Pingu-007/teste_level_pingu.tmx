@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="336" height="192" tilewidth="16" tileheight="16" infinite="0" nextlayerid="24" nextobjectid="832">
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="336" height="192" tilewidth="16" tileheight="16" infinite="0" nextlayerid="24" nextobjectid="836">
  <editorsettings>
-  <export format="json"/>
+  <export target="LEVEL_1_DATA.json" format="json"/>
  </editorsettings>
  <tileset firstgid="1" source="tile_set_pingu.tsx"/>
  <layer id="9" name="sea" width="336" height="192" locked="1">
@@ -1188,7 +1188,7 @@
   </properties>
   <object id="759" gid="52" x="1632" y="1408" width="16" height="16">
    <properties>
-    <property name="id_button" type="int" value="5"/>
+    <property name="id_button" type="int" value="4"/>
     <property name="isPressed" type="bool" value="false"/>
     <property name="type" value="button"/>
    </properties>
@@ -1216,14 +1216,26 @@
   </object>
   <object id="779" gid="11" x="1824" y="912" width="16" height="16">
    <properties>
-    <property name="action" value="pescar"/>
+    <property name="acao" value="pescar"/>
     <property name="colision" type="bool" value="false"/>
-    <property name="need" value="rod"/>
-    <property name="podePescar" type="bool" value="false"/>
     <property name="type" value="interativo"/>
    </properties>
   </object>
-  <object id="831" gid="11" x="2896" y="688" width="16" height="16">
+  <object id="832" gid="52" x="1584" y="1456" width="16" height="16">
+   <properties>
+    <property name="id_button" type="int" value="5"/>
+    <property name="isPressed" type="bool" value="false"/>
+    <property name="type" value="button"/>
+   </properties>
+  </object>
+  <object id="833" gid="52" x="1632" y="1456" width="16" height="16">
+   <properties>
+    <property name="id_button" type="int" value="6"/>
+    <property name="isPressed" type="bool" value="false"/>
+    <property name="type" value="button"/>
+   </properties>
+  </object>
+  <object id="835" gid="11" x="2896" y="688" width="16" height="16">
    <properties>
     <property name="action" value="pescar"/>
     <property name="colision" type="bool" value="false"/>
@@ -2755,7 +2767,7 @@
     <property name="id_arena" type="int" value="999"/>
     <property name="isActive" type="bool" value="true"/>
     <property name="totalHordas" type="int" value="0"/>
-    <property name="type" value="trigger"/>
+    <property name="type" value="level_trigger"/>
    </properties>
    <polygon points="0,0 64,-16 96,-16 160,0 160,-32 96,-48 64,-48 0,-32"/>
   </object>

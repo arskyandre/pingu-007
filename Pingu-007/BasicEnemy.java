@@ -62,7 +62,7 @@ public class BasicEnemy extends Enemy {
 
     @Override
     public void draw(Graphics2D g2) {
-        // Cancela o retângulo padrão rosa/magenta
+        // Cancela o retângulo padrão rosa
     }
 
     @Override

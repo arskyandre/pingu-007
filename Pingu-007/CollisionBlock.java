@@ -1,3 +1,4 @@
+
 import java.awt.geom.Rectangle2D;
 
 public class CollisionBlock extends ArenaObject {
@@ -75,7 +76,7 @@ public class CollisionBlock extends ArenaObject {
 
         if (chavesDoPlayer >= 3) {
             setActive(context, false, null);
-            PuzzleStoneReplacer.applyUnlockVisuals(context.getMapData());
+            GateReplacer.applyUnlockVisuals(context.getMapData());
             System.out.println("Colisão destrancada! Mudando os tiles das pedras...");
             return true;
         }

@@ -145,7 +145,6 @@ public class Dasher extends Enemy {
             }
         }
 
-        // Aplica física padrão SOMENTE se não estiver em Salto Cinemático
         if (!emSaltoCinematico) {
             double andarSalvo = this.velocidadeAndar;
             double atritoSalvo = this.atritoAtual;
@@ -193,7 +192,7 @@ public class Dasher extends Enemy {
             xx = (int) (x + width);
         }
 
-        if (estadoAtual == Status.DASHING || isAirborne) {
+        if (estadoAtual == Status.DASHING || isAirborne || emSaltoCinematico) {
             g2.drawImage(Sprites[8], xx, (int) y, inv * (int) (19 * width / 16), (int) height, null);
         } else {
             if (estadoAtual == Status.PREPARANDO) {

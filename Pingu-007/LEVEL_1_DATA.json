@@ -1242,7 +1242,7 @@
                         {
                          "name":"id_button",
                          "type":"int",
-                         "value":5
+                         "value":4
                         }, 
                         {
                          "name":"isPressed",
@@ -1356,22 +1356,12 @@
                  "opacity":1,
                  "properties":[
                         {
-                         "name":"action",
+                         "name":"acao",
                          "type":"string",
                          "value":"pescar"
                         }, 
                         {
                          "name":"colision",
-                         "type":"bool",
-                         "value":false
-                        }, 
-                        {
-                         "name":"need",
-                         "type":"string",
-                         "value":"rod"
-                        }, 
-                        {
-                         "name":"podePescar",
                          "type":"bool",
                          "value":false
                         }, 
@@ -1388,9 +1378,67 @@
                  "y":912
                 }, 
                 {
+                 "gid":52,
+                 "height":16,
+                 "id":832,
+                 "name":"",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"id_button",
+                         "type":"int",
+                         "value":5
+                        }, 
+                        {
+                         "name":"isPressed",
+                         "type":"bool",
+                         "value":false
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"button"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":16,
+                 "x":1584,
+                 "y":1456
+                }, 
+                {
+                 "gid":52,
+                 "height":16,
+                 "id":833,
+                 "name":"",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"id_button",
+                         "type":"int",
+                         "value":6
+                        }, 
+                        {
+                         "name":"isPressed",
+                         "type":"bool",
+                         "value":false
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"button"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":16,
+                 "x":1632,
+                 "y":1456
+                }, 
+                {
                  "gid":11,
                  "height":16,
-                 "id":831,
+                 "id":835,
                  "name":"",
                  "opacity":1,
                  "properties":[
@@ -7623,7 +7671,7 @@
                         {
                          "name":"type",
                          "type":"string",
-                         "value":"trigger"
+                         "value":"level_trigger"
                         }],
                  "rotation":0,
                  "type":"",
@@ -16035,7 +16083,7 @@
          "y":0
         }],
  "nextlayerid":24,
- "nextobjectid":832,
+ "nextobjectid":836,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",
@@ -16043,7 +16091,7 @@
  "tilesets":[
         {
          "firstgid":1,
-         "source":"..\/..\/..\/..\/Documents\/Code Projects\/Unesp\/jogo-poo\/pingu-007\/Pingu-007\/tile_set_pingu.tsx"
+         "source":"tile_set_pingu.tsx"
         }],
  "tilewidth":16,
  "type":"map",

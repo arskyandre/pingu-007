@@ -1,3 +1,4 @@
+
 import java.awt.geom.Rectangle2D;
 
 public class ArenaContext {
@@ -48,6 +49,11 @@ public class ArenaContext {
                     layer.data[row][col] = 0;
                 }
             }
+        }
+
+        int[][] camadaFisica = getMainLayer();
+        if (camadaFisica != null && row >= 0 && row < camadaFisica.length && col >= 0 && col < camadaFisica[0].length) {
+            camadaFisica[row][col] = 0;
         }
     }
 

@@ -83,6 +83,12 @@ public class Jumper extends Enemy {
         switch (estadoAtual) {
             case PREPARANDO -> {
                 aplicarFreioDePreparacao(0.25);
+                /*if (dist > 0) {
+                    double dirX = dx / dist;
+                    double dirY = dy / dist;
+                    this.velX = dirX * velocidadeAndar;
+                    this.velY = dirY * velocidadeAndar;
+                }*/
                 timer--;
                 if (timer <= 0) {
                     if (!podePularBuracos && !temLinhaDeVisaoLivre(player)) {
@@ -207,7 +213,7 @@ public class Jumper extends Enemy {
     @Override
     public void receberDano(int dano, double sourceX, double sourceY, double knockbackForce) {
         // Tiro Perfeito: Sobrepõe a invulnerabilidade e pune o Jumper jogando-o no buraco
-        if (emSaltoCinematico) {
+        /*if (emSaltoCinematico) {
             emSaltoCinematico = false;
             isAirborne = true; // Religa a física da fase
             velX = 0;
@@ -218,9 +224,9 @@ public class Jumper extends Enemy {
             super.receberDano(dano, sourceX, sourceY, knockbackForce);
             System.out.println("Tiro perfeito! Jumper perdeu o salto cinemático e caiu no buraco!");
             return;
-        }
+        }*/
 
-        if (estadoAtual == Status.PULANDO || estadoAtual == Status.FLUTUANDO) {
+        if (estadoAtual == Status.PULANDO || estadoAtual == Status.FLUTUANDO || emSaltoCinematico) {
             return;
         }
 

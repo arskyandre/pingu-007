@@ -1,11 +1,6 @@
 
 public class TileProperties {
 
-    public static final int FLOOR = 0;
-    public static final int WALL = 1;
-    public static final int HOLE = 2;
-    public static final int ICE = 3;
-
     public static boolean isSolid(int tileID) {
         int tempID = tileID - 1;
         if (tempID >= 0) {
@@ -57,10 +52,6 @@ public class TileProperties {
         return false;
     }
 
-    /**
-     * Extra A* move cost for hazard tiles. High enough to bias away from holes,
-     * low enough that enemies may still cross when it is the only route.
-     */
     public static int getHazardMoveCost(int row, int col, int[][] lvlData) {
         if (row < 0 || row >= lvlData.length || col < 0 || col >= lvlData[0].length) {
             return 0;

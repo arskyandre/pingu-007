@@ -1,3 +1,4 @@
+
 import java.awt.Graphics2D;
 
 public class InteractiveObject extends ArenaObject {
@@ -16,8 +17,9 @@ public class InteractiveObject extends ArenaObject {
 
     @Override
     public void onLoad(ArenaContext context) {
-        if ("pescar".equalsIgnoreCase(data.acao)) {
-            data.gid = 11;
+        String acaoSegura = data.acao != null ? data.acao.trim() : "";
+        if ("pescar".equalsIgnoreCase(acaoSegura)) {
+            data.gid = ArenaAtlas.getStoolTileId();
         }
         setVisible(context, true);
     }
@@ -67,8 +69,8 @@ public class InteractiveObject extends ArenaObject {
         if (!ArenaTriggers.collides(data, player)) {
             return false;
         }
-
-        if ("pescar".equalsIgnoreCase(data.acao)) {
+        String acaoSegura = data.acao != null ? data.acao.trim() : "";
+        if ("pescar".equalsIgnoreCase(acaoSegura)) {
             System.out.println("Iniciando minigame de pesca no tile ID 10!");
             return true;
         }

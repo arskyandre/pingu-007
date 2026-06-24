@@ -5,6 +5,7 @@ public class ArenaManager {
 
     private final LevelManager levelManager;
     private final EnemyManager enemyManager;
+    private final ItemManager itemManager;
     private final ArenaContext context;
 
     //public boolean flagArena16Ativada = false;
@@ -29,9 +30,10 @@ public class ArenaManager {
     private final ArrayList<CollisionBlock> collisionBlocks = new ArrayList<>();
     private final ArrayList<ArenaObject> allObjects = new ArrayList<>();
 
-    public ArenaManager(EnemyManager enemyManager, LevelManager levelManager) {
+    public ArenaManager(EnemyManager enemyManager, LevelManager levelManager, ItemManager itemManager) {
         this.enemyManager = enemyManager;
         this.levelManager = levelManager;
+        this.itemManager = itemManager;
         this.context = new ArenaContext(levelManager, enemyManager);
     }
 
@@ -53,6 +55,9 @@ public class ArenaManager {
                     Arena arena = getOuCriarArena(obj.id_arena);
                     arena.trigger = obj;
                     arena.totalHordas = obj.totalHordas > 0 ? obj.totalHordas : obj.horda;
+                    if (tipo.equals("level_trigger")) {
+                        arena.trigger.destino = obj.destino;
+                    }
                 }
                 case "spawner" -> {
                     if (obj.id_arena >= 0) {
@@ -70,33 +75,38 @@ public class ArenaManager {
             }
         }
 
-        /*setWallState(3, true, null);
+        setWallState(3, true, null);
         setWallState(101, true, null);
-        setWallState(102, true, null);*/
+        setWallState(102, true, null);
     }
 
     private void registerTypedObject(ArenaObject arenaObject) {
-        if (arenaObject instanceof DoorObject door) {
-            doors.add(door);
-        } else if (arenaObject instanceof InteractiveObject interactive) {
-            interactives.add(interactive);
-        } else if (arenaObject instanceof PressureButton button) {
-            buttons.add(button);
-        } else if (arenaObject instanceof CollisionBlock block) {
-            collisionBlocks.add(block);
+        switch (arenaObject) {
+            case DoorObject door ->
+                doors.add(door);
+            case InteractiveObject interactive ->
+                interactives.add(interactive);
+            case PressureButton button ->
+                buttons.add(button);
+            case CollisionBlock block ->
+                collisionBlocks.add(block);
+            default -> {
+            }
         }
     }
 
     public void update(Player player) {
         atualizarBotoes(player);
-
-        for (Arena arena : arenas) {
+        for (int i = 0; i < arenas.size(); i++) {
+            Arena arena = arenas.get(i);
             if (!arena.ativa && !arena.concluida && arena.trigger != null) {
                 if (ArenaTriggers.collides(arena.trigger, player)) {
                     ativarArena(arena.id, player);
+                    if (arenas.isEmpty()) {
+                        return;
+                    }
                 }
             }
-
             if (arena.ativa && !arena.concluida) {
                 arena.inimigosVivos.removeIf(Enemy::isDead);
                 if (arena.inimigosVivos.isEmpty()) {
@@ -137,6 +147,7 @@ public class ArenaManager {
     }
 
     private void atualizarBotoes(Player player) {
+        //TODO: FAZER PUZZLE DOS BOTÕES
         if (puzzleBotoesConcluido) {
             return;
         }
@@ -153,6 +164,7 @@ public class ArenaManager {
         if (!buttons.isEmpty() && todosApertados) {
             puzzleBotoesConcluido = true;
             System.out.println("=== PUZZLE DOS BOTÕES CONCLUÍDO! ===");
+            resolverPuzzle101(player);
         }
     }
 
@@ -200,7 +212,7 @@ public class ArenaManager {
                 if (arena.totalHordas == 0) {
                     arena.concluida = true;
                 }
-                // setWallState(id, true, player);
+                setWallState(id, true, player);
             }
         }
 
@@ -235,6 +247,7 @@ public class ArenaManager {
                 if (isArenaConcluida(14) && isArenaConcluida(15)) {
                     setWallState(14, false, player);
                     setWallState(15, false, player);
+                    itemManager.spawn(new KeyItem(12839, 4870));
                 }
             }
             case 16, 101, 102, 999 -> {
@@ -245,6 +258,7 @@ public class ArenaManager {
     }
 
     public void resolverPuzzle101(Player player) {
+        itemManager.spawn(new KeyItem(5029, 4200));
         setWallState(101, false, player);
         Arena arena = getOuCriarArena(101);
         arena.concluida = true;
