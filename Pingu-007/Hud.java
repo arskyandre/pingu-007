@@ -91,11 +91,11 @@ public class Hud {
             g2.setPaint(prev);
         }
 
-        g2.setFont(new Font("Monospaced", Font.BOLD, 10));
+        g2.setFont(new Font("Monospaced", Font.BOLD, 12));
         String texto;
         if (p.isReloading()) {
-            g2.setFont(new Font("Monospaced", Font.BOLD, 12));
-            texto = "Reloading...";
+            g2.setFont(new Font("Monospaced", Font.BOLD, 14));
+            texto = "Recarregando...";
         } else {
             texto = pente + " / " + municaoTotal;
         }

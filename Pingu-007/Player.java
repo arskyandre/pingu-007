@@ -38,6 +38,9 @@ public class Player extends Entity {
     private boolean danoRecebidoFlag = false;
     private boolean reloading = false;
 
+    private int footstepTimer = 0;
+    private final int footstepInterval = 22;
+
     private int iFramesTimer = 0;
     private final int iFramesDanoDuration = 60;
     private final int iFramesDashGrace = 15;
@@ -78,7 +81,8 @@ public class Player extends Entity {
     private int muniCOoldownTimer = 0;
     private final int muniCooldown = 60;
 
-    public void testemunicao(InputManager input, int telaLargura, int telaAltura, ItemManager itemManager, CameraManager camera) {
+    public void testemunicao(InputManager input, int telaLargura, int telaAltura, ItemManager itemManager,
+            CameraManager camera) {
         if (muniCOoldownTimer > 0) {
             muniCOoldownTimer--;
         }
@@ -111,7 +115,7 @@ public class Player extends Entity {
         return val;
     }
 
-    public void update(InputManager input, int telaLargura, int telaAltura, CameraManager camera) {
+    public void update(InputManager input, int telaLargura, int telaAltura, CameraManager camera, SoundManager sound) {
         if (!podeDash) {
             dashCooldownTimer--;
             if (dashCooldownTimer <= 0) {
@@ -176,6 +180,7 @@ public class Player extends Entity {
                 double centerY = y + altura / 2.0;
 
                 bulletmanager.shoot(centerX, centerY, mouseXWorld - centerX, mouseYWorld - centerY, BulletOwner.PLAYER);
+                sound.playGunshot();
                 shootCooldownTimer = shootCooldown;
                 pente--;
             }
@@ -250,7 +255,15 @@ public class Player extends Entity {
             y = mapaAltura - altura;
             velY = 0;
         }
-
+        if (isMoving() && !emDash) {
+            footstepTimer--;
+            if (footstepTimer <= 0) {
+                sound.playRandomSnowStep();
+                footstepTimer = footstepInterval;
+            }
+        } else {
+            footstepTimer = 0; // reset so next step plays immediately when moving again
+        }
         updatePlayerDirection(mouseXWorld, mouseYWorld);
     }
 

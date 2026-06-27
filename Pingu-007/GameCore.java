@@ -21,7 +21,7 @@ public class GameCore extends Canvas implements Runnable {
     private final LevelManager levelManager;
     private ArenaManager arenaManager;
     private DialogueManager dialogueManager;
-
+    private SoundManager soundManager;
     private int debugSpawnCooldown = 0;
     private int mapLoadCooldown = 0;
 
@@ -36,7 +36,7 @@ public class GameCore extends Canvas implements Runnable {
     public GameCore() {
         setPreferredSize(new Dimension(game_width, game_height));
         setBackground(Color.BLACK);
-
+        soundManager = new SoundManager();
         bulletmanager = new BulletManager();
         itemManager = new ItemManager();
         input = new InputManager();
@@ -69,9 +69,9 @@ public class GameCore extends Canvas implements Runnable {
 
         if (input.isKeyPressed(KeyEvent.VK_T)) {
             if (!dialogueManager.isAtivo()) {
-                dialogueManager.iniciarDialogo(new String[]{
-                    "PINGU: Entrando na base de operações.", "RADIO: Cuidado, 007. Os lobos estao em alerta maximo",
-                    "PINGU: Eles nao vao nem ver de onde veio."
+                dialogueManager.iniciarDialogo(new String[] {
+                        "PINGU: Entrando na base de operações.", "RADIO: Cuidado, 007. Os lobos estao em alerta maximo",
+                        "PINGU: Eles nao vao nem ver de onde veio."
                 });
             }
         }
@@ -81,7 +81,7 @@ public class GameCore extends Canvas implements Runnable {
         } else {
             player.testemunicao(input, getWidth(), getHeight(), itemManager, camera);
 
-            player.update(input, getWidth(), getHeight(), camera);
+            player.update(input, getWidth(), getHeight(), camera, soundManager);
             itemManager.update(player);
 
             ArrayList<JumpLink> linksAtuais = levelManager.getJumpLinks();
@@ -111,7 +111,7 @@ public class GameCore extends Canvas implements Runnable {
             if (input.isKeyPressed(java.awt.event.KeyEvent.VK_L) && debugSpawnCooldown <= 0) {
                 double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
                 double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-                //itemManager.spawn(new KeyItem(12839, 4870));
+                // itemManager.spawn(new KeyItem(12839, 4870));
                 itemManager.spawn(new KeyItem(mouseXWorld, mouseYWorld));
                 System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
                 debugSpawnCooldown = 30;
@@ -241,6 +241,7 @@ public class GameCore extends Canvas implements Runnable {
 
     public void start() {
         new Thread(this).start();
+        soundManager.playBGM(SoundManager.BGM.OS_CRIA);
     }
 
     public static void main(String[] args) {
