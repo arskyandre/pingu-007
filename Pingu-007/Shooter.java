@@ -7,6 +7,7 @@ public class Shooter extends Enemy {
     private enum Status {
         PERSEGUINDO, PREPARANDO, ATIRANDO, COOLDOWN
     }
+
     private Status estadoAtual = Status.PERSEGUINDO;
 
     private final BulletManager bulletManager;
@@ -26,7 +27,8 @@ public class Shooter extends Enemy {
     public boolean modoShotgun = false;
     public boolean interromperNoTiro = true;
 
-    public Shooter(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr, SoundManager sound) {
+    public Shooter(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr,
+            SoundManager sound) {
         super(startX, startY, width, height, lvlData, sound);
         this.bulletManager = bulmgr;
         this.vidaMaxima = 30;
@@ -94,6 +96,7 @@ public class Shooter extends Enemy {
                 velY = 0;
 
                 if (modoShotgun) {
+                    soundManager.playSFX(SoundManager.SFX.GUNSHOT);
                     double angulo1 = lockedAngle;
                     double angulo2 = lockedAngle - Math.toRadians(15);
                     double angulo3 = lockedAngle + Math.toRadians(15);
@@ -107,8 +110,10 @@ public class Shooter extends Enemy {
 
                 } else {
                     if (sprayTimer <= 0) {
-                        double anguloSpray = lockedAngle + Math.toRadians((-20 * sinal) + (tirosDisparados * 10 * sinal));
-                        bulletManager.shoot(centerX, centerY, Math.cos(anguloSpray), Math.sin(anguloSpray), BulletOwner.ENEMY);
+                        double anguloSpray = lockedAngle
+                                + Math.toRadians((-20 * sinal) + (tirosDisparados * 10 * sinal));
+                        bulletManager.shoot(centerX, centerY, Math.cos(anguloSpray), Math.sin(anguloSpray),
+                                BulletOwner.ENEMY);
 
                         tirosDisparados++;
                         sprayTimer = delaySpray;

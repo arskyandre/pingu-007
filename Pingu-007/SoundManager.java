@@ -19,10 +19,10 @@ public class SoundManager {
     }
 
     public enum SFX {
-        SNOW_STEP_1("sound/sfx/snow_footstep1.wav", 3),
-        SNOW_STEP_2("sound/sfx/snow_footstep2.wav", 3),
-        SNOW_STEP_3("sound/sfx/snow_footstep3.wav", 3),
-        SNOW_STEP_4("sound/sfx/snow_footstep4.wav", 3),
+        SNOW_STEP_1("sound/sfx/snow_footstep1.wav", 6),
+        SNOW_STEP_2("sound/sfx/snow_footstep2.wav", 6),
+        SNOW_STEP_3("sound/sfx/snow_footstep3.wav", 6),
+        SNOW_STEP_4("sound/sfx/snow_footstep4.wav", 6),
         GUNSHOT("sound/sfx/gunshot.wav", 16),
         WOLF_DEATH("sound/sfx/wolf_death.wav", 8),
         HUD_CLICK("sound/hud/click.wav", 2);
@@ -59,7 +59,7 @@ public class SoundManager {
         sfxPools.get(sfx).play();
     }
 
-    public void playRandomSnowStep() {
+    public void playRandomSnowStep(float volume) {
         SFX[] steps = { SFX.SNOW_STEP_1, SFX.SNOW_STEP_2, SFX.SNOW_STEP_3, SFX.SNOW_STEP_4 };
         playSFX(steps[random.nextInt(steps.length)]);
     }

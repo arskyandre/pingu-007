@@ -258,11 +258,11 @@ public class Player extends Entity {
         if (isMoving() && !emDash) {
             footstepTimer--;
             if (footstepTimer <= 0) {
-                sound.playRandomSnowStep();
+                sound.playRandomSnowStep(1.0f);
                 footstepTimer = footstepInterval;
             }
         } else {
-            footstepTimer = 0; // reset so next step plays immediately when moving again
+            footstepTimer = 0;
         }
         updatePlayerDirection(mouseXWorld, mouseYWorld);
     }

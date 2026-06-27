@@ -345,4 +345,8 @@ public abstract class Enemy extends Entity {
             this.velY += (dy / dist) * intensidade * forcaRepulsao / this.peso;
         }
     }
+
+    public Boolean isMoving() {
+        return (velX > 0.2 || velX < -0.2) || (velY > 0.2 || velY < -0.2);
+    }
 }

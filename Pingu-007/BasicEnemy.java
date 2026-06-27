@@ -10,6 +10,9 @@ public class BasicEnemy extends Enemy {
     private int animIndex = 0;
     private BufferedImage[] Sprites;
 
+    private int footstepTimer = 0;
+    private final int footstepInterval = 22;
+
     public BasicEnemy(double startX, double startY, double width, double height, int[][] lvlData, SoundManager sound) {
         super(startX, startY, width, height, lvlData, sound);
         deathSFX = SoundManager.SFX.WOLF_DEATH;
@@ -37,6 +40,15 @@ public class BasicEnemy extends Enemy {
     public void update(Player player, ArrayList<JumpLink> jumpLinks) {
         if (isDead) {
             return;
+        }
+        if (isMoving()) {
+            footstepTimer--;
+            if (footstepTimer <= 0) {
+                soundManager.playRandomSnowStep(0.5f);
+                footstepTimer = footstepInterval;
+            }
+        } else {
+            footstepTimer = 0;
         }
         atualizarAggro(player);
         atualizarTimersKnockback();
