@@ -23,7 +23,9 @@ public class SoundManager {
         SNOW_STEP_2("sound/sfx/snow_footstep2.wav", 3),
         SNOW_STEP_3("sound/sfx/snow_footstep3.wav", 3),
         SNOW_STEP_4("sound/sfx/snow_footstep4.wav", 3),
-        GUNSHOT("sound/sfx/gunshot.wav", 16);
+        GUNSHOT("sound/sfx/gunshot.wav", 16),
+        WOLF_DEATH("sound/sfx/wolf_death.wav", 8),
+        HUD_CLICK("sound/hud/click.wav", 2);
 
         public final String path;
         public final int poolSize;
@@ -75,7 +77,10 @@ public class SoundManager {
             current_BGM = loadClip(track.path);
             setVolume(current_BGM, musicVolume);
             current_BGM.setFramePosition(0);
-            current_BGM.loop(Clip.LOOP_CONTINUOUSLY);
+            if (currentTrack != BGM.MAIN_MENU)
+                current_BGM.loop(Clip.LOOP_CONTINUOUSLY);
+            else
+                current_BGM.loop(0);
         } catch (Exception e) {
             e.printStackTrace();
         }

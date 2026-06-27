@@ -28,8 +28,8 @@ public class Jumper extends Enemy {
     private double alt = 0;
     private double squash = 0;
 
-    public Jumper(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr) {
-        super(startX, startY, width, height, lvlData);
+    public Jumper(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr, SoundManager sound) {
+        super(startX, startY, width, height, lvlData, sound);
         this.bulletManager = bulmgr;
         this.vidaMaxima = 40;
         this.vida = this.vidaMaxima;

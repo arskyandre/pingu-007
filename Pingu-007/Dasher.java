@@ -9,6 +9,7 @@ public class Dasher extends Enemy {
     private enum Status {
         PERSEGUINDO, PREPARANDO, DASHING, COOLDOWN
     }
+
     private Status estadoAtual = Status.PERSEGUINDO;
 
     private int timer = 0;
@@ -28,8 +29,8 @@ public class Dasher extends Enemy {
     public boolean interromperNoTiro = true;
     private BufferedImage[] Sprites;
 
-    public Dasher(double startX, double startY, double width, double height, int[][] lvlData) {
-        super(startX, startY, width, height, lvlData);
+    public Dasher(double startX, double startY, double width, double height, int[][] lvlData, SoundManager sound) {
+        super(startX, startY, width, height, lvlData, sound);
         this.vidaMaxima = 45;
         this.vida = this.vidaMaxima;
         this.podePularBuracos = true;

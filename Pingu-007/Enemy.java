@@ -32,7 +32,11 @@ public abstract class Enemy extends Entity {
 
     protected int timerPuxado = 0;
 
-    public Enemy(double startX, double startY, double width, double height, int[][] lvlData) {
+    public SoundManager soundManager;
+    protected SoundManager.SFX deathSFX = null;
+
+    public Enemy(double startX, double startY, double width, double height, int[][] lvlData, SoundManager sound) {
+        soundManager = sound;
         this.x = startX;
         this.y = startY;
         this.width = width;
@@ -60,15 +64,23 @@ public abstract class Enemy extends Entity {
         lootProcessado = true;
     }
 
+    public void playDeathSound() {
+        if (soundManager != null && deathSFX != null) {
+            soundManager.playSFX(deathSFX);
+        }
+    }
+
     protected boolean atualizarAggro(Player player) {
         if (aggroPermanente) {
             return true;
         }
 
         double meuCenterX = this.x + (this.bodyCollider != null
-                ? this.bodyCollider.getOffsetX() + this.bodyCollider.getWidth() / 2.0 : this.width / 2.0);
+                ? this.bodyCollider.getOffsetX() + this.bodyCollider.getWidth() / 2.0
+                : this.width / 2.0);
         double meuCenterY = this.y + (this.bodyCollider != null
-                ? this.bodyCollider.getOffsetY() + this.bodyCollider.getHeight() / 2.0 : this.height / 2.0);
+                ? this.bodyCollider.getOffsetY() + this.bodyCollider.getHeight() / 2.0
+                : this.height / 2.0);
         double playerCenterX = player.getX() + player.getLargura() / 2.0;
         double playerCenterY = player.getY() + player.getAltura() / 2.0;
 
@@ -147,8 +159,12 @@ public abstract class Enemy extends Entity {
             this.isAirborne = false;
         }
 
-        double meuCenterX = this.x + (this.bodyCollider != null ? this.bodyCollider.getOffsetX() + this.bodyCollider.getWidth() / 2.0 : this.width / 2.0);
-        double meuCenterY = this.y + (this.bodyCollider != null ? this.bodyCollider.getOffsetY() + this.bodyCollider.getHeight() / 2.0 : this.height / 2.0);
+        double meuCenterX = this.x
+                + (this.bodyCollider != null ? this.bodyCollider.getOffsetX() + this.bodyCollider.getWidth() / 2.0
+                        : this.width / 2.0);
+        double meuCenterY = this.y
+                + (this.bodyCollider != null ? this.bodyCollider.getOffsetY() + this.bodyCollider.getHeight() / 2.0
+                        : this.height / 2.0);
         double playerCenterX = player.getX() + player.getLargura() / 2.0;
         double playerCenterY = player.getY() + player.getAltura() / 2.0;
 
@@ -174,7 +190,8 @@ public abstract class Enemy extends Entity {
                 int targetCol = (int) (playerCenterX / GameCore.tiles_size);
                 int targetRow = (int) (playerCenterY / GameCore.tiles_size);
 
-                caminhoAStar = PathFinder.encontrarCaminho(startCol, startRow, targetCol, targetRow, this.lvlData, this.podePularBuracos ? jumpLinks : null);
+                caminhoAStar = PathFinder.encontrarCaminho(startCol, startRow, targetCol, targetRow, this.lvlData,
+                        this.podePularBuracos ? jumpLinks : null);
                 aStarDelay = 0;
                 currentPathIndex = 0;
             }

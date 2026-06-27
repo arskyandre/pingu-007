@@ -4,11 +4,14 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
 
+
 public class MainMenu {
 
     private enum Button {
         PLAY, OPTIONS, QUIT
     }
+
+    private SoundManager soundManager;
 
     private Button hovered = null;
     private static final int BTN_W = 220;
@@ -19,7 +22,8 @@ public class MainMenu {
     private Font pixelFont;
     private Font pixelFontSmall;
 
-    public MainMenu() {
+    public MainMenu(SoundManager sound) {
+        soundManager = sound;
         try {
             background = ImageIO.read(new File("menu_background.png"));
         } catch (Exception e) {
@@ -46,6 +50,7 @@ public class MainMenu {
             if (r.contains(mx, my)) {
                 hovered = buttons[i];
                 if (input.isMouseButtonJustPressed(MouseEvent.BUTTON1)) {
+                    soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
                     return switch (buttons[i]) {
                         case PLAY -> GameState.PLAYING;
                         case OPTIONS -> GameState.OPTIONS;
@@ -58,7 +63,7 @@ public class MainMenu {
     }
 
     public void render(Graphics2D g2, int width, int height) {
-        
+
         if (background != null) {
             g2.drawImage(background, 0, 0, width, height, null);
         } else {
@@ -76,34 +81,31 @@ public class MainMenu {
         g2.setColor(Color.WHITE);
         String title = "PINGU 007";
         int tw = g2.getFontMetrics().stringWidth(title);
-        
+
         g2.setColor(new Color(0, 0, 0, 180));
         g2.drawString(title, (width - tw) / 2 + 3, height / 4 + 3);
         g2.setColor(Color.WHITE);
         g2.drawString(title, (width - tw) / 2, height / 4);
 
-        
         String[] labels = { "PLAY", "OPTIONS", "QUIT" };
         Button[] buttons = Button.values();
         for (int i = 0; i < buttons.length; i++) {
             Rectangle r = getButtonRect(i, width, height);
             boolean isHovered = hovered == buttons[i];
 
-            
             if (isHovered) {
-                
+
                 g2.setColor(new Color(255, 255, 255, 40));
                 g2.fillRect(r.x, r.y, r.width, r.height);
-                
+
                 g2.setColor(Color.WHITE);
             } else {
-                
+
                 g2.setColor(new Color(200, 200, 200, 120));
             }
             g2.setStroke(new BasicStroke(2));
             g2.drawRect(r.x, r.y, r.width, r.height);
 
-            
             g2.setFont(pixelFontSmall);
             g2.setColor(isHovered ? Color.WHITE : new Color(200, 200, 200));
             int lw = g2.getFontMetrics().stringWidth(labels[i]);
@@ -113,7 +115,6 @@ public class MainMenu {
                     r.y + (r.height + fm.getAscent() - fm.getDescent()) / 2);
         }
 
-        
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT);
     }

@@ -42,8 +42,8 @@ public class GameCore extends Canvas implements Runnable {
         setPreferredSize(new Dimension(game_width, game_height));
         setBackground(Color.BLACK);
         soundManager = new SoundManager();
-        mainMenu = new MainMenu();
-        pauseMenu = new PauseMenu();
+        mainMenu = new MainMenu(soundManager);
+        pauseMenu = new PauseMenu(soundManager);
         optionsMenu = new OptionsMenu(soundManager);
         bulletmanager = new BulletManager();
         itemManager = new ItemManager();
@@ -55,7 +55,7 @@ public class GameCore extends Canvas implements Runnable {
         levelManager = new LevelManager(this);
 
         itemManager = new ItemManager();
-        enemyManager = new EnemyManager(levelManager, bulletmanager);
+        enemyManager = new EnemyManager(levelManager, bulletmanager, soundManager);
         enemyManager.setItemManager(itemManager);
         arenaManager = new ArenaManager(enemyManager, levelManager, itemManager);
         dialogueManager = new DialogueManager();

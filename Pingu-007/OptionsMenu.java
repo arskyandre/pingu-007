@@ -49,10 +49,16 @@ public class OptionsMenu {
         Rectangle sfxSlider = getSFXSliderRect(width, height);
 
         if (input.isMouseButtonJustPressed(MouseEvent.BUTTON1)) {
-            if (musicSlider.contains(mx, my))
+            if (musicSlider.contains(mx, my)) {
+
+                soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
                 draggingMusic = true;
-            if (sfxSlider.contains(mx, my))
+            }
+            if (sfxSlider.contains(mx, my)) {
+
+                soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
                 draggingSFX = true;
+            }
         }
         if (!clicking) {
             draggingMusic = false;
@@ -76,6 +82,8 @@ public class OptionsMenu {
         Rectangle backBtn = getBackButtonRect(width, height);
         backHovered = backBtn.contains(mx, my);
         if (backHovered && input.isMouseButtonJustPressed(MouseEvent.BUTTON1)) {
+
+            soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             return returnTo;
         }
 

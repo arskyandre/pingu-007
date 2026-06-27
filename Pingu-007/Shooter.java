@@ -26,8 +26,8 @@ public class Shooter extends Enemy {
     public boolean modoShotgun = false;
     public boolean interromperNoTiro = true;
 
-    public Shooter(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr) {
-        super(startX, startY, width, height, lvlData);
+    public Shooter(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr, SoundManager sound) {
+        super(startX, startY, width, height, lvlData, sound);
         this.bulletManager = bulmgr;
         this.vidaMaxima = 30;
         this.vida = this.vidaMaxima;

@@ -8,6 +8,7 @@ public class PauseMenu {
         RESUME, OPTIONS, MAIN_MENU
     }
 
+    private SoundManager soundManager;
     private Button hovered = null;
     private static final int BTN_W = 220;
     private static final int BTN_H = 46;
@@ -16,7 +17,8 @@ public class PauseMenu {
     private Font pixelFont;
     private Font pixelFontSmall;
 
-    public PauseMenu() {
+    public PauseMenu(SoundManager sound) {
+        soundManager = sound;
         try {
             Font base = Font.createFont(Font.TRUETYPE_FONT, new File("font/PressStart2P-Regular.ttf"));
             pixelFont = base.deriveFont(Font.PLAIN, 24f);
@@ -41,6 +43,8 @@ public class PauseMenu {
             if (r.contains(mx, my)) {
                 hovered = buttons[i];
                 if (input.isMouseButtonJustPressed(MouseEvent.BUTTON1)) {
+
+                    soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
                     return switch (buttons[i]) {
                         case RESUME -> GameState.PLAYING;
                         case OPTIONS -> GameState.OPTIONS;

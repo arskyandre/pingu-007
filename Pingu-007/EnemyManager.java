@@ -9,10 +9,12 @@ public class EnemyManager {
     private final LevelManager levelManager;
     private ItemManager itemManager;
     private int[][] lvlData;
+    private SoundManager soundManager;
 
-    public EnemyManager(LevelManager lm, BulletManager bm) {
+    public EnemyManager(LevelManager lm, BulletManager bm, SoundManager sound) {
         levelManager = lm;
         bulmgr = bm;
+        soundManager = sound;
         lvlData = lm.getMapData().getMainLayer();
     }
 
@@ -37,6 +39,7 @@ public class EnemyManager {
             }
 
             if (e1.isDead()) {
+                e1.playDeathSound();
                 if (itemManager != null && !e1.isLootProcessado() && e1.podeDropar) {
                     itemManager.gerarDropDeInimigo(e1);
                 }
@@ -72,15 +75,15 @@ public class EnemyManager {
         Enemy novo = null;
         switch (tipo.toLowerCase()) {
             case "lobo" ->
-                novo = new BasicEnemy(x, y, 48, 48, lvlData);
+                novo = new BasicEnemy(x, y, 48, 48, lvlData, soundManager);
             case "jumper" ->
-                novo = new Jumper(x, y, 48, 48, lvlData, bulmgr);
+                novo = new Jumper(x, y, 48, 48, lvlData, bulmgr, soundManager);
             case "shooter" ->
-                novo = new Shooter(x, y, 60, 60, lvlData, bulmgr);
+                novo = new Shooter(x, y, 60, 60, lvlData, bulmgr, soundManager);
             case "dasher" ->
-                novo = new Dasher(x, y, 48, 48, lvlData);
+                novo = new Dasher(x, y, 48, 48, lvlData, soundManager);
             case "bomber" ->
-                novo = new Bomber(x, y, 48, 48, lvlData, bulmgr, enemies);
+                novo = new Bomber(x, y, 48, 48, lvlData, bulmgr, enemies, soundManager);
         }
         if (novo != null) {
             enemies.add(novo);

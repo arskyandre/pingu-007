@@ -31,8 +31,8 @@ public class Bomber extends Enemy {
     public boolean danoAosInimigos = true;
     private boolean jaExplodiu = false;
 
-    public Bomber(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr, ArrayList<Enemy> inimigos) {
-        super(startX, startY, width, height, lvlData);
+    public Bomber(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr, ArrayList<Enemy> inimigos, SoundManager sound) {
+        super(startX, startY, width, height, lvlData, sound);
         this.bulletManager = bulmgr;
         this.todosInimigos = inimigos;
 

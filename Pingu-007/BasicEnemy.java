@@ -10,8 +10,9 @@ public class BasicEnemy extends Enemy {
     private int animIndex = 0;
     private BufferedImage[] Sprites;
 
-    public BasicEnemy(double startX, double startY, double width, double height, int[][] lvlData) {
-        super(startX, startY, width, height, lvlData);
+    public BasicEnemy(double startX, double startY, double width, double height, int[][] lvlData, SoundManager sound) {
+        super(startX, startY, width, height, lvlData, sound);
+        deathSFX = SoundManager.SFX.WOLF_DEATH;
         this.vidaMaxima = 30;
         this.vida = this.vidaMaxima;
 

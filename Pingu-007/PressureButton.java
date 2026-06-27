@@ -11,7 +11,7 @@ public class PressureButton extends ArenaObject {
 
     public PressureButton(TiledObject data) {
         super(data);
-        //this.pressed = data.ativa;
+        // this.pressed = data.ativa;
 
         if (data.isToggle) {
             this.isToggleMode = true;
