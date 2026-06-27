@@ -2,11 +2,12 @@
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 public class Hud {
-
+    private Font pixelFont;
     private static final int HEART_SIZE = 9;
     private static final int HEART_SCALE = 3;
     private static final int HEART_RENDER = HEART_SIZE * HEART_SCALE;
@@ -43,8 +44,16 @@ public class Hud {
     public Hud() {
         try {
             heartSheet = LoadSave.GetSpriteAtlas("heart_sprites.png");
+
         } catch (Exception e) {
             System.err.println("Erro ao carregar heart_sprites.png: " + e.getMessage());
+        }
+        try {
+            Font base = Font.createFont(Font.TRUETYPE_FONT, new File("font/PressStart2P-Regular.ttf"));
+            pixelFont = base.deriveFont(Font.PLAIN, 7f);
+        } catch (Exception e) {
+            System.err.println("Font not found, falling back");
+            pixelFont = new Font("Monospaced", Font.BOLD, 12);
         }
     }
 
@@ -91,12 +100,15 @@ public class Hud {
             g2.setPaint(prev);
         }
 
-        g2.setFont(new Font("Monospaced", Font.BOLD, 12));
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+
         String texto;
         if (p.isReloading()) {
-            g2.setFont(new Font("Monospaced", Font.BOLD, 14));
-            texto = "Recarregando...";
+            g2.setFont(pixelFont.deriveFont(9f));
+            texto = "RELOADING...";
         } else {
+            g2.setFont(pixelFont.deriveFont(9f));
             texto = pente + " / " + municaoTotal;
         }
         FontMetrics fm = g2.getFontMetrics();

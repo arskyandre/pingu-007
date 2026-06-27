@@ -7,9 +7,9 @@ import java.util.Random;
 public class SoundManager {
 
     public enum BGM {
-        MAIN_MENU("main_menu.wav"),
-        LEVEL_1("level_1.wav"),
-        OS_CRIA("os_cria.wav");
+        MAIN_MENU("sound/bgm/main_menu.wav"),
+        LEVEL_1("sound/bgm/level_1.wav"),
+        OS_CRIA("sound/bgm/os_cria.wav");
 
         public final String path;
 
@@ -19,11 +19,11 @@ public class SoundManager {
     }
 
     public enum SFX {
-        SNOW_STEP_1("snow_footstep1.wav", 3),
-        SNOW_STEP_2("snow_footstep2.wav", 3),
-        SNOW_STEP_3("snow_footstep3.wav", 3),
-        SNOW_STEP_4("snow_footstep4.wav", 3),
-        GUNSHOT("gunshot.wav", 16);
+        SNOW_STEP_1("sound/sfx/snow_footstep1.wav", 3),
+        SNOW_STEP_2("sound/sfx/snow_footstep2.wav", 3),
+        SNOW_STEP_3("sound/sfx/snow_footstep3.wav", 3),
+        SNOW_STEP_4("sound/sfx/snow_footstep4.wav", 3),
+        GUNSHOT("sound/sfx/gunshot.wav", 16);
 
         public final String path;
         public final int poolSize;
@@ -39,7 +39,7 @@ public class SoundManager {
     private Clip current_BGM = null;
     private BGM currentTrack = null;
     private float musicVolume = 0.05f;
-    private float sfxVolume = 0.6f;
+    private float sfxVolume = 0.4f;
 
     public SoundManager() {
         loadSFX();
@@ -116,5 +116,13 @@ public class SoundManager {
 
     public BGM currentSong() {
         return currentTrack;
+    }
+
+    public float getMusicVolume() {
+        return musicVolume;
+    }
+
+    public float getSfxVolume() {
+        return sfxVolume;
     }
 }

@@ -7,6 +7,11 @@ import javax.swing.*;
 
 public class GameCore extends Canvas implements Runnable {
 
+    private GameState gameState = GameState.MAIN_MENU;
+    private final MainMenu mainMenu;
+    private final PauseMenu pauseMenu;
+    private final OptionsMenu optionsMenu;
+
     JFrame frame;
     boolean running = true;
 
@@ -37,6 +42,9 @@ public class GameCore extends Canvas implements Runnable {
         setPreferredSize(new Dimension(game_width, game_height));
         setBackground(Color.BLACK);
         soundManager = new SoundManager();
+        mainMenu = new MainMenu();
+        pauseMenu = new PauseMenu();
+        optionsMenu = new OptionsMenu(soundManager);
         bulletmanager = new BulletManager();
         itemManager = new ItemManager();
         input = new InputManager();
@@ -66,6 +74,41 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void update() {
+        switch (gameState) {
+            case MAIN_MENU -> {
+                GameState next = mainMenu.update(input, getWidth(), getHeight());
+                if (next == GameState.OPTIONS)
+                    optionsMenu.setReturnState(GameState.MAIN_MENU);
+                if (next == GameState.PLAYING) {
+                    soundManager.playBGM(SoundManager.BGM.LEVEL_1);
+                    player.setShootCooldownTimer(30);
+                }
+                gameState = next;
+            }
+            case PLAYING -> updateGame();
+            case PAUSED -> {
+                GameState next = pauseMenu.update(input, getWidth(), getHeight());
+                if (next == GameState.OPTIONS)
+                    optionsMenu.setReturnState(GameState.PAUSED);
+                if (next == GameState.MAIN_MENU) {
+                    soundManager.playBGM(SoundManager.BGM.MAIN_MENU);
+                }
+                if (next == GameState.PLAYING) {
+                    player.setShootCooldownTimer(15);
+                }
+                gameState = next;
+            }
+            case OPTIONS -> gameState = optionsMenu.update(input, getWidth(), getHeight());
+            case QUIT -> System.exit(0);
+        }
+        input.update();
+    }
+
+    public void updateGame() {
+        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE)) {
+            gameState = GameState.PAUSED;
+            return;
+        }
 
         if (input.isKeyPressed(KeyEvent.VK_T)) {
             if (!dialogueManager.isAtivo()) {
@@ -204,10 +247,24 @@ public class GameCore extends Canvas implements Runnable {
         do {
             do {
                 Graphics2D g2 = (Graphics2D) bs.getDrawGraphics();
-                renderer.renderizar(g2, camera, player, input,
-                        getWidth(), getHeight(),
-                        levelManager, bulletmanager, itemManager,
-                        enemyManager, arenaManager, hud, dialogueManager);
+                switch (gameState) {
+                    case MAIN_MENU -> mainMenu.render(g2, getWidth(), getHeight());
+
+                    case PLAYING -> renderer.renderizar(g2, camera, player, input,
+                            getWidth(), getHeight(),
+                            levelManager, bulletmanager, itemManager,
+                            enemyManager, arenaManager, hud, dialogueManager);
+                    case PAUSED -> {
+                        renderer.renderizar(g2, camera, player, input,
+                                getWidth(), getHeight(),
+                                levelManager, bulletmanager, itemManager,
+                                enemyManager, arenaManager, hud, dialogueManager);
+                        pauseMenu.render(g2, getWidth(), getHeight());
+                    }
+                    case OPTIONS -> optionsMenu.render(g2, getWidth(), getHeight());
+                    case QUIT -> {
+                    }
+                }
                 g2.dispose();
             } while (bs.contentsRestored());
             bs.show();
@@ -241,12 +298,14 @@ public class GameCore extends Canvas implements Runnable {
 
     public void start() {
         new Thread(this).start();
-        soundManager.playBGM(SoundManager.BGM.OS_CRIA);
+        soundManager.playBGM(SoundManager.BGM.MAIN_MENU);
     }
 
     public static void main(String[] args) {
         GameCore game = new GameCore();
         game.frame = new JFrame("Pingu 007 (ALPHA)");
+        game.frame.setIconImage(
+                LoadSave.GetSpriteAtlas("pingu_portrait_close.jpg").getScaledInstance(64, 64, Image.SCALE_SMOOTH));
         game.frame.add(game);
         game.frame.pack();
         game.frame.setLocationRelativeTo(null);

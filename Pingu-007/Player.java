@@ -421,6 +421,10 @@ public class Player extends Entity {
         return dashDirY;
     }
 
+    public void setShootCooldownTimer(int value) {
+        shootCooldownTimer = value;
+    }
+
     public Boolean isMoving() {
         return (velX > 0.2 || velX < -0.2) || (velY > 0.2 || velY < -0.2);
     }
