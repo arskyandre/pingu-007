@@ -242,7 +242,7 @@ public class Jumper extends Enemy {
     }
 
     @Override
-    public void animate(Graphics2D g2) {
+    public void animate(Graphics2D g2, double delta) {
         int spIndex = 0;
         if (null != estadoAtual) {
             switch (estadoAtual) {
@@ -289,7 +289,7 @@ public class Jumper extends Enemy {
                 case PREPARANDO -> {
                     alt = 0;
                     if (squash < 10) {
-                        squash += 0.4;
+                        squash += 40f*delta;
                     }
                 }
                 default -> {

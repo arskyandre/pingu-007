@@ -6,7 +6,7 @@ import java.util.ArrayList;
 public class BasicEnemy extends Enemy {
 
     private int dirS = 0;
-    private int animTick = 0;
+    private double animTick = 0;
     private int animIndex = 0;
     private BufferedImage[] Sprites;
 
@@ -79,7 +79,7 @@ public class BasicEnemy extends Enemy {
     }
 
     @Override
-    public void animate(Graphics2D g2) {
+    public void animate(Graphics2D g2, double delta) {
         int xx = (int) x;
         int inv = 1;
 
@@ -88,14 +88,21 @@ public class BasicEnemy extends Enemy {
             xx = (int) (x + width);
         }
 
-        animTick++;
-        if (animTick >= 12) {
+        animTick+= 60f*delta;
+        
+        if (animTick >= 4) {
             animTick = 0;
             animIndex++;
             if (animIndex >= 6) {
                 animIndex = 0;
             }
         }
+        if(!isMoving())
+            animIndex = 0;
         g2.drawImage(Sprites[animIndex], xx, (int) y, inv * (int) width, (int) height, null);
+    }
+
+    public Boolean isMoving() {
+        return (velX > 0.2 || velX < -0.2) || (velY > 0.2 || velY < -0.2);
     }
 }

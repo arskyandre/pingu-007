@@ -10,7 +10,8 @@ public class Renderer {
     Boolean preDash = false;
 
     public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura,
-            int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager, EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager) {
+            int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager, EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager,
+            double delta) {
 
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, telaLargura, telaAltura);
@@ -43,12 +44,12 @@ public class Renderer {
                 case Enemy enemy -> {
                     if (!enemy.isDead()) {
                         enemy.draw(g2);
-                        enemy.animate(g2);
+                        enemy.animate(g2, delta);
                     }
                 }
                 case Player p -> {
                     renderDashEffect(g2, p);
-                    p.animate(g2);
+                    p.animate(g2, delta);
                 }
                 case Item item -> {
                     if (item.isAtivo() && camera.onScreen(item.getX(), item.getY(), item.getLargura(), item.getAltura(), telaLargura, telaAltura)) {

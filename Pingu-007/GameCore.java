@@ -243,7 +243,7 @@ public class GameCore extends Canvas implements Runnable {
         itemManager.setLvlData(levelData);
     }
 
-    public void render(BufferStrategy bs) {
+    public void render(BufferStrategy bs, double delta) {
         do {
             do {
                 Graphics2D g2 = (Graphics2D) bs.getDrawGraphics();
@@ -253,12 +253,12 @@ public class GameCore extends Canvas implements Runnable {
                     case PLAYING -> renderer.renderizar(g2, camera, player, input,
                             getWidth(), getHeight(),
                             levelManager, bulletmanager, itemManager,
-                            enemyManager, arenaManager, hud, dialogueManager);
+                            enemyManager, arenaManager, hud, dialogueManager, delta);
                     case PAUSED -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager);
+                                enemyManager, arenaManager, hud, dialogueManager, delta);
                         pauseMenu.render(g2, getWidth(), getHeight());
                     }
                     case OPTIONS -> optionsMenu.render(g2, getWidth(), getHeight());
@@ -287,12 +287,13 @@ public class GameCore extends Canvas implements Runnable {
         while (running) {
             long now = System.nanoTime();
             delta += (now - lastTime) / nsPerFrame;
+            double deltaTime = (now - lastTime) / 1_000_000_000.0;
             lastTime = now;
             while (delta >= 1) {
                 update();
                 delta--;
             }
-            render(bs);
+            render(bs, deltaTime);
         }
     }
 

@@ -23,7 +23,7 @@ public class Bomber extends Enemy {
     private final double forcaExplosao = 25.0;
 
     private int dirS = 0;
-    private int animTick = 0;
+    private double animTick = 0;
     private int animIndex = 0;
     private BufferedImage[] Sprites;
 
@@ -170,10 +170,10 @@ public class Bomber extends Enemy {
     }
 
     @Override
-    public void animate(Graphics2D g2) {
+    public void animate(Graphics2D g2, double delta) {
         if (estadoAtual == Status.PERSEGUINDO) {
-            animTick++;
-            if (animTick >= 12) {
+            animTick+=60f*delta;
+            if (animTick >= 4) {
                 animTick = 0;
                 animIndex++;
                 if (animIndex >= 7) {

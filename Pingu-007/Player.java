@@ -47,7 +47,7 @@ public class Player extends Entity {
 
     private BufferedImage[] Sprites;
     private int animIndex = 0;
-    private int animTick = 0;
+    private double animTick = 0;
     private int animSp = 0;
     int t = 0;
 
@@ -290,7 +290,7 @@ public class Player extends Entity {
     }
 
     @Override
-    public void animate(Graphics2D g2) {
+    public void animate(Graphics2D g2, double delta) {
         int inv = 1;
         int xx = (int) x;
 
@@ -321,7 +321,7 @@ public class Player extends Entity {
                 inv = -1;
                 xx = (int) (x + GameCore.tiles_size);
             }
-            animTick++;
+            animTick += 60f*delta;
             if (animTick >= 12) {
                 animTick = 0;
                 t++;

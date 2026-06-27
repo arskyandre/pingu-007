@@ -42,7 +42,7 @@ public abstract class Entity {
         return isDead;
     }
 
-    public void animate(Graphics2D g2) {
+    public void animate(Graphics2D g2, double delta) {
     }
 
     protected void aplicarFisicaBasica() {

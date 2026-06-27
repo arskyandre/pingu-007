@@ -15,7 +15,7 @@ public class Dasher extends Enemy {
     private int timer = 0;
     private double dashDirX = 0;
     private double dashDirY = 0;
-    private int animTick = 0;
+    private double animTick = 0;
     private int animIndex = 0;
     private int dirS = 0;
 
@@ -184,7 +184,7 @@ public class Dasher extends Enemy {
     }
 
     @Override
-    public void animate(Graphics2D g2) {
+    public void animate(Graphics2D g2, double delta) {
         int xx = (int) x;
         int inv = 1;
 
@@ -209,8 +209,9 @@ public class Dasher extends Enemy {
                     animIndex = 7;
                 }
             } else {
-                animTick++;
-                if (animTick >= 90) {
+                animTick+= 60f*delta;
+                
+                if (animTick >= 12) {
                     animTick = 0;
                     animIndex++;
                     if (animIndex >= 3) {
