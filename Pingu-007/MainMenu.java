@@ -21,9 +21,10 @@ public class MainMenu {
     public MainMenu(SoundManager sound) {
         soundManager = sound;
 
-        playBtn = new MenuButton("PLAY", 0, 0, BTN_W, BTN_H);
-        optionsBtn = new MenuButton("OPTIONS", 0, 0, BTN_W, BTN_H);
-        quitBtn = new MenuButton("QUIT", 0, 0, BTN_W, BTN_H);
+        playBtn = new MenuButton("JOGAR", 0, 0, BTN_W, BTN_H);
+        optionsBtn = new MenuButton("OPÇÕES", 0, 0, BTN_W, BTN_H);
+        quitBtn = new MenuButton("SAIR DO JOGO", 0, 0, BTN_W,
+                BTN_H);
 
         try {
             background = ImageIO.read(new File("menu_background.png"));
@@ -80,7 +81,6 @@ public class MainMenu {
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 
-        // title
         g2.setFont(pixelFont);
         String title = "PINGU 007";
         int tw = g2.getFontMetrics().stringWidth(title);
@@ -89,7 +89,6 @@ public class MainMenu {
         g2.setColor(Color.WHITE);
         g2.drawString(title, (width - tw) / 2, height / 4);
 
-        // buttons
         playBtn.draw(g2);
         optionsBtn.draw(g2);
         quitBtn.draw(g2);

@@ -22,7 +22,7 @@ public class OptionsMenu {
 
     public OptionsMenu(SoundManager soundManager) {
         this.soundManager = soundManager;
-        backBtn = new MenuButton("BACK", 0, 0, 160, 46);
+        backBtn = new MenuButton("VOLTAR", 0, 0, 160, 46);
         try {
             Font base = Font.createFont(Font.TRUETYPE_FONT, new File("font/PressStart2P-Regular.ttf"));
             pixelFont = base.deriveFont(Font.PLAIN, 24f);
@@ -103,17 +103,17 @@ public class OptionsMenu {
         g2.fillRect(0, 0, width, height);
 
         g2.setFont(pixelFont);
-        String title = "OPTIONS";
+        String title = "OPÇÕES";
         int tw = g2.getFontMetrics().stringWidth(title);
         g2.setColor(new Color(0, 0, 0, 180));
         g2.drawString(title, (width - tw) / 2 + 2, height / 4 + 2);
         g2.setColor(Color.WHITE);
         g2.drawString(title, (width - tw) / 2, height / 4);
 
-        drawSlider(g2, "MUSIC VOLUME", soundManager.getMusicVolume(),
+        drawSlider(g2, "VOLUME DA MÚSICA", soundManager.getMusicVolume(),
                 getMusicSliderRect(width, height), width, height / 2 - 30);
 
-        drawSlider(g2, "SFX VOLUME", soundManager.getSfxVolume(),
+        drawSlider(g2, "VOLUME DOS EFEITOS SONOROS", soundManager.getSfxVolume(),
                 getSFXSliderRect(width, height), width, height / 2 + 60);
 
         backBtn.draw(g2);

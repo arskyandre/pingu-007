@@ -17,9 +17,9 @@ public class PauseMenu {
 
     public PauseMenu(SoundManager sound) {
         soundManager = sound;
-        resumeBtn = new MenuButton("RESUME", 0, 0, BTN_W, BTN_H);
-        optionsBtn = new MenuButton("OPTIONS", 0, 0, BTN_W, BTN_H);
-        mainMenuBtn = new MenuButton("MAIN MENU", 0, 0, BTN_W, BTN_H);
+        resumeBtn = new MenuButton("RESUMIR", 0, 0, BTN_W, BTN_H);
+        optionsBtn = new MenuButton("OPÇÕES", 0, 0, BTN_W, BTN_H);
+        mainMenuBtn = new MenuButton("VOLTAR AO MENU PRINCIPAL", 0, 0, BTN_W, BTN_H);
 
         try {
             Font base = Font.createFont(Font.TRUETYPE_FONT, new File("font/PressStart2P-Regular.ttf"));
@@ -80,7 +80,7 @@ public class PauseMenu {
 
         // title
         g2.setFont(pixelFont);
-        String title = "PAUSED";
+        String title = "PAUSADO";
         int tw = g2.getFontMetrics().stringWidth(title);
         g2.setColor(new Color(0, 0, 0, 180));
         g2.drawString(title, (width - tw) / 2 + 2, py + 55 + 2);
