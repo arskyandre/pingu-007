@@ -13,7 +13,8 @@ public class OptionsMenu {
 
     private boolean draggingMusic = false;
     private boolean draggingSFX = false;
-    private boolean backHovered = false;
+
+    private final MenuButton backBtn;
 
     private Font pixelFont;
     private Font pixelFontSmall;
@@ -21,6 +22,7 @@ public class OptionsMenu {
 
     public OptionsMenu(SoundManager soundManager) {
         this.soundManager = soundManager;
+        backBtn = new MenuButton("BACK", 0, 0, 160, 46);
         try {
             Font base = Font.createFont(Font.TRUETYPE_FONT, new File("font/PressStart2P-Regular.ttf"));
             pixelFont = base.deriveFont(Font.PLAIN, 24f);
@@ -38,24 +40,30 @@ public class OptionsMenu {
         this.returnTo = state;
     }
 
+    private void repositionButtons(int width, int height) {
+        backBtn.setPosition((width - 160) / 2, height * 3 / 4);
+    }
+
     public GameState update(InputManager input, int width, int height) {
+        repositionButtons(width, height);
+
         int mx = input.getMouseX();
         int my = input.getMouseY();
         boolean clicking = input.isMouseButtonPressed(MouseEvent.BUTTON1);
+
         if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE)) {
             return returnTo;
         }
+
         Rectangle musicSlider = getMusicSliderRect(width, height);
         Rectangle sfxSlider = getSFXSliderRect(width, height);
 
         if (input.isMouseButtonJustPressed(MouseEvent.BUTTON1)) {
             if (musicSlider.contains(mx, my)) {
-
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
                 draggingMusic = true;
             }
             if (sfxSlider.contains(mx, my)) {
-
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
                 draggingSFX = true;
             }
@@ -79,10 +87,7 @@ public class OptionsMenu {
         if (input.isKeyJustPressed(KeyEvent.VK_RIGHT))
             soundManager.setMusicVolume(Math.clamp(soundManager.getMusicVolume() + 0.05f, 0f, 1f));
 
-        Rectangle backBtn = getBackButtonRect(width, height);
-        backHovered = backBtn.contains(mx, my);
-        if (backHovered && input.isMouseButtonJustPressed(MouseEvent.BUTTON1)) {
-
+        if (backBtn.update(input) == MenuButton.CLICKED) {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             return returnTo;
         }
@@ -94,13 +99,10 @@ public class OptionsMenu {
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 
-        // background
         g2.setColor(new Color(10, 10, 10));
         g2.fillRect(0, 0, width, height);
 
-        // title
         g2.setFont(pixelFont);
-        g2.setColor(Color.WHITE);
         String title = "OPTIONS";
         int tw = g2.getFontMetrics().stringWidth(title);
         g2.setColor(new Color(0, 0, 0, 180));
@@ -114,23 +116,7 @@ public class OptionsMenu {
         drawSlider(g2, "SFX VOLUME", soundManager.getSfxVolume(),
                 getSFXSliderRect(width, height), width, height / 2 + 60);
 
-        Rectangle r = getBackButtonRect(width, height);
-        if (backHovered) {
-            g2.setColor(new Color(255, 255, 255, 40));
-            g2.fillRect(r.x, r.y, r.width, r.height);
-            g2.setColor(Color.WHITE);
-        } else {
-            g2.setColor(new Color(200, 200, 200, 120));
-        }
-        g2.setStroke(new BasicStroke(2));
-        g2.drawRect(r.x, r.y, r.width, r.height);
-        g2.setFont(pixelFontSmall);
-        g2.setColor(backHovered ? Color.WHITE : new Color(200, 200, 200));
-        FontMetrics fm = g2.getFontMetrics();
-        String back = "BACK";
-        g2.drawString(back,
-                r.x + (r.width - fm.stringWidth(back)) / 2,
-                r.y + (r.height + fm.getAscent() - fm.getDescent()) / 2);
+        backBtn.draw(g2);
 
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT);
@@ -142,25 +128,20 @@ public class OptionsMenu {
         FontMetrics fm = g2.getFontMetrics();
         g2.drawString(label, (width - fm.stringWidth(label)) / 2, labelY);
 
-        // track
         g2.setColor(new Color(60, 60, 60));
         g2.fillRect(r.x, r.y, r.width, r.height);
 
-        // fill
         g2.setColor(Color.WHITE);
         g2.fillRect(r.x, r.y, (int) (r.width * value), r.height);
 
-        // handle — sharp square instead of oval
         int hx = r.x + (int) (r.width * value) - 5;
         g2.setColor(Color.WHITE);
         g2.fillRect(hx, r.y - 6, 10, r.height + 12);
 
-        // border around handle
         g2.setColor(new Color(150, 150, 150));
         g2.setStroke(new BasicStroke(1));
         g2.drawRect(hx, r.y - 6, 10, r.height + 12);
 
-        // percentage
         g2.setFont(pixelFontTiny);
         String pct = (int) (value * 100) + "%";
         g2.setColor(new Color(200, 200, 200));
@@ -173,9 +154,5 @@ public class OptionsMenu {
 
     private Rectangle getSFXSliderRect(int width, int height) {
         return new Rectangle((width - SLIDER_W) / 2, height / 2 + 80, SLIDER_W, SLIDER_H);
-    }
-
-    private Rectangle getBackButtonRect(int width, int height) {
-        return new Rectangle((width - 160) / 2, height * 3 / 4, 160, 46);
     }
 }

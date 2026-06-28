@@ -6,149 +6,152 @@ import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 
+public class DialogueManager {
+  private String[] falas;
+  private int falaAtualIndex = 0;
+  private String textoExibido = "";
+  private int caractereIndex = 0;
+  private boolean ativo = false;
+  private Font pixelFont;
 
+  private long ultimoFrameTempo = 0;
+  private final int delayLetrasMs = 40;
 
-  public class DialogueManager{
-      private String[] falas;
-      private int falaAtualIndex = 0;
-      private String textoExibido = "";
-      private int caractereIndex = 0;
-      private boolean ativo = false;
+  private int shakeX = 0;
+  private int shakeY = 0;
+  private final Random random = new Random();
 
+  private boolean teclaLiberada = true;
 
-      private long ultimoFrameTempo = 0;
-      private final int delayLetrasMs = 40;
+  private BufferedImage rostoFechado;
+  private BufferedImage rostoAberto;
+  private boolean mostrarBocaAberta = false;
 
-      private int shakeX = 0;
-      private int shakeY = 0;
-      private final Random random = new Random();
+  public DialogueManager() {
+    try {
+      Font base = Font.createFont(Font.TRUETYPE_FONT, new File("font/PressStart2P-Regular.ttf"));
+      pixelFont = base.deriveFont(Font.PLAIN, 14f);
+    } catch (Exception e) {
+      System.err.println("nao encontrou font/PressStart2P-Regular.ttf.");
+      pixelFont = new Font("Courier New", Font.BOLD, 18);
+    }
+    try {
+      rostoFechado = ImageIO.read(new File("pingu_portrait_close.jpg"));
+      rostoAberto = ImageIO.read(new File("pingu_portrait_close.jpg"));
+    } catch (IOException e) {
+      System.out.println("Aviso: Imagens de retrato não encontradas. Usando retângulos de teste.");
+    }
+  }
 
-      private boolean teclaLiberada = true;
+  public void iniciarDialogo(String[] texto) {
+    this.falas = texto;
+    this.falaAtualIndex = 0;
+    this.caractereIndex = 0;
+    this.textoExibido = "";
+    this.ativo = true;
+    this.ultimoFrameTempo = System.currentTimeMillis();
 
-      private BufferedImage rostoFechado;
-      private BufferedImage rostoAberto;
-      private boolean mostrarBocaAberta = false;
+  }
 
-      public DialogueManager(){
+  public void atualizar(InputManager input) {
+    if (!ativo)
+      return;
 
-        try{
-          rostoFechado = ImageIO.read(new File("pingu_portrait_close.jpg"));
-          rostoAberto = ImageIO.read(new File("pingu_portrait_close.jpg"));
-        }catch(IOException e){
-          System.out.println("Aviso: Imagens de retrato não encontradas. Usando retângulos de teste.");
+    long agora = System.currentTimeMillis();
+
+    if (caractereIndex < falas[falaAtualIndex].length()) {
+      if (agora - ultimoFrameTempo >= delayLetrasMs) {
+        textoExibido += falas[falaAtualIndex].charAt(caractereIndex);
+        caractereIndex++;
+        ultimoFrameTempo = agora;
+
+        if (caractereIndex % 2 == 0) {
+          mostrarBocaAberta = !mostrarBocaAberta;
         }
+
+        shakeX = random.nextInt(5) - 2;
+        shakeY = random.nextInt(5) - 2;
       }
 
-      public void iniciarDialogo(String[] texto){
-          this.falas = texto;
-          this.falaAtualIndex = 0;
-          this.caractereIndex = 0;
-          this.textoExibido = "";
-          this.ativo = true;
-          this.ultimoFrameTempo = System.currentTimeMillis();
+    } else {
 
-          
-        }
+      shakeX = 0;
+      shakeY = 0;
+      mostrarBocaAberta = false;
+    }
+    boolean teclaApertada = input.isKeyPressed(KeyEvent.VK_SPACE) || input.isKeyPressed(KeyEvent.VK_ENTER);
 
-        public void atualizar(InputManager input){
-            if(!ativo) return;
-
-            long agora = System.currentTimeMillis();
-
-            if(caractereIndex < falas[falaAtualIndex].length()){
-                if(agora - ultimoFrameTempo >= delayLetrasMs){
-                    textoExibido += falas[falaAtualIndex].charAt(caractereIndex);
-                    caractereIndex++;
-                    ultimoFrameTempo = agora;
-                    
-                    if(caractereIndex %2 == 0){
-                      mostrarBocaAberta = !mostrarBocaAberta;
-                    }
-                    
-                    shakeX = random.nextInt(5) - 2;
-                    shakeY = random.nextInt(5) - 2;
-                  }
-
-              }else{
-
-                  shakeX = 0;
-                  shakeY = 0;
-                  mostrarBocaAberta = false;
-                }
-                boolean teclaApertada = input.isKeyPressed(KeyEvent.VK_SPACE) || input.isKeyPressed(KeyEvent.VK_ENTER);
-
-                if(teclaApertada && teclaLiberada){
-                    teclaLiberada = false;
-                    avancarFala();
-                  }
-
-                  if(!teclaApertada){
-                      teclaLiberada = true;
-                    }
-          }
-          private void avancarFala(){
-              if(caractereIndex < falas[falaAtualIndex].length()){
-                  textoExibido = falas[falaAtualIndex];
-                  caractereIndex = falas[falaAtualIndex].length();
-
-                }
-                else{
-                    falaAtualIndex++;
-                    if(falaAtualIndex < falas.length){
-                        textoExibido = "";
-                        caractereIndex = 0;
-                        ultimoFrameTempo = System.currentTimeMillis();
-                      }
-                      else{
-                          ativo = false;
-                        }
-                  }
-            }
-            public void renderizar(Graphics2D g2, int telaLargura, int telaAltura){
-                if(!ativo)
-                  return;
-
-                  int x = 50 + shakeX;
-                  int y = telaAltura - 170 + shakeY;
-                  int largura = telaLargura - 100;
-                  int altura = 110;
-
-                  g2.setColor(Color.BLACK);
-                  g2.fillRect(x,y,largura,altura);
-
-                  g2.setStroke(new BasicStroke(3));
-                  g2.setColor(Color.MAGENTA);
-                  g2.drawRect(x,y,largura,altura);
-
-                  g2.setStroke(new BasicStroke(1));
-                  g2.setColor(Color.CYAN);
-                  g2.drawRect(x + 4, y + 4, largura - 8, altura - 8);
-
-                  int fotoX = x+15;
-                  int fotoY = y+15;
-                  int fotoTamanho = 80;
-
-                  if(rostoFechado != null && rostoAberto != null){
-                    BufferedImage frameAtual = mostrarBocaAberta ? rostoAberto : rostoFechado;
-                    g2.drawImage(frameAtual, fotoX, fotoY, fotoTamanho, fotoTamanho, null);
-                  }
-                  else{
-                    g2.setColor(Color.DARK_GRAY);
-                    g2.fillRect(fotoX, fotoY, fotoTamanho, fotoTamanho);
-                    g2.setColor(Color.GREEN);
-                    g2.drawRect(fotoX, fotoY, fotoTamanho, fotoTamanho);
-                    g2.setFont(new Font("Arial", Font.PLAIN, 10));
-                    g2.drawString("SEM FOTO", fotoX + 15, fotoY + 45);
-                  }
-
-                  g2.setColor(Color.WHITE);
-                  g2.setFont(new Font("Courier New", Font.BOLD, 18));
-
-                  g2.drawString(textoExibido, x + 110, y + 60);
-              }
-              public boolean isAtivo(){
-                  return ativo;
-                }
-
+    if (teclaApertada && teclaLiberada) {
+      teclaLiberada = false;
+      avancarFala();
     }
 
+    if (!teclaApertada) {
+      teclaLiberada = true;
+    }
+  }
+
+  private void avancarFala() {
+    if (caractereIndex < falas[falaAtualIndex].length()) {
+      textoExibido = falas[falaAtualIndex];
+      caractereIndex = falas[falaAtualIndex].length();
+
+    } else {
+      falaAtualIndex++;
+      if (falaAtualIndex < falas.length) {
+        textoExibido = "";
+        caractereIndex = 0;
+        ultimoFrameTempo = System.currentTimeMillis();
+      } else {
+        ativo = false;
+      }
+    }
+  }
+
+  public void renderizar(Graphics2D g2, int telaLargura, int telaAltura) {
+    if (!ativo)
+      return;
+
+    int x = 50 + shakeX;
+    int y = telaAltura - 170 + shakeY;
+    int largura = telaLargura - 100;
+    int altura = 110;
+
+    g2.setColor(Color.BLACK);
+    g2.fillRect(x, y, largura, altura);
+
+    g2.setStroke(new BasicStroke(3));
+    g2.setColor(Color.MAGENTA);
+    g2.drawRect(x, y, largura, altura);
+
+    g2.setStroke(new BasicStroke(1));
+    g2.setColor(Color.CYAN);
+    g2.drawRect(x + 4, y + 4, largura - 8, altura - 8);
+
+    int fotoX = x + 15;
+    int fotoY = y + 15;
+    int fotoTamanho = 80;
+
+    if (rostoFechado != null && rostoAberto != null) {
+      BufferedImage frameAtual = mostrarBocaAberta ? rostoAberto : rostoFechado;
+      g2.drawImage(frameAtual, fotoX, fotoY, fotoTamanho, fotoTamanho, null);
+    } else {
+      g2.setColor(Color.DARK_GRAY);
+      g2.fillRect(fotoX, fotoY, fotoTamanho, fotoTamanho);
+      g2.setColor(Color.GREEN);
+      g2.drawRect(fotoX, fotoY, fotoTamanho, fotoTamanho);
+      g2.setFont(new Font("Arial", Font.PLAIN, 10));
+      g2.drawString("SEM FOTO", fotoX + 15, fotoY + 45);
+    }
+
+    g2.setColor(Color.WHITE);
+    g2.setFont(pixelFont);
+
+    g2.drawString(textoExibido, x + 110, y + 60);
+  }
+
+  public boolean isAtivo() {
+    return ativo;
+  }
+
+}

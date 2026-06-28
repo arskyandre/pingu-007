@@ -113,8 +113,9 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyPressed(KeyEvent.VK_T)) {
             if (!dialogueManager.isAtivo()) {
                 dialogueManager.iniciarDialogo(new String[] {
-                        "PINGU: Entrando na base de operações.", "RADIO: Cuidado, 007. Os lobos estao em alerta maximo",
-                        "PINGU: Eles nao vao nem ver de onde veio."
+                        "PINGU: Entrando na base de operações.",
+                        "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
+                        "PINGU: Eles não vão nem ver de onde veio."
                 });
             }
         }

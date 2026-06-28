@@ -50,7 +50,7 @@ public class Hud {
         }
         try {
             Font base = Font.createFont(Font.TRUETYPE_FONT, new File("font/PressStart2P-Regular.ttf"));
-            pixelFont = base.deriveFont(Font.PLAIN, 7f);
+            pixelFont = base.deriveFont(Font.BOLD, 7f);
         } catch (Exception e) {
             System.err.println("Font not found, falling back");
             pixelFont = new Font("Monospaced", Font.BOLD, 12);
