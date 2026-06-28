@@ -1,3 +1,4 @@
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 
@@ -16,7 +17,7 @@ public class KeyItem extends Item {
 
     @Override
     protected void aplicarEfeito(Player player) {
-        player.adicionarChave(1);
+        player.addChave(1);
     }
 
     @Override

@@ -12,6 +12,12 @@ public class GameCore extends Canvas implements Runnable {
     private final PauseMenu pauseMenu;
     private final OptionsMenu optionsMenu;
 
+    private double checkX, checkY;
+    private int checkVida, checkMunicao, checkPente, checkChaves;
+    private int chavesColetadasCheckpoint = 0;
+    private ArrayList<Integer> checkArenas = new ArrayList<>();
+    private boolean hasCheckpoint = false;
+
     JFrame frame;
     boolean running = true;
 
@@ -77,19 +83,22 @@ public class GameCore extends Canvas implements Runnable {
         switch (gameState) {
             case MAIN_MENU -> {
                 GameState next = mainMenu.update(input, getWidth(), getHeight());
-                if (next == GameState.OPTIONS)
+                if (next == GameState.OPTIONS) {
                     optionsMenu.setReturnState(GameState.MAIN_MENU);
+                }
                 if (next == GameState.PLAYING) {
                     soundManager.playBGM(SoundManager.BGM.LEVEL_1);
                     player.setShootCooldownTimer(30);
                 }
                 gameState = next;
             }
-            case PLAYING -> updateGame();
+            case PLAYING ->
+                updateGame();
             case PAUSED -> {
                 GameState next = pauseMenu.update(input, getWidth(), getHeight());
-                if (next == GameState.OPTIONS)
+                if (next == GameState.OPTIONS) {
                     optionsMenu.setReturnState(GameState.PAUSED);
+                }
                 if (next == GameState.MAIN_MENU) {
                     soundManager.playBGM(SoundManager.BGM.MAIN_MENU);
                 }
@@ -98,8 +107,10 @@ public class GameCore extends Canvas implements Runnable {
                 }
                 gameState = next;
             }
-            case OPTIONS -> gameState = optionsMenu.update(input, getWidth(), getHeight());
-            case QUIT -> System.exit(0);
+            case OPTIONS ->
+                gameState = optionsMenu.update(input, getWidth(), getHeight());
+            case QUIT ->
+                System.exit(0);
         }
         input.update();
     }
@@ -112,10 +123,10 @@ public class GameCore extends Canvas implements Runnable {
 
         if (input.isKeyPressed(KeyEvent.VK_T)) {
             if (!dialogueManager.isAtivo()) {
-                dialogueManager.iniciarDialogo(new String[] {
-                        "PINGU: Entrando na base de operações.",
-                        "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
-                        "PINGU: Eles não vão nem ver de onde veio."
+                dialogueManager.iniciarDialogo(new String[]{
+                    "PINGU: Entrando na base de operações.",
+                    "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
+                    "PINGU: Eles não vão nem ver de onde veio."
                 });
             }
         }
@@ -123,6 +134,19 @@ public class GameCore extends Canvas implements Runnable {
         if (dialogueManager.isAtivo()) {
             dialogueManager.atualizar(input);
         } else {
+            // 1. Intercepta a morte e carrega o save
+            if (player.isDead()) {
+                carregarCheckpoint();
+                return;
+            }
+
+            // 2. Cria o save se pegou chave nova OU passou em um trigger de checkpoint
+            if (player.getTotalChavesColetadas() > chavesColetadasCheckpoint || player.isCheckpointSolicitado()) {
+                salvarCheckpoint();
+                chavesColetadasCheckpoint = player.getTotalChavesColetadas();
+                player.limparSolicitacaoCheckpoint();
+            }
+
             player.testemunicao(input, getWidth(), getHeight(), itemManager, camera);
 
             player.update(input, getWidth(), getHeight(), camera, soundManager);
@@ -242,6 +266,31 @@ public class GameCore extends Canvas implements Runnable {
         enemyManager.setLvlData(levelData);
         bulletmanager.setLvlData(levelData);
         itemManager.setLvlData(levelData);
+
+        chavesColetadasCheckpoint = player.getTotalChavesColetadas();
+        salvarCheckpoint();
+    }
+
+    public void salvarCheckpoint() {
+        checkX = player.getX();
+        checkY = player.getY();
+        checkVida = player.getVida();
+        checkMunicao = player.getMunicao();
+        checkPente = player.getPente();
+        checkChaves = player.getChaves();
+        checkArenas = arenaManager.getArenasConcluidas();
+        hasCheckpoint = true;
+        System.out.println(">>> CHECKPOINT SALVO! <<<");
+    }
+
+    public void carregarCheckpoint() {
+        if (!hasCheckpoint) {
+            return;
+        }
+        System.out.println(">>> CARREGANDO CHECKPOINT... <<<");
+        player.respawn(checkX, checkY, checkVida, checkMunicao, checkPente, checkChaves);
+        bulletmanager.limparTudo();
+        arenaManager.restaurarArenas(checkArenas, player);
     }
 
     public void render(BufferStrategy bs, double delta) {
@@ -249,12 +298,14 @@ public class GameCore extends Canvas implements Runnable {
             do {
                 Graphics2D g2 = (Graphics2D) bs.getDrawGraphics();
                 switch (gameState) {
-                    case MAIN_MENU -> mainMenu.render(g2, getWidth(), getHeight());
+                    case MAIN_MENU ->
+                        mainMenu.render(g2, getWidth(), getHeight());
 
-                    case PLAYING -> renderer.renderizar(g2, camera, player, input,
-                            getWidth(), getHeight(),
-                            levelManager, bulletmanager, itemManager,
-                            enemyManager, arenaManager, hud, dialogueManager, delta);
+                    case PLAYING ->
+                        renderer.renderizar(g2, camera, player, input,
+                                getWidth(), getHeight(),
+                                levelManager, bulletmanager, itemManager,
+                                enemyManager, arenaManager, hud, dialogueManager, delta);
                     case PAUSED -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
@@ -262,7 +313,8 @@ public class GameCore extends Canvas implements Runnable {
                                 enemyManager, arenaManager, hud, dialogueManager, delta);
                         pauseMenu.render(g2, getWidth(), getHeight());
                     }
-                    case OPTIONS -> optionsMenu.render(g2, getWidth(), getHeight());
+                    case OPTIONS ->
+                        optionsMenu.render(g2, getWidth(), getHeight());
                     case QUIT -> {
                     }
                 }

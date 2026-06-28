@@ -45,6 +45,9 @@ public class Player extends Entity {
     private final int iFramesDanoDuration = 60;
     private final int iFramesDashGrace = 15;
 
+    private int chavesColetadasTotal = 0;
+    private boolean checkpointSolicitado = false;
+
     private BufferedImage[] Sprites;
     private int animIndex = 0;
     private double animTick = 0;
@@ -81,6 +84,7 @@ public class Player extends Entity {
     private int muniCOoldownTimer = 0;
     private final int muniCooldown = 60;
 
+    //debug
     public void testemunicao(InputManager input, int telaLargura, int telaAltura, ItemManager itemManager,
             CameraManager camera) {
         if (muniCOoldownTimer > 0) {
@@ -321,7 +325,7 @@ public class Player extends Entity {
                 inv = -1;
                 xx = (int) (x + GameCore.tiles_size);
             }
-            animTick += 60f*delta;
+            animTick += 60f * delta;
             if (animTick >= 12) {
                 animTick = 0;
                 t++;
@@ -363,9 +367,38 @@ public class Player extends Entity {
         System.out.println("coletou cura +" + qtd + " vida: " + vida);
     }
 
-    public void adicionarChave(int qtd) {
+    public void addChave(int qtd) {
         chaves += qtd;
+        if (qtd > 0) {
+            chavesColetadasTotal += qtd;
+        }
         System.out.println("coletou chave total: " + chaves);
+    }
+
+    public void solicitarCheckpoint() {
+        this.checkpointSolicitado = true;
+    }
+
+    public void limparSolicitacaoCheckpoint() {
+        this.checkpointSolicitado = false;
+    }
+
+    public void respawn(double cx, double cy, int cvida, int cmunicao, int cpente, int cchaves) {
+        this.x = cx;
+        this.y = cy;
+        this.vida = cvida;
+        this.municao = cmunicao;
+        this.pente = cpente;
+        this.chaves = cchaves;
+
+        this.isDead = false;
+        this.velX = 0;
+        this.velY = 0;
+        this.emDash = false;
+        this.isAirborne = false;
+        this.isCaindo = false;
+        this.danoRecebidoFlag = false;
+        this.iFramesTimer = 60;
     }
 
     public int getChaves() {
@@ -427,5 +460,13 @@ public class Player extends Entity {
 
     public Boolean isMoving() {
         return (velX > 0.2 || velX < -0.2) || (velY > 0.2 || velY < -0.2);
+    }
+
+    public boolean isCheckpointSolicitado() {
+        return checkpointSolicitado;
+    }
+
+    public int getTotalChavesColetadas() {
+        return chavesColetadasTotal;
     }
 }

@@ -10,6 +10,8 @@ public class ArenaManager {
 
     //public boolean flagArena16Ativada = false;
     //public boolean puzzleBotoesConcluido = false;
+    private boolean chave14_15_spawnada = false;
+
     public static class Arena {
 
         int id;
@@ -45,6 +47,7 @@ public class ArenaManager {
         allObjects.clear();
         //flagArena16Ativada = false;
         //puzzleBotoesConcluido = false;
+        chave14_15_spawnada = false;
 
         for (TiledObject obj : objetos) {
             String tipo = obj.tipo != null ? obj.tipo.toLowerCase().trim() : "";
@@ -115,6 +118,11 @@ public class ArenaManager {
                     } else {
                         arena.concluida = true;
                         verificarDesativacaoParedes(arena.id, player);
+
+                        if (arena.id == 9 || arena.id == 10 || arena.id == 13 || arena.id == 14 || arena.id == 15 || arena.id == 16) {
+                            player.solicitarCheckpoint();
+                            System.out.println("Checkpoint garantido após vencer a arena " + arena.id);
+                        }
                     }
                 }
             }
@@ -249,6 +257,14 @@ public class ArenaManager {
             case 0 -> {
                 setWallState(0, true, player);
                 arena.concluida = true;
+                player.solicitarCheckpoint();
+            }
+            case 1 -> {
+                if (arena.totalHordas == 0) {
+                    arena.concluida = true;
+                }
+                setWallState(1, true, player);
+                player.solicitarCheckpoint();
             }
             case 2 -> {
                 setWallState(2, true, player);
@@ -256,19 +272,39 @@ public class ArenaManager {
             case 4, 5 -> {
                 setWallState(4, true, player);
             }
+            case 6 -> {
+                if (arena.totalHordas == 0) {
+                    arena.concluida = true;
+                }
+                setWallState(6, true, player);
+                player.solicitarCheckpoint();
+            }
             case 9, 10 -> {
                 setWallState(9, true, player);
                 setWallState(10, true, player);
             }
             case 14, 15 -> {
+                if (arena.totalHordas == 0) {
+                    arena.concluida = true;
+                }
+                if (id == 14) {
+                    player.solicitarCheckpoint();
+                }
                 setWallState(14, true, player);
                 setWallState(15, true, player);
             }
-            /*case 16 ->
-                flagArena16Ativada = true;*/
+            case 16 -> {
+                player.solicitarCheckpoint();
+            }
+            case 67 -> {
+                setWallState(67, true, player);
+                arena.concluida = true;
+                //player.solicitarCheckpoint();
+            }
             case 102 -> {
                 setWallState(102, false, player);
                 arena.concluida = true;
+                player.solicitarCheckpoint();
             }
             case 999 -> {
                 iniciarTransicaoDeFase(arena.trigger.destino);
@@ -313,7 +349,11 @@ public class ArenaManager {
                 if (isArenaConcluida(14) && isArenaConcluida(15)) {
                     setWallState(14, false, player);
                     setWallState(15, false, player);
-                    itemManager.spawn(new KeyItem(12839, 4870));
+
+                    if (!chave14_15_spawnada) {
+                        itemManager.spawn(new KeyItem(12839, 4870));
+                        chave14_15_spawnada = true;
+                    }
                 }
             }
             case 16, 101, 102, 999 -> {
@@ -353,6 +393,26 @@ public class ArenaManager {
         }
     }
 
+    public void restaurarArenas(ArrayList<Integer> salvas, Player player) {
+        for (Arena arena : arenas) {
+            for (Enemy e : arena.inimigosVivos) {
+                e.receberDano(99999);
+            }
+            arena.inimigosVivos.clear();
+
+            if (salvas.contains(arena.id)) {
+                arena.concluida = true;
+                arena.ativa = false;
+                verificarDesativacaoParedes(arena.id, player);
+            } else {
+                arena.concluida = false;
+                arena.ativa = false;
+                arena.hordaAtual = 0;
+                setWallState(arena.id, false, player);
+            }
+        }
+    }
+
     private Arena getOuCriarArena(int id) {
         for (Arena arena : arenas) {
             if (arena.id == id) {
@@ -381,5 +441,15 @@ public class ArenaManager {
             }
         }
         return "";
+    }
+
+    public ArrayList<Integer> getArenasConcluidas() {
+        ArrayList<Integer> concluidas = new ArrayList<>();
+        for (Arena arena : arenas) {
+            if (arena.concluida) {
+                concluidas.add(arena.id);
+            }
+        }
+        return concluidas;
     }
 }
