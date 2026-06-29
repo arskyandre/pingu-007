@@ -56,7 +56,9 @@ public class Player extends Entity {
 
     private int[][] lvlData;
 
-    public Player(double startX, double startY, double largura, double altura, BulletManager bulmgr) {
+    public Player(double startX, double startY, double largura, double altura, BulletManager bulmgr,
+            SoundManager sound) {
+        super(sound);
         this.x = startX;
         this.y = startY;
         this.aceleracao = 1.0;
@@ -84,7 +86,7 @@ public class Player extends Entity {
     private int muniCOoldownTimer = 0;
     private final int muniCooldown = 60;
 
-    //debug
+    // debug
     public void testemunicao(InputManager input, int telaLargura, int telaAltura, ItemManager itemManager,
             CameraManager camera) {
         if (muniCOoldownTimer > 0) {
@@ -106,6 +108,7 @@ public class Player extends Entity {
     @Override
     public void receberDano(int dano) {
         if ((iFramesTimer == 0 && !emDash) || isCaindo) {
+            soundManager.playSFX(SoundManager.SFX.PLAYER_DAMAGE);
             super.receberDano(dano);
             iFramesTimer = iFramesDanoDuration;
             danoRecebidoFlag = true;
@@ -119,7 +122,7 @@ public class Player extends Entity {
         return val;
     }
 
-    public void update(InputManager input, int telaLargura, int telaAltura, CameraManager camera, SoundManager sound) {
+    public void update(InputManager input, int telaLargura, int telaAltura, CameraManager camera) {
         if (!podeDash) {
             dashCooldownTimer--;
             if (dashCooldownTimer <= 0) {
@@ -184,7 +187,7 @@ public class Player extends Entity {
                 double centerY = y + altura / 2.0;
 
                 bulletmanager.shoot(centerX, centerY, mouseXWorld - centerX, mouseYWorld - centerY, BulletOwner.PLAYER);
-                sound.playGunshot();
+                soundManager.playGunshot();
                 shootCooldownTimer = shootCooldown;
                 pente--;
             }
@@ -260,11 +263,7 @@ public class Player extends Entity {
             velY = 0;
         }
         if (isMoving() && !emDash) {
-            footstepTimer--;
-            if (footstepTimer <= 0) {
-                sound.playRandomSnowStep(1.0f);
-                footstepTimer = footstepInterval;
-            }
+            updateFootsteps(soundManager, lvlData);
         } else {
             footstepTimer = 0;
         }

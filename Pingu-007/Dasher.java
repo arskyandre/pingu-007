@@ -175,7 +175,9 @@ public class Dasher extends Enemy {
                 }
             }
         }
-
+        if (isMoving()) {
+            updateFootsteps(soundManager, lvlData);
+        }
         if (velX > 0) {
             dirS = 1;
         } else if (velX < 0) {
@@ -209,8 +211,8 @@ public class Dasher extends Enemy {
                     animIndex = 7;
                 }
             } else {
-                animTick+= 60f*delta;
-                
+                animTick += 60f * delta;
+
                 if (animTick >= 12) {
                     animTick = 0;
                     animIndex++;

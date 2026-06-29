@@ -30,6 +30,16 @@ public abstract class Entity {
     protected double ultimoXSeguro;
     protected double ultimoYSeguro;
 
+    public SoundManager soundManager;
+    protected int snowFootstepTimer = 0;
+    protected int snowFootstepInterval = 22;
+    protected int iceFootstepTimer = 0;
+    protected int iceFootstepInterval = 50;
+
+    public Entity(SoundManager sound) {
+        soundManager = sound;
+    }
+
     public void receberDano(int dano) {
         vida -= dano;
         if (vida <= 0) {
@@ -40,6 +50,35 @@ public abstract class Entity {
 
     public boolean isDead() {
         return isDead;
+    }
+
+    protected void updateFootsteps(SoundManager sound, int[][] lvlData) {
+        if (lvlData == null || bodyCollider == null)
+            return;
+
+        int centroCol = (int) ((x + bodyCollider.getOffsetX() + bodyCollider.getWidth() / 2.0) / GameCore.tiles_size);
+        int centroRow = (int) ((y + bodyCollider.getOffsetY() + bodyCollider.getHeight() / 2.0) / GameCore.tiles_size);
+
+        if (centroRow < 0 || centroRow >= lvlData.length || centroCol < 0 || centroCol >= lvlData[0].length)
+            return;
+
+        int tile = lvlData[centroRow][centroCol];
+
+        snowFootstepTimer--;
+        iceFootstepTimer--;
+        if (snowFootstepTimer <= 0) {
+            if (!TileProperties.isHole(tile) && !TileProperties.isIce(tile)) {
+                sound.playRandomSnowStep();
+            }
+            snowFootstepTimer = snowFootstepInterval;
+        }
+        if (iceFootstepTimer <= 0) {
+
+            if (!TileProperties.isHole(tile) && TileProperties.isIce(tile)) {
+                sound.playRandomIceStep();
+            }
+            iceFootstepTimer = iceFootstepInterval;
+        }
     }
 
     public void animate(Graphics2D g2, double delta) {
@@ -302,7 +341,7 @@ public abstract class Entity {
             projX *= atritoAtual;
             projY *= atritoAtual;
         }
-        return new double[]{projX * frames * 0.35, projY * frames * 0.35};
+        return new double[] { projX * frames * 0.35, projY * frames * 0.35 };
     }
 
     protected void atualizarFisicaDoChao(int[][] lvlData) {

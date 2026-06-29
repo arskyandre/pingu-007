@@ -9,6 +9,7 @@ public class Bomber extends Enemy {
     private enum Status {
         PERSEGUINDO, ACIONADO
     }
+
     private Status estadoAtual = Status.PERSEGUINDO;
 
     private final BulletManager bulletManager;
@@ -31,7 +32,8 @@ public class Bomber extends Enemy {
     public boolean danoAosInimigos = true;
     private boolean jaExplodiu = false;
 
-    public Bomber(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr, ArrayList<Enemy> inimigos, SoundManager sound) {
+    public Bomber(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr,
+            ArrayList<Enemy> inimigos, SoundManager sound) {
         super(startX, startY, width, height, lvlData, sound);
         this.bulletManager = bulmgr;
         this.todosInimigos = inimigos;
@@ -88,6 +90,9 @@ public class Bomber extends Enemy {
                 }
             }
             case ACIONADO -> {
+                if (timer == tempoPavio) {
+                    soundManager.playSFX(SoundManager.SFX.BOMBER_AVISO);
+                }
                 velX *= 0.8;
                 velY *= 0.8;
 
@@ -100,7 +105,9 @@ public class Bomber extends Enemy {
 
         aplicarFisicaBasica();
         moveAndCollideWithMap(lvlData);
-
+        if (isMoving()) {
+            updateFootsteps(soundManager, lvlData);
+        }
         if (velX > 0) {
             dirS = 1;
         } else if (velX < 0) {
@@ -109,6 +116,7 @@ public class Bomber extends Enemy {
     }
 
     private void detonar(Player player, double meuCenterX, double meuCenterY) {
+        soundManager.playSFX(SoundManager.SFX.EXPLOSION);
         jaExplodiu = true;
         double distPlayer = Math.sqrt(Math.pow(player.getX() + player.getLargura() / 2.0 - meuCenterX, 2)
                 + Math.pow(player.getY() + player.getAltura() / 2.0 - meuCenterY, 2));
@@ -123,7 +131,8 @@ public class Bomber extends Enemy {
                 }
                 double outroCenterX = outro.getX() + outro.getLargura() / 2.0;
                 double outroCenterY = outro.getY() + outro.getAltura() / 2.0;
-                double distInimigo = Math.sqrt(Math.pow(outroCenterX - meuCenterX, 2) + Math.pow(outroCenterY - meuCenterY, 2));
+                double distInimigo = Math
+                        .sqrt(Math.pow(outroCenterX - meuCenterX, 2) + Math.pow(outroCenterY - meuCenterY, 2));
 
                 if (distInimigo <= raioExplosao) {
                     outro.receberDano(danoExplosao, meuCenterX, meuCenterY, forcaExplosao);
@@ -172,7 +181,7 @@ public class Bomber extends Enemy {
     @Override
     public void animate(Graphics2D g2, double delta) {
         if (estadoAtual == Status.PERSEGUINDO) {
-            animTick+=60f*delta;
+            animTick += 60f * delta;
             if (animTick >= 4) {
                 animTick = 0;
                 animIndex++;

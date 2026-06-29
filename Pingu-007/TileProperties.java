@@ -25,7 +25,8 @@ public class TileProperties {
         }
         return false;
     }
-
+    
+    ///
     public static boolean isIce(int tileID) {
         int tempID = tileID - 1;
         if (tempID >= 0) {

@@ -9,6 +9,7 @@ public class Jumper extends Enemy {
     private enum Status {
         PREPARANDO, PULANDO, FLUTUANDO, ATIRANDO, COOLDOWN
     }
+
     private Status estadoAtual = Status.PREPARANDO;
 
     private final BulletManager bulletManager;
@@ -28,7 +29,8 @@ public class Jumper extends Enemy {
     private double alt = 0;
     private double squash = 0;
 
-    public Jumper(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr, SoundManager sound) {
+    public Jumper(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr,
+            SoundManager sound) {
         super(startX, startY, width, height, lvlData, sound);
         this.bulletManager = bulmgr;
         this.vidaMaxima = 40;
@@ -83,12 +85,14 @@ public class Jumper extends Enemy {
         switch (estadoAtual) {
             case PREPARANDO -> {
                 aplicarFreioDePreparacao(0.25);
-                /*if (dist > 0) {
-                    double dirX = dx / dist;
-                    double dirY = dy / dist;
-                    this.velX = dirX * velocidadeAndar;
-                    this.velY = dirY * velocidadeAndar;
-                }*/
+                /*
+                 * if (dist > 0) {
+                 * double dirX = dx / dist;
+                 * double dirY = dy / dist;
+                 * this.velX = dirX * velocidadeAndar;
+                 * this.velY = dirY * velocidadeAndar;
+                 * }
+                 */
                 timer--;
                 if (timer <= 0) {
                     if (!podePularBuracos && !temLinhaDeVisaoLivre(player)) {
@@ -202,7 +206,9 @@ public class Jumper extends Enemy {
             this.velocidadeMax = velMaxSalva;
             moveAndCollideWithMap(lvlData);
         }
-
+        if (isMoving()) {
+            updateFootsteps(soundManager, lvlData);
+        }
         if (this.hitbox != null && player.getHurtbox() != null) {
             if (this.hitbox.intersects(this.x, this.y, player.getHurtbox(), player.getX(), player.getY())) {
                 player.receberDano(danoContato);
@@ -212,19 +218,23 @@ public class Jumper extends Enemy {
 
     @Override
     public void receberDano(int dano, double sourceX, double sourceY, double knockbackForce) {
-        // Tiro Perfeito: Sobrepõe a invulnerabilidade e pune o Jumper jogando-o no buraco
-        /*if (emSaltoCinematico) {
-            emSaltoCinematico = false;
-            isAirborne = true; // Religa a física da fase
-            velX = 0;
-            velY = 0;
-            estadoAtual = Status.COOLDOWN;
-            timer = tempoCooldown;
-            pulosDados = 0;
-            super.receberDano(dano, sourceX, sourceY, knockbackForce);
-            System.out.println("Tiro perfeito! Jumper perdeu o salto cinemático e caiu no buraco!");
-            return;
-        }*/
+        // Tiro Perfeito: Sobrepõe a invulnerabilidade e pune o Jumper jogando-o no
+        // buraco
+        /*
+         * if (emSaltoCinematico) {
+         * emSaltoCinematico = false;
+         * isAirborne = true; // Religa a física da fase
+         * velX = 0;
+         * velY = 0;
+         * estadoAtual = Status.COOLDOWN;
+         * timer = tempoCooldown;
+         * pulosDados = 0;
+         * super.receberDano(dano, sourceX, sourceY, knockbackForce);
+         * System.out.
+         * println("Tiro perfeito! Jumper perdeu o salto cinemático e caiu no buraco!");
+         * return;
+         * }
+         */
 
         if (estadoAtual == Status.PULANDO || estadoAtual == Status.FLUTUANDO || emSaltoCinematico) {
             return;
@@ -289,7 +299,7 @@ public class Jumper extends Enemy {
                 case PREPARANDO -> {
                     alt = 0;
                     if (squash < 10) {
-                        squash += 40f*delta;
+                        squash += 40f * delta;
                     }
                 }
                 default -> {
@@ -312,24 +322,26 @@ public class Jumper extends Enemy {
         int h = (int) height;
 
         int elevacao = 0;
-        /*Color corCorpo = Color.WHITE;
-
-        switch (estadoAtual) {
-            case PREPARANDO ->
-                corCorpo = Color.ORANGE;
-            case PULANDO -> {
-                corCorpo = Color.YELLOW;
-                elevacao = 15;
-            }
-            case FLUTUANDO -> {
-                corCorpo = Color.GREEN;
-                elevacao = 25;
-            }
-            case COOLDOWN ->
-                corCorpo = Color.DARK_GRAY;
-            default -> {
-            }
-        }*/
+        /*
+         * Color corCorpo = Color.WHITE;
+         * 
+         * switch (estadoAtual) {
+         * case PREPARANDO ->
+         * corCorpo = Color.ORANGE;
+         * case PULANDO -> {
+         * corCorpo = Color.YELLOW;
+         * elevacao = 15;
+         * }
+         * case FLUTUANDO -> {
+         * corCorpo = Color.GREEN;
+         * elevacao = 25;
+         * }
+         * case COOLDOWN ->
+         * corCorpo = Color.DARK_GRAY;
+         * default -> {
+         * }
+         * }
+         */
 
         switch (estadoAtual) {
             case PULANDO -> {
@@ -351,11 +363,13 @@ public class Jumper extends Enemy {
         g2.setColor(new Color(0, 0, 0, alpha));
         g2.fillOval(shadowX, shadowY, shadowW, shadowH);
         // Sombra
-        /*if (elevacao > 0) {
-            g2.setColor(new Color(0, 0, 0, 80));
-            g2.fillOval(drawX + 5, drawY + h - 10, w - 10, 10);
-        }*/
+        /*
+         * if (elevacao > 0) {
+         * g2.setColor(new Color(0, 0, 0, 80));
+         * g2.fillOval(drawX + 5, drawY + h - 10, w - 10, 10);
+         * }
+         */
         // g2.setColor(corCorpo);
-        //g2.fillRect(drawX, drawY - elevacao, w, h);
+        // g2.fillRect(drawX, drawY - elevacao, w, h);
     }
 }

@@ -6,6 +6,9 @@ import java.util.Random;
 
 public class SoundManager {
 
+    /**
+     * @param path caminho para o arquivo de som, WAV 16-bit PCM
+     */
     public enum BGM {
         MAIN_MENU("sound/bgm/main_menu.wav"),
         LEVEL_1("sound/bgm/level_1.wav"),
@@ -18,12 +21,23 @@ public class SoundManager {
         }
     }
 
+    /**
+     * @param path     caminho para o arquivo de som, WAV 16-bit PCM
+     * @param poolSize quantidade maxima de copias simultaneas desse som(quantas
+     *                 explosoes podem tocar ao mesmo tempo, por
+     *                 exemplo)
+     */
     public enum SFX {
         SNOW_STEP_1("sound/sfx/snow_footstep1.wav", 6),
         SNOW_STEP_2("sound/sfx/snow_footstep2.wav", 6),
         SNOW_STEP_3("sound/sfx/snow_footstep3.wav", 6),
         SNOW_STEP_4("sound/sfx/snow_footstep4.wav", 6),
+        ICE_STEP_1("sound/sfx/ice_footstep1.wav", 6),
+        ICE_STEP_2("sound/sfx/ice_footstep2.wav", 6),
+        BOMBER_AVISO("sound/sfx/bomber_aviso.wav", 6),
+        EXPLOSION("sound/sfx/bomber_explosion.wav", 6),
         GUNSHOT("sound/sfx/gunshot.wav", 16),
+        PLAYER_DAMAGE("sound/sfx/player_damage.wav", 8),
         WOLF_DEATH("sound/sfx/wolf_death.wav", 8),
         HUD_CLICK("sound/hud/click.wav", 2);
 
@@ -55,12 +69,20 @@ public class SoundManager {
         }
     }
 
+    /**
+     * @param sfx valor do enum SFX
+     */
     public void playSFX(SFX sfx) {
         sfxPools.get(sfx).play();
     }
 
-    public void playRandomSnowStep(float volume) {
+    public void playRandomSnowStep() {
         SFX[] steps = { SFX.SNOW_STEP_1, SFX.SNOW_STEP_2, SFX.SNOW_STEP_3, SFX.SNOW_STEP_4 };
+        playSFX(steps[random.nextInt(steps.length)]);
+    }
+
+    public void playRandomIceStep() {
+        SFX[] steps = { SFX.ICE_STEP_1, SFX.ICE_STEP_2 };
         playSFX(steps[random.nextInt(steps.length)]);
     }
 

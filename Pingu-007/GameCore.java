@@ -22,6 +22,7 @@ public class GameCore extends Canvas implements Runnable {
     boolean running = true;
 
     private final CameraManager camera;
+    private CutsceneManager cutsceneManager;
     private EnemyManager enemyManager;
     private final Player player;
     private final Hud hud;
@@ -54,7 +55,7 @@ public class GameCore extends Canvas implements Runnable {
         bulletmanager = new BulletManager();
         itemManager = new ItemManager();
         input = new InputManager();
-        player = new Player(380, 500, tiles_size - 1, tiles_size - 1, bulletmanager);
+        player = new Player(380, 500, tiles_size - 1, tiles_size - 1, bulletmanager, soundManager);
 
         renderer = new Renderer();
         renderer.modoDebug = false;
@@ -123,10 +124,11 @@ public class GameCore extends Canvas implements Runnable {
 
         if (input.isKeyPressed(KeyEvent.VK_T)) {
             if (!dialogueManager.isAtivo()) {
-                dialogueManager.iniciarDialogo(new String[]{
-                    "PINGU: Entrando na base de operações.",
-                    "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
-                    "PINGU: Eles não vão nem ver de onde veio."
+                soundManager.playBGM(SoundManager.BGM.OS_CRIA);
+                dialogueManager.iniciarDialogo(new String[] {
+                        "PINGU: Entrando na base de operações.",
+                        "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
+                        "PINGU: Eles não vão nem ver de onde veio."
                 });
             }
         }
@@ -149,7 +151,7 @@ public class GameCore extends Canvas implements Runnable {
 
             player.testemunicao(input, getWidth(), getHeight(), itemManager, camera);
 
-            player.update(input, getWidth(), getHeight(), camera, soundManager);
+            player.update(input, getWidth(), getHeight(), camera);
             itemManager.update(player);
 
             ArrayList<JumpLink> linksAtuais = levelManager.getJumpLinks();

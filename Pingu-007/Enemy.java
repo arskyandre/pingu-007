@@ -32,11 +32,10 @@ public abstract class Enemy extends Entity {
 
     protected int timerPuxado = 0;
 
-    public SoundManager soundManager;
     protected SoundManager.SFX deathSFX = null;
 
     public Enemy(double startX, double startY, double width, double height, int[][] lvlData, SoundManager sound) {
-        soundManager = sound;
+        super(sound);
         this.x = startX;
         this.y = startY;
         this.width = width;
@@ -45,6 +44,7 @@ public abstract class Enemy extends Entity {
         this.peso = 1.0;
         this.aStarDelay = (int) (Math.random() * tempoRecalculoAStar);
     }
+
 
     public void setLvlData(int[][] lvlData) {
         this.lvlData = lvlData;
