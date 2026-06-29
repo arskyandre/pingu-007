@@ -1,6 +1,8 @@
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.awt.image.BufferedImage;
+import java.awt.Graphics2D;
 
 public class Shooter extends Enemy {
 
@@ -24,6 +26,12 @@ public class Shooter extends Enemy {
     private double lockedAngle = 0;
     private int sinal = 1;
 
+    private BufferedImage[] Sprites, arma;
+    private int dirS = 0;
+    private int animIndex = 0;
+    private double animTick = 0;
+    private double anguloArma = 0;
+
     public boolean modoShotgun = false;
     public boolean interromperNoTiro = true;
 
@@ -43,6 +51,18 @@ public class Shooter extends Enemy {
         this.hitbox = new Collider(4, 4, width - 8, height - 8);
 
         this.cor = Color.RED;
+
+        BufferedImage img = LoadSave.GetSpriteAtlas("teste.png");
+        Sprites = new BufferedImage[5];
+        arma = new BufferedImage[2];
+        Sprites[0] = img.getSubimage(0, 0, 20, 20);
+        Sprites[1] = img.getSubimage(20, 0, 20, 20);
+        Sprites[2] = img.getSubimage(40, 0, 20, 20);
+        Sprites[3] = img.getSubimage(60, 0, 20, 20);
+        Sprites[4] = img.getSubimage(80, 0, 20, 20);
+        arma[0] = img.getSubimage(100, 0, 20, 20);
+        arma[1] = img.getSubimage(120, 0, 20, 20);
+
     }
 
     @Override
@@ -115,8 +135,19 @@ public class Shooter extends Enemy {
                         bulletManager.shoot(centerX, centerY, Math.cos(anguloSpray), Math.sin(anguloSpray),
                                 BulletOwner.ENEMY);
 
+                        anguloArma = anguloSpray;
+                        dirS = 1;
+                        if(anguloArma > Math.PI/2 || anguloArma < -Math.PI/2){
+                            if(anguloArma > 0)
+                                anguloArma = Math.PI - anguloArma;
+                            else
+                                anguloArma =  (-Math.PI) - anguloArma;//atenção
+                            dirS = 0;
+                        }
+
                         tirosDisparados++;
                         sprayTimer = delaySpray;
+                        System.out.println(anguloSpray);
                     } else {
                         sprayTimer--;
                     }
@@ -152,6 +183,61 @@ public class Shooter extends Enemy {
                 player.receberDano(danoContato);
             }
         }
+
+        if(estadoAtual != Status.ATIRANDO){
+            if (velX > 0) {
+            dirS = 1;
+            } else if (velX < 0) {
+            dirS = 0;
+            }
+        }
+
+        
+
+    }
+
+    
+    @Override
+    public void animate(Graphics2D g2, double delta) {
+        int xx = (int) x;
+        int inv = 1;
+        int indexArma = 0;
+        
+        animTick += 2f * delta;
+        if(animTick >= 4){
+            animTick = 0;
+        }
+        animIndex = (int) animTick;
+
+        if(estadoAtual != Status.ATIRANDO){
+            anguloArma = 0;
+            indexArma = 0;
+        }
+        else{
+            if(sprayTimer > 3){
+                indexArma = 1;
+            }
+        }
+
+        if(!isMoving()){
+            animIndex = 0;
+        }
+        
+        BufferedImage gun = HelpMethods.rotateImageByDegrees(arma[indexArma],anguloArma);
+        int gap = gun.getWidth()*3 - 60, yy = (int) y;
+        gap /= 2;
+        
+        yy -= gap;
+        if (dirS == 0) {
+            inv = -1;
+            xx = (int) (x + width);
+        }
+        else{
+            gap *= -1;
+        }
+        
+        g2.drawImage(Sprites[animIndex], xx, (int) y, inv * (int) width, (int) height, null);
+        g2.drawImage(gun, xx + gap, yy, inv * gun.getWidth()*3, gun.getHeight()*3, null);
     }
 
     @Override
@@ -165,5 +251,9 @@ public class Shooter extends Enemy {
             velY = 0;
             System.out.println("Shooter atordoado! Ataque cancelado.");
         }
+    }
+
+    public Boolean isMoving() {
+        return (velX > 0.2 || velX < -0.2) || (velY > 0.2 || velY < -0.2);
     }
 }
