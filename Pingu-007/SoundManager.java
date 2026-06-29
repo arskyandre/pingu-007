@@ -22,7 +22,8 @@ public class SoundManager {
     }
 
     /**
-     * @param path     caminho para o arquivo de som, WAV 16-bit PCM
+     * @param path     caminho para o arquivo de som, WAV 16-bit PCM nao funciona
+     *                 mp3
      * @param poolSize quantidade maxima de copias simultaneas desse som(quantas
      *                 explosoes podem tocar ao mesmo tempo, por
      *                 exemplo)
@@ -99,10 +100,10 @@ public class SoundManager {
             current_BGM = loadClip(track.path);
             setVolume(current_BGM, musicVolume);
             current_BGM.setFramePosition(0);
-            if (currentTrack != BGM.MAIN_MENU)
-                current_BGM.loop(Clip.LOOP_CONTINUOUSLY);
-            else
-                current_BGM.loop(0);
+            // if (currentTrack != BGM.MAIN_MENU)
+            current_BGM.loop(Clip.LOOP_CONTINUOUSLY);
+            // else
+            // current_BGM.loop(0);
         } catch (Exception e) {
             e.printStackTrace();
         }
