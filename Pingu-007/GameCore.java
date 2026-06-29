@@ -11,6 +11,7 @@ public class GameCore extends Canvas implements Runnable {
     private final MainMenu mainMenu;
     private final PauseMenu pauseMenu;
     private final OptionsMenu optionsMenu;
+    private final GameOverScreen gameOverScreen;
 
     private double checkX, checkY;
     private int checkVida, checkMunicao, checkPente, checkChaves;
@@ -34,6 +35,7 @@ public class GameCore extends Canvas implements Runnable {
     private ArenaManager arenaManager;
     private DialogueManager dialogueManager;
     private SoundManager soundManager;
+
     private int debugSpawnCooldown = 0;
     private int mapLoadCooldown = 0;
 
@@ -49,6 +51,7 @@ public class GameCore extends Canvas implements Runnable {
         setPreferredSize(new Dimension(game_width, game_height));
         setBackground(Color.BLACK);
         soundManager = new SoundManager();
+        gameOverScreen = new GameOverScreen(soundManager);
         mainMenu = new MainMenu(soundManager);
         pauseMenu = new PauseMenu(soundManager);
         optionsMenu = new OptionsMenu(soundManager);
@@ -95,6 +98,21 @@ public class GameCore extends Canvas implements Runnable {
             }
             case PLAYING ->
                 updateGame();
+            case GAME_OVER -> {
+                GameState next = gameOverScreen.update(input, getWidth(), getHeight());
+                if (next == GameState.MAIN_MENU) {
+                    soundManager.playBGM(SoundManager.BGM.MAIN_MENU);
+                }
+                if (next == GameState.PLAYING) {
+                    carregarCheckpoint();
+
+                    player.setShootCooldownTimer(30);
+                }
+                gameState = next;
+            }
+            case CUTSCENE -> {
+
+            }
             case PAUSED -> {
                 GameState next = pauseMenu.update(input, getWidth(), getHeight());
                 if (next == GameState.OPTIONS) {
@@ -138,7 +156,7 @@ public class GameCore extends Canvas implements Runnable {
         } else {
             // 1. Intercepta a morte e carrega o save
             if (player.isDead()) {
-                carregarCheckpoint();
+                gameState = GameState.GAME_OVER;
                 return;
             }
 
@@ -308,12 +326,25 @@ public class GameCore extends Canvas implements Runnable {
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
                                 enemyManager, arenaManager, hud, dialogueManager, delta);
+                    case GAME_OVER -> {
+                        renderer.renderizar(g2, camera, player, input,
+                                getWidth(), getHeight(),
+                                levelManager, bulletmanager, itemManager,
+                                enemyManager, arenaManager, hud, dialogueManager, delta);
+                        gameOverScreen.render(g2, getWidth(), getHeight());
+                    }
                     case PAUSED -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
                                 enemyManager, arenaManager, hud, dialogueManager, delta);
                         pauseMenu.render(g2, getWidth(), getHeight());
+                    }
+                    case CUTSCENE -> {
+                        renderer.renderizar(g2, camera, player, input,
+                                getWidth(), getHeight(),
+                                levelManager, bulletmanager, itemManager,
+                                enemyManager, arenaManager, hud, dialogueManager, delta);
                     }
                     case OPTIONS ->
                         optionsMenu.render(g2, getWidth(), getHeight());
