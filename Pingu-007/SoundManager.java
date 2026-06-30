@@ -55,7 +55,8 @@ public class SoundManager {
     private final Random random = new Random();
     private Clip current_BGM = null;
     private BGM currentTrack = null;
-    private float musicVolume = 0.05f;
+    // private float musicVolume = 0f;
+    private float musicVolume = 0.3f;
     private float sfxVolume = 0.4f;
 
     public SoundManager() {
@@ -117,7 +118,8 @@ public class SoundManager {
 
     public static void setVolume(Clip clip, float volume) {
         FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-        float dB = (float) (Math.log10(Math.max(volume, 0.0001)) * 20);
+        float curved = volume * volume;
+        float dB = (float) (Math.log10(Math.max(curved, 0.0001)) * 20);
         gain.setValue(dB);
     }
 

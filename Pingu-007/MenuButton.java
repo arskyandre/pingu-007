@@ -4,14 +4,16 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * botao de menu com texto, auto ajustado
+ */
 public class MenuButton {
 
-    private final String label;
-    private final Rectangle rect;
-    private boolean hovered = false;
+    protected final String label;
+    protected final Rectangle rect;
+    protected boolean hovered = false;
 
-    private static Font pixelFont;
+    protected static Font pixelFont;
 
     static {
         try {
@@ -32,7 +34,7 @@ public class MenuButton {
         adjustHeight();
     }
 
-    private void adjustHeight() {
+    protected void adjustHeight() {
         BufferedImage dummy = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = dummy.createGraphics();
         g2.setFont(pixelFont);
@@ -49,7 +51,7 @@ public class MenuButton {
         }
     }
 
-    private List<String> buildLines(FontMetrics fm) {
+    protected List<String> buildLines(FontMetrics fm) {
         int maxWidth = rect.width - 10;
         String[] words = label.split(" ");
         List<String> lines = new ArrayList<>();

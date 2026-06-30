@@ -1,6 +1,5 @@
 import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
 import java.io.File;
 
 public class OptionsMenu {
@@ -8,12 +7,22 @@ public class OptionsMenu {
     private final SoundManager soundManager;
     private GameState returnTo;
 
-    private static final int SLIDER_W = 250;
+    private static final int SLIDER_W = 320;
     private static final int SLIDER_H = 10;
+    private static final int BTN_SIZE = 36;
+    private static final int BTN_GAP = 10;
 
-    private boolean draggingMusic = false;
-    private boolean draggingSFX = false;
+    private int lastClickedSlider = 0;
 
+    private float previousMusicVolume;
+    private float previousSfxVolume;
+    private boolean musicMuted = false;
+    private boolean sfxMuted = false;
+
+    private final MenuSlider musicSlider;
+    private final MenuSlider sfxSlider;
+    private final IconButton toggleMuteBGM;
+    private final IconButton toggleMuteSFX;
     private final MenuButton backBtn;
 
     private Font pixelFont;
@@ -22,7 +31,15 @@ public class OptionsMenu {
 
     public OptionsMenu(SoundManager soundManager) {
         this.soundManager = soundManager;
+        this.previousMusicVolume = soundManager.getMusicVolume();
+        this.previousSfxVolume = soundManager.getSfxVolume();
+
+        musicSlider = new MenuSlider(0, 0, SLIDER_W, SLIDER_H, soundManager.getMusicVolume());
+        sfxSlider = new MenuSlider(0, 0, SLIDER_W, SLIDER_H, soundManager.getSfxVolume());
+        toggleMuteBGM = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED);
+        toggleMuteSFX = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED);
         backBtn = new MenuButton("VOLTAR", 0, 0, 160, 46);
+
         try {
             Font base = Font.createFont(Font.TRUETYPE_FONT, new File("font/PressStart2P-Regular.ttf"));
             pixelFont = base.deriveFont(Font.PLAIN, 24f);
@@ -40,52 +57,114 @@ public class OptionsMenu {
         this.returnTo = state;
     }
 
-    private void repositionButtons(int width, int height) {
+    private void repositionElements(int width, int height) {
+        int sliderX = (width - SLIDER_W) / 2;
+
+        musicSlider.setPosition(sliderX, height / 2 - 10);
+        sfxSlider.setPosition(sliderX, height / 2 + 80);
+
+        toggleMuteBGM.setPosition(
+                musicSlider.getRightX() + BTN_GAP,
+                musicSlider.getCenterY() - BTN_SIZE / 2);
+        toggleMuteSFX.setPosition(
+                sfxSlider.getRightX() + BTN_GAP,
+                sfxSlider.getCenterY() - BTN_SIZE / 2);
+
         backBtn.setPosition((width - 160) / 2, height * 3 / 4);
     }
 
     public GameState update(InputManager input, int width, int height) {
-        repositionButtons(width, height);
+        repositionElements(width, height);
 
-        int mx = input.getMouseX();
-        int my = input.getMouseY();
-        boolean clicking = input.isMouseButtonPressed(MouseEvent.BUTTON1);
-
-        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE)) {
+        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE))
             return returnTo;
-        }
 
-        Rectangle musicSlider = getMusicSliderRect(width, height);
-        Rectangle sfxSlider = getSFXSliderRect(width, height);
-
-        if (input.isMouseButtonJustPressed(MouseEvent.BUTTON1)) {
-            if (musicSlider.contains(mx, my)) {
+        int musicState = musicSlider.update(input);
+        if (musicState == MenuSlider.DRAGGING || musicState == MenuSlider.CLICKED) {
+            if (musicState == MenuSlider.CLICKED)
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
-                draggingMusic = true;
-            }
-            if (sfxSlider.contains(mx, my)) {
+            soundManager.setMusicVolume(musicSlider.getValue());
+        }
+
+        if (musicSlider.getValue() <= 0f && !musicMuted) {
+            musicMuted = true;
+            toggleMuteBGM.setIcon(IconIndex.MUTED);
+        } else if (musicSlider.getValue() > 0f && musicMuted) {
+            musicMuted = false;
+            toggleMuteBGM.setIcon(IconIndex.UNMUTED);
+        }
+
+        int sfxState = sfxSlider.update(input);
+        if (sfxState == MenuSlider.DRAGGING || sfxState == MenuSlider.CLICKED) {
+            if (sfxState == MenuSlider.CLICKED)
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
-                draggingSFX = true;
+            soundManager.setSfxVolume(sfxSlider.getValue());
+        }
+        if (sfxSlider.getValue() <= 0f && !sfxMuted) {
+            sfxMuted = true;
+            toggleMuteSFX.setIcon(IconIndex.MUTED);
+        } else if (sfxSlider.getValue() > 0f && sfxMuted) {
+            sfxMuted = false;
+            toggleMuteSFX.setIcon(IconIndex.UNMUTED);
+        }
+
+        if (lastClickedSlider == 0) {
+            if (input.isKeyJustPressed(KeyEvent.VK_LEFT)) {
+                float v = Math.clamp(soundManager.getMusicVolume() - 0.05f, 0f, 1f);
+                soundManager.setMusicVolume(v);
+                musicSlider.setValue(v);
+            }
+            if (input.isKeyJustPressed(KeyEvent.VK_RIGHT)) {
+                float v = Math.clamp(soundManager.getMusicVolume() + 0.05f, 0f, 1f);
+                soundManager.setMusicVolume(v);
+                musicSlider.setValue(v);
+            }
+        } else {
+            if (input.isKeyJustPressed(KeyEvent.VK_LEFT)) {
+                float v = Math.clamp(soundManager.getSfxVolume() - 0.05f, 0f, 1f);
+                soundManager.setSfxVolume(v);
+                sfxSlider.setValue(v);
+            }
+            if (input.isKeyJustPressed(KeyEvent.VK_RIGHT)) {
+                float v = Math.clamp(soundManager.getSfxVolume() + 0.05f, 0f, 1f);
+                soundManager.setSfxVolume(v);
+                sfxSlider.setValue(v);
             }
         }
-        if (!clicking) {
-            draggingMusic = false;
-            draggingSFX = false;
+
+        if (toggleMuteBGM.update(input) == IconButton.CLICKED) {
+            if (!musicMuted) {
+                previousMusicVolume = soundManager.getMusicVolume();
+                soundManager.setMusicVolume(0f);
+                musicSlider.setValue(0f);
+                toggleMuteBGM.setIcon(IconIndex.MUTED);
+                musicMuted = true;
+            } else {
+                float restore = previousMusicVolume;
+                soundManager.setMusicVolume(restore);
+                musicSlider.setValue(restore);
+                toggleMuteBGM.setIcon(IconIndex.UNMUTED);
+                musicMuted = false;
+            }
+            soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
         }
 
-        if (draggingMusic) {
-            float v = (float) (mx - musicSlider.x) / musicSlider.width;
-            soundManager.setMusicVolume(Math.clamp(v, 0f, 1f));
+        if (toggleMuteSFX.update(input) == IconButton.CLICKED) {
+            if (!sfxMuted) {
+                previousSfxVolume = soundManager.getSfxVolume();
+                soundManager.setSfxVolume(0f);
+                sfxSlider.setValue(0f);
+                toggleMuteSFX.setIcon(IconIndex.MUTED);
+                sfxMuted = true;
+            } else {
+                float restore = previousSfxVolume;
+                soundManager.setSfxVolume(restore);
+                sfxSlider.setValue(restore);
+                toggleMuteSFX.setIcon(IconIndex.UNMUTED);
+                sfxMuted = false;
+            }
+            soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
         }
-        if (draggingSFX) {
-            float v = (float) (mx - sfxSlider.x) / sfxSlider.width;
-            soundManager.setSfxVolume(Math.clamp(v, 0f, 1f));
-        }
-
-        if (input.isKeyJustPressed(KeyEvent.VK_LEFT))
-            soundManager.setMusicVolume(Math.clamp(soundManager.getMusicVolume() - 0.05f, 0f, 1f));
-        if (input.isKeyJustPressed(KeyEvent.VK_RIGHT))
-            soundManager.setMusicVolume(Math.clamp(soundManager.getMusicVolume() + 0.05f, 0f, 1f));
 
         if (backBtn.update(input) == MenuButton.CLICKED) {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
@@ -102,6 +181,7 @@ public class OptionsMenu {
         g2.setColor(new Color(10, 10, 10));
         g2.fillRect(0, 0, width, height);
 
+        // title
         g2.setFont(pixelFont);
         String title = "OPÇÕES";
         int tw = g2.getFontMetrics().stringWidth(title);
@@ -110,49 +190,37 @@ public class OptionsMenu {
         g2.setColor(Color.WHITE);
         g2.drawString(title, (width - tw) / 2, height / 4);
 
-        drawSlider(g2, "VOLUME DA MÚSICA", soundManager.getMusicVolume(),
-                getMusicSliderRect(width, height), width, height / 2 - 30);
+        // music label + slider
+        drawLabel(g2, "VOLUME DA MÚSICA", musicSlider.getRect(), width, height / 2 - 30);
+        drawPct(g2, soundManager.getMusicVolume(), musicSlider.getRect());
+        musicSlider.draw(g2);
 
-        drawSlider(g2, "VOLUME DOS EFEITOS SONOROS", soundManager.getSfxVolume(),
-                getSFXSliderRect(width, height), width, height / 2 + 60);
+        // sfx label + slider
+        drawLabel(g2, "VOLUME DOS EFEITOS", sfxSlider.getRect(), width, height / 2 + 60);
+        drawPct(g2, soundManager.getSfxVolume(), sfxSlider.getRect());
+        sfxSlider.draw(g2);
 
+        toggleMuteBGM.draw(g2);
+        toggleMuteSFX.draw(g2);
         backBtn.draw(g2);
 
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT);
     }
 
-    private void drawSlider(Graphics2D g2, String label, float value, Rectangle r, int width, int labelY) {
+    private void drawLabel(Graphics2D g2, String label, Rectangle sliderRect, int width, int labelY) {
         g2.setFont(pixelFontSmall);
         g2.setColor(Color.WHITE);
         FontMetrics fm = g2.getFontMetrics();
         g2.drawString(label, (width - fm.stringWidth(label)) / 2, labelY);
+    }
 
-        g2.setColor(new Color(60, 60, 60));
-        g2.fillRect(r.x, r.y, r.width, r.height);
-
-        g2.setColor(Color.WHITE);
-        g2.fillRect(r.x, r.y, (int) (r.width * value), r.height);
-
-        int hx = r.x + (int) (r.width * value) - 5;
-        g2.setColor(Color.WHITE);
-        g2.fillRect(hx, r.y - 6, 10, r.height + 12);
-
-        g2.setColor(new Color(150, 150, 150));
-        g2.setStroke(new BasicStroke(1));
-        g2.drawRect(hx, r.y - 6, 10, r.height + 12);
-
+    private void drawPct(Graphics2D g2, float value, Rectangle sliderRect) {
         g2.setFont(pixelFontTiny);
-        String pct = (int) (value * 100) + "%";
         g2.setColor(new Color(200, 200, 200));
-        g2.drawString(pct, r.x + r.width + 14, r.y + r.height);
-    }
-
-    private Rectangle getMusicSliderRect(int width, int height) {
-        return new Rectangle((width - SLIDER_W) / 2, height / 2 - 10, SLIDER_W, SLIDER_H);
-    }
-
-    private Rectangle getSFXSliderRect(int width, int height) {
-        return new Rectangle((width - SLIDER_W) / 2, height / 2 + 80, SLIDER_W, SLIDER_H);
+        String pct = (int) (value * 100) + "%";
+        g2.drawString(pct,
+                sliderRect.x + sliderRect.width + BTN_SIZE + BTN_GAP * 2 + 4,
+                sliderRect.y + sliderRect.height);
     }
 }
