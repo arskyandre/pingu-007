@@ -32,7 +32,7 @@ public class GameOverScreen {
         int x = (width - BTN_W) / 2;
         int y = height / 2 - 20;
         respawnBtn.setPosition(x, y);
-        mainMenuBtn.setPosition(x, y + (BTN_H + BTN_GAP) * 2);
+        mainMenuBtn.setPosition(x, y + (BTN_H + BTN_GAP));
     }
 
     public GameState update(InputManager input, int width, int height) {
@@ -59,7 +59,7 @@ public class GameOverScreen {
         g2.fillRect(0, 0, width, height);
 
         // panel
-        int panelW = 320, panelH = 360;
+        int panelW = 320, panelH = 296;
         int px = (width - panelW) / 2;
         int py = (height - panelH) / 2;
         g2.setColor(new Color(10, 10, 10, 220));
