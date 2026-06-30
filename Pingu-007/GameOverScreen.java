@@ -70,13 +70,11 @@ public class GameOverScreen {
 
         // title
         g2.setFont(pixelFont);
-        g2.setColor(Color.RED);
         String title = "GAME OVER";
-        // g2.setColor(Color.WHITE);
         int tw = g2.getFontMetrics().stringWidth(title);
         g2.setColor(new Color(0, 0, 0, 180));
         g2.drawString(title, (width - tw) / 2 + 2, py + 55 + 2);
-        g2.setColor(Color.WHITE);
+        g2.setColor(Color.RED);
         g2.drawString(title, (width - tw) / 2, py + 55);
 
         // buttons
