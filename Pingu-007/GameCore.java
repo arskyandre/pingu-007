@@ -101,6 +101,7 @@ public class GameCore extends Canvas implements Runnable {
             case GAME_OVER -> {
                 GameState next = gameOverScreen.update(input, getWidth(), getHeight());
                 if (next == GameState.MAIN_MENU) {
+                    carregarCheckpoint();
                     soundManager.playBGM(SoundManager.BGM.MAIN_MENU);
                 }
                 if (next == GameState.PLAYING) {
