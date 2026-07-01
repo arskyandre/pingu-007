@@ -101,7 +101,7 @@ public class GameCore extends Canvas implements Runnable {
             case GAME_OVER -> {
                 GameState next = gameOverScreen.update(input, getWidth(), getHeight());
                 if (next == GameState.MAIN_MENU) {
-                    carregarCheckpoint();
+                    resetarJogoCompleto();
                     soundManager.playBGM(SoundManager.BGM.MAIN_MENU);
                 }
                 if (next == GameState.PLAYING) {
@@ -144,10 +144,10 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyPressed(KeyEvent.VK_T)) {
             if (!dialogueManager.isAtivo()) {
                 soundManager.playBGM(SoundManager.BGM.OS_CRIA);
-                dialogueManager.iniciarDialogo(new String[] {
-                        "PINGU: Entrando na base de operações.",
-                        "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
-                        "PINGU: Eles não vão nem ver de onde veio."
+                dialogueManager.iniciarDialogo(new String[]{
+                    "PINGU: Entrando na base de operações.",
+                    "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
+                    "PINGU: Eles não vão nem ver de onde veio."
                 });
             }
         }
@@ -155,13 +155,13 @@ public class GameCore extends Canvas implements Runnable {
         if (dialogueManager.isAtivo()) {
             dialogueManager.atualizar(input);
         } else {
-            // 1. Intercepta a morte e carrega o save
+            // Intercepta a morte e carrega o save
             if (player.isDead()) {
                 gameState = GameState.GAME_OVER;
                 return;
             }
 
-            // 2. Cria o save se pegou chave nova OU passou em um trigger de checkpoint
+            // Cria o save se pegou chave nova OU passou em um trigger de checkpoint
             if (player.getTotalChavesColetadas() > chavesColetadasCheckpoint || player.isCheckpointSolicitado()) {
                 salvarCheckpoint();
                 chavesColetadasCheckpoint = player.getTotalChavesColetadas();
@@ -311,7 +311,16 @@ public class GameCore extends Canvas implements Runnable {
         System.out.println(">>> CARREGANDO CHECKPOINT... <<<");
         player.respawn(checkX, checkY, checkVida, checkMunicao, checkPente, checkChaves);
         bulletmanager.limparTudo();
+        itemManager.limparConsumiveis();
         arenaManager.restaurarArenas(checkArenas, player);
+    }
+
+    public void resetarJogoCompleto() {
+        hasCheckpoint = false;
+        checkArenas.clear();
+        chavesColetadasCheckpoint = 0;
+        player.resetarProgresso();
+        levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
     }
 
     public void render(BufferStrategy bs, double delta) {

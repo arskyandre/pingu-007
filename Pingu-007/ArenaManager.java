@@ -297,6 +297,7 @@ public class ArenaManager {
                 player.solicitarCheckpoint();
             }
             case 67 -> {
+                // trigger do level 2
                 setWallState(67, true, player);
                 arena.concluida = true;
                 //player.solicitarCheckpoint();
@@ -409,6 +410,13 @@ public class ArenaManager {
                 arena.ativa = false;
                 arena.hordaAtual = 0;
                 setWallState(arena.id, false, player);
+
+                for (PressureButton btn : buttons) {
+                    if (btn.getData().id_arena == arena.id) {
+                        btn.setPlayerPisando(false);
+                        btn.setPressed(context, btn.getData().ativa);
+                    }
+                }
             }
         }
     }

@@ -357,7 +357,7 @@ public class Player extends Entity {
         if (!isMoving() && !emDash) {
             animIndex = 0;
         }
-        if(timerDano > 0){
+        if (timerDano > 0) {
             animIndex = 0;
             if (direction == Direction.DOWN) {
                 animSp = 21;
@@ -412,6 +412,16 @@ public class Player extends Entity {
         this.isCaindo = false;
         this.danoRecebidoFlag = false;
         this.iFramesTimer = 60;
+    }
+
+    public void resetarProgresso() {
+        this.chavesColetadasTotal = 0;
+        this.chaves = 0;
+        this.municao = 45;
+        this.pente = 15;
+        this.vida = this.vidaMaxima;
+        this.isDead = false;
+        limparSolicitacaoCheckpoint();
     }
 
     public int getChaves() {
