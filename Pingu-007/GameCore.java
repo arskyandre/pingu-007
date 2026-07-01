@@ -183,6 +183,7 @@ public class GameCore extends Canvas implements Runnable {
 
             levelManager.update();
             camera.update(player, input, getWidth(), getHeight());
+            fishingManager.syncToCamera(camera, getWidth(), getHeight());
             // FUNÇÕES DE DEBUG
             if (debugSpawnCooldown > 0) {
                 debugSpawnCooldown--;

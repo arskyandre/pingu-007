@@ -35,12 +35,11 @@ public class FishingManager {
     private int biteTimer = 0;
     private int feedbackTimer = 0;
 
-    // ── Tunables (free to calibrate later) ──────────────────────────────
     private static final int WAIT_MIN = 180;
     private static final int WAIT_MAX = 600;
-    private static final int BITE_WINDOW = 45; // ~0.5s to react
-    private static final int FEEDBACK_DURATION = 60; // ~0.75s of on-screen text
-    private static final double RANGE = GameCore.tiles_size * 1.8; // max distance from the hole
+    private static final int BITE_WINDOW = 45;
+    private static final int FEEDBACK_DURATION = 60;
+    private static final double RANGE = GameCore.tiles_size * 2;
     private static final int BUTTON_SIZE = 40;
 
     public FishingManager(Player player) {
@@ -52,9 +51,6 @@ public class FishingManager {
         return state != State.IDLE;
     }
 
-    /**
-     * Call once per frame during normal gameplay (outside of dialogue).
-     */
     public void update(InputManager input, CameraManager camera, int[][] lvlData, int screenWidth,
             int screenHeight) {
         if (state == State.IDLE) {
@@ -85,9 +81,6 @@ public class FishingManager {
 
         targetValid = false;
 
-        // Also accept hovering the tile directly above the hole — the hover
-        // hitbox was too thin vertically since the fishing button itself
-        // renders above the hole tile, right where the cursor tends to sit.
         int holeRow = resolveHoleRow(row, col, lvlData);
 
         if (holeRow != -1) {
@@ -116,11 +109,6 @@ public class FishingManager {
         }
     }
 
-    /**
-     * Returns the row of the actual hole tile if the mouse is hovering either
-     * the hole itself or the tile directly above it, or -1 if neither is a
-     * hole.
-     */
     private int resolveHoleRow(int mouseRow, int col, int[][] lvlData) {
         if (isHoleAt(mouseRow, col, lvlData)) {
             return mouseRow;
@@ -149,6 +137,16 @@ public class FishingManager {
         by = Math.max(4, Math.min(by, screenHeight - BUTTON_SIZE - 4));
 
         fishingButton.setPosition(bx, by);
+    }
+
+    public void syncToCamera(CameraManager camera, int screenWidth, int screenHeight) {
+        if (state == State.IDLE) {
+            if (targetValid) {
+                repositionButton(camera, screenWidth, screenHeight);
+            }
+            return;
+        }
+        repositionButton(camera, screenWidth, screenHeight);
     }
 
     private void startFishing() {
@@ -207,6 +205,7 @@ public class FishingManager {
     /** placeholder */
     private void onFishCaught() {
         System.out.println("Fish caught! (reward not implemented yet)");
+        player.curar(15);
     }
 
     public void render(Graphics2D g2, CameraManager camera, int screenWidth, int screenHeight) {
