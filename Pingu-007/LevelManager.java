@@ -14,7 +14,7 @@ public class LevelManager {
     public LevelManager(GameCore Game) {
         this.Game = Game;
         importOutsideSprites();
-        carregarMapData(LoadSave.LEVEL_2_DATA);
+        carregarMapData(LoadSave.LEVEL_1_DATA);
     }
 
     public void inicializarPrimeiroNivel() {
