@@ -27,8 +27,8 @@ public class BasicEnemy extends Enemy {
         this.hitbox = new Collider(4, 4, width - 8, height - 8);
 
         BufferedImage img = LoadSave.GetSpriteAtlas("lobo_sprite_sheet.png");
-        Sprites = new BufferedImage[6];
-        for (int j = 0; j < 6; j++) {
+        Sprites = new BufferedImage[7];
+        for (int j = 0; j < 7; j++) {
             Sprites[j] = img.getSubimage(j * 16, 0, 16, 16);
         }
     }
@@ -54,10 +54,12 @@ public class BasicEnemy extends Enemy {
             }
         }
 
-        if (velX > 0) {
-            dirS = 1;
-        } else if (velX < 0) {
-            dirS = 0;
+        if(timerDano < 1){
+            if (velX > 0) {
+                dirS = 1;
+            } else if (velX < 0) {
+                dirS = 0;
+            }
         }
         if (isMoving()) {
             updateFootsteps(soundManager, lvlData);
@@ -90,6 +92,8 @@ public class BasicEnemy extends Enemy {
         }
         if (!isMoving())
             animIndex = 0;
+        if(timerDano > 0)
+            animIndex = 6;
         g2.drawImage(Sprites[animIndex], xx, (int) y, inv * (int) width, (int) height, null);
     }
 

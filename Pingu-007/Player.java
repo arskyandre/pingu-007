@@ -74,13 +74,17 @@ public class Player extends Entity {
 
         BufferedImage img = LoadSave.GetSpriteAtlas("pingu_sprite_sheet.png");
 
-        Sprites = new BufferedImage[21];
+        Sprites = new BufferedImage[24];
         for (int j = 0; j < 3; j++) {
             for (int i = 0; i < 7; i++) {
                 int index = j * 7 + i;
                 Sprites[index] = img.getSubimage(i * 16, j * 16, 16, 16);
             }
         }
+        Sprites[21] = img.getSubimage(0, 48, 16, 16);
+        Sprites[22] = img.getSubimage(16, 48, 16, 16);
+        Sprites[23] = img.getSubimage(32, 48, 16, 16);
+
     }
 
     private int muniCOoldownTimer = 0;
@@ -142,7 +146,7 @@ public class Player extends Entity {
         if (iFramesTimer > 0) {
             iFramesTimer--;
         }
-
+        dmgCheck();
         double controleAtual = emDash ? controleDash : 1.0;
 
         boolean andaX = false, andaY = false;
@@ -353,6 +357,16 @@ public class Player extends Entity {
         if (!isMoving() && !emDash) {
             animIndex = 0;
         }
+        if (timerDano > 0) {
+            animIndex = 0;
+            if (direction == Direction.DOWN) {
+                animSp = 21;
+            } else if (direction == Direction.UP) {
+                animSp = 23;
+            } else {
+                animSp = 22;
+            }
+        }
         g2.drawImage(Sprites[animSp + animIndex], xx, (int) y, 48 * inv, 48, null);
     }
 
@@ -398,6 +412,16 @@ public class Player extends Entity {
         this.isCaindo = false;
         this.danoRecebidoFlag = false;
         this.iFramesTimer = 60;
+    }
+
+    public void resetarProgresso() {
+        this.chavesColetadasTotal = 0;
+        this.chaves = 0;
+        this.municao = 45;
+        this.pente = 15;
+        this.vida = this.vidaMaxima;
+        this.isDead = false;
+        limparSolicitacaoCheckpoint();
     }
 
     public int getChaves() {
