@@ -5,9 +5,11 @@ import java.awt.image.BufferedImage;
 public class IconButton extends MenuButton {
 
     private IconIndex iconIndex;
+    private boolean dimBackground;
 
-    public IconButton(int x, int y, int size, IconIndex ind) {
+    public IconButton(int x, int y, int size, IconIndex ind, boolean dim_background) {
         super("", x, y, size, size);
+        dimBackground = dim_background;
         this.iconIndex = ind;
     }
 
@@ -23,10 +25,19 @@ public class IconButton extends MenuButton {
     @Override
     public void draw(Graphics2D g2) {
         if (hovered) {
-            g2.setColor(new Color(255, 255, 255, 40));
-            g2.fillRect(rect.x, rect.y, rect.width, rect.height);
+            if (dimBackground) {
+                g2.setColor(new Color(90, 90, 90, 128));
+                g2.fillRect(rect.x, rect.y, rect.width, rect.height);
+            } else {
+                g2.setColor(new Color(255, 255, 255, 40));
+                g2.fillRect(rect.x, rect.y, rect.width, rect.height);
+            }
             g2.setColor(Color.WHITE);
         } else {
+            if (dimBackground) {
+                g2.setColor(new Color(0, 0, 0, 150));
+                g2.fillRect(rect.x, rect.y, rect.width, rect.height);
+            }
             g2.setColor(new Color(200, 200, 200, 120));
         }
         g2.setStroke(new BasicStroke(2));

@@ -35,7 +35,7 @@ public class GameCore extends Canvas implements Runnable {
     private ArenaManager arenaManager;
     private DialogueManager dialogueManager;
     private SoundManager soundManager;
-
+    private FishingManager fishingManager;
     private int debugSpawnCooldown = 0;
     private int mapLoadCooldown = 0;
 
@@ -59,7 +59,7 @@ public class GameCore extends Canvas implements Runnable {
         itemManager = new ItemManager();
         input = new InputManager();
         player = new Player(380, 500, tiles_size - 1, tiles_size - 1, bulletmanager, soundManager);
-
+        fishingManager = new FishingManager(player);
         renderer = new Renderer();
         renderer.modoDebug = false;
         levelManager = new LevelManager(this);
@@ -143,7 +143,6 @@ public class GameCore extends Canvas implements Runnable {
 
         if (input.isKeyPressed(KeyEvent.VK_T)) {
             if (!dialogueManager.isAtivo()) {
-                soundManager.playBGM(SoundManager.BGM.OS_CRIA);
                 dialogueManager.iniciarDialogo(new String[] {
                         "PINGU: Entrando na base de operações.",
                         "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
@@ -168,6 +167,7 @@ public class GameCore extends Canvas implements Runnable {
                 player.limparSolicitacaoCheckpoint();
             }
 
+            fishingManager.update(input, camera, levelManager.getCurLevelData(), getWidth(), getHeight());
             player.testemunicao(input, getWidth(), getHeight(), itemManager, camera);
 
             player.update(input, getWidth(), getHeight(), camera);
@@ -183,7 +183,6 @@ public class GameCore extends Canvas implements Runnable {
 
             levelManager.update();
             camera.update(player, input, getWidth(), getHeight());
-
             // FUNÇÕES DE DEBUG
             if (debugSpawnCooldown > 0) {
                 debugSpawnCooldown--;
@@ -326,26 +325,26 @@ public class GameCore extends Canvas implements Runnable {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, delta);
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, delta);
                     case GAME_OVER -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, delta);
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, delta);
                         gameOverScreen.render(g2, getWidth(), getHeight());
                     }
                     case PAUSED -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, delta);
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, delta);
                         pauseMenu.render(g2, getWidth(), getHeight());
                     }
                     case CUTSCENE -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, delta);
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, delta);
                     }
                     case OPTIONS ->
                         optionsMenu.render(g2, getWidth(), getHeight());

@@ -13,6 +13,8 @@ public class Player extends Entity {
     private double dirX = 0;
     private double dirY = 0;
 
+    private boolean blockInputs = false;
+
     private boolean podeDash = true;
     private boolean emDash = false;
     private final int dashCooldown = 60;
@@ -35,11 +37,14 @@ public class Player extends Entity {
     private final int shootCooldown = 20;
     private int reloadCooldownTimer = 0;
     private final int reloadCooldown = 30;
+    private final int reloadOnZeroCooldown = 35;
+    private int reloadOnZeroCooldownTimer = 0;
     private boolean danoRecebidoFlag = false;
     private boolean reloading = false;
 
     private int footstepTimer = 0;
     private final int footstepInterval = 22;
+    private boolean penteZeroTimerActive = false;
 
     private int iFramesTimer = 0;
     private final int iFramesDanoDuration = 60;
@@ -149,59 +154,98 @@ public class Player extends Entity {
         dmgCheck();
         double controleAtual = emDash ? controleDash : 1.0;
 
-        boolean andaX = false, andaY = false;
-        if (input.isKeyPressed(KeyEvent.VK_D)) {
-            velX += aceleracao * controleAtual;
-            dirX = 1;
-            andaX = true;
-        }
-        if (input.isKeyPressed(KeyEvent.VK_A)) {
-            velX -= aceleracao * controleAtual;
-            dirX = -1;
-            andaX = true;
-        }
-        if (!andaX || (input.isKeyPressed(KeyEvent.VK_D) && input.isKeyPressed(KeyEvent.VK_A))) {
-            dirX = 0;
-        }
-
-        if (input.isKeyPressed(KeyEvent.VK_S)) {
-            velY += aceleracao * controleAtual;
-            dirY = 1;
-            andaY = true;
-        }
-        if (input.isKeyPressed(KeyEvent.VK_W)) {
-            velY -= aceleracao * controleAtual;
-            dirY = -1;
-            andaY = true;
-        }
-        if (!andaY || (input.isKeyPressed(KeyEvent.VK_W) && input.isKeyPressed(KeyEvent.VK_S))) {
-            dirY = 0;
-        }
-
         if (shootCooldownTimer > 0) {
             shootCooldownTimer--;
         }
 
-        double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-        double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-
-        if (input.isMouseButtonPressed(MouseEvent.BUTTON1)) {
-            if (shootCooldownTimer == 0 && pente > 0) {
-                double centerX = x + largura / 2.0;
-                double centerY = y + altura / 2.0;
-
-                bulletmanager.shoot(centerX, centerY, mouseXWorld - centerX, mouseYWorld - centerY, BulletOwner.PLAYER);
-                soundManager.playGunshot();
-                shootCooldownTimer = shootCooldown;
-                pente--;
+        if (reloadOnZeroCooldownTimer > 0) {
+            reloadOnZeroCooldownTimer--;
+            if (reloadOnZeroCooldownTimer == 0 && penteZeroTimerActive && !reloading && municao > 0) {
+                reloading = true;
+                reloadCooldownTimer = reloadCooldown;
+                penteZeroTimerActive = false;
             }
         }
 
-        if (input.isKeyPressed(KeyEvent.VK_R) && !reloading && pente < maxpente && municao > 0) {
-            reloading = true;
-            reloadCooldownTimer = reloadCooldown;
-        }
+        if (!blockInputs) {
+            boolean andaX = false, andaY = false;
+            if (input.isKeyPressed(KeyEvent.VK_D)) {
+                velX += aceleracao * controleAtual;
+                dirX = 1;
+                andaX = true;
+            }
+            if (input.isKeyPressed(KeyEvent.VK_A)) {
+                velX -= aceleracao * controleAtual;
+                dirX = -1;
+                andaX = true;
+            }
+            if (!andaX || (input.isKeyPressed(KeyEvent.VK_D) && input.isKeyPressed(KeyEvent.VK_A))) {
+                dirX = 0;
+            }
 
+            if (input.isKeyPressed(KeyEvent.VK_S)) {
+                velY += aceleracao * controleAtual;
+                dirY = 1;
+                andaY = true;
+            }
+            if (input.isKeyPressed(KeyEvent.VK_W)) {
+                velY -= aceleracao * controleAtual;
+                dirY = -1;
+                andaY = true;
+            }
+            if (!andaY || (input.isKeyPressed(KeyEvent.VK_W) && input.isKeyPressed(KeyEvent.VK_S))) {
+                dirY = 0;
+            }
+
+            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+
+            if (input.isMouseButtonPressed(MouseEvent.BUTTON1)) {
+                if (shootCooldownTimer == 0 && pente > 0) {
+                    double centerX = x + largura / 2.0;
+                    double centerY = y + altura / 2.0;
+
+                    bulletmanager.shoot(centerX, centerY, mouseXWorld - centerX, mouseYWorld - centerY,
+                            BulletOwner.PLAYER);
+                    soundManager.playGunshot();
+                    shootCooldownTimer = shootCooldown;
+                    pente--;
+                }
+            }
+
+            if (input.isKeyPressed(KeyEvent.VK_R) && !reloading && pente < maxpente && municao > 0) {
+                reloading = true;
+                reloadCooldownTimer = reloadCooldown;
+                penteZeroTimerActive = false;
+            }
+            if (pente == 0 && !reloading && municao > 0 && !penteZeroTimerActive) {
+                penteZeroTimerActive = true;
+                reloadOnZeroCooldownTimer = reloadOnZeroCooldown;
+            }
+
+            if (input.isKeyPressed(KeyEvent.VK_SPACE) && podeDash && !emDash) {
+                if (dirX != 0 || dirY != 0) {
+                    double tamanho = Math.sqrt(dirX * dirX + dirY * dirY);
+                    dirX /= tamanho;
+                    dirY /= tamanho;
+
+                    velX += dirX * dashForca;
+                    velY += dirY * dashForca;
+
+                    dashDirX = dirX;
+                    dashDirY = dirY;
+
+                    podeDash = false;
+                    emDash = true;
+                    this.isAirborne = true;
+
+                    dashCooldownTimer = dashCooldown;
+                    dashDuracaoTimer = dashDuracao;
+                }
+            }
+
+            updatePlayerDirection(mouseXWorld, mouseYWorld);
+        }
         if (reloading) {
             reloadCooldownTimer--;
             if (reloadCooldownTimer <= 0) {
@@ -214,27 +258,7 @@ public class Player extends Entity {
                     municao = 0;
                 }
                 reloading = false;
-            }
-        }
-
-        if (input.isKeyPressed(KeyEvent.VK_SPACE) && podeDash && !emDash) {
-            if (dirX != 0 || dirY != 0) {
-                double tamanho = Math.sqrt(dirX * dirX + dirY * dirY);
-                dirX /= tamanho;
-                dirY /= tamanho;
-
-                velX += dirX * dashForca;
-                velY += dirY * dashForca;
-
-                dashDirX = dirX;
-                dashDirY = dirY;
-
-                podeDash = false;
-                emDash = true;
-                this.isAirborne = true;
-
-                dashCooldownTimer = dashCooldown;
-                dashDuracaoTimer = dashDuracao;
+                penteZeroTimerActive = false;
             }
         }
 
@@ -271,7 +295,6 @@ public class Player extends Entity {
         } else {
             footstepTimer = 0;
         }
-        updatePlayerDirection(mouseXWorld, mouseYWorld);
     }
 
     private void updatePlayerDirection(double mouseX, double mouseY) {
@@ -357,7 +380,7 @@ public class Player extends Entity {
         if (!isMoving() && !emDash) {
             animIndex = 0;
         }
-        if(timerDano > 0){
+        if (timerDano > 0) {
             animIndex = 0;
             if (direction == Direction.DOWN) {
                 animSp = 21;
@@ -469,6 +492,10 @@ public class Player extends Entity {
 
     public void setShootCooldownTimer(int value) {
         shootCooldownTimer = value;
+    }
+
+    public void setBlockInputs(boolean valor) {
+        this.blockInputs = valor;
     }
 
     public Boolean isMoving() {

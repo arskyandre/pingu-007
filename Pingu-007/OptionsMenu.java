@@ -36,8 +36,8 @@ public class OptionsMenu {
 
         musicSlider = new MenuSlider(0, 0, SLIDER_W, SLIDER_H, soundManager.getMusicVolume());
         sfxSlider = new MenuSlider(0, 0, SLIDER_W, SLIDER_H, soundManager.getSfxVolume());
-        toggleMuteBGM = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED);
-        toggleMuteSFX = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED);
+        toggleMuteBGM = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED, false);
+        toggleMuteSFX = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED, false);
         backBtn = new MenuButton("VOLTAR", 0, 0, 160, 46);
 
         try {
