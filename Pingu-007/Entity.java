@@ -26,6 +26,8 @@ public abstract class Entity {
     protected boolean isCaindo = false;
     protected int timerQueda = 0;
     protected int timerLedgeSnap = 0;
+    protected int timerDano = 0;
+    protected int tempoDano = 12;
 
     protected double ultimoXSeguro;
     protected double ultimoYSeguro;
@@ -46,6 +48,7 @@ public abstract class Entity {
             vida = 0;
             isDead = true;
         }
+        timerDano = tempoDano;
     }
 
     public boolean isDead() {
@@ -82,6 +85,11 @@ public abstract class Entity {
     }
 
     public void animate(Graphics2D g2, double delta) {
+    }
+    public void dmgCheck(){
+        if(timerDano > 0){
+            timerDano--;
+        }
     }
 
     protected void aplicarFisicaBasica() {

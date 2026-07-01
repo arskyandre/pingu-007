@@ -51,13 +51,16 @@ public class Bomber extends Enemy {
         this.hitbox = new Collider(4, 4, width - 8, height - 8);
 
         BufferedImage img = LoadSave.GetSpriteAtlas("nineeleven_sprite_sheet.png");
-        Sprites = new BufferedImage[21];
+        Sprites = new BufferedImage[23];
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 7; j++) {
                 int index = i * 7 + j;
                 Sprites[index] = img.getSubimage(j * 16, i * 16, 16, 16);
             }
         }
+        Sprites[21] = img.getSubimage(112, 0, 16, 16);
+        Sprites[22] = img.getSubimage(112, 16, 16, 16);
+
     }
 
     @Override
@@ -190,8 +193,12 @@ public class Bomber extends Enemy {
                 }
             }
             if (dirS == 0) {
+                if(timerDano > 0)
+                    animIndex = 15;
                 g2.drawImage(Sprites[animIndex + 7], (int) x, (int) y, (int) width, (int) height, null);
             } else {
+                if(timerDano > 0)
+                    animIndex = 21;
                 g2.drawImage(Sprites[animIndex], (int) x, (int) y, (int) width, (int) height, null);
             }
         } else if (estadoAtual == Status.ACIONADO) {

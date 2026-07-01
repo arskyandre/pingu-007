@@ -46,7 +46,7 @@ public class Dasher extends Enemy {
         this.cor = Color.CYAN;
 
         BufferedImage img = LoadSave.GetSpriteAtlas("narval_sprite_sheet.png");
-        Sprites = new BufferedImage[9];
+        Sprites = new BufferedImage[10];
         for (int j = 0; j < 2; j++) {
             for (int i = 0; i < 4; i++) {
                 int index = j * 4 + i;
@@ -54,6 +54,7 @@ public class Dasher extends Enemy {
             }
         }
         Sprites[8] = img.getSubimage(0, 32, 19, 16);
+        Sprites[9] = img.getSubimage(48,32,16,16);
     }
 
     @Override
@@ -178,10 +179,12 @@ public class Dasher extends Enemy {
         if (isMoving()) {
             updateFootsteps(soundManager, lvlData);
         }
-        if (velX > 0) {
-            dirS = 1;
-        } else if (velX < 0) {
-            dirS = 0;
+        if(timerDano < 1){
+            if (velX > 0) {
+                dirS = 1;
+            } else if (velX < 0) {
+                dirS = 0;
+            }
         }
     }
 
@@ -221,6 +224,8 @@ public class Dasher extends Enemy {
                     }
                 }
             }
+            if(timerDano > 0)
+                animIndex = 9;
             g2.drawImage(Sprites[animIndex], xx, (int) y, inv * (int) width, (int) height, null);
         }
     }

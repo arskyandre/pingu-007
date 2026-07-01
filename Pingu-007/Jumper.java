@@ -48,8 +48,8 @@ public class Jumper extends Enemy {
         this.timer = tempoPreparo;
 
         BufferedImage img = LoadSave.GetSpriteAtlas("boneve_sprite_sheet.png");
-        Sprites = new BufferedImage[14];
-        for (int i = 0; i < 2; i++) {
+        Sprites = new BufferedImage[21];
+        for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 7; j++) {
                 int index = i * 7 + j;
                 Sprites[index] = img.getSubimage(j * 16, i * 16, 16, 16);
@@ -306,6 +306,11 @@ public class Jumper extends Enemy {
                 }
             }
         }
+
+        if(timerDano > 0){
+            spIndex = spIndex + 7;
+        }
+
         g2.drawImage(Sprites[spIndex],
                 (int) x - (int) squash / 2,
                 (int) (y - alt) + (int) squash,

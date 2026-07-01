@@ -36,6 +36,7 @@ public class EnemyManager {
 
             if (!e1.isDead()) {
                 e1.update(player, links);
+                e1.dmgCheck();
             }
 
             if (e1.isDead()) {

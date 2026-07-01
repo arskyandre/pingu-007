@@ -222,6 +222,9 @@ public class Shooter extends Enemy {
         if(!isMoving()){
             animIndex = 0;
         }
+        if(timerDano > 0){
+            animIndex = 4;
+        }
         
         BufferedImage gun = HelpMethods.rotateImageByDegrees(arma[indexArma],anguloArma);
         int gap = gun.getWidth()*3 - 60, yy = (int) y;
