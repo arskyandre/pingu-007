@@ -312,7 +312,7 @@ public class GameCore extends Canvas implements Runnable {
         player.respawn(checkX, checkY, checkVida, checkMunicao, checkPente, checkChaves);
         bulletmanager.limparTudo();
         itemManager.limparConsumiveis();
-        arenaManager.restaurarArenas(checkArenas, player);
+        arenaManager.restaurarArenas(checkArenas, player, itemManager);
     }
 
     public void resetarJogoCompleto() {
