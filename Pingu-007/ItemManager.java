@@ -1,3 +1,4 @@
+
 import java.util.ArrayList;
 
 public class ItemManager {
@@ -56,6 +57,11 @@ public class ItemManager {
 
     public void limparTudo() {
         items.clear();
+    }
+
+    public void limparConsumiveis() {
+        items.removeIf(item -> item instanceof AmmoPackItem || item instanceof HealthPackItem);
+        System.out.println("Limpeza de consumíveis do chão concluída.");
     }
 
     public static double[] encontrarPosicaoSegura(double x, double y, double largura, double altura, int[][] lvlData) {

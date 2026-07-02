@@ -73,6 +73,7 @@ public class EnemyManager {
     }
 
     public Enemy adicionarE_RetornarInimigo(String tipo, double x, double y, int horda, int arena) {
+      System.out.println("-> ENGINE TENTOU CRIAR O INIMIGO: " + tipo + " nas coordenadas X: " + x + " Y: " + y);
         Enemy novo = null;
         switch (tipo.toLowerCase()) {
             case "lobo" ->
@@ -85,6 +86,19 @@ public class EnemyManager {
                 novo = new Dasher(x, y, 48, 48, lvlData, soundManager);
             case "bomber" ->
                 novo = new Bomber(x, y, 48, 48, lvlData, bulmgr, enemies, soundManager);
+            case "morsa" -> {
+              MorsaBoss boss = new MorsaBoss(x, y, lvlData, soundManager);
+
+              BossMao maoEsq = new BossMao(x - 80, y + 32, lvlData, soundManager, boss);
+              BossMao maoDir = new BossMao(x + (GameCore.tiles_size * 3) + 32, y +32, lvlData, soundManager, boss);
+
+              boss.vincularMaos(maoEsq, maoDir);
+
+              enemies.add(maoEsq);
+              enemies.add(maoDir);
+
+              novo = boss;
+            }
         }
         if (novo != null) {
             enemies.add(novo);

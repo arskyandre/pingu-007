@@ -437,6 +437,16 @@ public class Player extends Entity {
         this.iFramesTimer = 60;
     }
 
+    public void resetarProgresso() {
+        this.chavesColetadasTotal = 0;
+        this.chaves = 0;
+        this.municao = 45;
+        this.pente = 15;
+        this.vida = this.vidaMaxima;
+        this.isDead = false;
+        limparSolicitacaoCheckpoint();
+    }
+
     public int getChaves() {
         return chaves;
     }

@@ -9,7 +9,6 @@ public class ArenaManager {
     private final ArenaContext context;
 
     //public boolean flagArena16Ativada = false;
-    //public boolean puzzleBotoesConcluido = false;
     private boolean chave14_15_spawnada = false;
 
     public static class Arena {
@@ -46,7 +45,6 @@ public class ArenaManager {
         collisionBlocks.clear();
         allObjects.clear();
         //flagArena16Ativada = false;
-        //puzzleBotoesConcluido = false;
         chave14_15_spawnada = false;
 
         for (TiledObject obj : objetos) {
@@ -155,9 +153,9 @@ public class ArenaManager {
 
     private void atualizarBotoes(Player player) {
         PressureButton botaoLightsOutAcionado = null;
-
-        boolean todosNormaisAtivados = true;
         boolean temBotaoNormal = false;
+        boolean todosNormaisAtivados = true;
+        int idArenaNormal = -1;
 
         for (PressureButton button : buttons) {
             boolean pisavaAntes = button.isPlayerPisando();
@@ -169,21 +167,24 @@ public class ArenaManager {
                 }
             } else {
                 temBotaoNormal = true;
+                idArenaNormal = button.getData().id_arena;
                 if (!button.isPressed()) {
                     todosNormaisAtivados = false;
                 }
             }
         }
 
-        if (temBotaoNormal && todosNormaisAtivados) {
-            //if (temBotaoNormal && todosNormaisAtivados && !puzzleBotoesConcluido) {
-            System.out.println("=== PUZZLE DOS BOTÕES NORMAIS CONCLUÍDO! ===");
-            /*puzzleBotoesConcluido = true;
-            setWallState(idArena, false, player);
-            arena.concluida = true;
-            itemManager.spawn(new KeyItem(5029, 4200));*/
-        }
+        if (temBotaoNormal && idArenaNormal != -1) {
+            Arena arenaNormal = getOuCriarArena(idArenaNormal);
+            if (!arenaNormal.concluida && todosNormaisAtivados) {
+                System.out.println("=== PUZZLE DOS BOTÕES NORMAIS DA ARENA " + idArenaNormal + " CONCLUÍDO! ===");
+                arenaNormal.concluida = true;
 
+                // Descomente e ajuste os IDs quando for usar o puzzle normal
+                // setWallState(idArenaNormal, false, player);
+                // itemManager.spawn(new KeyItem(X, Y));
+            }
+        }
         if (botaoLightsOutAcionado != null) {
             alternarLightsOut(botaoLightsOutAcionado, player);
         }
@@ -197,11 +198,7 @@ public class ArenaManager {
         double origemY = origem.getData().y;
 
         for (PressureButton vizinho : buttons) {
-            if (vizinho == origem || !vizinho.isToggleMode()) {
-                continue;
-            }
-
-            if (vizinho.getData().id_arena != origem.getData().id_arena) {
+            if (vizinho == origem || !vizinho.isToggleMode() || vizinho.getData().id_arena != origem.getData().id_arena) {
                 continue;
             }
 
@@ -236,8 +233,8 @@ public class ArenaManager {
 
         if (temBotaoLightsOut && todosLightsOutAtivados) {
             System.out.println("=== PUZZLE LIGHTS OUT DA ARENA " + idArena + " CONCLUÍDO! ===");
-            setWallState(idArena, false, player);
             arena.concluida = true;
+            setWallState(idArena, false, player);
             itemManager.spawn(new KeyItem(5029, 4200));
         }
     }
@@ -297,6 +294,7 @@ public class ArenaManager {
                 player.solicitarCheckpoint();
             }
             case 67 -> {
+                // trigger do level 2
                 setWallState(67, true, player);
                 arena.concluida = true;
                 //player.solicitarCheckpoint();
@@ -393,9 +391,12 @@ public class ArenaManager {
         }
     }
 
-    public void restaurarArenas(ArrayList<Integer> salvas, Player player) {
+    public void restaurarArenas(ArrayList<Integer> salvas, Player player, ItemManager itemManager) {
+        boolean rebobinouAlgumPuzzle = false;
+
         for (Arena arena : arenas) {
             for (Enemy e : arena.inimigosVivos) {
+                e.marcarLootProcessado();
                 e.receberDano(99999);
             }
             arena.inimigosVivos.clear();
@@ -405,11 +406,31 @@ public class ArenaManager {
                 arena.ativa = false;
                 verificarDesativacaoParedes(arena.id, player);
             } else {
+                if (arena.concluida) {
+                    rebobinouAlgumPuzzle = true;
+                }
+
                 arena.concluida = false;
                 arena.ativa = false;
                 arena.hordaAtual = 0;
-                setWallState(arena.id, false, player);
+                if (arena.id == 3 || arena.id == 101 || arena.id == 102) {
+                    setWallState(arena.id, true, player);
+                } else {
+                    setWallState(arena.id, false, player);
+                }
+
+                for (PressureButton btn : buttons) {
+                    if (btn.getData().id_arena == arena.id) {
+                        btn.setPlayerPisando(false);
+                        btn.setPressed(context, btn.getData().ativa);
+                    }
+                }
             }
+        }
+
+        if (rebobinouAlgumPuzzle) {
+            itemManager.getItems().removeIf(item -> item instanceof KeyItem);
+            System.out.println(">>> Puzzles rebobinados e chaves soltas deletadas.");
         }
     }
 
