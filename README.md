@@ -67,7 +67,7 @@ Nele é possível ajustar o volume da música e dos efeitos sonoros, além de co
 
 ## Pausa
 
-Durante a partida, pressionando `Esc`, o jogo é pausado. Nesse menu é possível continuar o jogo, abrir as configurações ou retornar ao menu principal.
+Durante o jogo, pressionando `Esc`, o jogo é pausado. Nesse menu é possível continuar o jogo, abrir as configurações ou retornar ao menu principal.
 
 <img src="screenshots/pause.png" alt="Menu de Pausa" width="700">
 
