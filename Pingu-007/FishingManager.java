@@ -27,8 +27,6 @@ public class FishingManager {
     private final Player player;
     private final IconButton fishingButton;
 
-    // Currently targeted hole (only meaningful during IDLE / while fishing is
-    // active)
     private boolean targetValid = false;
     private double targetWorldX, targetWorldY;
 
