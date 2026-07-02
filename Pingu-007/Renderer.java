@@ -10,8 +10,9 @@ public class Renderer {
     Boolean preDash = false;
 
     public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura,
-            int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager, EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager,
-            double delta) {
+            int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager,
+            EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager,
+            FishingManager fishingManager, double delta) {
 
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, telaLargura, telaAltura);
@@ -52,7 +53,8 @@ public class Renderer {
                     p.animate(g2, delta);
                 }
                 case Item item -> {
-                    if (item.isAtivo() && camera.onScreen(item.getX(), item.getY(), item.getLargura(), item.getAltura(), telaLargura, telaAltura)) {
+                    if (item.isAtivo() && camera.onScreen(item.getX(), item.getY(), item.getLargura(), item.getAltura(),
+                            telaLargura, telaAltura)) {
                         item.draw(g2);
                     }
                 }
@@ -99,11 +101,10 @@ public class Renderer {
         }
         g2.setTransform(originalTransform);
 
-        
         HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager);
-
-        if(dialogueManager != null && dialogueManager.isAtivo()){
-          dialogueManager.renderizar(g2,telaLargura,telaAltura);
+        fishingManager.render(g2, camera, telaLargura, telaAltura);
+        if (dialogueManager != null && dialogueManager.isAtivo()) {
+            dialogueManager.renderizar(g2, telaLargura, telaAltura);
         }
         renderMouse(g2, input);
     }
@@ -111,7 +112,8 @@ public class Renderer {
     private double getRenderBaseY(Object entidade) {
         if (entidade instanceof Entity e) {
             return e.getY() + (e.getBodyCollider() != null
-                    ? (e.getBodyCollider().getOffsetY() + e.getBodyCollider().getHeight()) : 48);
+                    ? (e.getBodyCollider().getOffsetY() + e.getBodyCollider().getHeight())
+                    : 48);
         }
         if (entidade instanceof Item item) {
             return item.getSortBaseY();
