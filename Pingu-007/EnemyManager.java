@@ -87,17 +87,19 @@ public class EnemyManager {
             case "bomber" ->
                 novo = new Bomber(x, y, 48, 48, lvlData, bulmgr, enemies, soundManager);
             case "morsa" -> {
-              MorsaBoss boss = new MorsaBoss(x, y, lvlData, soundManager);
+              MorsaBoss morsaInstancia = new MorsaBoss(x, y, lvlData,bulmgr, soundManager);
 
-              BossMao maoEsq = new BossMao(x - 80, y + 32, lvlData, soundManager, boss);
-              BossMao maoDir = new BossMao(x + (GameCore.tiles_size * 3) + 32, y +32, lvlData, soundManager, boss);
+              
 
-              boss.vincularMaos(maoEsq, maoDir);
+              BossMao maoEsq = new BossMao(x - 140, y + 64, lvlData, soundManager, morsaInstancia);
+              BossMao maoDir = new BossMao(x + (GameCore.tiles_size * 6) + 44, y + 64, lvlData, soundManager, morsaInstancia);
+
+              morsaInstancia.vincularMaos(maoEsq, maoDir);
 
               enemies.add(maoEsq);
               enemies.add(maoDir);
 
-              novo = boss;
+              novo = morsaInstancia;
             }
         }
         if (novo != null) {
