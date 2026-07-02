@@ -21,6 +21,7 @@ public class FishingManager {
         IDLE, WAITING, BITING, SUCCESS, MISSED
     }
 
+    private SoundManager soundManager;
     private State state = State.IDLE;
 
     private final Player player;
@@ -42,7 +43,8 @@ public class FishingManager {
     private static final double RANGE = GameCore.tiles_size * 2;
     private static final int BUTTON_SIZE = 40;
 
-    public FishingManager(Player player) {
+    public FishingManager(Player player, SoundManager sound) {
+        soundManager = sound;
         this.player = player;
         this.fishingButton = new IconButton(0, 0, BUTTON_SIZE, IconIndex.FISHING, true);
     }
@@ -150,6 +152,7 @@ public class FishingManager {
     }
 
     private void startFishing() {
+        soundManager.playSFX(SoundManager.SFX.FISHING_START);
         state = State.WAITING;
         waitTimer = WAIT_MIN + (int) (Math.random() * (WAIT_MAX - WAIT_MIN));
         player.setBlockInputs(true);
