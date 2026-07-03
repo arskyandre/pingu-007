@@ -102,7 +102,9 @@ public class Renderer {
         g2.setTransform(originalTransform);
 
         HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager);
+
         fishingManager.render(g2, camera, telaLargura, telaAltura);
+
         if (dialogueManager != null && dialogueManager.isAtivo()) {
             dialogueManager.renderizar(g2, telaLargura, telaAltura);
         }

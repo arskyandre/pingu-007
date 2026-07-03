@@ -83,96 +83,113 @@ public class Shooter extends Enemy {
         double dy = pCenterY - centerY;
         double dist = Math.sqrt(dx * dx + dy * dy);
 
-        switch (estadoAtual) {
-            case PERSEGUINDO -> {
-                if (dist < distAtivacao && temAggro()) {
-                    estadoAtual = Status.PREPARANDO;
-                    timer = tempoPreparo;
+        if (isHooked) {
+            if (estadoAtual == Status.PREPARANDO || estadoAtual == Status.ATIRANDO) {
+                estadoAtual = Status.COOLDOWN;
+                timer = tempoCooldown;
+                tirosDisparados = 0;
+                velX = 0;
+                velY = 0;
+            }
+
+            double oldAccel = this.aceleracao;
+            this.aceleracao = 0.1;
+            if (dist > 0 && !isPuxado) {
+                seguirCaminhoAStar(player, jumpLinks);
+            }
+            this.aceleracao = oldAccel;
+        } else {
+            switch (estadoAtual) {
+                case PERSEGUINDO -> {
+                    if (dist < distAtivacao && temAggro()) {
+                        estadoAtual = Status.PREPARANDO;
+                        timer = tempoPreparo;
+                        velX = 0;
+                        velY = 0;
+                    } else if (dist > 0) {
+                        // O Atirador usa o A* para chegar até à zona de tiro
+                        seguirCaminhoAStar(player, jumpLinks);
+                    }
+                }
+
+                case PREPARANDO -> {
+                    timer--;
                     velX = 0;
                     velY = 0;
-                } else if (dist > 0) {
-                    // O Atirador usa o A* para chegar até à zona de tiro
-                    seguirCaminhoAStar(player, jumpLinks);
-                }
-            }
 
-            case PREPARANDO -> {
-                timer--;
-                velX = 0;
-                velY = 0;
-
-                if (timer <= 0) {
-                    estadoAtual = Status.ATIRANDO;
-                    lockedAngle = Math.atan2(dy, dx);
-                    if (!modoShotgun) {
-                        tirosDisparados = 0;
-                        sprayTimer = 0;
-                    }
-                }
-            }
-
-            case ATIRANDO -> {
-                velX = 0;
-                velY = 0;
-
-                if (modoShotgun) {
-                    soundManager.playSFX(SoundManager.SFX.GUNSHOT);
-                    double angulo1 = lockedAngle;
-                    double angulo2 = lockedAngle - Math.toRadians(15);
-                    double angulo3 = lockedAngle + Math.toRadians(15);
-
-                    bulletManager.shoot(centerX, centerY, Math.cos(angulo1), Math.sin(angulo1), BulletOwner.ENEMY);
-                    bulletManager.shoot(centerX, centerY, Math.cos(angulo2), Math.sin(angulo2), BulletOwner.ENEMY);
-                    bulletManager.shoot(centerX, centerY, Math.cos(angulo3), Math.sin(angulo3), BulletOwner.ENEMY);
-
-                    estadoAtual = Status.COOLDOWN;
-                    timer = tempoCooldown;
-
-                } else {
-                    if (sprayTimer <= 0) {
-                        double anguloSpray = lockedAngle
-                                + Math.toRadians((-20 * sinal) + (tirosDisparados * 10 * sinal));
-                        bulletManager.shoot(centerX, centerY, Math.cos(anguloSpray), Math.sin(anguloSpray),
-                                BulletOwner.ENEMY);
-
-                        anguloArma = anguloSpray;
-                        dirS = 1;
-                        if (anguloArma > Math.PI / 2 || anguloArma < -Math.PI / 2) {
-                            if (anguloArma > 0) {
-                                anguloArma = Math.PI - anguloArma;
-                            } else {
-                                anguloArma = (-Math.PI) - anguloArma;//atenção
-
-                            }
-                            dirS = 0;
+                    if (timer <= 0) {
+                        estadoAtual = Status.ATIRANDO;
+                        lockedAngle = Math.atan2(dy, dx);
+                        if (!modoShotgun) {
+                            tirosDisparados = 0;
+                            sprayTimer = 0;
                         }
-
-                        tirosDisparados++;
-                        sprayTimer = delaySpray;
-                        System.out.println(anguloSpray);
-                    } else {
-                        sprayTimer--;
                     }
+                }
 
-                    if (tirosDisparados >= maxTirosSpray) {
-                        sinal = -sinal;
+                case ATIRANDO -> {
+                    velX = 0;
+                    velY = 0;
+
+                    if (modoShotgun) {
+                        soundManager.playSFX(SoundManager.SFX.GUNSHOT);
+                        double angulo1 = lockedAngle;
+                        double angulo2 = lockedAngle - Math.toRadians(15);
+                        double angulo3 = lockedAngle + Math.toRadians(15);
+
+                        bulletManager.shoot(centerX, centerY, Math.cos(angulo1), Math.sin(angulo1), BulletOwner.ENEMY);
+                        bulletManager.shoot(centerX, centerY, Math.cos(angulo2), Math.sin(angulo2), BulletOwner.ENEMY);
+                        bulletManager.shoot(centerX, centerY, Math.cos(angulo3), Math.sin(angulo3), BulletOwner.ENEMY);
+
                         estadoAtual = Status.COOLDOWN;
                         timer = tempoCooldown;
+
+                    } else {
+                        if (sprayTimer <= 0) {
+                            double anguloSpray = lockedAngle
+                                    + Math.toRadians((-20 * sinal) + (tirosDisparados * 10 * sinal));
+                            bulletManager.shoot(centerX, centerY, Math.cos(anguloSpray), Math.sin(anguloSpray),
+                                    BulletOwner.ENEMY);
+
+                            anguloArma = anguloSpray;
+                            dirS = 1;
+                            if (anguloArma > Math.PI / 2 || anguloArma < -Math.PI / 2) {
+                                if (anguloArma > 0) {
+                                    anguloArma = Math.PI - anguloArma;
+                                } else {
+                                    anguloArma = (-Math.PI) - anguloArma; //atenção
+
+                                }
+                                dirS = 0;
+                            }
+
+                            tirosDisparados++;
+                            sprayTimer = delaySpray;
+                            // System.out.println(anguloSpray);
+                        } else {
+                            sprayTimer--;
+                        }
+
+                        if (tirosDisparados >= maxTirosSpray) {
+                            sinal = -sinal;
+                            estadoAtual = Status.COOLDOWN;
+                            timer = tempoCooldown;
+                        }
                     }
                 }
-            }
 
-            case COOLDOWN -> {
-                timer--;
-                if (dist > 0) {
-                    double oldAccel = this.aceleracao;
-                    this.aceleracao *= 0.5;
-                    seguirCaminhoAStar(player, jumpLinks);
-                    this.aceleracao = oldAccel;
-                }
+                case COOLDOWN -> {
+                    timer--;
+                    if (dist > 0) {
+                        double oldAccel = this.aceleracao;
+                        this.aceleracao *= 0.5;
+                        seguirCaminhoAStar(player, jumpLinks);
+                        this.aceleracao = oldAccel;
+                    }
 
-                if (timer <= 0) {
-                    estadoAtual = Status.PERSEGUINDO;
+                    if (timer <= 0) {
+                        estadoAtual = Status.PERSEGUINDO;
+                    }
                 }
             }
         }
@@ -180,9 +197,11 @@ public class Shooter extends Enemy {
         aplicarFisicaBasica();
         moveAndCollideWithMap(lvlData);
 
-        if (this.hitbox != null && player.getHurtbox() != null) {
-            if (this.hitbox.intersects(this.x, this.y, player.getHurtbox(), player.getX(), player.getY())) {
-                player.receberDano(danoContato);
+        if (!isDead && !isCaindo && !isHooked && !isPuxado) {
+            if (this.hitbox != null && player.getHurtbox() != null) {
+                if (this.hitbox.intersects(this.x, this.y, player.getHurtbox(), player.getX(), player.getY())) {
+                    player.receberDano(danoContato);
+                }
             }
         }
 
@@ -194,6 +213,9 @@ public class Shooter extends Enemy {
             }
         }
 
+        if (isMoving()) {
+            updateFootsteps(soundManager, lvlData);
+        }
     }
 
     @Override
@@ -258,6 +280,7 @@ public class Shooter extends Enemy {
         }
     }
 
+    @Override
     public Boolean isMoving() {
         return (velX > 0.2 || velX < -0.2) || (velY > 0.2 || velY < -0.2);
     }

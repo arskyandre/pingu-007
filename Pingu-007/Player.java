@@ -3,7 +3,7 @@ import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-// TODO: TERMINAR DE ADICIONAR A VARA DE PESCA
+import java.util.ArrayList;
 
 public class Player extends Entity {
 
@@ -41,6 +41,9 @@ public class Player extends Entity {
     private int reloadOnZeroCooldownTimer = 0;
     private boolean danoRecebidoFlag = false;
     private boolean reloading = false;
+    private boolean hasFishingRod = false;
+    private FishingBobber fishingBobber;
+    private int fishingCooldown = 0;
 
     private int footstepTimer = 0;
     private final int footstepInterval = 22;
@@ -72,6 +75,7 @@ public class Player extends Entity {
         this.largura = largura;
         this.altura = altura;
         this.bulletmanager = bulmgr;
+        fishingBobber = new FishingBobber();
         this.bodyCollider = new Collider(0, altura / 2.0, largura, altura / 2.0);
         this.hurtbox = new Collider(0, 0, largura, altura);
         this.vidaMaxima = 50;
@@ -96,7 +100,7 @@ public class Player extends Entity {
     private final int muniCooldown = 60;
 
     // debug
-    public void testemunicao(InputManager input, int telaLargura, int telaAltura, ItemManager itemManager,
+    /*public void testemunicao(InputManager input, int telaLargura, int telaAltura, ItemManager itemManager,
             CameraManager camera) {
         if (muniCOoldownTimer > 0) {
             muniCOoldownTimer--;
@@ -112,8 +116,7 @@ public class Player extends Entity {
                 System.out.println("Spawnou municao");
             }
         }
-    }
-
+    }*/
     @Override
     public void receberDano(int dano) {
         if ((iFramesTimer == 0 && !emDash) || isCaindo) {
@@ -131,7 +134,7 @@ public class Player extends Entity {
         return val;
     }
 
-    public void update(InputManager input, int telaLargura, int telaAltura, CameraManager camera) {
+    public void update(InputManager input, int telaLargura, int telaAltura, CameraManager camera, ArrayList<Enemy> enemies) {
         if (!podeDash) {
             dashCooldownTimer--;
             if (dashCooldownTimer <= 0) {
@@ -245,6 +248,7 @@ public class Player extends Entity {
             }
 
             updatePlayerDirection(mouseXWorld, mouseYWorld);
+            updateFishing(input, camera, enemies);
         }
         if (reloading) {
             reloadCooldownTimer--;
@@ -319,6 +323,29 @@ public class Player extends Entity {
         }
     }
 
+    public void updateFishing(InputManager input, CameraManager camera, ArrayList<Enemy> enemies) {
+        if (!hasFishingRod) {
+            return;
+        }
+
+        if (fishingCooldown > 0) {
+            fishingCooldown--;
+        }
+
+        if (input.isMouseButtonPressed(MouseEvent.BUTTON3) && fishingCooldown == 0) {
+            System.out.println(">>> CLIQUE DIREITO PROCESSADO COM SUCESSO! <<<");
+            if (fishingBobber.isAtivo()) {
+                fishingBobber.pull();
+            } else {
+                double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+                double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+                fishingBobber.cast(this, mouseXWorld, mouseYWorld);
+            }
+            fishingCooldown = 20;
+        }
+        fishingBobber.update(enemies, lvlData);
+    }
+
     @Override
     public void animate(Graphics2D g2, double delta) {
         int inv = 1;
@@ -390,7 +417,12 @@ public class Player extends Entity {
                 animSp = 22;
             }
         }
+
         g2.drawImage(Sprites[animSp + animIndex], xx, (int) y, 48 * inv, 48, null);
+
+        if (hasFishingRod && fishingBobber != null && fishingBobber.isAtivo()) {
+            fishingBobber.draw(g2);
+        }
     }
 
     public void addMunicao(int qtd) {
@@ -435,6 +467,10 @@ public class Player extends Entity {
         this.isCaindo = false;
         this.danoRecebidoFlag = false;
         this.iFramesTimer = 60;
+
+        if (this.fishingBobber != null) {
+            this.fishingBobber.reset();
+        }
     }
 
     public void resetarProgresso() {
@@ -444,6 +480,12 @@ public class Player extends Entity {
         this.pente = 15;
         this.vida = this.vidaMaxima;
         this.isDead = false;
+        this.hasFishingRod = false;
+
+        if (this.fishingBobber != null) {
+            this.fishingBobber.reset();
+        }
+
         limparSolicitacaoCheckpoint();
     }
 
@@ -474,6 +516,14 @@ public class Player extends Entity {
 
     public void loadLvlData(int[][] lvlData) {
         this.lvlData = lvlData;
+    }
+
+    public boolean hasFishingRod() {
+        return this.hasFishingRod;
+    }
+
+    public void setFishingRod(boolean status) {
+        this.hasFishingRod = status;
     }
 
     public double getLargura() {

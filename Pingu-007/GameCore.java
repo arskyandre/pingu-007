@@ -18,6 +18,7 @@ public class GameCore extends Canvas implements Runnable {
     private int chavesColetadasCheckpoint = 0;
     private ArrayList<Integer> checkArenas = new ArrayList<>();
     private boolean hasCheckpoint = false;
+    private boolean checkVaraDePesca = false;
 
     JFrame frame;
     boolean running = true;
@@ -120,6 +121,7 @@ public class GameCore extends Canvas implements Runnable {
                     optionsMenu.setReturnState(GameState.PAUSED);
                 }
                 if (next == GameState.MAIN_MENU) {
+                    resetarJogoCompleto();
                     soundManager.playBGM(SoundManager.BGM.MAIN_MENU);
                 }
                 if (next == GameState.PLAYING) {
@@ -169,9 +171,10 @@ public class GameCore extends Canvas implements Runnable {
             }
 
             fishingManager.update(input, camera, levelManager.getCurLevelData(), getWidth(), getHeight());
-            player.testemunicao(input, getWidth(), getHeight(), itemManager, camera);
+            //player.testemunicao(input, getWidth(), getHeight(), itemManager, camera);
 
-            player.update(input, getWidth(), getHeight(), camera);
+            player.update(input, getWidth(), getHeight(), camera, enemyManager.getEnemies());
+
             itemManager.update(player);
 
             ArrayList<JumpLink> linksAtuais = levelManager.getJumpLinks();
@@ -185,6 +188,7 @@ public class GameCore extends Canvas implements Runnable {
             levelManager.update();
             camera.update(player, input, getWidth(), getHeight());
             fishingManager.syncToCamera(camera, getWidth(), getHeight());
+
             // FUNÇÕES DE DEBUG
             if (debugSpawnCooldown > 0) {
                 debugSpawnCooldown--;
@@ -193,8 +197,8 @@ public class GameCore extends Canvas implements Runnable {
             if (input.isKeyPressed(java.awt.event.KeyEvent.VK_K) && debugSpawnCooldown <= 0) {
                 double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
                 double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-                enemyManager.adicionarInimigo("jumper", mouseXWorld, mouseYWorld, 0, -1);
-                System.out.println("DEBUG: Dasher spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
+                enemyManager.adicionarInimigo("lobo", mouseXWorld, mouseYWorld, 0, -1);
+                System.out.println("DEBUG: Inimigo spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
                 debugSpawnCooldown = 30;
             }
 
@@ -203,6 +207,14 @@ public class GameCore extends Canvas implements Runnable {
                 double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
                 // itemManager.spawn(new KeyItem(12839, 4870));
                 itemManager.spawn(new KeyItem(mouseXWorld, mouseYWorld));
+                System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
+                debugSpawnCooldown = 30;
+            }
+
+            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_V) && debugSpawnCooldown <= 0) {
+                double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+                double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+                itemManager.spawn(new FishingRodItem(mouseXWorld, mouseYWorld));
                 System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
                 debugSpawnCooldown = 30;
             }
@@ -302,6 +314,7 @@ public class GameCore extends Canvas implements Runnable {
         checkChaves = player.getChaves();
         checkArenas = arenaManager.getArenasConcluidas();
         hasCheckpoint = true;
+        checkVaraDePesca = player.hasFishingRod();
         System.out.println(">>> CHECKPOINT SALVO! <<<");
     }
 
@@ -311,6 +324,7 @@ public class GameCore extends Canvas implements Runnable {
         }
         System.out.println(">>> CARREGANDO CHECKPOINT... <<<");
         player.respawn(checkX, checkY, checkVida, checkMunicao, checkPente, checkChaves);
+        player.setFishingRod(checkVaraDePesca);
         bulletmanager.limparTudo();
         itemManager.limparConsumiveis();
         arenaManager.restaurarArenas(checkArenas, player, itemManager);

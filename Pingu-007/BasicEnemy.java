@@ -46,7 +46,7 @@ public class BasicEnemy extends Enemy {
         aplicarFisicaBasica();
         moveAndCollideWithMap(lvlData);
 
-        if (!isDead && !isCaindo) {
+        if (!isDead && !isCaindo && !isHooked && !isPuxado) {
             if (this.hitbox != null && player.getHurtbox() != null) {
                 if (this.hitbox.intersects(this.x, this.y, player.getHurtbox(), player.getX(), player.getY())) {
                     player.receberDano(danoContato);
@@ -54,7 +54,7 @@ public class BasicEnemy extends Enemy {
             }
         }
 
-        if(timerDano < 1){
+        if (timerDano < 1) {
             if (velX > 0) {
                 dirS = 1;
             } else if (velX < 0) {
@@ -90,10 +90,12 @@ public class BasicEnemy extends Enemy {
                 animIndex = 0;
             }
         }
-        if (!isMoving())
+        if (!isMoving()) {
             animIndex = 0;
-        if(timerDano > 0)
+        }
+        if (timerDano > 0) {
             animIndex = 6;
+        }
         g2.drawImage(Sprites[animIndex], xx, (int) y, inv * (int) width, (int) height, null);
     }
 

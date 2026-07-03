@@ -54,7 +54,7 @@ public class Dasher extends Enemy {
             }
         }
         Sprites[8] = img.getSubimage(0, 32, 19, 16);
-        Sprites[9] = img.getSubimage(48,32,16,16);
+        Sprites[9] = img.getSubimage(48, 32, 16, 16);
     }
 
     @Override
@@ -85,62 +85,75 @@ public class Dasher extends Enemy {
         if (!isPuxado && !isCaindo) {
             if (emSaltoCinematico) {
                 executarSaltoCinematico();
-                if (!emSaltoCinematico) { // Terminou o LERP
+                if (!emSaltoCinematico) {
                     estadoAtual = Status.COOLDOWN;
                     timer = tempoCooldown;
                 }
             } else if (isAirborne) {
                 seguirCaminhoAStar(player, jumpLinks);
             } else {
-                switch (estadoAtual) {
-                    case PERSEGUINDO -> {
-                        if (dist < distAtivacao && temAggro()) {
-                            if (!podePularBuracos && !temLinhaDeVisaoLivre(player)) {
-                                seguirCaminhoAStar(player, jumpLinks);
-                            } else {
-                                estadoAtual = Status.PREPARANDO;
-                                timer = tempoPreparo;
-                            }
-                        } else {
-                            seguirCaminhoAStar(player, jumpLinks);
-                        }
+                if (isHooked) {
+                    if (estadoAtual == Status.PREPARANDO || estadoAtual == Status.DASHING) {
+                        estadoAtual = Status.COOLDOWN;
+                        timer = tempoCooldown;
+                        velX = 0;
+                        velY = 0;
                     }
-                    case PREPARANDO -> {
-                        timer--;
-                        if (timer <= 0) {
-                            estadoAtual = Status.DASHING;
-                            if (pendingJumpNode != null) {
-                                iniciarSaltoCinematico(pendingJumpNode, tempoDash);
-                                pendingJumpNode = null;
+                    double oldAccel = this.aceleracao;
+                    this.aceleracao = 0.1;
+                    seguirCaminhoAStar(player, jumpLinks);
+                    this.aceleracao = oldAccel;
+                } else {
+                    switch (estadoAtual) {
+                        case PERSEGUINDO -> {
+                            if (dist < distAtivacao && temAggro()) {
+                                if (!podePularBuracos && !temLinhaDeVisaoLivre(player)) {
+                                    seguirCaminhoAStar(player, jumpLinks);
+                                } else {
+                                    estadoAtual = Status.PREPARANDO;
+                                    timer = tempoPreparo;
+                                }
                             } else {
-                                timer = tempoDash;
-                                if (dist > 0) {
-                                    dashDirX = dx / dist;
-                                    dashDirY = dy / dist;
-                                    velX = dashDirX * forcaDash;
-                                    velY = dashDirY * forcaDash;
+                                seguirCaminhoAStar(player, jumpLinks);
+                            }
+                        }
+                        case PREPARANDO -> {
+                            timer--;
+                            if (timer <= 0) {
+                                estadoAtual = Status.DASHING;
+                                if (pendingJumpNode != null) {
+                                    iniciarSaltoCinematico(pendingJumpNode, tempoDash);
+                                    pendingJumpNode = null;
+                                } else {
+                                    timer = tempoDash;
+                                    if (dist > 0) {
+                                        dashDirX = dx / dist;
+                                        dashDirY = dy / dist;
+                                        velX = dashDirX * forcaDash;
+                                        velY = dashDirY * forcaDash;
+                                    }
                                 }
                             }
                         }
-                    }
-                    case DASHING -> {
-                        timer--;
-                        this.velX *= atritoDash;
-                        this.velY *= atritoDash;
-                        if (timer <= 0) {
-                            estadoAtual = Status.COOLDOWN;
-                            timer = tempoCooldown;
+                        case DASHING -> {
+                            timer--;
+                            this.velX *= atritoDash;
+                            this.velY *= atritoDash;
+                            if (timer <= 0) {
+                                estadoAtual = Status.COOLDOWN;
+                                timer = tempoCooldown;
+                            }
                         }
-                    }
-                    case COOLDOWN -> {
-                        timer--;
-                        double oldAccel = this.aceleracao;
-                        this.aceleracao *= 0.5;
-                        seguirCaminhoAStar(player, jumpLinks);
-                        this.aceleracao = oldAccel;
+                        case COOLDOWN -> {
+                            timer--;
+                            double oldAccel = this.aceleracao;
+                            this.aceleracao *= 0.5;
+                            seguirCaminhoAStar(player, jumpLinks);
+                            this.aceleracao = oldAccel;
 
-                        if (timer <= 0) {
-                            estadoAtual = Status.PERSEGUINDO;
+                            if (timer <= 0) {
+                                estadoAtual = Status.PERSEGUINDO;
+                            }
                         }
                     }
                 }
@@ -169,7 +182,7 @@ public class Dasher extends Enemy {
             moveAndCollideWithMap(lvlData);
         }
 
-        if (!isDead && !isCaindo) {
+        if (!isDead && !isCaindo && !isHooked && !isPuxado) {
             if (this.hitbox != null && player.getHurtbox() != null) {
                 if (this.hitbox.intersects(this.x, this.y, player.getHurtbox(), player.getX(), player.getY())) {
                     player.receberDano(danoContato);
@@ -179,7 +192,7 @@ public class Dasher extends Enemy {
         if (isMoving()) {
             updateFootsteps(soundManager, lvlData);
         }
-        if(timerDano < 1){
+        if (timerDano < 1) {
             if (velX > 0) {
                 dirS = 1;
             } else if (velX < 0) {
@@ -224,8 +237,9 @@ public class Dasher extends Enemy {
                     }
                 }
             }
-            if(timerDano > 0)
+            if (timerDano > 0) {
                 animIndex = 9;
+            }
             g2.drawImage(Sprites[animIndex], xx, (int) y, inv * (int) width, (int) height, null);
         }
     }

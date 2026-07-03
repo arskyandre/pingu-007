@@ -1,3 +1,4 @@
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.FontMetrics;
@@ -7,13 +8,12 @@ import java.awt.event.KeyEvent;
 
 /**
  * Manages the fishing minigame: detects when the player is close enough to a
- * Hole tile with the mouse hovering over it, lets them start fishing with E
- * or by clicking the fishing IconButton, and resolves the bite reaction
- * window.
+ * Hole tile with the mouse hovering over it, lets them start fishing with E or
+ * by clicking the fishing IconButton, and resolves the bite reaction window.
  *
  * Follows the same "isActive()/update()/render()" pattern used by
- * DialogueManager, but does NOT pause the rest of the game: it only blocks
- * the player's inputs (Player.blockInputs) while fishing is in progress.
+ * DialogueManager, but does NOT pause the rest of the game: it only blocks the
+ * player's inputs (Player.blockInputs) while fishing is in progress.
  */
 public class FishingManager {
 
@@ -53,6 +53,10 @@ public class FishingManager {
 
     public void update(InputManager input, CameraManager camera, int[][] lvlData, int screenWidth,
             int screenHeight) {
+        if (!player.hasFishingRod()) {
+            targetValid = false;
+            return;
+        }
         if (state == State.IDLE) {
             updateTarget(input, camera, lvlData, screenWidth, screenHeight);
             return;
@@ -63,9 +67,12 @@ public class FishingManager {
                 || input.isKeyJustPressed(KeyEvent.VK_E);
 
         switch (state) {
-            case WAITING -> updateWaiting();
-            case BITING -> updateBite(triggered);
-            case SUCCESS, MISSED -> updateFeedback();
+            case WAITING ->
+                updateWaiting();
+            case BITING ->
+                updateBite(triggered);
+            case SUCCESS, MISSED ->
+                updateFeedback();
             default -> {
             }
         }
@@ -203,7 +210,9 @@ public class FishingManager {
         player.setBlockInputs(false);
     }
 
-    /** placeholder */
+    /**
+     * placeholder
+     */
     private void onFishCaught() {
         System.out.println("Fish caught! (reward not implemented yet)");
         player.curar(15);
@@ -221,10 +230,14 @@ public class FishingManager {
         double screenY = (targetWorldY - camera.getY()) * camera.getZoom();
 
         switch (state) {
-            case WAITING -> drawWaiting(g2, screenX, screenY);
-            case BITING -> drawBite(g2, screenX, screenY);
-            case SUCCESS -> drawFeedback(g2, screenX, screenY, "FISH CAUGHT!", new Color(120, 220, 120));
-            case MISSED -> drawFeedback(g2, screenX, screenY, "GOT AWAY...", new Color(220, 90, 90));
+            case WAITING ->
+                drawWaiting(g2, screenX, screenY);
+            case BITING ->
+                drawBite(g2, screenX, screenY);
+            case SUCCESS ->
+                drawFeedback(g2, screenX, screenY, "FISH CAUGHT!", new Color(120, 220, 120));
+            case MISSED ->
+                drawFeedback(g2, screenX, screenY, "GOT AWAY...", new Color(220, 90, 90));
             default -> {
             }
         }

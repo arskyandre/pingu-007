@@ -19,6 +19,9 @@ public abstract class Enemy extends Entity {
     public boolean podePularBuracos = false;
     public boolean isInvulneravel = false;
 
+    public boolean isHooked = false;
+    public boolean podeSerPuxado = true;
+
     public double raioDeteccao = GameCore.tiles_size * 8.0;
     protected boolean aggroPermanente = false;
     protected boolean lootProcessado = false;
@@ -33,8 +36,8 @@ public abstract class Enemy extends Entity {
     protected int timerPuxado = 0;
 
     /**
-     * atribuir efeito sonoro de morte do inimigo pelo enum SFX do SoundManager, o
-     * som toca para todo inimigo morto pelo EnemyManager
+     * atribuir efeito sonoro de morte do inimigo pelo enum SFX do SoundManager,
+     * o som toca para todo inimigo morto pelo EnemyManager
      */
     protected SoundManager.SFX deathSFX = null;
 
@@ -133,11 +136,61 @@ public abstract class Enemy extends Entity {
         this.velY *= intensidade;
     }
 
+    public void serPuxado(double originX, double originY, double forcaBaseCalculada) {
+        if (!podeSerPuxado) {
+            return;
+        }
+
+        this.isPuxado = true;
+        this.timerPuxado = 20;
+        this.aStarDelay = tempoRecalculoAStar;
+
+        this.isAirborne = true;
+
+        double meuCX = this.x + (this.bodyCollider != null ? this.bodyCollider.getOffsetX() + (this.bodyCollider.getWidth() / 2.0) : this.width / 2.0);
+        double meuCY = this.y + (this.bodyCollider != null ? this.bodyCollider.getOffsetY() + (this.bodyCollider.getHeight() / 2.0) : this.height / 2.0);
+
+        double dx = originX - meuCX;
+        double dy = originY - meuCY;
+        double dist = Math.hypot(dx, dy);
+
+        if (dist > 0) {
+            double forcaFinal = forcaBaseCalculada / this.peso;
+            this.velX = (dx / dist) * forcaFinal;
+            this.velY = (dy / dist) * forcaFinal;
+        }
+    }
+
     protected void atualizarTimersKnockback() {
         if (isPuxado) {
             timerPuxado--;
-            if (timerPuxado <= 0) {
+
+            int col = (int) ((this.x + this.width / 2.0) / GameCore.tiles_size);
+            int row = (int) ((this.y + this.height / 2.0) / GameCore.tiles_size);
+
+            if (row >= 0 && row < lvlData.length && col >= 0 && col < lvlData[0].length) {
+                int tileAtual = lvlData[row][col];
+
+                if (TileProperties.isHole(tileAtual)) {
+                    double velocidadeAtual = Math.hypot(this.velX, this.velY);
+
+                    if (velocidadeAtual < 3.0) {
+                        this.isAirborne = false;
+                        this.isCaindo = true;
+                        this.isDead = true;
+
+                        this.velX = 0;
+                        this.velY = 0;
+                        this.timerPuxado = 0;
+
+                        playDeathSound();
+                    }
+                }
+            }
+
+            if (timerPuxado <= 0 && !isCaindo) {
                 isPuxado = false;
+                this.isAirborne = false;
                 aStarDelay = tempoRecalculoAStar;
             }
         }

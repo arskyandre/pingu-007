@@ -3,19 +3,19 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
-public class KeyItem extends Item {
+public class FishingRodItem extends Item {
 
-    private static final Color COR_PLACEHOLDER = new Color(255, 215, 0);
+    private static final Color COR_HASTE = new Color(139, 69, 19);
     private BufferedImage sprite;
 
-    public KeyItem(double x, double y) {
+    public FishingRodItem(double x, double y) {
         super(x, y, 32, 32);
 
         String nomeDoAtlas = "tile_set.png";
         BufferedImage atlas = LoadSave.GetSpriteAtlas(nomeDoAtlas);
 
         int colunasNoAtlas = 14;
-        int tileIndex = 37;
+        int tileIndex = 38;
 
         int col = tileIndex % colunasNoAtlas;
         int row = tileIndex / colunasNoAtlas;
@@ -27,12 +27,13 @@ public class KeyItem extends Item {
 
     @Override
     public ItemCategory getCategory() {
-        return ItemCategory.PUZZLE;
+        return ItemCategory.EQUIPMENT;
     }
 
     @Override
     protected void aplicarEfeito(Player player) {
-        player.addChave(1);
+        player.setFishingRod(true);
+        System.out.println("Vara de pesca coletada e equipada!");
     }
 
     @Override
@@ -42,15 +43,18 @@ public class KeyItem extends Item {
         }
 
         double drawY = getVisualY();
+
         g2.setColor(new Color(0, 0, 0, 60));
-        g2.fillRect((int) x - 2, (int) (y + altura - 4), (int) largura + 4, 6);
+        g2.fillRect((int) x - 2, (int) (y + altura - 4), (int) largura + 4, 8);
 
         if (sprite != null) {
             g2.drawImage(sprite, (int) x, (int) drawY, (int) largura, (int) altura, null);
         } else {
-            g2.setColor(COR_PLACEHOLDER);
-            g2.fillRect((int) x + 4, (int) drawY, (int) largura - 8, (int) altura);
-            g2.fillRect((int) x + 2, (int) (drawY + altura / 2.0), 6, 6);
+            g2.setColor(COR_HASTE);
+            g2.fillRect((int) x + 8, (int) drawY, 4, (int) altura);
+            g2.setColor(Color.WHITE);
+            g2.drawLine((int) x + 10, (int) drawY, (int) x + 20, (int) drawY + 15);
         }
+
     }
 }
