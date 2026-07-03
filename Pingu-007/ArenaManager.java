@@ -265,6 +265,7 @@ public class ArenaManager {
             }
             case 2 -> {
                 setWallState(2, true, player);
+                itemManager.spawn(new FishingRodItem(439, 2169));
             }
             case 4, 5 -> {
                 setWallState(4, true, player);

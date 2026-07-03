@@ -1,6 +1,9 @@
 
 public class TileProperties {
 
+    int HOLEid = 9 + 1; // esse é o ID especifico dos buracos
+
+    // isSolid diz o que não é atravessavel
     public static boolean isSolid(int tileID) {
         int tempID = tileID - 1;
         if (tempID >= 0) {
@@ -10,6 +13,7 @@ public class TileProperties {
         return false;
     }
 
+    // isSemiSolid diz o que é atravessavel usando alguma movimentação especifica (ex: dash)
     public static boolean isSemiSolid(int tileID) {
         int tempID = tileID - 1;
         if (tempID >= 0) {
@@ -18,6 +22,7 @@ public class TileProperties {
         return false;
     }
 
+    // isHole diz o que é possivel cair ou não
     public static boolean isHole(int tileID) {
         int tempID = tileID - 1;
         if (tempID >= 0) {
@@ -25,8 +30,8 @@ public class TileProperties {
         }
         return false;
     }
-    
-    ///
+
+    // isIce diz o que é gelo, para aplicar a fisica "escorregadia"
     public static boolean isIce(int tileID) {
         int tempID = tileID - 1;
         if (tempID >= 0) {
