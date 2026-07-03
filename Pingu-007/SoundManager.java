@@ -37,7 +37,7 @@ public class SoundManager {
         ICE_STEP_2("sound/sfx/ice_footstep2.wav", 6),
         FISHING_START("sound/sfx/fishing_start.wav", 2),
         // FISHING_FISH_FOUND("sound/sfx/fishing_fish_found.wav", 2),
-        // FISHING_CATCHED("sound/sfx/fishing_catched.wav", 2),
+        // FISHING_CAUGHT("sound/sfx/fishing_caught.wav", 2),
         // FISHING_LOST("sound/sfx/fishing_lost.wav", 2),
         BOMBER_AVISO("sound/sfx/bomber_aviso.wav", 6),
         EXPLOSION("sound/sfx/bomber_explosion.wav", 6),
@@ -57,7 +57,7 @@ public class SoundManager {
 
     private final Map<SFX, SoundPool> sfxPools = new HashMap<>();
     private final Random random = new Random();
-    private Clip current_BGM = null;
+    private final BGMPlayer bgmPlayer = new BGMPlayer();
     private BGM currentTrack = null;
     // private float musicVolume = 0f;
     private float musicVolume = 0.3f;
@@ -97,27 +97,13 @@ public class SoundManager {
     }
 
     public void playBGM(BGM track) {
-        if (current_BGM != null) {
-            current_BGM.stop();
-        }
-        try {
-            currentTrack = track;
-            current_BGM = loadClip(track.path);
-            setVolume(current_BGM, musicVolume);
-            current_BGM.setFramePosition(0);
-            // if (currentTrack != BGM.MAIN_MENU)
-            current_BGM.loop(Clip.LOOP_CONTINUOUSLY);
-            // else
-            // current_BGM.loop(0);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        currentTrack = track;
+        bgmPlayer.play(track.path);
+        bgmPlayer.setVolume(musicVolume);
     }
 
     public void stopMusic() {
-        if (current_BGM != null) {
-            current_BGM.stop();
-        }
+        bgmPlayer.stop();
     }
 
     public static void setVolume(Clip clip, float volume) {
@@ -129,9 +115,7 @@ public class SoundManager {
 
     public void setMusicVolume(float volume) {
         musicVolume = volume;
-        if (current_BGM != null) {
-            setVolume(current_BGM, volume);
-        }
+        bgmPlayer.setVolume(volume);
     }
 
     public void setSfxVolume(float volume) {
