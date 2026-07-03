@@ -10,6 +10,7 @@ public class ArenaManager {
 
     //public boolean flagArena16Ativada = false;
     private boolean chave14_15_spawnada = false;
+    private boolean vara_pesca_spawnada = false;
 
     public static class Arena {
 
@@ -46,6 +47,7 @@ public class ArenaManager {
         allObjects.clear();
         //flagArena16Ativada = false;
         chave14_15_spawnada = false;
+        vara_pesca_spawnada = false;
 
         for (TiledObject obj : objetos) {
             String tipo = obj.tipo != null ? obj.tipo.toLowerCase().trim() : "";
@@ -265,7 +267,10 @@ public class ArenaManager {
             }
             case 2 -> {
                 setWallState(2, true, player);
-                itemManager.spawn(new FishingRodItem(439, 2169));
+                if (!vara_pesca_spawnada) {
+                    itemManager.spawn(new FishingRodItem(439, 2169));
+                    vara_pesca_spawnada = true;
+                }
             }
             case 4, 5 -> {
                 setWallState(4, true, player);
@@ -425,6 +430,13 @@ public class ArenaManager {
                         btn.setPlayerPisando(false);
                         btn.setPressed(context, btn.getData().ativa);
                     }
+                }
+                if (arena.id == 14 || arena.id == 15) {
+                    chave14_15_spawnada = false;
+                }
+                if (arena.id == 2) {
+                    vara_pesca_spawnada = false;
+                    itemManager.getItems().removeIf(item -> item instanceof FishingRodItem);
                 }
             }
         }
