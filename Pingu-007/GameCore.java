@@ -180,7 +180,12 @@ public class GameCore extends Canvas implements Runnable {
             ArrayList<JumpLink> linksAtuais = levelManager.getJumpLinks();
             enemyManager.update(player, linksAtuais);
 
-            arenaManager.update(player);
+            arenaManager.update(player, camera, cutsceneManager);
+
+            if(arenaManager.consumirSolicitacaoCutsceneBoss()){
+              gameState = GameState.CUTSCENE;
+              return;
+            }
 
             bulletmanager.update(camera, getWidth(), getHeight(),
                     player, enemyManager.getEnemies());
@@ -251,6 +256,16 @@ public class GameCore extends Canvas implements Runnable {
                 mapLoadCooldown = 60;
             }
         }
+    }
+
+    public void updateCutscene(){
+      cutsceneManager.update();
+      camera.update(player, input, getWidth(), getHeight());
+
+      if(!cutsceneManager.isAtiva()){
+        player.setBlockInputs(false);
+        gameState = GameState.PLAYING;
+      }
     }
 
     public void processarNovoMapa(ArrayList<TiledObject> objetosDoMapa) {
@@ -370,6 +385,8 @@ public class GameCore extends Canvas implements Runnable {
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, delta);
+
+                        cutsceneManager.draw(g2, getWidth(), getHeight());
                     }
                     case OPTIONS ->
                         optionsMenu.render(g2, getWidth(), getHeight());

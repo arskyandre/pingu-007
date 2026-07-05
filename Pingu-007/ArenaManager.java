@@ -11,6 +11,7 @@ public class ArenaManager {
     //public boolean flagArena16Ativada = false;
     private boolean chave14_15_spawnada = false;
     private boolean vara_pesca_spawnada = false;
+    private boolean cutsceneBossSolicitada = false;
 
     public static class Arena {
 
@@ -304,6 +305,17 @@ public class ArenaManager {
                 setWallState(67, true, player);
                 arena.concluida = true;
                 //player.solicitarCheckpoint();
+                //
+                //
+                //
+                MorsaBoss morsa = enemyManager.getMorsaBoss();
+                if(morsa != null && camera != null && custcene != null){
+                  morsa.vincularCamera(camera);
+                  morsa.iniciarCutsceneEntrada(CutsceneManager.getDuracaoTotal());
+                  cutscene.iniciar("Morsa Gigante, o terror do Ártico");
+                  player.setBlockInputs(true);
+                  cutsceneBossSolicitada = true;
+                }
             }
             case 102 -> {
                 setWallState(102, false, player);
@@ -475,6 +487,14 @@ public class ArenaManager {
             }
         }
         return "";
+    }
+
+    public boolean consumirSolicitacaoCutsceneBoss(){
+      if(cutsceneBossSolicitada){
+        cutsceneBossSolicitada = false;
+        return true;
+      }
+      return false;
     }
 
     public ArrayList<Integer> getArenasConcluidas() {

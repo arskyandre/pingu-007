@@ -10,6 +10,7 @@ public class EnemyManager {
     private ItemManager itemManager;
     private int[][] lvlData;
     private SoundManager soundManager;
+    private MorsaBoss morsaAtual;
 
     public EnemyManager(LevelManager lm, BulletManager bm, SoundManager sound) {
         levelManager = lm;
@@ -112,5 +113,9 @@ public class EnemyManager {
 
     public ArrayList<Enemy> getEnemies() {
         return enemies;
+    }
+
+    public MorsaBoss getMorsaBoss(){
+      return morsaAtual;
     }
 }
