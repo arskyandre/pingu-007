@@ -1,6 +1,7 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 
@@ -17,7 +18,14 @@ public class MorsaBoss extends Enemy{
     private double timerEstado = 0;
     private double timerSpawnGelo = 0;
     private double timerAtaque = 0;
+    private double timerVirar = 0;
 
+    private BufferedImage[] Sprites;
+    private int Direita=1;
+    private int dirS=1;
+    private int[] idle = {0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 4, 5};
+    private int[] chuva = {8, 9};
+    private double idleT = 0;
 
     
 
@@ -33,6 +41,11 @@ public class MorsaBoss extends Enemy{
         this.cor = Color.BLUE;
         this.aggroPermanente = true;
         this.bodyCollider = new Collider(0, 0, GameCore.tiles_size * 6, GameCore.tiles_size * 6);
+        BufferedImage img = LoadSave.GetSpriteAtlas("MorsaBoss-Sheet.png");
+        Sprites = new BufferedImage[10];
+        for (int j = 0; j < 10; j++) {
+            Sprites[j] = img.getSubimage(j * 96, 0, 96, 96);
+        }
       }
 
     public void vincularMaos(BossMao esquerda, BossMao direita){
@@ -50,6 +63,8 @@ public class MorsaBoss extends Enemy{
 
             timerAtaque += 1.0;
             timerEstado += 1.0;
+            if(timerVirar > 0)
+              timerVirar -= 1.0;
 
             for(int i = avisosGelo.size() - 1; i >= 0; i--){
               AvisoGelo aviso = avisosGelo.get(i);
@@ -119,6 +134,15 @@ public class MorsaBoss extends Enemy{
         }
       }
     }
+    double playerCenterX = player.getX() + player.getLargura() / 2.0;
+    double CenterX = x + 48;
+    if(CenterX < playerCenterX){
+      Direita = 1;
+    }
+    else if(CenterX > playerCenterX){
+      Direita = 0;
+    }
+
   }
 
           private void comandarAtaqueMao(){
@@ -146,6 +170,52 @@ public class MorsaBoss extends Enemy{
             aviso.draw(g);
           }
         }
+
+      @Override
+      public void animate(Graphics2D g, double delta){
+        int index=0;
+        int xx = (int)x;
+        int inv = 1;
+
+        if(dirS != Direita && timerVirar <= 0){
+          timerVirar = 40;
+        }
+        if(timerVirar > 0){
+          if(timerVirar > 30){
+            index = 6;
+          }else if(timerVirar > 20){
+            index = 7;
+          }else if(timerVirar > 10){
+            index = 7;
+            dirS = Direita;
+          }else{
+            index = 6;
+          }
+        }
+        else{
+          if(estadoAtual == CHUVA_DE_GELO){
+            idleT += 3*delta;
+            if(idleT >= 2)
+              idleT = 0;
+            index = chuva[(int)idleT];
+          }
+          else if(estadoAtual == IDLE){
+            idleT += 3*delta;
+            if(idleT >=12)
+              idleT = 0;
+            index = idle[(int)idleT];
+          }
+        }
+        if(dirS == 0){
+          xx = (int)x + (int)width;
+          inv = -1;
+        }
+        g.drawImage(Sprites[index],xx,(int)y,inv*(int)width,(int)height, null);
+      }
+
+
+
+
       @Override
       public Collider getHurtbox(){
         return this.bodyCollider;
