@@ -148,6 +148,14 @@ public class MorsaBoss extends Enemy {
                 if (animT >= 2)
                     animT = 0;
                 index = rugidoSprites[(int) animT];
+                if(timerRugido > 110)
+                  index = 6;
+                else if(timerRugido > 100)
+                  index = 7;
+                else if(timerRugido < 10)
+                  index = 6;
+                else if(timerRugido < 20)
+                  index = 7;
             } else {
                 // Animação padrão (Idle)
                 animT += 3 * delta;
