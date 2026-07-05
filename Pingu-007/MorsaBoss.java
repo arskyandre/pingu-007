@@ -21,6 +21,7 @@ public class MorsaBoss extends Enemy {
     private int[] rugidoSprites = {8, 9}; // Sprites do rugido
     private double animT = 0;
     private double timerVirar = 0;
+    private BulletManager bulletManager;
 
     // --- Controle do Rugido ---
     private boolean rugindo = false;
@@ -84,7 +85,7 @@ public class MorsaBoss extends Enemy {
                 
                 // Ativa o efeito visual de tremer a câmera se ela estiver vinculada
                 if (camera != null) {
-                    camera.shake(10, 60); // Exemplo: intensidade 10, por 60 frames
+                    camera.tremer(10, 60); // Exemplo: intensidade 10, por 60 frames
                 }
                 
                 // Toca o som do rugido se houver gerenciador de áudio

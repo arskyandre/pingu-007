@@ -1,6 +1,11 @@
-/**
- * Classe para fazer cutscenes(arena, possivelmente boss, etc)
- */
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
+
+
 public class CutsceneManager {
     public enum Phase {
         NONE, OPENING, CLOSING
@@ -82,7 +87,7 @@ public class CutsceneManager {
       }
 
       int inicioClosing = DURATION - TRANSICAO_BORDA;
-      int frameNaClosing = timer - inicioCLosing;
+      int frameNaClosing = timer - inicioClosing;
       double progresso = 1.0 - ((double) frameNaClosing/ TRANSICAO_BORDA);
       return Math.max(0.0, Math.min(1.0, progresso));
     }

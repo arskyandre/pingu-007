@@ -98,16 +98,16 @@ public class ArenaManager {
         }
     }
 
-    public void update(Player player) {
+    public void update(Player player, CameraManager camera, CutsceneManager cutsceneManager) {
         atualizarBotoes(player);
         for (int i = 0; i < arenas.size(); i++) {
             Arena arena = arenas.get(i);
             if (!arena.ativa && !arena.concluida && arena.trigger != null) {
                 if (ArenaTriggers.collides(arena.trigger, player)) {
-                    ativarArena(arena.id, player);
-                    if (arenas.isEmpty()) {
+                    ativarArena(arena.id, player, camera, cutsceneManager);
+                    
                         return;
-                    }
+                    
                 }
             }
             if (arena.ativa && !arena.concluida) {
@@ -250,7 +250,7 @@ public class ArenaManager {
         }
     }
 
-    private void ativarArena(int id, Player player) {
+    private void ativarArena(int id, Player player, CameraManager camera, CutsceneManager cutsceneManager) {
         Arena arena = getOuCriarArena(id);
         arena.ativa = true;
         switch (id) {
@@ -309,10 +309,10 @@ public class ArenaManager {
                 //
                 //
                 MorsaBoss morsa = enemyManager.getMorsaBoss();
-                if(morsa != null && camera != null && custcene != null){
+                if(morsa != null && camera != null && cutsceneManager != null){
                   morsa.vincularCamera(camera);
                   morsa.iniciarCutsceneEntrada(CutsceneManager.getDuracaoTotal());
-                  cutscene.iniciar("Morsa Gigante, o terror do Ártico");
+                  cutsceneManager.iniciar("Morsa Gigante, o terror do Ártico");
                   player.setBlockInputs(true);
                   cutsceneBossSolicitada = true;
                 }
