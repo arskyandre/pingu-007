@@ -98,7 +98,7 @@ public class MorsaBoss extends Enemy {
         // Lógica de virar o sprite baseada na posição do jogador (só vira se não estiver rugindo)
         if (!rugindo) {
             double playerCenterX = player.getX() + player.getLargura() / 2.0;
-            double CenterX = x + 48; 
+            double CenterX = x + (getLargura()/2); 
             if (CenterX < playerCenterX) {
                 Direita = 1;
             } else if (CenterX > playerCenterX) {
