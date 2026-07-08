@@ -4,16 +4,23 @@ import java.awt.geom.*;
 import java.util.ArrayList;
 
 public class Renderer {
+    public enum BorderState {
+        IN, OUT, IDLE
+    }
 
+    public BorderState borderState = BorderState.IDLE;
     public boolean modoDebug = false;
 
+    private int cinematicBorderHeight;
+    private double cinematicBorder = 0;
+    private double borderFadeDuration = 0.7;
     Boolean preDash = false;
 
     public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura,
             int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager,
             EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager,
-            FishingManager fishingManager, NPCManager npcManager, double delta) {
-
+            FishingManager fishingManager, NPCManager npcManager, double delta, boolean animateBorder) {
+        cinematicBorderHeight = telaAltura / 8;
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, telaLargura, telaAltura);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -103,16 +110,42 @@ public class Renderer {
                 }
             }
         }
-        g2.setTransform(originalTransform);
 
+        g2.setTransform(originalTransform);
         HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager);
 
+        HUD.player_hearts(g2, quadrado, (int) cinematicBorder);
+        HUD.ammobar(g2, telaLargura, telaAltura, quadrado, (int) cinematicBorder);
         fishingManager.render(g2, camera, telaLargura, telaAltura);
+        renderMouse(g2, input);
+        if (animateBorder) {
+            if (borderState == BorderState.IN) {
+                double borderSpeed = (double) cinematicBorderHeight / borderFadeDuration;
+                cinematicBorder += borderSpeed * delta;
+
+                if (cinematicBorder >= cinematicBorderHeight) {
+                    cinematicBorder = cinematicBorderHeight;
+                    borderState = BorderState.IDLE;
+                }
+            } else if (borderState == BorderState.OUT) {
+                double borderSpeed = (double) cinematicBorderHeight / borderFadeDuration;
+                cinematicBorder -= borderSpeed * delta;
+
+                if (cinematicBorder <= 0) {
+                    cinematicBorder = 0;
+                    borderState = BorderState.IDLE;
+                }
+            }
+        }
+        if (cinematicBorder > 0) {
+            g2.setColor(Color.BLACK);
+            g2.fillRect(0, 0, telaLargura, (int) cinematicBorder);
+            g2.fillRect(0, telaAltura - (int) cinematicBorder, telaLargura, (int) cinematicBorder);
+        }
 
         if (dialogueManager != null && dialogueManager.isAtivo()) {
             dialogueManager.renderizar(g2, telaLargura, telaAltura);
         }
-        renderMouse(g2, input);
     }
 
     private double getRenderBaseY(Object entidade) {

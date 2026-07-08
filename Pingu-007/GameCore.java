@@ -156,6 +156,14 @@ public class GameCore extends Canvas implements Runnable {
                 });
             }
         }
+        if (input.isKeyJustPressed(KeyEvent.VK_I)) {
+            System.out.printf("criando borda cinematica\n");
+            renderer.borderState = Renderer.BorderState.IN;
+        }
+        if (input.isKeyJustPressed(KeyEvent.VK_O)) {
+            System.out.printf("destruindo borda cinematica\n");
+            renderer.borderState = Renderer.BorderState.OUT;
+        }
         if (input.isKeyJustPressed(KeyEvent.VK_N)) {
             player.setX(20.5 * GameCore.tiles_size);
             player.setY(48.0 * GameCore.tiles_size);
@@ -372,26 +380,30 @@ public class GameCore extends Canvas implements Runnable {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager, delta);
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager, delta,
+                                true);
                     case GAME_OVER -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager, delta);
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager, delta,
+                                true);
                         gameOverScreen.render(g2, getWidth(), getHeight());
                     }
                     case PAUSED -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager, delta);
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager, delta,
+                                false);
                         pauseMenu.render(g2, getWidth(), getHeight());
                     }
                     case CUTSCENE -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager, delta);
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager, delta,
+                                true);
 
                         cutsceneManager.draw(g2, getWidth(), getHeight());
                     }
