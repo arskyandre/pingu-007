@@ -9,7 +9,7 @@ public class PesqueiroNPC extends NPC {
 
     private State state = State.IDLE;
     private boolean dialogueStarted = false;
-    private boolean rodDropped = false;
+    private boolean laEle = false;
     private static final double WIDTH = GameCore.tiles_size;
     private static final double HEIGHT = GameCore.tiles_size;
     private boolean proximo = false;
@@ -28,7 +28,7 @@ public class PesqueiroNPC extends NPC {
         switch (state) {
             case IDLE -> {
                 if (proximo && input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)) {
-                    if (rodDropped)
+                    if (laEle)
                         dialogueManager.iniciarDialogo(
                                 new String[] {
                                         "PESQUEIRO: Esqueceu como pescar? É fácil,",
@@ -46,10 +46,10 @@ public class PesqueiroNPC extends NPC {
             case TALKING -> {
 
                 if (!dialogueManager.isAtivo()) {
-                    if (!rodDropped) {
+                    if (!laEle) {
 
                         itemManager.spawn(new FishingRodItem(x + largura / 2.0, y + altura + 16));
-                        rodDropped = true;
+                        laEle = true;
                     }
                     state = State.IDLE;
                 }
