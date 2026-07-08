@@ -12,7 +12,7 @@ public class Renderer {
     public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura,
             int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager,
             EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager,
-            FishingManager fishingManager, double delta) {
+            FishingManager fishingManager, NPCManager npcManager, double delta) {
 
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, telaLargura, telaAltura);
@@ -33,7 +33,7 @@ public class Renderer {
         renderQueue.add(quadrado);
         renderQueue.addAll(enemyManager.getEnemies());
         renderQueue.addAll(itemManager.getItems());
-
+        renderQueue.addAll(npcManager.getNpcs());
         renderQueue.sort((Object o1, Object o2) -> {
             double base1 = getRenderBaseY(o1);
             double base2 = getRenderBaseY(o2);
@@ -58,11 +58,15 @@ public class Renderer {
                         item.draw(g2);
                     }
                 }
+                case NPC npc -> {
+                    if (npc.isActive()) {
+                        npc.draw(g2);
+                    }
+                }
                 default -> {
                 }
             }
         }
-
         bulletmanager.draw(g2, camera, telaLargura, telaAltura);
         lm.drawForeground(g2, camera, telaLargura, telaAltura);
 
@@ -119,6 +123,9 @@ public class Renderer {
         }
         if (entidade instanceof Item item) {
             return item.getSortBaseY();
+        }
+        if (entidade instanceof NPC npc) {
+            return npc.getY() + npc.altura;
         }
         return 0;
     }

@@ -7,11 +7,12 @@ public class ArenaManager {
     private final EnemyManager enemyManager;
     private final ItemManager itemManager;
     private final ArenaContext context;
+    private NPCManager npcManager;
 
-    //public boolean flagArena16Ativada = false;
+    // public boolean flagArena16Ativada = false;
     private boolean chave14_15_spawnada = false;
-    private boolean vara_pesca_spawnada = false;
     private boolean cutsceneBossSolicitada = false;
+    private boolean pesqueiro_spawnado = false;
 
     public static class Arena {
 
@@ -32,7 +33,9 @@ public class ArenaManager {
     private final ArrayList<CollisionBlock> collisionBlocks = new ArrayList<>();
     private final ArrayList<ArenaObject> allObjects = new ArrayList<>();
 
-    public ArenaManager(EnemyManager enemyManager, LevelManager levelManager, ItemManager itemManager) {
+    public ArenaManager(EnemyManager enemyManager, LevelManager levelManager, ItemManager itemManager,
+            NPCManager npcm) {
+        this.npcManager = npcm;
         this.enemyManager = enemyManager;
         this.levelManager = levelManager;
         this.itemManager = itemManager;
@@ -40,15 +43,15 @@ public class ArenaManager {
     }
 
     public void carregarObjetos(ArrayList<TiledObject> objetos) {
+        npcManager.clearAll();
         arenas.clear();
         doors.clear();
         interactives.clear();
         buttons.clear();
         collisionBlocks.clear();
         allObjects.clear();
-        //flagArena16Ativada = false;
+        // flagArena16Ativada = false;
         chave14_15_spawnada = false;
-        vara_pesca_spawnada = false;
 
         for (TiledObject obj : objetos) {
             String tipo = obj.tipo != null ? obj.tipo.toLowerCase().trim() : "";
@@ -105,9 +108,9 @@ public class ArenaManager {
             if (!arena.ativa && !arena.concluida && arena.trigger != null) {
                 if (ArenaTriggers.collides(arena.trigger, player)) {
                     ativarArena(arena.id, player, camera, cutsceneManager);
-                    
-                        return;
-                    
+
+                    return;
+
                 }
             }
             if (arena.ativa && !arena.concluida) {
@@ -120,7 +123,8 @@ public class ArenaManager {
                         arena.concluida = true;
                         verificarDesativacaoParedes(arena.id, player);
 
-                        if (arena.id == 9 || arena.id == 10 || arena.id == 13 || arena.id == 14 || arena.id == 15 || arena.id == 16) {
+                        if (arena.id == 9 || arena.id == 10 || arena.id == 13 || arena.id == 14 || arena.id == 15
+                                || arena.id == 16) {
                             player.solicitarCheckpoint();
                             System.out.println("Checkpoint garantido após vencer a arena " + arena.id);
                         }
@@ -201,7 +205,8 @@ public class ArenaManager {
         double origemY = origem.getData().y;
 
         for (PressureButton vizinho : buttons) {
-            if (vizinho == origem || !vizinho.isToggleMode() || vizinho.getData().id_arena != origem.getData().id_arena) {
+            if (vizinho == origem || !vizinho.isToggleMode()
+                    || vizinho.getData().id_arena != origem.getData().id_arena) {
                 continue;
             }
 
@@ -268,10 +273,6 @@ public class ArenaManager {
             }
             case 2 -> {
                 setWallState(2, true, player);
-                if (!vara_pesca_spawnada) {
-                    itemManager.spawn(new FishingRodItem(439, 2169));
-                    vara_pesca_spawnada = true;
-                }
             }
             case 4, 5 -> {
                 setWallState(4, true, player);
@@ -304,17 +305,17 @@ public class ArenaManager {
                 // trigger do level 2
                 setWallState(67, true, player);
                 arena.concluida = true;
-                //player.solicitarCheckpoint();
+                // player.solicitarCheckpoint();
                 //
                 //
                 //
                 MorsaBoss morsa = enemyManager.getMorsaBoss();
-                if(morsa != null && camera != null && cutsceneManager != null){
-                  morsa.vincularCamera(camera);
-                  morsa.iniciarCutsceneEntrada(CutsceneManager.getDuracaoTotal());
-                  cutsceneManager.iniciar("Morsa Gigante, o terror do Ártico");
-                  player.setBlockInputs(true);
-                  cutsceneBossSolicitada = true;
+                if (morsa != null && camera != null && cutsceneManager != null) {
+                    morsa.vincularCamera(camera);
+                    morsa.iniciarCutsceneEntrada(CutsceneManager.getDuracaoTotal());
+                    cutsceneManager.iniciar("Morsa Gigante, o terror do Ártico");
+                    player.setBlockInputs(true);
+                    cutsceneBossSolicitada = true;
                 }
             }
             case 102 -> {
@@ -348,6 +349,11 @@ public class ArenaManager {
                 if (isArenaConcluida(2) && isArenaConcluida(3)) {
                     setWallState(2, false, player);
                     setWallState(3, false, player);
+
+                    // spawna o pesqueiro
+                    npcManager.spawn(new PesqueiroNPC(20.5 * GameCore.tiles_size, 45.7 * GameCore.tiles_size));
+                    System.out.printf("Spawnou pesqueiro em: %f, %f\n", 20.5 * GameCore.tiles_size,
+                            45.7 * GameCore.tiles_size);
                 }
             }
             case 4, 5 -> {
@@ -400,9 +406,11 @@ public class ArenaManager {
                         spawner.inimigo, spawner.x, spawnY, spawner.horda, arena.id);
 
                 if (inimigo != null) {
-                    /*if (arena.id == 16 || arena.id == 2) {
-                        inimigo.podePularBuracos = false;
-                    }*/
+                    /*
+                     * if (arena.id == 16 || arena.id == 2) {
+                     * inimigo.podePularBuracos = false;
+                     * }
+                     */
                     arena.inimigosVivos.add(inimigo);
                 }
             }
@@ -446,10 +454,6 @@ public class ArenaManager {
                 if (arena.id == 14 || arena.id == 15) {
                     chave14_15_spawnada = false;
                 }
-                if (arena.id == 2) {
-                    vara_pesca_spawnada = false;
-                    itemManager.getItems().removeIf(item -> item instanceof FishingRodItem);
-                }
             }
         }
 
@@ -489,12 +493,12 @@ public class ArenaManager {
         return "";
     }
 
-    public boolean consumirSolicitacaoCutsceneBoss(){
-      if(cutsceneBossSolicitada){
-        cutsceneBossSolicitada = false;
-        return true;
-      }
-      return false;
+    public boolean consumirSolicitacaoCutsceneBoss() {
+        if (cutsceneBossSolicitada) {
+            cutsceneBossSolicitada = false;
+            return true;
+        }
+        return false;
     }
 
     public ArrayList<Integer> getArenasConcluidas() {

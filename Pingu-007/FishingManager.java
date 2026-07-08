@@ -1,4 +1,3 @@
-
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.FontMetrics;
@@ -7,13 +6,8 @@ import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 
 /**
- * Manages the fishing minigame: detects when the player is close enough to a
- * Hole tile with the mouse hovering over it, lets them start fishing with E or
- * by clicking the fishing IconButton, and resolves the bite reaction window.
- *
- * Follows the same "isActive()/update()/render()" pattern used by
- * DialogueManager, but does NOT pause the rest of the game: it only blocks the
- * player's inputs (Player.blockInputs) while fishing is in progress.
+ * Gerencia o minigame de pesca, bloqueia os inputs do player
+ * enquanto estiver no minigame mas sem pausar o jogo(inimigos ainda atacam)
  */
 public class FishingManager {
 
@@ -21,8 +15,14 @@ public class FishingManager {
         IDLE, WAITING, BITING, SUCCESS, MISSED
     }
 
+    // type of the current fishing hole being targeted
+    private enum HoleType {
+        NONE, NORMAL, KEY
+    }
+
     private SoundManager soundManager;
     private State state = State.IDLE;
+    private HoleType currentHoleType = HoleType.NONE;
 
     private final Player player;
     private final IconButton fishingButton;
@@ -87,8 +87,10 @@ public class FishingManager {
         int row = (int) (mouseYWorld / GameCore.tiles_size);
 
         targetValid = false;
+        currentHoleType = HoleType.NONE;
 
-        int holeRow = resolveHoleRow(row, col, lvlData);
+        // resolve which row contains a valid fishing hole
+        int holeRow = resolveFishingHoleRow(row, col, lvlData);
 
         if (holeRow != -1) {
             double centerX = col * GameCore.tiles_size + GameCore.tiles_size / 2.0;
@@ -100,6 +102,7 @@ public class FishingManager {
                 targetValid = true;
                 targetWorldX = centerX;
                 targetWorldY = centerY;
+                currentHoleType = getFishingHoleType(lvlData[holeRow][col]);
             }
         }
 
@@ -116,21 +119,40 @@ public class FishingManager {
         }
     }
 
-    private int resolveHoleRow(int mouseRow, int col, int[][] lvlData) {
-        if (isHoleAt(mouseRow, col, lvlData)) {
+    /**
+     * Finds the row of a valid fishing hole (normal or key) at the given column.
+     * Returns -1 if no fishing hole is found — void/abyss holes are ignored.
+     */
+    private int resolveFishingHoleRow(int mouseRow, int col, int[][] lvlData) {
+        if (isFishingHoleAt(mouseRow, col, lvlData))
             return mouseRow;
-        }
-        if (isHoleAt(mouseRow + 1, col, lvlData)) {
+        if (isFishingHoleAt(mouseRow + 1, col, lvlData))
             return mouseRow + 1;
-        }
         return -1;
     }
 
-    private boolean isHoleAt(int row, int col, int[][] lvlData) {
-        if (lvlData == null || row < 0 || row >= lvlData.length || col < 0 || col >= lvlData[row].length) {
+    /**
+     * Returns true only for designated fishing holes (normal or key),
+     * NOT for generic void/abyss tiles.
+     */
+    private boolean isFishingHoleAt(int row, int col, int[][] lvlData) {
+        if (lvlData == null || row < 0 || row >= lvlData.length
+                || col < 0 || col >= lvlData[row].length) {
             return false;
         }
-        return TileProperties.isHole(lvlData[row][col]);
+        int tileID = lvlData[row][col];
+        return TileProperties.isFishingHole(tileID) || TileProperties.isKeyFishingHole(tileID);
+    }
+
+    /**
+     * Returns the HoleType for a given tileID.
+     */
+    private HoleType getFishingHoleType(int tileID) {
+        if (TileProperties.isKeyFishingHole(tileID))
+            return HoleType.KEY;
+        if (TileProperties.isFishingHole(tileID))
+            return HoleType.NORMAL;
+        return HoleType.NONE;
     }
 
     private void repositionButton(CameraManager camera, int screenWidth, int screenHeight) {
@@ -207,15 +229,29 @@ public class FishingManager {
     private void finishFishing() {
         state = State.IDLE;
         targetValid = false;
+        currentHoleType = HoleType.NONE;
         player.setBlockInputs(false);
     }
 
     /**
-     * placeholder
+     * Recompensa baseada no tipo de buraco:
+     * NORMAL -> cura o player
+     * KEY -> dropa uma chave
      */
     private void onFishCaught() {
-        System.out.println("Fish caught! (reward not implemented yet)");
-        player.curar(15);
+        switch (currentHoleType) {
+            case NORMAL -> {
+                System.out.println("Fish caught! Healing player.");
+                player.curar(15);
+            }
+            case KEY -> {
+                System.out.println("Key fish caught! Giving player a key.");
+                player.curar(1);
+            }
+            default -> {
+                System.out.println("Fish caught! (unknown hole type)");
+            }
+        }
     }
 
     public void render(Graphics2D g2, CameraManager camera, int screenWidth, int screenHeight) {

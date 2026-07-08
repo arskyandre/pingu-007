@@ -36,6 +36,7 @@ public class GameCore extends Canvas implements Runnable {
     private ArenaManager arenaManager;
     private DialogueManager dialogueManager;
     private SoundManager soundManager;
+    private NPCManager npcManager;
     private FishingManager fishingManager;
     private int debugSpawnCooldown = 0;
     private int mapLoadCooldown = 0;
@@ -65,11 +66,12 @@ public class GameCore extends Canvas implements Runnable {
         renderer.modoDebug = false;
         levelManager = new LevelManager(this);
 
+        dialogueManager = new DialogueManager();
         itemManager = new ItemManager();
         enemyManager = new EnemyManager(levelManager, bulletmanager, soundManager);
         enemyManager.setItemManager(itemManager);
-        arenaManager = new ArenaManager(enemyManager, levelManager, itemManager);
-        dialogueManager = new DialogueManager();
+        npcManager = new NPCManager(dialogueManager, itemManager);
+        arenaManager = new ArenaManager(enemyManager, levelManager, itemManager, npcManager);
         camera = new CameraManager(player.getX(), player.getY(), 1.25);
         hud = new Hud();
 
@@ -146,14 +148,18 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyPressed(KeyEvent.VK_T)) {
             if (!dialogueManager.isAtivo()) {
                 soundManager.playBGM(SoundManager.BGM.OS_CRIA);
-                dialogueManager.iniciarDialogo(new String[]{
-                    "PINGU: Entrando na base de operações.",
-                    "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
-                    "PINGU: Eles não vão nem ver de onde veio."
+                dialogueManager.iniciarDialogo(new String[] {
+                        "PINGU: Entrando na base de operações.",
+                        "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
+                        "PINGU: Eles não vão nem ver de onde veio."
+
                 });
             }
         }
-
+        if (input.isKeyJustPressed(KeyEvent.VK_N)) {
+            player.setX(20.5 * GameCore.tiles_size);
+            player.setY(48.0 * GameCore.tiles_size);
+        }
         if (dialogueManager.isAtivo()) {
             dialogueManager.atualizar(input);
         } else {
@@ -171,10 +177,10 @@ public class GameCore extends Canvas implements Runnable {
             }
 
             fishingManager.update(input, camera, levelManager.getCurLevelData(), getWidth(), getHeight());
-            //player.testemunicao(input, getWidth(), getHeight(), itemManager, camera);
+            // player.testemunicao(input, getWidth(), getHeight(), itemManager, camera);
 
             player.update(input, getWidth(), getHeight(), camera, enemyManager.getEnemies());
-
+            npcManager.update(player, input);
             itemManager.update(player);
 
             ArrayList<JumpLink> linksAtuais = levelManager.getJumpLinks();
@@ -182,9 +188,9 @@ public class GameCore extends Canvas implements Runnable {
 
             arenaManager.update(player, camera, cutsceneManager);
 
-            if(arenaManager.consumirSolicitacaoCutsceneBoss()){
-              gameState = GameState.CUTSCENE;
-              return;
+            if (arenaManager.consumirSolicitacaoCutsceneBoss()) {
+                gameState = GameState.CUTSCENE;
+                return;
             }
 
             bulletmanager.update(camera, getWidth(), getHeight(),
@@ -258,14 +264,14 @@ public class GameCore extends Canvas implements Runnable {
         }
     }
 
-    public void updateCutscene(){
-      cutsceneManager.update();
-      camera.update(player, input, getWidth(), getHeight());
+    public void updateCutscene() {
+        cutsceneManager.update();
+        camera.update(player, input, getWidth(), getHeight());
 
-      if(!cutsceneManager.isAtiva()){
-        player.setBlockInputs(false);
-        gameState = GameState.PLAYING;
-      }
+        if (!cutsceneManager.isAtiva()) {
+            player.setBlockInputs(false);
+            gameState = GameState.PLAYING;
+        }
     }
 
     public void processarNovoMapa(ArrayList<TiledObject> objetosDoMapa) {
@@ -348,6 +354,7 @@ public class GameCore extends Canvas implements Runnable {
     public void resetarJogoCompleto() {
         hasCheckpoint = false;
         checkArenas.clear();
+        npcManager.clearAll();
         chavesColetadasCheckpoint = 0;
         player.resetarProgresso();
         levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
@@ -365,26 +372,26 @@ public class GameCore extends Canvas implements Runnable {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, delta);
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager, delta);
                     case GAME_OVER -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, delta);
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager, delta);
                         gameOverScreen.render(g2, getWidth(), getHeight());
                     }
                     case PAUSED -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, delta);
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager, delta);
                         pauseMenu.render(g2, getWidth(), getHeight());
                     }
                     case CUTSCENE -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, delta);
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager, delta);
 
                         cutsceneManager.draw(g2, getWidth(), getHeight());
                     }
