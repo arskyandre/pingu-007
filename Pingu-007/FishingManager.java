@@ -20,6 +20,7 @@ public class FishingManager {
         NONE, NORMAL, KEY
     }
 
+    private ItemManager itemManager;
     private SoundManager soundManager;
     private State state = State.IDLE;
     private HoleType currentHoleType = HoleType.NONE;
@@ -41,7 +42,8 @@ public class FishingManager {
     private static final double RANGE = GameCore.tiles_size * 2;
     private static final int BUTTON_SIZE = 40;
 
-    public FishingManager(Player player, SoundManager sound) {
+    public FishingManager(Player player, SoundManager sound, ItemManager item) {
+        itemManager = item;
         soundManager = sound;
         this.player = player;
         this.fishingButton = new IconButton(0, 0, BUTTON_SIZE, IconIndex.FISHING, true);
@@ -241,12 +243,13 @@ public class FishingManager {
     private void onFishCaught() {
         switch (currentHoleType) {
             case NORMAL -> {
-                System.out.println("Fish caught! Healing player.");
+                System.out.println("peixe pego, curando player");
                 player.curar(15);
             }
             case KEY -> {
-                System.out.println("Key fish caught! Giving player a key.");
-                player.curar(1);
+                System.out.printf("encontrou a chave! spawnando em %f, %f\n", 114.5 * GameCore.tiles_size,
+                        57.7 * GameCore.tiles_size);
+                itemManager.spawn(new KeyItem(114.5 * GameCore.tiles_size, 57.7 * GameCore.tiles_size));
             }
             default -> {
                 System.out.println("Fish caught! (unknown hole type)");
