@@ -40,13 +40,13 @@ public class PescadorNPC extends NPC {
                     if (laEle)
                         dialogueManager.iniciarDialogo(
                                 new String[] {
-                                        "PESQUEIRO: Esqueceu como pescar? É fácil, é só chegar perto de um buraco de água e apertar E para lançar a linha." });
+                                        "PESCADOR: Esqueceu como pescar? É fácil, é só chegar perto de um buraco de água e apertar E para lançar a linha." });
                     else
                         dialogueManager.iniciarDialogo(
                                 new String[] {
-                                        "PESQUEIRO: Ei, agente! Vejo que você ainda não tem uma vara de pesca.",
-                                        "PESQUEIRO: Ainda bem que tenho uma sobrando. Pode ficar com ela!",
-                                        "PESQUEIRO: Sabe como pescar? É fácil, e só chegar perto de um buraco de água e apertar E para lançar a linha." });
+                                        "PESCADOR: Ei, agente! Vejo que você ainda não tem uma vara de pesca.",
+                                        "PESCADOR: Ainda bem que tenho uma sobrando. Pode ficar com ela!",
+                                        "PESCADOR: Sabe como pescar? É fácil, e só chegar perto de um buraco de água e apertar E para lançar a linha." });
                     state = State.TALKING;
                 }
             }
