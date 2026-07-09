@@ -28,6 +28,11 @@ O mapa também possui algumas arenas. Ao entrar em uma delas, a saída é bloque
 
 <img src="screenshots/arena.png" alt="Arena" width="700">
 
+## Pesca
+
+Depois de ganhar do pescador a **vara de pesca**, é possível pescar nos buracos de água para conseguir cura de vida, munição, ou chaves para abrir o portão do Boss.
+<img src="screenshots/pesca.png" alt="Pesca" width="700">
+
 ## Inimigos
 
 O jogo possui diversos tipos de inimigos:
