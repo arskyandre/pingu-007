@@ -26,7 +26,7 @@ Durante a fase é possível encontrar alguns itens que auxiliam o jogador, como 
 
 O mapa também possui algumas arenas. Ao entrar em uma delas, a saída é bloqueada e só é liberada após todos os inimigos serem derrotados.
 
-<img src="screenshots/arena.png" alt="Arena" width="700">
+<img src="screenshots/arena.png" alt="Arenas" width="700">
 
 ## Pesca
 
@@ -65,9 +65,9 @@ O mapa é composto por diferentes tipos de terreno. Além da neve comum, existem
 
 ## Configurações
 
-O menu de configurações pode ser acessado tanto pelo menu principal quanto durante a partida.
+O menu de configurações pode ser acessado tanto pelo menu principal quanto durante o jogo.
 
-Nele é possível ajustar o volume da música e dos efeitos sonoros, além de consultar as teclas de ações do jogo.
+Nele é possível ajustar o volume da música e dos efeitos sonoros, além de consultar as teclas de ações do jogo e alternar o modo Tela Cheia.
 
 <img src="screenshots/settings.png" alt="Configurações" width="700">
 
