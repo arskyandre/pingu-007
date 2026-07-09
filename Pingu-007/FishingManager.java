@@ -41,6 +41,7 @@ public class FishingManager {
     private static final int FEEDBACK_DURATION = 60;
     private static final double RANGE = GameCore.tiles_size * 2;
     private static final int BUTTON_SIZE = 40;
+    private static final double BASE_ZOOM = 1.25;
 
     public FishingManager(Player player, SoundManager sound, ItemManager item) {
         itemManager = item;
@@ -158,14 +159,17 @@ public class FishingManager {
     }
 
     private void repositionButton(CameraManager camera, int screenWidth, int screenHeight) {
+        int scaledSize = (int) (BUTTON_SIZE * (camera.getZoom() / BASE_ZOOM));
+        fishingButton.setSize(scaledSize, scaledSize);
+
         double screenX = (targetWorldX - camera.getX()) * camera.getZoom();
         double screenY = (targetWorldY - camera.getY()) * camera.getZoom();
 
-        int bx = (int) (screenX - BUTTON_SIZE / 2.0);
-        int by = (int) (screenY - BUTTON_SIZE - 12);
+        int bx = (int) (screenX - scaledSize / 2.0);
+        int by = (int) (screenY - scaledSize - 12);
 
-        bx = Math.max(4, Math.min(bx, screenWidth - BUTTON_SIZE - 4));
-        by = Math.max(4, Math.min(by, screenHeight - BUTTON_SIZE - 4));
+        bx = Math.max(4, Math.min(bx, screenWidth - scaledSize - 4));
+        by = Math.max(4, Math.min(by, screenHeight - scaledSize - 4));
 
         fishingButton.setPosition(bx, by);
     }

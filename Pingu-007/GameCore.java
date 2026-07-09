@@ -78,7 +78,7 @@ public class GameCore extends Canvas implements Runnable {
         enemyManager = new EnemyManager(levelManager, bulletmanager, soundManager);
         enemyManager.setItemManager(itemManager);
         npcManager = new NPCManager(dialogueManager, itemManager);
-        cutsceneManager = new CutsceneManager();
+        cutsceneManager = new CutsceneManager(this);
         arenaManager = new ArenaManager(enemyManager, levelManager, itemManager, npcManager, cutsceneManager, this);
         camera = new CameraManager(player.getX(), player.getY(), BASE_ZOOM);
         hud = new Hud();

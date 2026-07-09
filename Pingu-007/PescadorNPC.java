@@ -50,7 +50,7 @@ public class PescadorNPC extends NPC {
                 if (!dialogueManager.isAtivo()) {
                     if (!laEle) {
 
-                        itemManager.spawn(new FishingRodItem(x + largura / 2.0, y + altura + 16));
+                        itemManager.spawn(new FishingRodItem(x + (largura / 2.0), y + altura + 40));
                         laEle = true;
                     }
                     state = State.IDLE;

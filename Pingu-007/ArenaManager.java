@@ -125,7 +125,9 @@ public class ArenaManager {
                     } else {
                         arena.concluida = true;
                         verificarDesativacaoParedes(arena.id, player);
-
+                        if (!existeArenaAtiva()) {
+                            gameCore.setCinematicBorderAnimation(Renderer.BorderState.OUT);
+                        }
                         if (arena.id == 9 || arena.id == 10 || arena.id == 13 || arena.id == 14 || arena.id == 15
                                 || arena.id == 16) {
                             player.solicitarCheckpoint();
@@ -135,6 +137,15 @@ public class ArenaManager {
                 }
             }
         }
+    }
+
+    private boolean existeArenaAtiva() {
+        for (Arena arena : arenas) {
+            if (arena.ativa && !arena.concluida) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void interagir(Player player, int chavesDoPlayer) {
@@ -346,8 +357,8 @@ public class ArenaManager {
         }
     }
 
+    // gameCore.setCinematicBorderAnimation(Renderer.BorderState.OUT);
     private void verificarDesativacaoParedes(int id, Player player) {
-        gameCore.setCinematicBorderAnimation(Renderer.BorderState.OUT);
         switch (id) {
             case 0 -> {
             }

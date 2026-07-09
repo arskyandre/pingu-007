@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
 /**
  * botao de menu com texto, auto ajustado
  */
@@ -32,6 +33,10 @@ public class MenuButton {
         this.label = label;
         this.rect = new Rectangle(x, y, width, height);
         adjustHeight();
+    }
+
+    public void setSize(int width, int height) {
+        rect.setSize(width, height);
     }
 
     protected void adjustHeight() {
