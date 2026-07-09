@@ -505,6 +505,7 @@ public class GameCore extends Canvas implements Runnable {
 
     public static void main(String[] args) {
         GameCore game = new GameCore();
+        Toolkit.getDefaultToolkit().setDynamicLayout(false);
         game.frame = new JFrame("Pingu 007 (ALPHA)");
         game.frame.setIconImage(
                 LoadSave.GetSpriteAtlas("pingu_portrait_close.jpg").getScaledInstance(64, 64, Image.SCALE_SMOOTH));
@@ -513,7 +514,6 @@ public class GameCore extends Canvas implements Runnable {
         game.frame.setLocationRelativeTo(null);
         game.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         game.frame.setResizable(true);
-
         game.optionsMenu.repositionElements(game.getWidth(), game.getHeight());
         game.keyBindingsMenu.repositionElements(game.getWidth(), game.getHeight());
         game.frame.setVisible(true);
