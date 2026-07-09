@@ -2,7 +2,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.io.File;
 
-public class OptionsMenu {
+public class KeyBindingsMenu {
 
     private final SoundManager soundManager;
     private GameState returnTo;
@@ -10,7 +10,7 @@ public class OptionsMenu {
     private static final int SLIDER_W = 320;
     private static final int SLIDER_H = 10;
     private static final int BTN_SIZE = 36;
-    private static final int BTN_GAP = 30;
+    private static final int BTN_GAP = 10;
 
     private int lastClickedSlider = 0;
 
@@ -24,13 +24,12 @@ public class OptionsMenu {
     private final IconButton toggleMuteBGM;
     private final IconButton toggleMuteSFX;
     private final MenuButton backBtn;
-    private final MenuButton keyBindBtn;
 
     private Font pixelFont;
     private Font pixelFontSmall;
     private Font pixelFontTiny;
 
-    public OptionsMenu(SoundManager soundManager) {
+    public KeyBindingsMenu(SoundManager soundManager) {
         this.soundManager = soundManager;
         this.previousMusicVolume = soundManager.getMusicVolume();
         this.previousSfxVolume = soundManager.getSfxVolume();
@@ -40,7 +39,6 @@ public class OptionsMenu {
         toggleMuteBGM = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED, false);
         toggleMuteSFX = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED, false);
         backBtn = new MenuButton("VOLTAR", 0, 0, 160, 46);
-        keyBindBtn = new MenuButton("Consultar teclas", 0, 0, 160, 45);
 
         try {
             Font base = Font.createFont(Font.TRUETYPE_FONT, new File("font/PressStart2P-Regular.ttf"));
@@ -72,8 +70,7 @@ public class OptionsMenu {
                 sfxSlider.getRightX() + BTN_GAP,
                 sfxSlider.getCenterY() - BTN_SIZE / 2);
 
-        keyBindBtn.setPosition((width - 160) / 2, height * 3 / 4);
-        backBtn.setPosition((width - 160) / 2, height * 3 / 4 + BTN_GAP + BTN_SIZE);
+        backBtn.setPosition((width - 160) / 2, height * 3 / 4);
     }
 
     public GameState update(InputManager input, int width, int height) {
@@ -173,10 +170,7 @@ public class OptionsMenu {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             return returnTo;
         }
-        if (keyBindBtn.update(input) == MenuButton.CLICKED) {
-            soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
-            return GameState.KEYBINDINGS;
-        }
+
         return GameState.OPTIONS;
     }
 
@@ -208,7 +202,6 @@ public class OptionsMenu {
 
         toggleMuteBGM.draw(g2);
         toggleMuteSFX.draw(g2);
-        keyBindBtn.draw(g2);
         backBtn.draw(g2);
 
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
