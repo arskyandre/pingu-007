@@ -94,7 +94,7 @@ public class MainMenu {
         g2.drawString(title, (width - tw) / 2, height / 4);
 
         g2.setFont(pixelFont.deriveFont(Font.PLAIN, 12f));
-        String fscreen = "Pressione [F11] para alternar a tela cheia!";
+        String fscreen = "Pressione F11 para alternar a tela cheia!";
         tw = g2.getFontMetrics().stringWidth(fscreen);
         int textX = width - tw;
         int bobOffset = (int) (Math.sin(bobTime) * BOB_AMP);

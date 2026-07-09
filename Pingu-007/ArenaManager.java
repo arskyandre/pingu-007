@@ -1,5 +1,6 @@
 
 import java.util.ArrayList;
+import java.awt.geom.Rectangle2D;
 
 public class ArenaManager {
 
@@ -13,6 +14,7 @@ public class ArenaManager {
     private boolean chave14_15_spawnada = false;
     private boolean cutsceneBossSolicitada = false;
     private boolean pesqueiro_spawnado = false;
+    private boolean isFirstArena = true;
 
     public static class Arena {
 
@@ -87,6 +89,22 @@ public class ArenaManager {
         setWallState(3, true, null);
         setWallState(101, true, null);
         setWallState(102, true, null);
+    }
+
+    private Rectangle2D.Double getCombinedWallRect(int idArena) {
+        Rectangle2D.Double combined = null;
+        for (DoorObject door : doors) {
+            if (door.getArenaId() == idArena && door.isClosed()) {
+                TiledObject d = door.getData();
+                Rectangle2D.Double r = new Rectangle2D.Double(d.x, d.y, d.width, d.height);
+                combined = (combined == null) ? r : (Rectangle2D.Double) combined.createUnion(r);
+            }
+        }
+        return combined;
+    }
+
+    public void setFirstArenaFlag(boolean fg) {
+        isFirstArena = fg;
     }
 
     private void registerTypedObject(ArenaObject arenaObject) {
@@ -354,6 +372,16 @@ public class ArenaManager {
         if (!arena.concluida && arena.totalHordas > 0) {
             arena.hordaAtual = 1;
             spawnHorda(arena);
+        }
+        if (isFirstArena) {
+            Rectangle2D.Double wallRect = getCombinedWallRect(id);
+            if (wallRect != null) {
+                double wallCenterX = wallRect.x + wallRect.width / 2.0;
+                double wallCenterY = wallRect.y + wallRect.height / 2.0;
+                cutsceneManager.iniciarWallReveal(wallCenterX, wallCenterY, wallRect, camera, player);
+                gameCore.setGameState(GameState.CUTSCENE);
+                isFirstArena = false;
+            }
         }
     }
 

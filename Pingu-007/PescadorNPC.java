@@ -14,17 +14,22 @@ public class PescadorNPC extends NPC {
     private static final double WIDTH = GameCore.tiles_size;
     private static final double HEIGHT = GameCore.tiles_size;
     private boolean proximo = false;
+    private double Yfinal;
 
     private BufferedImage Sprite;
 
     public PescadorNPC(double x, double y) {
         super(x, y, WIDTH, HEIGHT);
+        Yfinal = y;
+        this.y = Yfinal + 40;
         Sprite = LoadSave.GetSpriteAtlas("pescador.png");
     }
 
     @Override
     public void update(Player player, InputManager input,
             DialogueManager dialogueManager, ItemManager itemManager) {
+        if (Yfinal != y)
+            return;
         if (playerNearby(player))
             proximo = true;
         else
@@ -61,10 +66,13 @@ public class PescadorNPC extends NPC {
     }
 
     @Override
-    public void draw(Graphics2D g2) {
+    public void draw(Graphics2D g2, double delta) {
+
         if (!active)
             return;
-
+        if (y > Yfinal) {
+            y -= 10.0 * delta;
+        }
         g2.drawImage(Sprite, (int) x, (int) y, (int) WIDTH, (int) HEIGHT, null);
         if (state == State.IDLE && proximo) {
             g2.setFont(MenuButton.pixelFont.deriveFont(7f));

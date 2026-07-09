@@ -68,6 +68,7 @@ public class GameCore extends Canvas implements Runnable {
         itemManager = new ItemManager();
         input = new InputManager();
         player = new Player(380, 500, tiles_size - 1, tiles_size - 1, bulletmanager, soundManager);
+        camera = new CameraManager(player.getX(), player.getY(), BASE_ZOOM);
         renderer = new Renderer();
         renderer.modoDebug = false;
         levelManager = new LevelManager(this);
@@ -80,7 +81,6 @@ public class GameCore extends Canvas implements Runnable {
         npcManager = new NPCManager(dialogueManager, itemManager);
         cutsceneManager = new CutsceneManager(this);
         arenaManager = new ArenaManager(enemyManager, levelManager, itemManager, npcManager, cutsceneManager, this);
-        camera = new CameraManager(player.getX(), player.getY(), BASE_ZOOM);
         hud = new Hud();
 
         levelManager.inicializarPrimeiroNivel();
@@ -147,7 +147,7 @@ public class GameCore extends Canvas implements Runnable {
                 gameState = next;
             }
             case CUTSCENE -> {
-
+                updateCutscene();
             }
             case PAUSED -> {
                 GameState next = pauseMenu.update(input, getWidth(), getHeight());
@@ -164,7 +164,7 @@ public class GameCore extends Canvas implements Runnable {
                 gameState = next;
             }
             case OPTIONS ->
-                gameState = optionsMenu.update(input, getWidth(), getHeight());
+                gameState = optionsMenu.update(input, getWidth(), getHeight(), this);
             case KEYBINDINGS ->
                 gameState = keyBindingsMenu.update(input, getWidth(), getHeight());
             case QUIT ->
@@ -324,6 +324,10 @@ public class GameCore extends Canvas implements Runnable {
         }
     }
 
+    public void setGameState(GameState state) {
+        this.gameState = state;
+    }
+
     public void processarNovoMapa(ArrayList<TiledObject> objetosDoMapa) {
         enemyManager.limparTudo();
         bulletmanager.limparTudo();
@@ -404,9 +408,12 @@ public class GameCore extends Canvas implements Runnable {
     public void resetarJogoCompleto() {
         hasCheckpoint = false;
         checkArenas.clear();
+        arenaManager.setFirstArenaFlag(true);
         npcManager.clearAll();
         chavesColetadasCheckpoint = 0;
         player.resetarProgresso();
+        renderer.setBorderProgress(0.0);
+        setCinematicBorderAnimation(Renderer.BorderState.IDLE);
         levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
     }
 
@@ -422,13 +429,15 @@ public class GameCore extends Canvas implements Runnable {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager, delta,
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
+                                cutsceneManager, delta,
                                 true);
                     case GAME_OVER -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager, delta,
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
+                                cutsceneManager, delta,
                                 true);
                         gameOverScreen.render(g2, getWidth(), getHeight());
                     }
@@ -436,7 +445,8 @@ public class GameCore extends Canvas implements Runnable {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager, delta,
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
+                                cutsceneManager, delta,
                                 false);
                         pauseMenu.render(g2, getWidth(), getHeight());
                     }
@@ -444,7 +454,8 @@ public class GameCore extends Canvas implements Runnable {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager, delta,
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
+                                cutsceneManager, delta,
                                 true);
 
                         cutsceneManager.draw(g2, getWidth(), getHeight());

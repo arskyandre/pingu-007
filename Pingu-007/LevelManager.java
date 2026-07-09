@@ -1,5 +1,7 @@
-
+import java.awt.AlphaComposite;
+import java.awt.Composite;
 import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
@@ -57,7 +59,19 @@ public class LevelManager {
         System.out.println("Atlas carregado: " + index + " sprites.");
     }
 
-    private void drawFilteredLayers(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura, java.util.function.Predicate<MapDATA.TileLayer> filter) {
+    private void drawFilteredLayers(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura,
+            java.util.function.Predicate<MapDATA.TileLayer> filter) {
+        drawFilteredLayers(g2, camera, telaLargura, telaAltura, filter, null, 1f);
+    }
+
+    /**
+     * @param fadeRect  região em coordenadas de mundo cujos tiles devem ser
+     *                  desenhados com fadeAlpha; null = desenha tudo normalmente
+     * @param fadeAlpha alpha (0..1) aplicado apenas aos tiles dentro de fadeRect
+     */
+    private void drawFilteredLayers(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura,
+            java.util.function.Predicate<MapDATA.TileLayer> filter,
+            Rectangle2D.Double fadeRect, float fadeAlpha) {
         if (mapDataAtual == null || mapDataAtual.layers == null) {
             return;
         }
@@ -69,6 +83,8 @@ public class LevelManager {
 
         int startX = Math.max(0, (int) (viewLeft / GameCore.tiles_size));
         int startY = Math.max(0, (int) (viewTop / GameCore.tiles_size));
+
+        Composite originalComposite = g2.getComposite();
 
         for (int i = 0; i < mapDataAtual.layers.size(); i++) {
             MapDATA.TileLayer layer = mapDataAtual.layers.get(i);
@@ -87,10 +103,22 @@ public class LevelManager {
 
                         int sprite = id - 1;
                         if (sprite >= 0 && sprite < levelSprite.length && levelSprite[sprite] != null) {
-                            g2.drawImage(levelSprite[sprite],
-                                    x * GameCore.tiles_size,
-                                    y * GameCore.tiles_size,
+                            int tileWorldX = x * GameCore.tiles_size;
+                            int tileWorldY = y * GameCore.tiles_size;
+
+                            boolean insideFade = fadeRect != null && fadeRect.intersects(
+                                    tileWorldX, tileWorldY, GameCore.tiles_size, GameCore.tiles_size);
+
+                            if (insideFade) {
+                                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, fadeAlpha));
+                            }
+
+                            g2.drawImage(levelSprite[sprite], tileWorldX, tileWorldY,
                                     GameCore.tiles_size, GameCore.tiles_size, null);
+
+                            if (insideFade) {
+                                g2.setComposite(originalComposite);
+                            }
                         }
                     }
                 }
@@ -103,10 +131,15 @@ public class LevelManager {
     }
 
     public void drawGround(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura) {
+        drawGround(g2, camera, telaLargura, telaAltura, null, 1f);
+    }
+
+    public void drawGround(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura,
+            Rectangle2D.Double fadeRect, float fadeAlpha) {
         drawFilteredLayers(g2, camera, telaLargura, telaAltura, layer -> {
             String n = layer.name.toLowerCase();
             return n.startsWith("b") || n.equals("ground") || n.equals("fence");
-        });
+        }, fadeRect, fadeAlpha);
     }
 
     public void drawForeground(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura) {

@@ -36,5 +36,5 @@ public abstract class NPC {
     public abstract void update(Player player, InputManager input,
             DialogueManager dialogueManager, ItemManager itemManager);
 
-    public abstract void draw(Graphics2D g2);
+    public abstract void draw(Graphics2D g2, double delta);
 }

@@ -13,7 +13,7 @@ public class MenuButton {
     protected final String label;
     protected final Rectangle rect;
     protected boolean hovered = false;
-
+    protected boolean held = false;
     protected static Font pixelFont;
 
     static {
@@ -78,10 +78,15 @@ public class MenuButton {
 
     public int update(InputManager input) {
         hovered = rect.contains(input.getMouseX(), input.getMouseY());
-        if (!hovered)
-            return IDLE;
-        if (input.isMouseButtonJustPressed(MouseEvent.BUTTON1))
+        if (hovered && input.isMouseButtonJustPressed(MouseEvent.BUTTON1))
             return CLICKED;
+        else if (hovered && input.isMouseButtonPressed(MouseEvent.BUTTON1)) {
+            held = true;
+        }
+        held = false;
+        if (!hovered) {
+            return IDLE;
+        }
         return HOVERED;
     }
 

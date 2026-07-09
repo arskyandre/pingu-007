@@ -16,10 +16,14 @@ public class Renderer {
     private double borderProgress = 0;
     Boolean preDash = false;
 
+    public void setBorderProgress(double prog) {
+        borderProgress = prog;
+    }
+
     public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura,
             int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager,
             EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager,
-            FishingManager fishingManager, NPCManager npcManager, double delta, boolean animateBorder) {
+            FishingManager fishingManager, NPCManager npcManager, CutsceneManager cutsceneManager, double delta, boolean animateBorder) {
 
         // Mantem o tamanho da borda proporcional a altura da tela
         cinematicBorderHeight = telaAltura / 8;
@@ -32,7 +36,11 @@ public class Renderer {
         g2.translate(-camera.getX(), -camera.getY());
 
         lm.drawBackground(g2, camera, telaLargura, telaAltura);
-        lm.drawGround(g2, camera, telaLargura, telaAltura);
+        if(cutsceneManager.isWallRevealAtiva()){
+            lm.drawGround(g2, camera, telaLargura, telaAltura,
+                cutsceneManager.getWallFadeRect(), cutsceneManager.getWallFadeAlpha());
+        }
+        else lm.drawGround(g2, camera, telaLargura, telaAltura);
 
         if (arenaManager != null) {
             arenaManager.drawOverlays(g2);
@@ -69,7 +77,7 @@ public class Renderer {
                 }
                 case NPC npc -> {
                     if (npc.isActive()) {
-                        npc.draw(g2);
+                        npc.draw(g2, delta);
                     }
                 }
                 default -> {

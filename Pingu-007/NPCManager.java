@@ -30,13 +30,6 @@ public class NPCManager {
         }
     }
 
-    public void draw(Graphics2D g2) {
-        for (NPC npc : npcs) {
-            if (npc.isActive()) {
-                npc.draw(g2);
-            }
-        }
-    }
 
     public ArrayList<NPC> getNpcs() {
         return npcs;
