@@ -373,14 +373,16 @@ public class ArenaManager {
             arena.hordaAtual = 1;
             spawnHorda(arena);
         }
-        if (isFirstArena) {
-            Rectangle2D.Double wallRect = getCombinedWallRect(id);
-            if (wallRect != null) {
+        Rectangle2D.Double wallRect = getCombinedWallRect(id);
+        if (wallRect != null) {
+            if (isFirstArena) {
                 double wallCenterX = wallRect.x + wallRect.width / 2.0;
                 double wallCenterY = wallRect.y + wallRect.height / 2.0;
-                cutsceneManager.iniciarWallReveal(wallCenterX, wallCenterY, wallRect, camera, player);
+                cutsceneManager.iniciarWallRevealComCamera(wallCenterX, wallCenterY, wallRect, camera, player);
                 gameCore.setGameState(GameState.CUTSCENE);
                 isFirstArena = false;
+            } else {
+                cutsceneManager.iniciarWallFade(wallRect);
             }
         }
     }

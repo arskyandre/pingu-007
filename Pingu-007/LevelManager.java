@@ -61,17 +61,14 @@ public class LevelManager {
 
     private void drawFilteredLayers(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura,
             java.util.function.Predicate<MapDATA.TileLayer> filter) {
-        drawFilteredLayers(g2, camera, telaLargura, telaAltura, filter, null, 1f);
+        drawFilteredLayers(g2, camera, telaLargura, telaAltura, filter, null, 1f, layer -> false, 0, 0);
     }
 
-    /**
-     * @param fadeRect  região em coordenadas de mundo cujos tiles devem ser
-     *                  desenhados com fadeAlpha; null = desenha tudo normalmente
-     * @param fadeAlpha alpha (0..1) aplicado apenas aos tiles dentro de fadeRect
-     */
     private void drawFilteredLayers(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura,
             java.util.function.Predicate<MapDATA.TileLayer> filter,
-            Rectangle2D.Double fadeRect, float fadeAlpha) {
+            Rectangle2D.Double fadeRect, float fadeAlpha,
+            java.util.function.Predicate<MapDATA.TileLayer> fadeLayerFilter,
+            double shakeX, double shakeY) {
         if (mapDataAtual == null || mapDataAtual.layers == null) {
             return;
         }
@@ -90,6 +87,8 @@ public class LevelManager {
             MapDATA.TileLayer layer = mapDataAtual.layers.get(i);
 
             if (filter.test(layer)) {
+                boolean layerPodeFade = fadeRect != null && fadeLayerFilter.test(layer);
+
                 int[][] lvlData = layer.data;
                 int endX = Math.min(lvlData[0].length - 1, (int) (viewRight / GameCore.tiles_size) + 1);
                 int endY = Math.min(lvlData.length - 1, (int) (viewBottom / GameCore.tiles_size) + 1);
@@ -106,14 +105,19 @@ public class LevelManager {
                             int tileWorldX = x * GameCore.tiles_size;
                             int tileWorldY = y * GameCore.tiles_size;
 
-                            boolean insideFade = fadeRect != null && fadeRect.intersects(
+                            boolean insideFade = layerPodeFade && fadeRect.intersects(
                                     tileWorldX, tileWorldY, GameCore.tiles_size, GameCore.tiles_size);
+
+                            int drawX = tileWorldX;
+                            int drawY = tileWorldY;
 
                             if (insideFade) {
                                 g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, fadeAlpha));
+                                drawX += (int) Math.round(shakeX);
+                                drawY += (int) Math.round(shakeY);
                             }
 
-                            g2.drawImage(levelSprite[sprite], tileWorldX, tileWorldY,
+                            g2.drawImage(levelSprite[sprite], drawX, drawY,
                                     GameCore.tiles_size, GameCore.tiles_size, null);
 
                             if (insideFade) {
@@ -131,15 +135,20 @@ public class LevelManager {
     }
 
     public void drawGround(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura) {
-        drawGround(g2, camera, telaLargura, telaAltura, null, 1f);
+        drawGround(g2, camera, telaLargura, telaAltura, null, 1f, 0, 0);
     }
 
     public void drawGround(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura,
             Rectangle2D.Double fadeRect, float fadeAlpha) {
+        drawGround(g2, camera, telaLargura, telaAltura, fadeRect, fadeAlpha, 0, 0);
+    }
+
+    public void drawGround(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura,
+            Rectangle2D.Double fadeRect, float fadeAlpha, double shakeX, double shakeY) {
         drawFilteredLayers(g2, camera, telaLargura, telaAltura, layer -> {
             String n = layer.name.toLowerCase();
             return n.startsWith("b") || n.equals("ground") || n.equals("fence");
-        }, fadeRect, fadeAlpha);
+        }, fadeRect, fadeAlpha, layer -> layer.name.equalsIgnoreCase("bWall"), shakeX, shakeY);
     }
 
     public void drawForeground(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura) {

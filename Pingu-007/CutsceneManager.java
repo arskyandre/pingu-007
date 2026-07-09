@@ -31,6 +31,8 @@ public class CutsceneManager {
     private int wallTimer = 0;
     private Rectangle2D.Double wallFadeRect;
     private Player wallRevealPlayer;
+    private static final double WALL_SHAKE_AMPLITUDE_MAX = 2.5;
+    private static final double WALL_SHAKE_SPEED = 1.2;
 
     private GameCore gameCore;
 
@@ -52,8 +54,28 @@ public class CutsceneManager {
         gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
     }
 
-    /** inicia cutscene */
+    /** cutscene das pareedes de arena */
     public void iniciarWallReveal(double wallCenterX, double wallCenterY, Rectangle2D.Double wallRect,
+            CameraManager camera, Player player) {
+        this.type = CutsceneType.WALL_REVEAL;
+        this.wallTimer = 0;
+        this.wallFadeRect = wallRect;
+        this.wallRevealPlayer = player;
+        camera.focarEm(wallCenterX, wallCenterY, WALL_REVEAL_DURATION);
+        player.setBlockInputs(true);
+    }
+
+    public void iniciarWallFade(Rectangle2D.Double wallRect) {
+        if (type == CutsceneType.WALL_REVEAL && wallRevealPlayer != null) {
+            return;
+        }
+        this.type = CutsceneType.WALL_REVEAL;
+        this.wallTimer = 0;
+        this.wallFadeRect = wallRect;
+        this.wallRevealPlayer = null;
+    }
+
+    public void iniciarWallRevealComCamera(double wallCenterX, double wallCenterY, Rectangle2D.Double wallRect,
             CameraManager camera, Player player) {
         this.type = CutsceneType.WALL_REVEAL;
         this.wallTimer = 0;
@@ -65,7 +87,7 @@ public class CutsceneManager {
     }
 
     public boolean isWallRevealAtiva() {
-        return type == CutsceneType.WALL_REVEAL;
+        return isWallFadeAtiva();
     }
 
     public Rectangle2D.Double getWallFadeRect() {
@@ -106,7 +128,34 @@ public class CutsceneManager {
     }
 
     public boolean isAtiva() {
-        return type != CutsceneType.NONE;
+        // só conta como cutscene "de verdade" (que pausa o jogo) se tiver player
+        // vinculado
+        return type == CutsceneType.BOSS_INTRO || (type == CutsceneType.WALL_REVEAL && wallRevealPlayer != null);
+    }
+
+    public boolean isWallFadeAtiva() {
+        return type == CutsceneType.WALL_REVEAL;
+    }
+
+    private double getWallShakeAmplitude() {
+        double progress = wallTimer / (double) WALL_REVEAL_DURATION;
+        return WALL_SHAKE_AMPLITUDE_MAX * Math.pow(1.0 - progress, 2.0);
+    }
+
+    public double getWallShakeX() {
+        if (type != CutsceneType.WALL_REVEAL) {
+            return 0;
+        }
+
+        return Math.sin(wallTimer * WALL_SHAKE_SPEED) * getWallShakeAmplitude();
+    }
+
+    public double getWallShakeY() {
+        if (type != CutsceneType.WALL_REVEAL) {
+            return 0;
+        }
+
+        return Math.cos(wallTimer * WALL_SHAKE_SPEED * 1.3) * getWallShakeAmplitude();
     }
 
     public void draw(Graphics2D g2, int telaLargura, int telaAltura) {

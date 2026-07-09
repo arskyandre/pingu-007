@@ -38,7 +38,7 @@ public class Renderer {
         lm.drawBackground(g2, camera, telaLargura, telaAltura);
         if(cutsceneManager.isWallRevealAtiva()){
             lm.drawGround(g2, camera, telaLargura, telaAltura,
-                cutsceneManager.getWallFadeRect(), cutsceneManager.getWallFadeAlpha());
+                cutsceneManager.getWallFadeRect(), cutsceneManager.getWallFadeAlpha(), cutsceneManager.getWallShakeX(), cutsceneManager.getWallShakeY());
         }
         else lm.drawGround(g2, camera, telaLargura, telaAltura);
 

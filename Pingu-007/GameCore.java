@@ -182,7 +182,7 @@ public class GameCore extends Canvas implements Runnable {
             gameState = GameState.PAUSED;
             return;
         }
-
+        cutsceneManager.update();
         if (input.isKeyPressed(KeyEvent.VK_T)) {
             if (!dialogueManager.isAtivo()) {
                 soundManager.playBGM(SoundManager.BGM.OS_CRIA);
