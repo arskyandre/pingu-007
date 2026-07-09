@@ -291,7 +291,7 @@ public class GameCore extends Canvas implements Runnable {
             ArrayList<JumpLink> linksAtuais = levelManager.getJumpLinks();
             enemyManager.update(player, linksAtuais);
 
-            arenaManager.update(player, camera);
+            arenaManager.update(player, camera, soundManager);
 
             if (arenaManager.consumirSolicitacaoCutsceneBoss()) {
                 gameState = GameState.CUTSCENE;

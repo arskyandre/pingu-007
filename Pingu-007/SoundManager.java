@@ -38,8 +38,10 @@ public class SoundManager {
         ICE_STEP_2("sound/sfx/ice_footstep2.wav", 6),
         FISHING_START("sound/sfx/fishing_start.wav", 2),
         // FISHING_FISH_FOUND("sound/sfx/fishing_fish_found.wav", 2),
-        // FISHING_CAUGHT("sound/sfx/fishing_caught.wav", 2),
+        // FISHING_CAUGHT("sound/sfx/fishing_caught.wav", 2), ADICIONAR SONS PRO
+        // MINIGAME DE PESCA
         // FISHING_LOST("sound/sfx/fishing_lost.wav", 2),
+        ARENA_ENTER("sound/sfx/arena_enter.wav", 2),
         BOMBER_AVISO("sound/sfx/bomber_aviso.wav", 6),
         EXPLOSION("sound/sfx/bomber_explosion.wav", 6),
         GUNSHOT("sound/sfx/gunshot.wav", 16),

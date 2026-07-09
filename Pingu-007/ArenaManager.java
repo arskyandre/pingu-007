@@ -122,13 +122,13 @@ public class ArenaManager {
         }
     }
 
-    public void update(Player player, CameraManager camera) {
+    public void update(Player player, CameraManager camera, SoundManager sound) {
         atualizarBotoes(player);
         for (int i = 0; i < arenas.size(); i++) {
             Arena arena = arenas.get(i);
             if (!arena.ativa && !arena.concluida && arena.trigger != null) {
                 if (ArenaTriggers.collides(arena.trigger, player)) {
-                    ativarArena(arena.id, player, camera, cutsceneManager);
+                    ativarArena(arena.id, player, camera, cutsceneManager, sound);
 
                     return;
 
@@ -287,9 +287,10 @@ public class ArenaManager {
         }
     }
 
-    private void ativarArena(int id, Player player, CameraManager camera, CutsceneManager cutsceneManager) {
+    private void ativarArena(int id, Player player, CameraManager camera, CutsceneManager cutsceneManager, SoundManager sound) {
         System.out.println("Ativou arena");
         gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
+        sound.playSFX(SoundManager.SFX.ARENA_ENTER);
         Arena arena = getOuCriarArena(id);
         arena.ativa = true;
         switch (id) {
