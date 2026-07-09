@@ -177,6 +177,76 @@ public class GameCore extends Canvas implements Runnable {
         renderer.setCinematicBorderAnimation(state);
     }
 
+    public void debugInputProcessing() {
+
+        if (input.isKeyJustPressed(KeyEvent.VK_I)) {
+            setCinematicBorderAnimation(Renderer.BorderState.IN);
+        }
+        if (input.isKeyJustPressed(KeyEvent.VK_O)) {
+            setCinematicBorderAnimation(Renderer.BorderState.OUT);
+        }
+        if (input.isKeyJustPressed(KeyEvent.VK_N)) {
+            player.setX(20.5 * GameCore.tiles_size);
+            player.setY(48.0 * GameCore.tiles_size);
+        }
+
+        if (debugSpawnCooldown > 0) {
+            debugSpawnCooldown--;
+        }
+
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_K) && debugSpawnCooldown <= 0) {
+            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+            enemyManager.adicionarInimigo("lobo", mouseXWorld, mouseYWorld, 0, -1);
+            System.out.println("DEBUG: Inimigo spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
+            debugSpawnCooldown = 30;
+        }
+
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_L) && debugSpawnCooldown <= 0) {
+            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+            // itemManager.spawn(new KeyItem(12839, 4870));
+            itemManager.spawn(new KeyItem(mouseXWorld, mouseYWorld));
+            System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
+            debugSpawnCooldown = 30;
+        }
+
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_V) && debugSpawnCooldown <= 0) {
+            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+            itemManager.spawn(new FishingRodItem(mouseXWorld, mouseYWorld));
+            System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
+            debugSpawnCooldown = 30;
+        }
+
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_0) && debugSpawnCooldown <= 0) {
+            renderer.modoDebug = !renderer.modoDebug;
+            if (renderer.modoDebug) {
+                System.out.println("DEBUG: Visão dos Triggers e Objetos Ativada");
+            } else {
+                System.out.println("DEBUG: Visão dos Triggers e Objetos Desativada");
+            }
+
+            debugSpawnCooldown = 30;
+        }
+        if (mapLoadCooldown > 0) {
+            mapLoadCooldown--;
+        }
+
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_1) && mapLoadCooldown <= 0) {
+            System.out.println("Voltando para o Mapa 1...");
+            levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
+            mapLoadCooldown = 60;
+        }
+
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_2) && mapLoadCooldown <= 0) {
+            System.out.println("Indo para o Mapa 2 de Testes...");
+            // Substitua pelo nome exato do seu arquivo JSON de teste
+            levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
+            mapLoadCooldown = 60;
+        }
+    }
+
     public void updateGame() {
         if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE)) {
             gameState = GameState.PAUSED;
@@ -196,16 +266,6 @@ public class GameCore extends Canvas implements Runnable {
                 });
             }
         }
-        if (input.isKeyJustPressed(KeyEvent.VK_I)) {
-            setCinematicBorderAnimation(Renderer.BorderState.IN);
-        }
-        if (input.isKeyJustPressed(KeyEvent.VK_O)) {
-            setCinematicBorderAnimation(Renderer.BorderState.OUT);
-        }
-        if (input.isKeyJustPressed(KeyEvent.VK_N)) {
-            player.setX(20.5 * GameCore.tiles_size);
-            player.setY(48.0 * GameCore.tiles_size);
-        }
         if (dialogueManager.isAtivo()) {
             dialogueManager.atualizar(input);
         } else {
@@ -223,7 +283,6 @@ public class GameCore extends Canvas implements Runnable {
             }
 
             fishingManager.update(input, camera, levelManager.getCurLevelData(), getWidth(), getHeight());
-            // player.testemunicao(input, getWidth(), getHeight(), itemManager, camera);
 
             player.update(input, getWidth(), getHeight(), camera, enemyManager.getEnemies());
             npcManager.update(player, input);
@@ -248,67 +307,11 @@ public class GameCore extends Canvas implements Runnable {
             camera.update(player, input, getWidth(), getHeight());
             fishingManager.syncToCamera(camera, getWidth(), getHeight());
 
-            // FUNÇÕES DE DEBUG
-            if (debugSpawnCooldown > 0) {
-                debugSpawnCooldown--;
-            }
-
-            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_K) && debugSpawnCooldown <= 0) {
-                double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-                double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-                enemyManager.adicionarInimigo("lobo", mouseXWorld, mouseYWorld, 0, -1);
-                System.out.println("DEBUG: Inimigo spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
-                debugSpawnCooldown = 30;
-            }
-
-            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_L) && debugSpawnCooldown <= 0) {
-                double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-                double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-                // itemManager.spawn(new KeyItem(12839, 4870));
-                itemManager.spawn(new KeyItem(mouseXWorld, mouseYWorld));
-                System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
-                debugSpawnCooldown = 30;
-            }
-
-            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_V) && debugSpawnCooldown <= 0) {
-                double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-                double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-                itemManager.spawn(new FishingRodItem(mouseXWorld, mouseYWorld));
-                System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
-                debugSpawnCooldown = 30;
-            }
-
-            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_0) && debugSpawnCooldown <= 0) {
-                renderer.modoDebug = !renderer.modoDebug;
-                if (renderer.modoDebug) {
-                    System.out.println("DEBUG: Visão dos Triggers e Objetos Ativada");
-                } else {
-                    System.out.println("DEBUG: Visão dos Triggers e Objetos Desativada");
-                }
-
-                debugSpawnCooldown = 30;
-            }
-
             if (input.isKeyPressed(java.awt.event.KeyEvent.VK_E) && debugSpawnCooldown <= 0) {
                 arenaManager.interagir(player, player.getChaves());
             }
 
-            if (mapLoadCooldown > 0) {
-                mapLoadCooldown--;
-            }
-
-            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_1) && mapLoadCooldown <= 0) {
-                System.out.println("Voltando para o Mapa 1...");
-                levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
-                mapLoadCooldown = 60;
-            }
-
-            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_2) && mapLoadCooldown <= 0) {
-                System.out.println("Indo para o Mapa 2 de Testes...");
-                // Substitua pelo nome exato do seu arquivo JSON de teste
-                levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
-                mapLoadCooldown = 60;
-            }
+            debugInputProcessing();
         }
     }
 
