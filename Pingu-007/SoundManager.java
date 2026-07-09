@@ -11,7 +11,8 @@ public class SoundManager {
      */
     public enum BGM {
         MAIN_MENU("sound/bgm/main_menu.wav"),
-        LEVEL_1("sound/bgm/level_1.wav"),
+        LEVEL_1_INTRO("sound/bgm/level_1_intro.wav"),
+        LEVEL_1_LOOP("sound/bgm/level_1_loop.wav"),
         OS_CRIA("sound/bgm/os_cria.wav");
 
         public final String path;
@@ -99,6 +100,12 @@ public class SoundManager {
     public void playBGM(BGM track) {
         currentTrack = track;
         bgmPlayer.play(track.path);
+        bgmPlayer.setVolume(musicVolume);
+    }
+
+    public void playBGM(BGM intro, BGM loop) {
+        currentTrack = loop;
+        bgmPlayer.playIntroThenLoop(intro.path, loop.path);
         bgmPlayer.setVolume(musicVolume);
     }
 

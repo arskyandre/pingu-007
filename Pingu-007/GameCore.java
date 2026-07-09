@@ -126,7 +126,7 @@ public class GameCore extends Canvas implements Runnable {
                     optionsMenu.setReturnState(GameState.MAIN_MENU);
                 }
                 if (next == GameState.PLAYING) {
-                    soundManager.playBGM(SoundManager.BGM.LEVEL_1);
+                    soundManager.playBGM(SoundManager.BGM.LEVEL_1_INTRO, SoundManager.BGM.LEVEL_1_LOOP);
                     player.setShootCooldownTimer(30);
                 }
                 gameState = next;

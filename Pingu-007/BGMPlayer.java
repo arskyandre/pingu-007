@@ -8,7 +8,7 @@ public class BGMPlayer {
     private volatile float volume = 1.0f;
     private String currentPath = null;
 
-    private static final int BUFFER_SIZE = 2048; // small = faster volume response
+    private static final int BUFFER_SIZE = 2048;
 
     public void play(String path) {
         stop();
@@ -17,26 +17,7 @@ public class BGMPlayer {
         thread = new Thread(() -> {
             while (running) {
                 try {
-                    AudioInputStream ais = AudioSystem.getAudioInputStream(new File(path));
-                    AudioFormat format = ais.getFormat();
-                    SourceDataLine line = AudioSystem.getSourceDataLine(format);
-                    line.open(format, BUFFER_SIZE);
-                    line.start();
-
-                    applyVolume(line);
-
-                    byte[] buf = new byte[BUFFER_SIZE];
-                    int bytesRead;
-                    while (running && (bytesRead = ais.read(buf, 0, buf.length)) != -1) {
-                        applyVolume(line); // applied every chunk — near-instant response
-                        line.write(buf, 0, bytesRead);
-                    }
-
-                    line.drain();
-                    line.close();
-                    ais.close();
-                    // loop: while(running) restarts the file automatically
-
+                    playFileOnce(path);
                 } catch (Exception e) {
                     e.printStackTrace();
                     running = false;
@@ -45,6 +26,75 @@ public class BGMPlayer {
         }, "BGMPlayer");
         thread.setDaemon(true);
         thread.start();
+    }
+
+    public void playIntroThenLoop(String introPath, String loopPath) {
+        stop();
+        currentPath = loopPath;
+        running = true;
+        thread = new Thread(() -> {
+            SourceDataLine line = null;
+            try {
+                AudioInputStream introAis = AudioSystem.getAudioInputStream(new File(introPath));
+                AudioFormat format = introAis.getFormat();
+                line = AudioSystem.getSourceDataLine(format);
+                line.open(format, BUFFER_SIZE);
+                line.start();
+                applyVolume(line);
+
+                byte[] buf = new byte[BUFFER_SIZE];
+                int bytesRead;
+
+                while (running && (bytesRead = introAis.read(buf, 0, buf.length)) != -1) {
+                    applyVolume(line);
+                    line.write(buf, 0, bytesRead);
+                }
+                introAis.close();
+
+                while (running) {
+                    AudioInputStream loopAis = AudioSystem.getAudioInputStream(new File(loopPath));
+                    if (!loopAis.getFormat().matches(format)) {
+                        System.err.println(
+                                "BGMPlayer: formato diferente entre intro e loop");
+                    }
+                    while (running && (bytesRead = loopAis.read(buf, 0, buf.length)) != -1) {
+                        applyVolume(line);
+                        line.write(buf, 0, bytesRead);
+                    }
+                    loopAis.close();
+                }
+
+                line.drain();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (line != null)
+                    line.close();
+            }
+        }, "BGMPlayer");
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void playFileOnce(String path) throws Exception {
+        AudioInputStream ais = AudioSystem.getAudioInputStream(new File(path));
+        AudioFormat format = ais.getFormat();
+        SourceDataLine line = AudioSystem.getSourceDataLine(format);
+        line.open(format, BUFFER_SIZE);
+        line.start();
+
+        applyVolume(line);
+
+        byte[] buf = new byte[BUFFER_SIZE];
+        int bytesRead;
+        while (running && (bytesRead = ais.read(buf, 0, buf.length)) != -1) {
+            applyVolume(line);
+            line.write(buf, 0, bytesRead);
+        }
+
+        line.drain();
+        line.close();
+        ais.close();
     }
 
     public void stop() {
@@ -59,7 +109,7 @@ public class BGMPlayer {
     }
 
     public void setVolume(float volume) {
-        this.volume = volume; // picked up on next chunk write
+        this.volume = volume;
     }
 
     public float getVolume() {
