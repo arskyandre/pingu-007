@@ -1,5 +1,6 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 
 public class PescadorNPC extends NPC {
 
@@ -14,8 +15,11 @@ public class PescadorNPC extends NPC {
     private static final double HEIGHT = GameCore.tiles_size;
     private boolean proximo = false;
 
+    private BufferedImage Sprite;
+
     public PescadorNPC(double x, double y) {
         super(x, y, WIDTH, HEIGHT);
+        Sprite = LoadSave.GetSpriteAtlas("pescador.png");
     }
 
     @Override
@@ -61,9 +65,7 @@ public class PescadorNPC extends NPC {
         if (!active)
             return;
 
-        g2.setColor(new Color(20, 77, 55));
-        g2.fillRect((int) x, (int) y, (int) largura, (int) altura);
-
+        g2.drawImage(Sprite, (int) x, (int) y, (int) WIDTH, (int) HEIGHT, null);
         if (state == State.IDLE && proximo) {
             g2.setFont(MenuButton.pixelFont.deriveFont(7f));
             g2.setColor(new Color(20, 77, 55));

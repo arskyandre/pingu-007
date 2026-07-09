@@ -12,14 +12,16 @@ public class Renderer {
     public boolean modoDebug = false;
 
     private int cinematicBorderHeight;
-    private double cinematicBorder = 0;
     private double borderFadeDuration = 0.7;
+    private double borderProgress = 0;
     Boolean preDash = false;
 
     public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura,
             int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager,
             EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager,
             FishingManager fishingManager, NPCManager npcManager, double delta, boolean animateBorder) {
+
+        // Mantem o tamanho da borda proporcional a altura da tela
         cinematicBorderHeight = telaAltura / 8;
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, telaLargura, telaAltura);
@@ -114,29 +116,41 @@ public class Renderer {
         g2.setTransform(originalTransform);
         HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager);
 
-        HUD.player_hearts(g2, quadrado, (int) cinematicBorder);
-        HUD.ammobar(g2, telaLargura, telaAltura, quadrado, (int) cinematicBorder);
-        fishingManager.render(g2, camera, telaLargura, telaAltura);
-        renderMouse(g2, input);
+        // Animacao das bordas cinematicas
         if (animateBorder) {
-            if (borderState == BorderState.IN) {
-                double borderSpeed = (double) cinematicBorderHeight / borderFadeDuration;
-                cinematicBorder += borderSpeed * delta;
+            double progressSpeed = 1.0 / borderFadeDuration;
 
-                if (cinematicBorder >= cinematicBorderHeight) {
-                    cinematicBorder = cinematicBorderHeight;
+            if (borderState == BorderState.IN) {
+                borderProgress += progressSpeed * delta;
+
+                if (borderProgress >= 1.0) {
+                    borderProgress = 1.0;
                     borderState = BorderState.IDLE;
                 }
             } else if (borderState == BorderState.OUT) {
-                double borderSpeed = (double) cinematicBorderHeight / borderFadeDuration;
-                cinematicBorder -= borderSpeed * delta;
+                borderProgress -= progressSpeed * delta;
 
-                if (cinematicBorder <= 0) {
-                    cinematicBorder = 0;
+                if (borderProgress <= 0.0) {
+                    borderProgress = 0.0;
                     borderState = BorderState.IDLE;
                 }
             }
         }
+        double eased;
+
+        if (borderState == BorderState.OUT) {
+            eased = borderProgress * borderProgress;
+        } else {
+            eased = 1.0 - (1.0 - borderProgress) * (1.0 - borderProgress);
+        }
+
+        int cinematicBorder = (int) (cinematicBorderHeight * eased);
+
+        HUD.player_hearts(g2, quadrado, (int) cinematicBorder);
+        HUD.ammobar(g2, telaLargura, telaAltura, quadrado, (int) cinematicBorder);
+        fishingManager.render(g2, camera, telaLargura, telaAltura);
+        renderMouse(g2, input);
+
         if (cinematicBorder > 0) {
             g2.setColor(Color.BLACK);
             g2.fillRect(0, 0, telaLargura, (int) cinematicBorder);
@@ -146,6 +160,16 @@ public class Renderer {
         if (dialogueManager != null && dialogueManager.isAtivo()) {
             dialogueManager.renderizar(g2, telaLargura, telaAltura);
         }
+    }
+
+    public void setCinematicBorderAnimation(BorderState state) {
+        if (state == BorderState.IN) {
+            System.out.println("criando borda cinematica");
+        } else if (state == BorderState.OUT) {
+            System.out.println("destruindo borda cinematica");
+        }
+
+        borderState = state;
     }
 
     private double getRenderBaseY(Object entidade) {

@@ -8,7 +8,7 @@ public class ArenaManager {
     private final ItemManager itemManager;
     private final ArenaContext context;
     private NPCManager npcManager;
-
+    private CutsceneManager cutsceneManager;
     // public boolean flagArena16Ativada = false;
     private boolean chave14_15_spawnada = false;
     private boolean cutsceneBossSolicitada = false;
@@ -32,14 +32,17 @@ public class ArenaManager {
     private final ArrayList<PressureButton> buttons = new ArrayList<>();
     private final ArrayList<CollisionBlock> collisionBlocks = new ArrayList<>();
     private final ArrayList<ArenaObject> allObjects = new ArrayList<>();
+    private GameCore gameCore;
 
     public ArenaManager(EnemyManager enemyManager, LevelManager levelManager, ItemManager itemManager,
-            NPCManager npcm) {
+            NPCManager npcm, CutsceneManager CM, GameCore gc) {
+        this.cutsceneManager = CM;
         this.npcManager = npcm;
         this.enemyManager = enemyManager;
         this.levelManager = levelManager;
         this.itemManager = itemManager;
         this.context = new ArenaContext(levelManager, enemyManager);
+        this.gameCore = gc;
     }
 
     public void carregarObjetos(ArrayList<TiledObject> objetos) {
@@ -101,7 +104,7 @@ public class ArenaManager {
         }
     }
 
-    public void update(Player player, CameraManager camera, CutsceneManager cutsceneManager) {
+    public void update(Player player, CameraManager camera) {
         atualizarBotoes(player);
         for (int i = 0; i < arenas.size(); i++) {
             Arena arena = arenas.get(i);
@@ -256,6 +259,8 @@ public class ArenaManager {
     }
 
     private void ativarArena(int id, Player player, CameraManager camera, CutsceneManager cutsceneManager) {
+        System.out.println("Ativou arena");
+        gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
         Arena arena = getOuCriarArena(id);
         arena.ativa = true;
         switch (id) {
@@ -342,6 +347,7 @@ public class ArenaManager {
     }
 
     private void verificarDesativacaoParedes(int id, Player player) {
+        gameCore.setCinematicBorderAnimation(Renderer.BorderState.OUT);
         switch (id) {
             case 0 -> {
             }
@@ -350,8 +356,10 @@ public class ArenaManager {
                     setWallState(2, false, player);
                     setWallState(3, false, player);
 
+                    // cutsceneManager.iniciar("seila animacao mostrando o pescador");
+
                     // spawna o pesqueiro
-                    npcManager.spawn(new PescadorNPC(20.5 * GameCore.tiles_size, 45.7 * GameCore.tiles_size));
+                    npcManager.spawn(new PescadorNPC(20.5 * GameCore.tiles_size, 45.3 * GameCore.tiles_size));
                     System.out.printf("Spawnou pesqueiro em: %f, %f\n", 20.5 * GameCore.tiles_size,
                             45.7 * GameCore.tiles_size);
                 }

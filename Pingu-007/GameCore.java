@@ -78,7 +78,8 @@ public class GameCore extends Canvas implements Runnable {
         enemyManager = new EnemyManager(levelManager, bulletmanager, soundManager);
         enemyManager.setItemManager(itemManager);
         npcManager = new NPCManager(dialogueManager, itemManager);
-        arenaManager = new ArenaManager(enemyManager, levelManager, itemManager, npcManager);
+        cutsceneManager = new CutsceneManager();
+        arenaManager = new ArenaManager(enemyManager, levelManager, itemManager, npcManager, cutsceneManager, this);
         camera = new CameraManager(player.getX(), player.getY(), BASE_ZOOM);
         hud = new Hud();
 
@@ -172,6 +173,10 @@ public class GameCore extends Canvas implements Runnable {
         input.update();
     }
 
+    public void setCinematicBorderAnimation(Renderer.BorderState state) {
+        renderer.setCinematicBorderAnimation(state);
+    }
+
     public void updateGame() {
         if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE)) {
             gameState = GameState.PAUSED;
@@ -181,9 +186,8 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyPressed(KeyEvent.VK_T)) {
             if (!dialogueManager.isAtivo()) {
                 soundManager.playBGM(SoundManager.BGM.OS_CRIA);
-                renderer.borderState = Renderer.BorderState.IN;
+                setCinematicBorderAnimation(Renderer.BorderState.IN);
 
-                System.out.printf("criando borda cinematica\n");
                 dialogueManager.iniciarDialogo(new String[] {
                         "PINGU: Entrando na base de operações.",
                         "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
@@ -193,12 +197,10 @@ public class GameCore extends Canvas implements Runnable {
             }
         }
         if (input.isKeyJustPressed(KeyEvent.VK_I)) {
-            System.out.printf("criando borda cinematica\n");
-            renderer.borderState = Renderer.BorderState.IN;
+            setCinematicBorderAnimation(Renderer.BorderState.IN);
         }
         if (input.isKeyJustPressed(KeyEvent.VK_O)) {
-            System.out.printf("destruindo borda cinematica\n");
-            renderer.borderState = Renderer.BorderState.OUT;
+            setCinematicBorderAnimation(Renderer.BorderState.OUT);
         }
         if (input.isKeyJustPressed(KeyEvent.VK_N)) {
             player.setX(20.5 * GameCore.tiles_size);
@@ -230,7 +232,7 @@ public class GameCore extends Canvas implements Runnable {
             ArrayList<JumpLink> linksAtuais = levelManager.getJumpLinks();
             enemyManager.update(player, linksAtuais);
 
-            arenaManager.update(player, camera, cutsceneManager);
+            arenaManager.update(player, camera);
 
             if (arenaManager.consumirSolicitacaoCutsceneBoss()) {
                 gameState = GameState.CUTSCENE;
