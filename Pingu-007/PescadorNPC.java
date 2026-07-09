@@ -1,7 +1,7 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
 
-public class PesqueiroNPC extends NPC {
+public class PescadorNPC extends NPC {
 
     private enum State {
         IDLE, TALKING
@@ -14,7 +14,7 @@ public class PesqueiroNPC extends NPC {
     private static final double HEIGHT = GameCore.tiles_size;
     private boolean proximo = false;
 
-    public PesqueiroNPC(double x, double y) {
+    public PescadorNPC(double x, double y) {
         super(x, y, WIDTH, HEIGHT);
     }
 
@@ -31,15 +31,13 @@ public class PesqueiroNPC extends NPC {
                     if (laEle)
                         dialogueManager.iniciarDialogo(
                                 new String[] {
-                                        "PESQUEIRO: Esqueceu como pescar? É fácil,",
-                                        "chegue perto de um buraco de água e aperte E para lançar a linha." });
+                                        "PESQUEIRO: Esqueceu como pescar? É fácil, é só chegar perto de um buraco de água e apertar E para lançar a linha." });
                     else
                         dialogueManager.iniciarDialogo(
                                 new String[] {
                                         "PESQUEIRO: Ei, agente! Vejo que você ainda não tem uma vara de pesca.",
                                         "PESQUEIRO: Ainda bem que tenho uma sobrando. Pode ficar com ela!",
-                                        "PESQUEIRO: Sabe como pescar? É fácil,",
-                                        "chegue perto de um buraco de água e aperte E para lançar a linha." });
+                                        "PESQUEIRO: Sabe como pescar? É fácil, e só chegar perto de um buraco de água e apertar E para lançar a linha." });
                     state = State.TALKING;
                 }
             }

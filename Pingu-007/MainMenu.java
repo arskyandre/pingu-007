@@ -18,6 +18,10 @@ public class MainMenu {
     private static final int BTN_H = 46;
     private static final int BTN_GAP = 18;
 
+    private double bobTime = 0;
+    private static final double BOB_SPEED = 0.125;
+    private static final double BOB_AMP = 4.0;
+
     public MainMenu(SoundManager sound) {
         soundManager = sound;
 
@@ -50,7 +54,7 @@ public class MainMenu {
 
     public GameState update(InputManager input, int width, int height) {
         repositionButtons(width, height);
-
+        bobTime += BOB_SPEED;
         if (playBtn.update(input) == MenuButton.CLICKED) {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             return GameState.PLAYING;
@@ -88,6 +92,17 @@ public class MainMenu {
         g2.drawString(title, (width - tw) / 2 + 3, height / 4 + 3);
         g2.setColor(Color.WHITE);
         g2.drawString(title, (width - tw) / 2, height / 4);
+
+        g2.setFont(pixelFont.deriveFont(Font.PLAIN, 12f));
+        String fscreen = "Pressione [F11] para alternar a tela cheia!";
+        tw = g2.getFontMetrics().stringWidth(fscreen);
+        int textX = width - tw;
+        int bobOffset = (int) (Math.sin(bobTime) * BOB_AMP);
+        int textY = height - 10 + bobOffset;
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.drawString(fscreen, textX + 3, textY + 3);
+        g2.setColor(Color.GRAY);
+        g2.drawString(fscreen, textX, textY);
 
         playBtn.draw(g2);
         optionsBtn.draw(g2);

@@ -351,7 +351,7 @@ public class ArenaManager {
                     setWallState(3, false, player);
 
                     // spawna o pesqueiro
-                    npcManager.spawn(new PesqueiroNPC(20.5 * GameCore.tiles_size, 45.7 * GameCore.tiles_size));
+                    npcManager.spawn(new PescadorNPC(20.5 * GameCore.tiles_size, 45.7 * GameCore.tiles_size));
                     System.out.printf("Spawnou pesqueiro em: %f, %f\n", 20.5 * GameCore.tiles_size,
                             45.7 * GameCore.tiles_size);
                 }

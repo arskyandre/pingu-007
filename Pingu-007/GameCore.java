@@ -181,6 +181,9 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyPressed(KeyEvent.VK_T)) {
             if (!dialogueManager.isAtivo()) {
                 soundManager.playBGM(SoundManager.BGM.OS_CRIA);
+                renderer.borderState = Renderer.BorderState.IN;
+
+                System.out.printf("criando borda cinematica\n");
                 dialogueManager.iniciarDialogo(new String[] {
                         "PINGU: Entrando na base de operações.",
                         "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
