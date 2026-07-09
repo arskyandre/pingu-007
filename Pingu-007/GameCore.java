@@ -12,6 +12,7 @@ public class GameCore extends Canvas implements Runnable {
     private final PauseMenu pauseMenu;
     private final OptionsMenu optionsMenu;
     private final GameOverScreen gameOverScreen;
+    private final KeyBindingsMenu keyBindingsMenu;
 
     private double checkX, checkY;
     private int checkVida, checkMunicao, checkPente, checkChaves;
@@ -22,6 +23,8 @@ public class GameCore extends Canvas implements Runnable {
 
     JFrame frame;
     boolean running = true;
+    private boolean isFullscreen = false;
+    private Rectangle windowedBounds;
 
     private final CameraManager camera;
     private CutsceneManager cutsceneManager;
@@ -49,6 +52,9 @@ public class GameCore extends Canvas implements Runnable {
     public final static int game_width = tiles_size * tiles_in_width;
     public final static int game_height = tiles_size * tiles_in_height;
 
+    private static final double BASE_ZOOM = 1.25;
+    private static final int BASE_HEIGHT = game_height;
+
     public GameCore() {
         setPreferredSize(new Dimension(game_width, game_height));
         setBackground(Color.BLACK);
@@ -57,6 +63,7 @@ public class GameCore extends Canvas implements Runnable {
         mainMenu = new MainMenu(soundManager);
         pauseMenu = new PauseMenu(soundManager);
         optionsMenu = new OptionsMenu(soundManager);
+        keyBindingsMenu = new KeyBindingsMenu(soundManager);
         bulletmanager = new BulletManager();
         itemManager = new ItemManager();
         input = new InputManager();
@@ -72,7 +79,7 @@ public class GameCore extends Canvas implements Runnable {
         enemyManager.setItemManager(itemManager);
         npcManager = new NPCManager(dialogueManager, itemManager);
         arenaManager = new ArenaManager(enemyManager, levelManager, itemManager, npcManager);
-        camera = new CameraManager(player.getX(), player.getY(), 1.25);
+        camera = new CameraManager(player.getX(), player.getY(), BASE_ZOOM);
         hud = new Hud();
 
         levelManager.inicializarPrimeiroNivel();
@@ -86,7 +93,31 @@ public class GameCore extends Canvas implements Runnable {
         requestFocus();
     }
 
+    public void toggleFullscreen() {
+        if (!isFullscreen) {
+            System.out.println("Alternando para Fullscreen");
+            windowedBounds = frame.getBounds();
+            frame.dispose();
+            frame.setUndecorated(true);
+            frame.setVisible(true);
+            frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            isFullscreen = true;
+        } else {
+            System.out.println("Alternando para Modo Janela");
+            frame.dispose();
+            frame.setUndecorated(false);
+            frame.setExtendedState(JFrame.NORMAL);
+            frame.setBounds(windowedBounds);
+            frame.setVisible(true);
+            isFullscreen = false;
+        }
+        requestFocusInWindow();
+    }
+
     public void update() {
+        if (input.isKeyJustPressed(KeyEvent.VK_F11)) {
+            toggleFullscreen();
+        }
         switch (gameState) {
             case MAIN_MENU -> {
                 GameState next = mainMenu.update(input, getWidth(), getHeight());
@@ -133,6 +164,8 @@ public class GameCore extends Canvas implements Runnable {
             }
             case OPTIONS ->
                 gameState = optionsMenu.update(input, getWidth(), getHeight());
+            case KEYBINDINGS ->
+                gameState = keyBindingsMenu.update(input, getWidth(), getHeight());
             case QUIT ->
                 System.exit(0);
         }
@@ -205,6 +238,8 @@ public class GameCore extends Canvas implements Runnable {
                     player, enemyManager.getEnemies());
 
             levelManager.update();
+            double dynamicZoom = BASE_ZOOM * (getHeight() / (double) BASE_HEIGHT);
+            camera.setZoom(dynamicZoom);
             camera.update(player, input, getWidth(), getHeight());
             fishingManager.syncToCamera(camera, getWidth(), getHeight());
 
@@ -274,6 +309,8 @@ public class GameCore extends Canvas implements Runnable {
 
     public void updateCutscene() {
         cutsceneManager.update();
+        double dynamicZoom = BASE_ZOOM * (getHeight() / (double) BASE_HEIGHT);
+        camera.setZoom(dynamicZoom);
         camera.update(player, input, getWidth(), getHeight());
 
         if (!cutsceneManager.isAtiva()) {
@@ -407,8 +444,12 @@ public class GameCore extends Canvas implements Runnable {
 
                         cutsceneManager.draw(g2, getWidth(), getHeight());
                     }
-                    case OPTIONS ->
+                    case OPTIONS -> {
                         optionsMenu.render(g2, getWidth(), getHeight());
+                    }
+                    case KEYBINDINGS -> {
+                        keyBindingsMenu.render(g2, getWidth(), getHeight());
+                    }
                     case QUIT -> {
                     }
                 }
@@ -423,10 +464,12 @@ public class GameCore extends Canvas implements Runnable {
         return arenaManager;
     }
 
+    public boolean isFullscreen() {
+        return isFullscreen;
+    }
+
     @Override
     public void run() {
-        createBufferStrategy(3);
-        BufferStrategy bs = getBufferStrategy();
         long lastTime = System.nanoTime();
         double nsPerFrame = 1_000_000_000.0 / 60.0;
         double delta = 0;
@@ -439,6 +482,12 @@ public class GameCore extends Canvas implements Runnable {
             while (delta >= 1) {
                 update();
                 delta--;
+            }
+
+            BufferStrategy bs = getBufferStrategy();
+            if (bs == null) {
+                createBufferStrategy(3);
+                continue; // skip rendering this frame, try again next loop
             }
             render(bs, deltaTime);
         }
@@ -458,7 +507,10 @@ public class GameCore extends Canvas implements Runnable {
         game.frame.pack();
         game.frame.setLocationRelativeTo(null);
         game.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        game.frame.setResizable(false);
+        game.frame.setResizable(true);
+
+        game.optionsMenu.repositionElements(game.getWidth(), game.getHeight());
+        game.keyBindingsMenu.repositionElements(game.getWidth(), game.getHeight());
         game.frame.setVisible(true);
         game.start();
     }

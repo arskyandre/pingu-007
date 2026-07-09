@@ -40,7 +40,7 @@ public class OptionsMenu {
         toggleMuteBGM = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED, false);
         toggleMuteSFX = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED, false);
         backBtn = new MenuButton("VOLTAR", 0, 0, 160, 46);
-        keyBindBtn = new MenuButton("Consultar teclas", 0, 0, 160, 45);
+        keyBindBtn = new MenuButton("Consultar teclas", 0, 0, 160, 46);
 
         try {
             Font base = Font.createFont(Font.TRUETYPE_FONT, new File("font/PressStart2P-Regular.ttf"));
@@ -59,7 +59,7 @@ public class OptionsMenu {
         this.returnTo = state;
     }
 
-    private void repositionElements(int width, int height) {
+    public void repositionElements(int width, int height) {
         int sliderX = (width - SLIDER_W) / 2;
 
         musicSlider.setPosition(sliderX, height / 2 - 10);
@@ -73,7 +73,7 @@ public class OptionsMenu {
                 sfxSlider.getCenterY() - BTN_SIZE / 2);
 
         keyBindBtn.setPosition((width - 160) / 2, height * 3 / 4);
-        backBtn.setPosition((width - 160) / 2, height * 3 / 4 + BTN_GAP + BTN_SIZE);
+        backBtn.setPosition((width - 160) / 2, height * 3 / 4 + BTN_GAP + 46);
     }
 
     public GameState update(InputManager input, int width, int height) {
