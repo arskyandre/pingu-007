@@ -123,16 +123,25 @@ public class ArenaManager {
         }
     }
 
+    //private int debugCooldown = 60;
     public void update(Player player, CameraManager camera, SoundManager sound) {
         atualizarBotoes(player);
         for (int i = 0; i < arenas.size(); i++) {
             Arena arena = arenas.get(i);
+            /*if (arena.ativa && !arena.concluida && !arena.inimigosVivos.isEmpty()) {
+                if (debugCooldown <= 0) {
+                    System.out.print("[ARENA " + arena.id + "] Fantasmas: ");
+                    for (Enemy e : arena.inimigosVivos) {
+                        System.out.print(e.getClass().getSimpleName() + " (X:" + (int) e.getX() + ", Y:" + (int) e.getY() + ", Vida:" + e.getVida() + ", Caindo:" + e.isCaindo + ") | ");
+                    }
+                    System.out.println();
+                }
+            }*/
+
             if (!arena.ativa && !arena.concluida && arena.trigger != null) {
                 if (ArenaTriggers.collides(arena.trigger, player)) {
                     ativarArena(arena.id, player, camera, cutsceneManager, sound);
-
                     return;
-
                 }
             }
             if (arena.ativa && !arena.concluida) {
@@ -159,6 +168,10 @@ public class ArenaManager {
                 }
             }
         }
+        /*debugCooldown--;
+        if (debugCooldown < 0) {
+            debugCooldown = 60;
+        }*/
     }
 
     public boolean existeCombateAtivo() {
@@ -305,8 +318,10 @@ public class ArenaManager {
     private void ativarArena(int id, Player player, CameraManager camera, CutsceneManager cutsceneManager,
             SoundManager sound) {
         System.out.println("Ativou arena");
-        if (id != 0)
-            gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
+        // em teoria, já funciona bem para o id == 0
+        //if (id != 0) {
+        gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
+        //}
         sound.playSFX(SoundManager.SFX.ARENA_ENTER);
         Arena arena = getOuCriarArena(id);
         arena.ativa = true;
