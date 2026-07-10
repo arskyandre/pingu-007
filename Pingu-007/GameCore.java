@@ -94,6 +94,8 @@ public class GameCore extends Canvas implements Runnable {
         levelManager.inicializarPrimeiroNivel();
 
         player.loadLvlData(levelManager.getCurLevelData());
+        npcManager.spawn(new IgluNPC(5576, 8062));
+        System.out.println(player.getX() + ", " + player.getY());
 
         addKeyListener(input);
         addMouseMotionListener(input);
@@ -373,7 +375,7 @@ public class GameCore extends Canvas implements Runnable {
         enemyManager.limparTudo();
         bulletmanager.limparTudo();
         itemManager.limparTudo();
-
+        npcManager.clearAll();
         for (TiledObject obj : objetosDoMapa) {
             if (!obj.isScaled) {
                 obj.x *= GameCore.scale;
@@ -456,6 +458,8 @@ public class GameCore extends Canvas implements Runnable {
         renderer.setBorderProgress(0.0);
         setCinematicBorderAnimation(Renderer.BorderState.IDLE);
         levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
+
+        npcManager.spawn(new IgluNPC(player.getX() - 64, player.getY()));
     }
 
     private void drawFpsCounter(Graphics2D g2) {

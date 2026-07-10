@@ -273,8 +273,8 @@ public class FishingManager {
             default -> {
             }
         }
-
-        fishingButton.draw(g2);
+        if (state == State.BITING)
+            fishingButton.draw(g2);
     }
 
     private void drawWaiting(Graphics2D g2, double screenX, double screenY) {

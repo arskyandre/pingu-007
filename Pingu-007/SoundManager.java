@@ -38,8 +38,7 @@ public class SoundManager {
         ICE_STEP_2("sound/sfx/ice_footstep2.wav", 6),
         FISHING_START("sound/sfx/fishing_start.wav", 2),
         // FISHING_FISH_FOUND("sound/sfx/fishing_fish_found.wav", 2),
-        // FISHING_CAUGHT("sound/sfx/fishing_caught.wav", 2), ADICIONAR SONS PRO
-        // MINIGAME DE PESCA
+        // FISHING_CAUGHT("sound/sfx/fishing_caught.wav", 2),
         // FISHING_LOST("sound/sfx/fishing_lost.wav", 2),
         ARENA_ENTER("sound/sfx/arena_enter.wav", 2),
         BOMBER_AVISO("sound/sfx/bomber_aviso.wav", 6),
@@ -49,6 +48,8 @@ public class SoundManager {
         PLAYER_DAMAGE("sound/sfx/player_damage.wav", 8),
         WOLF_DEATH("sound/sfx/wolf_death.wav", 8),
         HUD_CLICK("sound/hud/click.wav", 2);
+
+        // ADICIONAR SONS PRO MINIGAME DE PESCA
 
         public final String path;
         public final int poolSize;
@@ -64,7 +65,7 @@ public class SoundManager {
     private final BGMPlayer bgmPlayer = new BGMPlayer();
     private BGM currentTrack = null;
     // private float musicVolume = 0f;
-    private float musicVolume = 0.3f;
+    private float musicVolume = 0.25f;
     private float sfxVolume = 0.4f;
 
     public SoundManager() {
