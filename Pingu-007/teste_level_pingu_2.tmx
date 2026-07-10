@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.2" orientation="orthogonal" renderorder="right-down" width="80" height="96" tilewidth="16" tileheight="16" infinite="0" nextlayerid="12" nextobjectid="19">
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="80" height="96" tilewidth="16" tileheight="16" infinite="0" nextlayerid="12" nextobjectid="19">
  <editorsettings>
   <export target="LEVEL_2_DATA.tmj" format="json"/>
  </editorsettings>
@@ -104,7 +104,7 @@
 72,72,71,72,72,71,72,71,71,72,71,72,71,72,72,71,71,71,71,72,71,71,71,72,71,71,71,71,72,72,72,72,72,71,71,71,71,71,71,71,71,72,72,72,72,71,71,72,71,72,71,71,71,71,71,72,72,71,72,72,71,71,72,71,71,71,71,71,71,71,71,71,71,71,71,71,71,72,72,71
 </data>
  </layer>
- <layer id="1" name="ground" width="80" height="96">
+ <layer id="1" name="ground" width="80" height="96" locked="1">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -504,7 +504,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="4" name="Spawners">
+ <objectgroup id="4" name="Spawners" locked="1">
   <object id="1" name="PlayerSpawner" x="672" y="1264">
    <properties>
     <property name="type" value="spawn_player"/>
@@ -515,7 +515,7 @@
    <properties>
     <property name="enemy" value="morsa"/>
     <property name="horda" type="int" value="1"/>
-    <property name="id_arena" type="int" value="-1"/>
+    <property name="id_arena" type="int" value="67"/>
     <property name="type" value="spawner"/>
    </properties>
   </object>
@@ -525,7 +525,7 @@
    <properties>
     <property name="id_arena" type="int" value="67"/>
     <property name="isActive" type="bool" value="true"/>
-    <property name="totalHordas" type="int" value="0"/>
+    <property name="totalHordas" type="int" value="1"/>
     <property name="type" value="trigger"/>
    </properties>
    <polygon points="32,16 80,16 112,-32 192,0 256,0 320,96 384,96 384,16 240,-64 64,-64 -96,-16 -128,64 -128,96 -48,96"/>

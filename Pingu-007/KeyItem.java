@@ -15,7 +15,7 @@ public class KeyItem extends Item {
         BufferedImage atlas = LoadSave.GetSpriteAtlas(nomeDoAtlas);
 
         int colunasNoAtlas = 14;
-        int tileIndex = 37;
+        int tileIndex = 23;
 
         int col = tileIndex % colunasNoAtlas;
         int row = tileIndex / colunasNoAtlas;

@@ -1,3 +1,4 @@
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -46,8 +47,7 @@ public class HealthPackItem extends ConsumableItem {
             g2.drawImage(sprite, (int) x, (int) drawY, (int) largura, (int) altura, null);
         } else {
             g2.setColor(COR_PLACEHOLDER);
-            g2.fillRect((int) x + 4, (int) drawY, (int) largura - 8, (int) altura);
-            g2.fillRect((int) x + 2, (int) (drawY + altura / 2.0), 6, 6);
+            g2.fillRect((int) x, (int) drawY, (int) largura, (int) altura);
         }
     }
 
