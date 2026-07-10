@@ -103,7 +103,7 @@
                         {
                          "name":"id_arena",
                          "type":"int",
-                         "value":-1
+                         "value":67
                         }, 
                         {
                          "name":"type",

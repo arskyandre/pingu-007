@@ -303,6 +303,12 @@ public class ArenaManager {
             case 67 -> {
                 // trigger do level 2
                 setWallState(67, true, player);
+                arena.hordaAtual = 1;
+                spawnHorda(arena);
+
+
+                MorsaBoss morsaBoss = enemyManager.getMorsaBoss();
+
                 arena.concluida = true;
                 //player.solicitarCheckpoint();
                 //

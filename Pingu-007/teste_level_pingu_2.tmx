@@ -515,7 +515,7 @@
    <properties>
     <property name="enemy" value="morsa"/>
     <property name="horda" type="int" value="1"/>
-    <property name="id_arena" type="int" value="-1"/>
+    <property name="id_arena" type="int" value="67"/>
     <property name="type" value="spawner"/>
    </properties>
   </object>
