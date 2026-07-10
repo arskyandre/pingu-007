@@ -28,7 +28,7 @@ public class CutsceneManager {
     private String nomeBoss = "";
 
     // --- wall reveal state ---
-    private static final int WALL_REVEAL_DURATION = 90; // 1.5s @ 60fps
+    private static final int WALL_REVEAL_DURATION = 150;
     private int wallTimer = 0;
     private Rectangle2D.Double wallFadeRect;
     private Player wallRevealPlayer;
@@ -54,19 +54,6 @@ public class CutsceneManager {
         gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
     }
 
-    /**
-     * cutscene das pareedes de arena
-     */
-    public void iniciarWallReveal(double wallCenterX, double wallCenterY, Rectangle2D.Double wallRect,
-            CameraManager camera, Player player) {
-        this.type = CutsceneType.WALL_REVEAL;
-        this.wallTimer = 0;
-        this.wallFadeRect = wallRect;
-        this.wallRevealPlayer = player;
-        camera.focarEm(wallCenterX, wallCenterY, WALL_REVEAL_DURATION);
-        player.setBlockInputs(true);
-    }
-
     public void iniciarWallFade(Rectangle2D.Double wallRect) {
         if (type == CutsceneType.WALL_REVEAL && wallRevealPlayer != null) {
             return;
@@ -77,14 +64,13 @@ public class CutsceneManager {
         this.wallRevealPlayer = null;
     }
 
-    public void iniciarWallRevealComCamera(double wallCenterX, double wallCenterY, Rectangle2D.Double wallRect,
-            CameraManager camera, Player player) {
+    public void iniciarWallRevealComCamera(Rectangle2D.Double wallRect, CameraManager camera, Player player) {
         this.type = CutsceneType.WALL_REVEAL;
         this.wallTimer = 0;
         this.wallFadeRect = wallRect;
         this.wallRevealPlayer = player;
 
-        camera.focarEm(wallCenterX, wallCenterY, WALL_REVEAL_DURATION);
+        camera.focarEmRect(wallRect, (int) WALL_REVEAL_DURATION, gameCore.getWidth(), gameCore.getHeight());
         player.setBlockInputs(true);
     }
 
@@ -100,7 +86,7 @@ public class CutsceneManager {
         if (type != CutsceneType.WALL_REVEAL) {
             return 1f;
         }
-        return Math.min(1f, wallTimer / (float) WALL_REVEAL_DURATION);
+        return Math.min(1f, (float) wallTimer / (float) WALL_REVEAL_DURATION);
     }
 
     // ---------------- Shared update/draw ----------------

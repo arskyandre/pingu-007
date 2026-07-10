@@ -343,7 +343,7 @@ public class GameCore extends Canvas implements Runnable {
 
             levelManager.update();
             double dynamicZoom = BASE_ZOOM * (getHeight() / (double) BASE_HEIGHT);
-            camera.setZoom(dynamicZoom);
+            camera.setBaseZoom(dynamicZoom);
             camera.update(player, input, getWidth(), getHeight());
             fishingManager.syncToCamera(camera, getWidth(), getHeight());
 
@@ -358,7 +358,7 @@ public class GameCore extends Canvas implements Runnable {
     public void updateCutscene() {
         cutsceneManager.update();
         double dynamicZoom = BASE_ZOOM * (getHeight() / (double) BASE_HEIGHT);
-        camera.setZoom(dynamicZoom);
+        camera.setBaseZoom(dynamicZoom);
         camera.update(player, input, getWidth(), getHeight());
 
         if (!cutsceneManager.isAtiva()) {

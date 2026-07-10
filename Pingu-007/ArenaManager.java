@@ -424,9 +424,7 @@ public class ArenaManager {
 
         if (wallRect != null) {
             if (isFirstArena) {
-                double wallCenterX = wallRect.x + wallRect.width / 2.0;
-                double wallCenterY = wallRect.y + wallRect.height / 2.0;
-                cutsceneManager.iniciarWallRevealComCamera(wallCenterX, wallCenterY, wallRect, camera, player);
+                cutsceneManager.iniciarWallRevealComCamera(wallRect, camera, player);
                 gameCore.setGameState(GameState.CUTSCENE);
                 isFirstArena = false;
             } else {
