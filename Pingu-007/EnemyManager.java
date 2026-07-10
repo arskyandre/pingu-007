@@ -90,6 +90,8 @@ public class EnemyManager {
             case "morsa" -> {
                 MorsaBoss morsaInstancia = new MorsaBoss(x, y, lvlData, bulmgr, soundManager);
 
+                this.morsaAtual = morsaInstancia;
+
                 BossMao maoEsq = new BossMao(x - 140, y + 64, lvlData, soundManager, morsaInstancia);
                 BossMao maoDir = new BossMao(x + (GameCore.tiles_size * 6) + 44, y + 64, lvlData, soundManager, morsaInstancia);
 
