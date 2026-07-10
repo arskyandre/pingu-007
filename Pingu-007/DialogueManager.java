@@ -5,6 +5,8 @@ import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DialogueManager {
   private String[] falas;
@@ -108,6 +110,25 @@ public class DialogueManager {
     }
   }
 
+  private List<String> LinhasdeTexto(FontMetrics fm, String text, int maxWidth) {
+    String[] words = text.split(" ");
+    List<String> lines = new ArrayList<>();
+    StringBuilder current = new StringBuilder();
+    for (String word : words) {
+      String test = current.isEmpty() ? word : current + " " + word;
+      if (fm.stringWidth(test) <= maxWidth) {
+        current = new StringBuilder(test);
+      } else {
+        if (!current.isEmpty())
+          lines.add(current.toString());
+        current = new StringBuilder(word);
+      }
+    }
+    if (!current.isEmpty())
+      lines.add(current.toString());
+    return lines;
+  }
+
   public void renderizar(Graphics2D g2, int telaLargura, int telaAltura) {
     if (!ativo)
       return;
@@ -147,7 +168,19 @@ public class DialogueManager {
     g2.setColor(Color.WHITE);
     g2.setFont(pixelFont);
 
-    g2.drawString(textoExibido, x + 110, y + 60);
+    int textX = x + 110;
+    int maxTextWidth = largura - 130;
+
+    FontMetrics fm = g2.getFontMetrics();
+    List<String> lines = LinhasdeTexto(fm, textoExibido, maxTextWidth);
+
+    int lineHeight = fm.getAscent() + fm.getDescent() + 4;
+    int totalTextHeight = lines.size() * lineHeight;
+    int startY = y + (altura - totalTextHeight) / 2 + fm.getAscent();
+
+    for (int i = 0; i < lines.size(); i++) {
+      g2.drawString(lines.get(i), textX, startY + i * lineHeight);
+    }
   }
 
   public boolean isAtivo() {

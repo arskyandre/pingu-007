@@ -1,5 +1,7 @@
-
+import java.awt.AlphaComposite;
+import java.awt.Composite;
 import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
@@ -57,7 +59,16 @@ public class LevelManager {
         System.out.println("Atlas carregado: " + index + " sprites.");
     }
 
-    private void drawFilteredLayers(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura, java.util.function.Predicate<MapDATA.TileLayer> filter) {
+    private void drawFilteredLayers(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura,
+            java.util.function.Predicate<MapDATA.TileLayer> filter) {
+        drawFilteredLayers(g2, camera, telaLargura, telaAltura, filter, null, 1f, layer -> false, 0, 0);
+    }
+
+    private void drawFilteredLayers(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura,
+            java.util.function.Predicate<MapDATA.TileLayer> filter,
+            Rectangle2D.Double fadeRect, float fadeAlpha,
+            java.util.function.Predicate<MapDATA.TileLayer> fadeLayerFilter,
+            double shakeX, double shakeY) {
         if (mapDataAtual == null || mapDataAtual.layers == null) {
             return;
         }
@@ -70,10 +81,14 @@ public class LevelManager {
         int startX = Math.max(0, (int) (viewLeft / GameCore.tiles_size));
         int startY = Math.max(0, (int) (viewTop / GameCore.tiles_size));
 
+        Composite originalComposite = g2.getComposite();
+
         for (int i = 0; i < mapDataAtual.layers.size(); i++) {
             MapDATA.TileLayer layer = mapDataAtual.layers.get(i);
 
             if (filter.test(layer)) {
+                boolean layerPodeFade = fadeRect != null && fadeLayerFilter.test(layer);
+
                 int[][] lvlData = layer.data;
                 int endX = Math.min(lvlData[0].length - 1, (int) (viewRight / GameCore.tiles_size) + 1);
                 int endY = Math.min(lvlData.length - 1, (int) (viewBottom / GameCore.tiles_size) + 1);
@@ -87,10 +102,27 @@ public class LevelManager {
 
                         int sprite = id - 1;
                         if (sprite >= 0 && sprite < levelSprite.length && levelSprite[sprite] != null) {
-                            g2.drawImage(levelSprite[sprite],
-                                    x * GameCore.tiles_size,
-                                    y * GameCore.tiles_size,
+                            int tileWorldX = x * GameCore.tiles_size;
+                            int tileWorldY = y * GameCore.tiles_size;
+
+                            boolean insideFade = layerPodeFade && fadeRect.intersects(
+                                    tileWorldX, tileWorldY, GameCore.tiles_size, GameCore.tiles_size);
+
+                            int drawX = tileWorldX;
+                            int drawY = tileWorldY;
+
+                            if (insideFade) {
+                                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, fadeAlpha));
+                                drawX += (int) Math.round(shakeX);
+                                drawY += (int) Math.round(shakeY);
+                            }
+
+                            g2.drawImage(levelSprite[sprite], drawX, drawY,
                                     GameCore.tiles_size, GameCore.tiles_size, null);
+
+                            if (insideFade) {
+                                g2.setComposite(originalComposite);
+                            }
                         }
                     }
                 }
@@ -103,10 +135,20 @@ public class LevelManager {
     }
 
     public void drawGround(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura) {
+        drawGround(g2, camera, telaLargura, telaAltura, null, 1f, 0, 0);
+    }
+
+    public void drawGround(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura,
+            Rectangle2D.Double fadeRect, float fadeAlpha) {
+        drawGround(g2, camera, telaLargura, telaAltura, fadeRect, fadeAlpha, 0, 0);
+    }
+
+    public void drawGround(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura,
+            Rectangle2D.Double fadeRect, float fadeAlpha, double shakeX, double shakeY) {
         drawFilteredLayers(g2, camera, telaLargura, telaAltura, layer -> {
             String n = layer.name.toLowerCase();
             return n.startsWith("b") || n.equals("ground") || n.equals("fence");
-        });
+        }, fadeRect, fadeAlpha, layer -> layer.name.equalsIgnoreCase("bWall"), shakeX, shakeY);
     }
 
     public void drawForeground(Graphics2D g2, CameraManager camera, int telaLargura, int telaAltura) {

@@ -35,6 +35,9 @@ public class ItemManager {
             if (Math.random() < 0.75) {
                 spawn(new HealthPackItem(dropX, dropY));
             }
+            if (enemy instanceof Bomber && Math.random() < 0.5) {
+                spawn(new AmmoPackItem(dropX + 16, dropY + 8));
+            }
         }
     }
 
@@ -110,14 +113,15 @@ public class ItemManager {
 
         double finalX = melhorCol * GameCore.tiles_size + (GameCore.tiles_size - largura) / 2.0;
         double finalY = melhorRow * GameCore.tiles_size + (GameCore.tiles_size - altura) / 2.0;
-        return new double[]{finalX, finalY};
+        return new double[] { finalX, finalY };
     }
 
     private static boolean tileValido(int row, int col, int[][] lvlData) {
         return row >= 0 && row < lvlData.length && col >= 0 && col < lvlData[0].length;
     }
 
-    private static boolean podePosicionarItem(double spawnX, double spawnY, double largura, double altura, int[][] lvlData) {
+    private static boolean podePosicionarItem(double spawnX, double spawnY, double largura, double altura,
+            int[][] lvlData) {
         int leftCol = (int) (spawnX / GameCore.tiles_size);
         int rightCol = (int) ((spawnX + largura - 0.1) / GameCore.tiles_size);
         int topRow = (int) (spawnY / GameCore.tiles_size);
@@ -128,10 +132,10 @@ public class ItemManager {
         }
 
         int[][] corners = {
-            {topRow, leftCol},
-            {topRow, rightCol},
-            {bottomRow, leftCol},
-            {bottomRow, rightCol}
+                { topRow, leftCol },
+                { topRow, rightCol },
+                { bottomRow, leftCol },
+                { bottomRow, rightCol }
         };
 
         for (int[] corner : corners) {

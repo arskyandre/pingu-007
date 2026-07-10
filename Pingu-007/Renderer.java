@@ -5,40 +5,72 @@ import java.util.ArrayList;
 
 public class Renderer {
 
+    public enum BorderState {
+        IN, OUT, IDLE
+    }
+
+    public BorderState borderState = BorderState.IDLE;
     public boolean modoDebug = false;
 
-    Boolean preDash = false;
+    private int cinematicBorderHeight;
+    private final double borderFadeDuration = 0.7;
+    private double borderProgress = 0;
+    // Boolean preDash = false;
+
+    private final ArrayList<Object> renderQueue = new ArrayList<>(200);
+    private final java.util.Comparator<Object> depthComparator = (o1, o2) -> Double.compare(getRenderBaseY(o1),
+            getRenderBaseY(o2));
+    // private final Polygon dashPoly = new Polygon();
+    private final Ellipse2D.Double mouseShape = new Ellipse2D.Double(0, 0, 20, 20);
+    public boolean useAntiAliasing = true;
+
+    public void setBorderProgress(double prog) {
+        borderProgress = prog;
+    }
 
     public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura,
             int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager,
             EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager,
-            FishingManager fishingManager, double delta) {
+            FishingManager fishingManager, NPCManager npcManager, CutsceneManager cutsceneManager, double delta,
+            boolean animateBorder) {
 
+        // Mantem o tamanho da borda proporcional a altura da tela
+        cinematicBorderHeight = telaAltura / 8;
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, telaLargura, telaAltura);
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Anti-Aliasing e Interpolação
+        if (useAntiAliasing) {
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        } else {
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        }
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 
         AffineTransform originalTransform = g2.getTransform();
         g2.scale(camera.getZoom(), camera.getZoom());
         g2.translate(-camera.getX(), -camera.getY());
 
         lm.drawBackground(g2, camera, telaLargura, telaAltura);
-        lm.drawGround(g2, camera, telaLargura, telaAltura);
+        if (cutsceneManager.isWallRevealAtiva()) {
+            lm.drawGround(g2, camera, telaLargura, telaAltura,
+                    cutsceneManager.getWallFadeRect(), cutsceneManager.getWallFadeAlpha(),
+                    cutsceneManager.getWallShakeX(), cutsceneManager.getWallShakeY());
+        } else {
+            lm.drawGround(g2, camera, telaLargura, telaAltura);
+        }
 
         if (arenaManager != null) {
             arenaManager.drawOverlays(g2);
         }
 
-        ArrayList<Object> renderQueue = new ArrayList<>();
+        renderQueue.clear();
         renderQueue.add(quadrado);
         renderQueue.addAll(enemyManager.getEnemies());
         renderQueue.addAll(itemManager.getItems());
+        renderQueue.addAll(npcManager.getNpcs());
 
-        renderQueue.sort((Object o1, Object o2) -> {
-            double base1 = getRenderBaseY(o1);
-            double base2 = getRenderBaseY(o2);
-            return Double.compare(base1, base2);
-        });
+        renderQueue.sort(depthComparator);
 
         for (Object entidade : renderQueue) {
             switch (entidade) {
@@ -49,7 +81,7 @@ public class Renderer {
                     }
                 }
                 case Player p -> {
-                    renderDashEffect(g2, p);
+                    // renderDashEffect(g2, p);
                     p.animate(g2, delta);
                 }
                 case Item item -> {
@@ -58,11 +90,15 @@ public class Renderer {
                         item.draw(g2);
                     }
                 }
+                case NPC npc -> {
+                    if (npc.isActive()) {
+                        npc.draw(g2, delta);
+                    }
+                }
                 default -> {
                 }
             }
         }
-
         bulletmanager.draw(g2, camera, telaLargura, telaAltura);
         lm.drawForeground(g2, camera, telaLargura, telaAltura);
 
@@ -99,16 +135,64 @@ public class Renderer {
                 }
             }
         }
+
         g2.setTransform(originalTransform);
+        HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager, delta);
 
-        HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager);
+        // Animacao das bordas cinematicas
+        if (animateBorder) {
+            double progressSpeed = 1.0 / borderFadeDuration;
 
+            if (borderState == BorderState.IN) {
+                borderProgress += progressSpeed * delta;
+
+                if (borderProgress >= 1.0) {
+                    borderProgress = 1.0;
+                    borderState = BorderState.IDLE;
+                }
+            } else if (borderState == BorderState.OUT) {
+                borderProgress -= progressSpeed * delta;
+
+                if (borderProgress <= 0.0) {
+                    borderProgress = 0.0;
+                    borderState = BorderState.IDLE;
+                }
+            }
+        }
+        double eased;
+
+        if (borderState == BorderState.OUT) {
+            eased = borderProgress * borderProgress;
+        } else {
+            eased = 1.0 - (1.0 - borderProgress) * (1.0 - borderProgress);
+        }
+
+        int cinematicBorder = (int) (cinematicBorderHeight * eased);
+
+        HUD.player_hearts(g2, quadrado, (int) cinematicBorder);
+        HUD.ammobar(g2, telaLargura, telaAltura, quadrado, (int) cinematicBorder);
         fishingManager.render(g2, camera, telaLargura, telaAltura);
+        renderMouse(g2, input);
+
+        if (cinematicBorder > 0) {
+            g2.setColor(Color.BLACK);
+            g2.fillRect(0, 0, telaLargura, (int) cinematicBorder);
+            g2.fillRect(0, telaAltura - (int) cinematicBorder, telaLargura, (int) cinematicBorder);
+        }
 
         if (dialogueManager != null && dialogueManager.isAtivo()) {
             dialogueManager.renderizar(g2, telaLargura, telaAltura);
         }
-        renderMouse(g2, input);
+    }
+
+    public void setCinematicBorderAnimation(BorderState state) {
+        if (state == BorderState.IN) {
+            System.out.println("criando borda cinematica");
+        } else if (state == BorderState.OUT) {
+            System.out.println("destruindo borda cinematica");
+        }
+
+        borderState = state;
     }
 
     private double getRenderBaseY(Object entidade) {
@@ -119,6 +203,9 @@ public class Renderer {
         }
         if (entidade instanceof Item item) {
             return item.getSortBaseY();
+        }
+        if (entidade instanceof NPC npc) {
+            return npc.getY() + npc.altura;
         }
         return 0;
     }
@@ -135,28 +222,40 @@ public class Renderer {
         }
     }
 
+    public void setAntiAliasing(boolean aa) {
+        this.useAntiAliasing = aa;
+        System.out.println("Anti-Aliasing: " + (aa ? "LIGADO" : "DESLIGADO"));
+    }
+
+    public void toggleAntiAliasing() {
+        setAntiAliasing(!this.useAntiAliasing);
+    }
+
     private void renderDashEffect(Graphics2D g2, Player p) {
-        if (preDash && p.isEmDash()) {
-            double centerX = p.getX() + p.getLargura() / 2.0;
-            double centerY = p.getY() + p.getAltura() / 2.0;
-            double dashDirX = p.getDashDirX();
-            double dashDirY = p.getDashDirY();
-
-            double tipX = centerX + dashDirX * 40;
-            double tipY = centerY + dashDirY * 40;
-            double perpX = -dashDirY;
-            double perpY = dashDirX;
-            double baseX = centerX - dashDirX * 20;
-            double baseY = centerY - dashDirY * 20;
-
-            Polygon tri = new Polygon();
-            tri.addPoint((int) tipX, (int) tipY);
-            tri.addPoint((int) (baseX + perpX * 20), (int) (baseY + perpY * 20));
-            tri.addPoint((int) (baseX - perpX * 20), (int) (baseY - perpY * 20));
-
-            g2.setColor(Color.PINK);
-            g2.fillPolygon(tri);
-        }
+        // TODO: talvez implementar afterimages no pingu e inimigos quando derem dash
+        /*
+         * if (preDash && p.isEmDash()) {
+         * double centerX = p.getX() + p.getLargura() / 2.0;
+         * double centerY = p.getY() + p.getAltura() / 2.0;
+         * double dashDirX = p.getDashDirX();
+         * double dashDirY = p.getDashDirY();
+         * 
+         * double tipX = centerX + dashDirX * 40;
+         * double tipY = centerY + dashDirY * 40;
+         * double perpX = -dashDirY;
+         * double perpY = dashDirX;
+         * double baseX = centerX - dashDirX * 20;
+         * double baseY = centerY - dashDirY * 20;
+         * 
+         * Polygon tri = new Polygon();
+         * tri.addPoint((int) tipX, (int) tipY);
+         * tri.addPoint((int) (baseX + perpX * 20), (int) (baseY + perpY * 20));
+         * tri.addPoint((int) (baseX - perpX * 20), (int) (baseY - perpY * 20));
+         * 
+         * g2.setColor(Color.PINK);
+         * g2.fillPolygon(tri);
+         * }
+         */
     }
 
     private void renderDebug(Graphics2D g2, CameraManager camera,
@@ -172,7 +271,9 @@ public class Renderer {
 
     private void renderMouse(Graphics2D g2, InputManager input) {
         g2.setColor(Color.RED);
-        g2.fill(new Ellipse2D.Double(
-                input.getMouseX() - 10, input.getMouseY() - 10, 20, 20));
+        g2.setColor(Color.RED);
+        mouseShape.x = input.getMouseX() - 10;
+        mouseShape.y = input.getMouseY() - 10;
+        g2.fill(mouseShape);
     }
 }

@@ -1,17 +1,22 @@
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 import javax.swing.*;
 
 public class GameCore extends Canvas implements Runnable {
 
+    // VARIÁVEL DO FPS CAP (0 para ilimitado)
+    public int targetFps = 120;
+
     private GameState gameState = GameState.MAIN_MENU;
     private final MainMenu mainMenu;
     private final PauseMenu pauseMenu;
     private final OptionsMenu optionsMenu;
     private final GameOverScreen gameOverScreen;
+    private final KeyBindingsMenu keyBindingsMenu;
 
     private double checkX, checkY;
     private int checkVida, checkMunicao, checkPente, checkChaves;
@@ -22,6 +27,12 @@ public class GameCore extends Canvas implements Runnable {
 
     JFrame frame;
     boolean running = true;
+    private boolean isFullscreen = false;
+    private Rectangle windowedBounds;
+    private boolean showFpsCounter = false;
+    private int currentFps = 0;
+    private int fpsFrameCount = 0;
+    private long fpsUpdateTimer = 0;
 
     private final CameraManager camera;
     private CutsceneManager cutsceneManager;
@@ -36,6 +47,7 @@ public class GameCore extends Canvas implements Runnable {
     private ArenaManager arenaManager;
     private DialogueManager dialogueManager;
     private SoundManager soundManager;
+    private NPCManager npcManager;
     private FishingManager fishingManager;
     private int debugSpawnCooldown = 0;
     private int mapLoadCooldown = 0;
@@ -48,6 +60,9 @@ public class GameCore extends Canvas implements Runnable {
     public final static int game_width = tiles_size * tiles_in_width;
     public final static int game_height = tiles_size * tiles_in_height;
 
+    private static final double BASE_ZOOM = 1.25;
+    private static final int BASE_HEIGHT = game_height;
+
     public GameCore() {
         setPreferredSize(new Dimension(game_width, game_height));
         setBackground(Color.BLACK);
@@ -56,26 +71,31 @@ public class GameCore extends Canvas implements Runnable {
         mainMenu = new MainMenu(soundManager);
         pauseMenu = new PauseMenu(soundManager);
         optionsMenu = new OptionsMenu(soundManager);
+        keyBindingsMenu = new KeyBindingsMenu(soundManager);
         bulletmanager = new BulletManager();
         itemManager = new ItemManager();
         input = new InputManager();
         player = new Player(380, 500, tiles_size - 1, tiles_size - 1, bulletmanager, soundManager);
-        fishingManager = new FishingManager(player, soundManager);
+        camera = new CameraManager(player.getX(), player.getY(), BASE_ZOOM);
         renderer = new Renderer();
         renderer.modoDebug = false;
         levelManager = new LevelManager(this);
 
+        dialogueManager = new DialogueManager();
         itemManager = new ItemManager();
+        fishingManager = new FishingManager(player, soundManager, itemManager);
         enemyManager = new EnemyManager(levelManager, bulletmanager, soundManager);
         enemyManager.setItemManager(itemManager);
-        arenaManager = new ArenaManager(enemyManager, levelManager, itemManager);
-        dialogueManager = new DialogueManager();
-        camera = new CameraManager(player.getX(), player.getY(), 1.25);
+        npcManager = new NPCManager(dialogueManager, itemManager);
+        cutsceneManager = new CutsceneManager(this);
+        arenaManager = new ArenaManager(enemyManager, levelManager, itemManager, npcManager, cutsceneManager, this);
         hud = new Hud();
 
         levelManager.inicializarPrimeiroNivel();
 
         player.loadLvlData(levelManager.getCurLevelData());
+        npcManager.spawn(new IgluNPC(5704, 8062));
+        System.out.println(player.getX() + ", " + player.getY());
 
         addKeyListener(input);
         addMouseMotionListener(input);
@@ -84,7 +104,47 @@ public class GameCore extends Canvas implements Runnable {
         requestFocus();
     }
 
+    public void toggleFullscreen() {
+        if (!isFullscreen) {
+            System.out.println("Alternando para Fullscreen");
+            windowedBounds = frame.getBounds();
+            frame.dispose();
+            frame.setUndecorated(true);
+            frame.setVisible(true);
+            frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            isFullscreen = true;
+        } else {
+            System.out.println("Alternando para Modo Janela");
+            frame.dispose();
+            frame.setUndecorated(false);
+            frame.setExtendedState(JFrame.NORMAL);
+            frame.setBounds(windowedBounds);
+            frame.setVisible(true);
+            isFullscreen = false;
+        }
+        requestFocusInWindow();
+    }
+
+    public boolean isShowFpsCounter() {
+        return showFpsCounter;
+    }
+
+    public void toggleFpsCounter() {
+        showFpsCounter = !showFpsCounter;
+    }
+
+    public int getTargetFps() {
+        return targetFps;
+    }
+
+    public void setTargetFps(int targ) {
+        targetFps = targ;
+    }
+
     public void update() {
+        if (input.isKeyJustPressed(KeyEvent.VK_F11)) {
+            toggleFullscreen();
+        }
         switch (gameState) {
             case MAIN_MENU -> {
                 GameState next = mainMenu.update(input, getWidth(), getHeight());
@@ -92,7 +152,7 @@ public class GameCore extends Canvas implements Runnable {
                     optionsMenu.setReturnState(GameState.MAIN_MENU);
                 }
                 if (next == GameState.PLAYING) {
-                    soundManager.playBGM(SoundManager.BGM.LEVEL_1);
+                    soundManager.playBGM(SoundManager.BGM.LEVEL_1_INTRO, SoundManager.BGM.LEVEL_1_LOOP);
                     player.setShootCooldownTimer(30);
                 }
                 gameState = next;
@@ -113,7 +173,7 @@ public class GameCore extends Canvas implements Runnable {
                 gameState = next;
             }
             case CUTSCENE -> {
-
+                updateCutscene();
             }
             case PAUSED -> {
                 GameState next = pauseMenu.update(input, getWidth(), getHeight());
@@ -130,11 +190,113 @@ public class GameCore extends Canvas implements Runnable {
                 gameState = next;
             }
             case OPTIONS ->
-                gameState = optionsMenu.update(input, getWidth(), getHeight());
+                gameState = optionsMenu.update(input, getWidth(), getHeight(), this);
+            case KEYBINDINGS ->
+                gameState = keyBindingsMenu.update(input, getWidth(), getHeight());
             case QUIT ->
                 System.exit(0);
         }
         input.update();
+    }
+
+    public void setCinematicBorderAnimation(Renderer.BorderState state) {
+        renderer.setCinematicBorderAnimation(state);
+    }
+
+    public void debugInputProcessing() {
+
+        if (input.isKeyJustPressed(KeyEvent.VK_F)) {
+            toggleFpsCounter();
+        }
+        if (input.isKeyJustPressed(KeyEvent.VK_I)) {
+            setCinematicBorderAnimation(Renderer.BorderState.IN);
+        }
+        if (input.isKeyJustPressed(KeyEvent.VK_O)) {
+            setCinematicBorderAnimation(Renderer.BorderState.OUT);
+        }
+        if (input.isKeyJustPressed(KeyEvent.VK_N)) {
+            player.setX(20.5 * GameCore.tiles_size);
+            player.setY(48.0 * GameCore.tiles_size);
+        }
+
+        if (debugSpawnCooldown > 0) {
+            debugSpawnCooldown--;
+        }
+
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_K) && debugSpawnCooldown <= 0) {
+            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+            enemyManager.adicionarInimigo("lobo", mouseXWorld, mouseYWorld, 0, -1);
+            System.out.println("DEBUG: Inimigo spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
+            debugSpawnCooldown = 30;
+        }
+
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_L) && debugSpawnCooldown <= 0) {
+            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+            // itemManager.spawn(new KeyItem(12839, 4870));
+            itemManager.spawn(new KeyItem(mouseXWorld, mouseYWorld));
+            System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
+            debugSpawnCooldown = 30;
+        }
+
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_H) && debugSpawnCooldown <= 0) {
+            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+            // itemManager.spawn(new KeyItem(12839, 4870));
+            itemManager.spawn(new HealthPackItem(mouseXWorld, mouseYWorld));
+            System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
+            debugSpawnCooldown = 30;
+        }
+
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_V) && debugSpawnCooldown <= 0) {
+            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+            itemManager.spawn(new FishingRodItem(mouseXWorld, mouseYWorld));
+            System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
+            debugSpawnCooldown = 30;
+        }
+
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_0) && debugSpawnCooldown <= 0) {
+            renderer.modoDebug = !renderer.modoDebug;
+            toggleFpsCounter();
+            if (renderer.modoDebug) {
+                System.out.println("DEBUG: Visão dos Triggers e Objetos Ativada");
+            } else {
+                System.out.println("DEBUG: Visão dos Triggers e Objetos Desativada");
+            }
+
+            debugSpawnCooldown = 30;
+        }
+        if (mapLoadCooldown > 0) {
+            mapLoadCooldown--;
+        }
+
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_1) && mapLoadCooldown <= 0) {
+            System.out.println("Voltando para o Mapa 1...");
+            levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
+            mapLoadCooldown = 60;
+        }
+
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_2) && mapLoadCooldown <= 0) {
+            System.out.println("Indo para o Mapa 2 de Testes...");
+            // Substitua pelo nome exato do seu arquivo JSON de teste
+            levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
+            mapLoadCooldown = 60;
+        }
+
+        // TODO: adicionar o toggle do antialiasing no menu de configurações
+        if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_3)) {
+            renderer.toggleAntiAliasing();
+        }
+    }
+
+    public void toggleAntiAliasing() {
+        renderer.toggleAntiAliasing();
+    }
+
+    public boolean isAntiAliasingEnabled() {
+        return renderer.useAntiAliasing;
     }
 
     public void updateGame() {
@@ -142,18 +304,17 @@ public class GameCore extends Canvas implements Runnable {
             gameState = GameState.PAUSED;
             return;
         }
-
+        cutsceneManager.update();
         if (input.isKeyPressed(KeyEvent.VK_T)) {
             if (!dialogueManager.isAtivo()) {
-                soundManager.playBGM(SoundManager.BGM.OS_CRIA);
-                dialogueManager.iniciarDialogo(new String[]{
-                    "PINGU: Entrando na base de operações.",
-                    "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
-                    "PINGU: Eles não vão nem ver de onde veio."
+                dialogueManager.iniciarDialogo(new String[] {
+                        "PINGU: Entrando na base de operações.",
+                        "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
+                        "PINGU: Eles não vão nem ver de onde veio."
+
                 });
             }
         }
-
         if (dialogueManager.isAtivo()) {
             dialogueManager.atualizar(input);
         } else {
@@ -171,108 +332,59 @@ public class GameCore extends Canvas implements Runnable {
             }
 
             fishingManager.update(input, camera, levelManager.getCurLevelData(), getWidth(), getHeight());
-            //player.testemunicao(input, getWidth(), getHeight(), itemManager, camera);
 
             player.update(input, getWidth(), getHeight(), camera, enemyManager.getEnemies());
-
+            npcManager.update(player, input);
             itemManager.update(player);
 
             ArrayList<JumpLink> linksAtuais = levelManager.getJumpLinks();
             enemyManager.update(player, linksAtuais);
 
-            arenaManager.update(player, camera, cutsceneManager);
+            arenaManager.update(player, camera, soundManager);
 
-            if(arenaManager.consumirSolicitacaoCutsceneBoss()){
-              gameState = GameState.CUTSCENE;
-              return;
+            if (arenaManager.consumirSolicitacaoCutsceneBoss()) {
+                gameState = GameState.CUTSCENE;
+                return;
             }
 
             bulletmanager.update(camera, getWidth(), getHeight(),
                     player, enemyManager.getEnemies());
 
             levelManager.update();
+            double dynamicZoom = BASE_ZOOM * (getHeight() / (double) BASE_HEIGHT);
+            camera.setBaseZoom(dynamicZoom);
             camera.update(player, input, getWidth(), getHeight());
             fishingManager.syncToCamera(camera, getWidth(), getHeight());
-
-            // FUNÇÕES DE DEBUG
-            if (debugSpawnCooldown > 0) {
-                debugSpawnCooldown--;
-            }
-
-            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_K) && debugSpawnCooldown <= 0) {
-                double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-                double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-                enemyManager.adicionarInimigo("lobo", mouseXWorld, mouseYWorld, 0, -1);
-                System.out.println("DEBUG: Inimigo spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
-                debugSpawnCooldown = 30;
-            }
-
-            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_L) && debugSpawnCooldown <= 0) {
-                double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-                double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-                // itemManager.spawn(new KeyItem(12839, 4870));
-                itemManager.spawn(new KeyItem(mouseXWorld, mouseYWorld));
-                System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
-                debugSpawnCooldown = 30;
-            }
-
-            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_V) && debugSpawnCooldown <= 0) {
-                double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-                double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-                itemManager.spawn(new FishingRodItem(mouseXWorld, mouseYWorld));
-                System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
-                debugSpawnCooldown = 30;
-            }
-
-            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_0) && debugSpawnCooldown <= 0) {
-                renderer.modoDebug = !renderer.modoDebug;
-                if (renderer.modoDebug) {
-                    System.out.println("DEBUG: Visão dos Triggers e Objetos Ativada");
-                } else {
-                    System.out.println("DEBUG: Visão dos Triggers e Objetos Desativada");
-                }
-
-                debugSpawnCooldown = 30;
-            }
 
             if (input.isKeyPressed(java.awt.event.KeyEvent.VK_E) && debugSpawnCooldown <= 0) {
                 arenaManager.interagir(player, player.getChaves());
             }
 
-            if (mapLoadCooldown > 0) {
-                mapLoadCooldown--;
-            }
-
-            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_1) && mapLoadCooldown <= 0) {
-                System.out.println("Voltando para o Mapa 1...");
-                levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
-                mapLoadCooldown = 60;
-            }
-
-            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_2) && mapLoadCooldown <= 0) {
-                System.out.println("Indo para o Mapa 2 de Testes...");
-                // Substitua pelo nome exato do seu arquivo JSON de teste
-                levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
-                mapLoadCooldown = 60;
-            }
+            debugInputProcessing();
         }
     }
 
-    public void updateCutscene(){
-      cutsceneManager.update();
-      camera.update(player, input, getWidth(), getHeight());
+    public void updateCutscene() {
+        cutsceneManager.update();
+        double dynamicZoom = BASE_ZOOM * (getHeight() / (double) BASE_HEIGHT);
+        camera.setBaseZoom(dynamicZoom);
+        camera.update(player, input, getWidth(), getHeight());
 
-      if(!cutsceneManager.isAtiva()){
-        player.setBlockInputs(false);
-        gameState = GameState.PLAYING;
-      }
+        if (!cutsceneManager.isAtiva()) {
+            player.setBlockInputs(false);
+            gameState = GameState.PLAYING;
+        }
+    }
+
+    public void setGameState(GameState state) {
+        this.gameState = state;
     }
 
     public void processarNovoMapa(ArrayList<TiledObject> objetosDoMapa) {
         enemyManager.limparTudo();
         bulletmanager.limparTudo();
         itemManager.limparTudo();
-
+        npcManager.clearAll();
         for (TiledObject obj : objetosDoMapa) {
             if (!obj.isScaled) {
                 obj.x *= GameCore.scale;
@@ -348,9 +460,32 @@ public class GameCore extends Canvas implements Runnable {
     public void resetarJogoCompleto() {
         hasCheckpoint = false;
         checkArenas.clear();
+        arenaManager.setFirstArenaFlag(true);
+        npcManager.clearAll();
         chavesColetadasCheckpoint = 0;
         player.resetarProgresso();
+        renderer.setBorderProgress(0.0);
+        setCinematicBorderAnimation(Renderer.BorderState.IDLE);
         levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
+
+        npcManager.spawn(new IgluNPC(5704, 8062));
+    }
+
+    private void drawFpsCounter(Graphics2D g2) {
+        int MARGIN = 12;
+        g2.setFont(new Font("Monospaced", Font.BOLD, 16));
+        String text = "FPS: " + currentFps;
+        Rectangle2D textbounds = g2.getFontMetrics().getStringBounds(text, g2);
+        int tw = (int) textbounds.getWidth();
+        int th = (int) textbounds.getHeight();
+        g2.setColor(Color.GRAY);
+        g2.fillRect(getWidth() - tw - MARGIN - 4, MARGIN + 1, tw + 4, th + 2);
+        int textX = getWidth() - tw - MARGIN - 2;
+        int textY = th + MARGIN - 2;
+        g2.setColor(Color.BLACK);
+        g2.drawString(text, textX + 1, textY + 1);
+        g2.setColor(Color.GREEN);
+        g2.drawString(text, textX, textY);
     }
 
     public void render(BufferStrategy bs, double delta) {
@@ -358,38 +493,59 @@ public class GameCore extends Canvas implements Runnable {
             do {
                 Graphics2D g2 = (Graphics2D) bs.getDrawGraphics();
                 switch (gameState) {
-                    case MAIN_MENU ->
+                    case MAIN_MENU -> {
                         mainMenu.render(g2, getWidth(), getHeight());
-
-                    case PLAYING ->
+                    }
+                    case PLAYING -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, delta);
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
+                                cutsceneManager, delta,
+                                true);
+                        if (showFpsCounter) {
+                            drawFpsCounter(g2);
+                        }
+                    }
                     case GAME_OVER -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, delta);
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
+                                cutsceneManager, delta,
+                                true);
                         gameOverScreen.render(g2, getWidth(), getHeight());
                     }
                     case PAUSED -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, delta);
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
+                                cutsceneManager, delta,
+                                false);
                         pauseMenu.render(g2, getWidth(), getHeight());
                     }
                     case CUTSCENE -> {
-                        renderer.renderizar(g2, camera, player, input,
-                                getWidth(), getHeight(),
-                                levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, delta);
+                        {
+                            renderer.renderizar(g2, camera, player, input,
+                                    getWidth(), getHeight(),
+                                    levelManager, bulletmanager, itemManager,
+                                    enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
+                                    cutsceneManager, delta,
+                                    true);
 
-                        cutsceneManager.draw(g2, getWidth(), getHeight());
+                            cutsceneManager.draw(g2, getWidth(), getHeight());
+                            if (showFpsCounter) {
+                                drawFpsCounter(g2);
+                            }
+                        }
                     }
-                    case OPTIONS ->
+                    case OPTIONS -> {
                         optionsMenu.render(g2, getWidth(), getHeight());
+                    }
+                    case KEYBINDINGS -> {
+                        keyBindingsMenu.render(g2, getWidth(), getHeight());
+                    }
                     case QUIT -> {
                     }
                 }
@@ -404,24 +560,61 @@ public class GameCore extends Canvas implements Runnable {
         return arenaManager;
     }
 
+    public boolean isFullscreen() {
+        return isFullscreen;
+    }
+
     @Override
     public void run() {
-        createBufferStrategy(3);
-        BufferStrategy bs = getBufferStrategy();
         long lastTime = System.nanoTime();
-        double nsPerFrame = 1_000_000_000.0 / 60.0;
+        double nsPerUpdate = 1_000_000_000.0 / 60.0;
         double delta = 0;
 
         while (running) {
             long now = System.nanoTime();
-            delta += (now - lastTime) / nsPerFrame;
-            double deltaTime = (now - lastTime) / 1_000_000_000.0;
+            long frameTime = now - lastTime;
             lastTime = now;
+
+            delta += frameTime / nsPerUpdate;
+
             while (delta >= 1) {
                 update();
                 delta--;
             }
-            render(bs, deltaTime);
+
+            BufferStrategy bs = getBufferStrategy();
+            if (bs == null) {
+                createBufferStrategy(3);
+                continue;
+            }
+
+            double deltaTimeRender = frameTime / 1_000_000_000.0;
+            render(bs, deltaTimeRender);
+
+            fpsFrameCount++;
+            fpsUpdateTimer += frameTime;
+            if (fpsUpdateTimer >= 1_000_000_000L) {
+                currentFps = fpsFrameCount;
+                fpsFrameCount = 0;
+                fpsUpdateTimer -= 1_000_000_000L;
+            }
+
+            if (targetFps > 0) {
+                long optimalTime = 1_000_000_000L / targetFps;
+                while (System.nanoTime() - now < optimalTime) {
+                    long timeLeft = optimalTime - (System.nanoTime() - now);
+
+                    if (timeLeft > 2_000_000) {
+                        try {
+                            Thread.sleep(1);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        Thread.yield();
+                    }
+                }
+            }
         }
     }
 
@@ -432,6 +625,7 @@ public class GameCore extends Canvas implements Runnable {
 
     public static void main(String[] args) {
         GameCore game = new GameCore();
+        Toolkit.getDefaultToolkit().setDynamicLayout(false);
         game.frame = new JFrame("Pingu 007 (ALPHA)");
         game.frame.setIconImage(
                 LoadSave.GetSpriteAtlas("pingu_portrait_close.jpg").getScaledInstance(64, 64, Image.SCALE_SMOOTH));
@@ -439,7 +633,9 @@ public class GameCore extends Canvas implements Runnable {
         game.frame.pack();
         game.frame.setLocationRelativeTo(null);
         game.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        game.frame.setResizable(false);
+        game.frame.setResizable(true);
+        game.optionsMenu.repositionElements(game.getWidth(), game.getHeight(), game);
+        game.keyBindingsMenu.repositionElements(game.getWidth(), game.getHeight());
         game.frame.setVisible(true);
         game.start();
     }

@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
 /**
  * botao de menu com texto, auto ajustado
  */
@@ -12,7 +13,7 @@ public class MenuButton {
     protected final String label;
     protected final Rectangle rect;
     protected boolean hovered = false;
-
+    protected boolean held = false;
     protected static Font pixelFont;
 
     static {
@@ -32,6 +33,10 @@ public class MenuButton {
         this.label = label;
         this.rect = new Rectangle(x, y, width, height);
         adjustHeight();
+    }
+
+    public void setSize(int width, int height) {
+        rect.setSize(width, height);
     }
 
     protected void adjustHeight() {
@@ -73,10 +78,15 @@ public class MenuButton {
 
     public int update(InputManager input) {
         hovered = rect.contains(input.getMouseX(), input.getMouseY());
-        if (!hovered)
-            return IDLE;
-        if (input.isMouseButtonJustPressed(MouseEvent.BUTTON1))
+        if (hovered && input.isMouseButtonJustPressed(MouseEvent.BUTTON1))
             return CLICKED;
+        else if (hovered && input.isMouseButtonPressed(MouseEvent.BUTTON1)) {
+            held = true;
+        }
+        held = false;
+        if (!hovered) {
+            return IDLE;
+        }
         return HOVERED;
     }
 

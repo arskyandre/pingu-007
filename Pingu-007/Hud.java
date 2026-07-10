@@ -25,8 +25,8 @@ public class Hud {
 
         double x, y; // posição na tela (espaço HUD)
         double velX, velY; // velocidade em px/frame
-        int life; // frames restantes
-        final int maxLife;
+        double life; // frames restantes
+        final double maxLife;
         final float scale; // tamanho da partícula (fator sobre HEART_RENDER)
 
         HeartParticle(double x, double y, double velX, double velY, int life, float scale) {
@@ -58,20 +58,18 @@ public class Hud {
     }
 
     public void draw(Graphics2D g2, int telaLargura, int telaAltura,
-            CameraManager camera, Player p, EnemyManager em) {
+            CameraManager camera, Player p, EnemyManager em, double delta) {
 
         // spawna particulas de dano
         if (p.consumirDanoFlag()) {
             spawnHeartParticles(p);
         }
 
-        player_hearts(g2, p);
-        updateAndDrawParticles(g2);
+        updateAndDrawParticles(g2, delta);
         healthbar_inimigos(g2, telaLargura, telaAltura, camera, em);
-        ammobar(g2, telaLargura, telaAltura, p);
     }
 
-    void ammobar(Graphics2D g2, int telaLargura, int telaAltura, Player p) {
+    public void ammobar(Graphics2D g2, int telaLargura, int telaAltura, Player p, int offset) {
         int pente = p.getPente();
         int penteMax = p.getPenteMax();
         int municaoTotal = p.getMunicao();
@@ -81,7 +79,7 @@ public class Hud {
         }
 
         int barX = telaLargura - AMMO_BAR_WIDTH - AMMO_BAR_MARGIN;
-        int barY = telaAltura - AMMO_BAR_HEIGHT - AMMO_BAR_MARGIN;
+        int barY = telaAltura - AMMO_BAR_HEIGHT - AMMO_BAR_MARGIN - offset;
 
         g2.setColor(new Color(20, 20, 20, 180));
         g2.fill(new RoundRectangle2D.Double(barX, barY,
@@ -160,7 +158,7 @@ public class Hud {
         }
     }
 
-    private void updateAndDrawParticles(Graphics2D g2) {
+    private void updateAndDrawParticles(Graphics2D g2, double delta) {
         if (heartSheet == null) {
             return;
         }
@@ -171,22 +169,24 @@ public class Hud {
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 
+        double timeScale = delta * 640.0;
+
         Iterator<HeartParticle> it = particles.iterator();
         while (it.hasNext()) {
             HeartParticle pt = it.next();
 
             // Física
-            pt.velY += 0.014;
-            pt.velX *= 0.97;
-            pt.x += pt.velX;
-            pt.y += pt.velY;
-            pt.life--;
+            pt.velY += 0.014 * timeScale;
+            pt.velX *= Math.pow(0.97, timeScale);
+            pt.x += pt.velX * timeScale;
+            pt.y += pt.velY * timeScale;
+            pt.life -= timeScale;
 
-            float alpha = pt.life < 60 ? pt.life / 60f : 1f;
+            double alpha = pt.life < 60 ? pt.life / 60f : 1f;
             int size = Math.max(1, (int) (HEART_RENDER * pt.scale));
 
             Composite comp = g2.getComposite();
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, Math.max(0f, alpha)));
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, Math.max(0f, (float) alpha)));
             g2.drawImage(halfHeart,
                     (int) (pt.x - size / 2.0),
                     (int) (pt.y - size / 2.0),
@@ -200,7 +200,7 @@ public class Hud {
         }
     }
 
-    void player_hearts(Graphics2D g2, Player p) {
+    public void player_hearts(Graphics2D g2, Player p, int offset) {
         if (heartSheet == null) {
             return;
         }
@@ -230,7 +230,7 @@ public class Hud {
 
             g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
             g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
-            g2.drawImage(sprite, drawX, 16, HEART_RENDER, HEART_RENDER, null);
+            g2.drawImage(sprite, drawX, 16 + offset, HEART_RENDER, HEART_RENDER, null);
         }
     }
 

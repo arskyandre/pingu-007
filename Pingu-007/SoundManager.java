@@ -11,7 +11,8 @@ public class SoundManager {
      */
     public enum BGM {
         MAIN_MENU("sound/bgm/main_menu.wav"),
-        LEVEL_1("sound/bgm/level_1.wav"),
+        LEVEL_1_INTRO("sound/bgm/level_1_intro.wav"),
+        LEVEL_1_LOOP("sound/bgm/level_1_loop.wav"),
         OS_CRIA("sound/bgm/os_cria.wav");
 
         public final String path;
@@ -39,12 +40,16 @@ public class SoundManager {
         // FISHING_FISH_FOUND("sound/sfx/fishing_fish_found.wav", 2),
         // FISHING_CAUGHT("sound/sfx/fishing_caught.wav", 2),
         // FISHING_LOST("sound/sfx/fishing_lost.wav", 2),
+        ARENA_ENTER("sound/sfx/arena_enter.wav", 2),
         BOMBER_AVISO("sound/sfx/bomber_aviso.wav", 6),
         EXPLOSION("sound/sfx/bomber_explosion.wav", 6),
         GUNSHOT("sound/sfx/gunshot.wav", 16),
+        SHOOTER_METRALHADA("sound/sfx/shooter_metralhada.wav", 8),
         PLAYER_DAMAGE("sound/sfx/player_damage.wav", 8),
         WOLF_DEATH("sound/sfx/wolf_death.wav", 8),
         HUD_CLICK("sound/hud/click.wav", 2);
+
+        // ADICIONAR SONS PRO MINIGAME DE PESCA
 
         public final String path;
         public final int poolSize;
@@ -60,7 +65,7 @@ public class SoundManager {
     private final BGMPlayer bgmPlayer = new BGMPlayer();
     private BGM currentTrack = null;
     // private float musicVolume = 0f;
-    private float musicVolume = 0.3f;
+    private float musicVolume = 0.25f;
     private float sfxVolume = 0.4f;
 
     public SoundManager() {
@@ -99,6 +104,12 @@ public class SoundManager {
     public void playBGM(BGM track) {
         currentTrack = track;
         bgmPlayer.play(track.path);
+        bgmPlayer.setVolume(musicVolume);
+    }
+
+    public void playBGM(BGM intro, BGM loop) {
+        currentTrack = loop;
+        bgmPlayer.playIntroThenLoop(intro.path, loop.path);
         bgmPlayer.setVolume(musicVolume);
     }
 

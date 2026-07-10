@@ -136,6 +136,9 @@ public class Dasher extends Enemy {
                             }
                         }
                         case DASHING -> {
+                            if (timer == tempoCooldown) {
+                                soundManager.playRandomIceStep();
+                            }
                             timer--;
                             this.velX *= atritoDash;
                             this.velY *= atritoDash;

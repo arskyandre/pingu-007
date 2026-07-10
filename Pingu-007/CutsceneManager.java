@@ -1,118 +1,189 @@
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
-
+import java.awt.geom.Rectangle2D;
 
 public class CutsceneManager {
+
     public enum Phase {
         NONE, OPENING, CLOSING
     }
 
+    public enum CutsceneType {
+        NONE, BOSS_INTRO, WALL_REVEAL
+    }
+
+    private CutsceneType type = CutsceneType.NONE;
+
+    // --- boss intro state ---
     private Phase phase = Phase.NONE;
     private int timer = 0;
     private static final int DURATION = 100;
-
-    private static final int BLACK_BORDER_HEIGHT = 80;;
-
+    private static final int TEXT_AREA_HEIGHT = 80;
     private static final int TRANSICAO_BORDA = 20;
-
-
     private String nomeBoss = "";
 
-    public static int getDuracaoTotal(){
-      return DURATION;
+    // --- wall reveal state ---
+    private static final int WALL_REVEAL_DURATION = 150;
+    private int wallTimer = 0;
+    private Rectangle2D.Double wallFadeRect;
+    private Player wallRevealPlayer;
+    private static final double WALL_SHAKE_AMPLITUDE_MAX = 2.5;
+    private static final double WALL_SHAKE_SPEED = 1.2;
+
+    private GameCore gameCore;
+
+    public CutsceneManager(GameCore GC) {
+        gameCore = GC;
     }
 
-
-    public void iniciar(String nomeBoss){
-      this.nomeBoss = nomeBoss;
-      this.phase = Phase.OPENING;
-      this.timer = 0;
+    public static int getDuracaoTotal() {
+        return DURATION;
     }
 
-    public void update(){
-      if(phase == Phase.NONE){
-        return;
-      }
-
-      timer++;
-
-      if(phase == Phase.OPENING && timer >= DURATION - TRANSICAO_BORDA){
-        phase = Phase.CLOSING;
-      }
-
-      if(phase == Phase.CLOSING && timer >= DURATION){
-        phase = Phase.NONE;
-        timer = 0;
-        nomeBoss = "";
-
-      }
+    // ---------------- Boss intro ----------------
+    public void iniciar(String nomeBoss) {
+        this.type = CutsceneType.BOSS_INTRO;
+        this.nomeBoss = nomeBoss;
+        this.phase = Phase.OPENING;
+        this.timer = 0;
+        gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
     }
 
-    public boolean isAtiva(){
-      return phase != Phase.NONE;
-    }
-
-    public void draw(Graphics2D g2, int telaLargura, int telaAltura){
-      if(phase == Phase.NONE){
-        return;
-      }
-
-      AffineTransform transformOriginal = g2.getTransform();
-      g2.setTransform(new AffineTransform());
-
-      double progresso = calcularProgressoBorda();
-      int alturaAtual = (int) (BLACK_BORDER_HEIGHT * progresso);
-
-      g2.setColor(Color.BLACK);
-      g2.fillRect(0, 0, telaLargura, alturaAtual);
-      g2.fillRect(0, telaAltura - alturaAtual, telaLargura, alturaAtual);
-
-      if(progresso >= 1.0 && nomeBoss != null && !nomeBoss.isEmpty()){
-        desenharNomeBoss(g2, telaLargura, telaAltura);
-      }
-
-      g2.setTransform(transformOriginal);
-    }
-
-    private double calcularProgressoBorda(){
-      if(phase == Phase.OPENING){
-        if(timer >= TRANSICAO_BORDA){
-          return 1.0;
+    public void iniciarWallFade(Rectangle2D.Double wallRect) {
+        if (type == CutsceneType.WALL_REVEAL && wallRevealPlayer != null) {
+            return;
         }
-        return (double) timer / TRANSICAO_BORDA;
-      }
-
-      int inicioClosing = DURATION - TRANSICAO_BORDA;
-      int frameNaClosing = timer - inicioClosing;
-      double progresso = 1.0 - ((double) frameNaClosing/ TRANSICAO_BORDA);
-      return Math.max(0.0, Math.min(1.0, progresso));
+        this.type = CutsceneType.WALL_REVEAL;
+        this.wallTimer = 0;
+        this.wallFadeRect = wallRect;
+        this.wallRevealPlayer = null;
     }
 
+    public void iniciarWallRevealComCamera(Rectangle2D.Double wallRect, CameraManager camera, Player player) {
+        this.type = CutsceneType.WALL_REVEAL;
+        this.wallTimer = 0;
+        this.wallFadeRect = wallRect;
+        this.wallRevealPlayer = player;
 
-    private void desenharNomeBoss(Graphics2D g2, int telaLargura, int telaAltura){
-      Object antialiasAntigo = g2.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
-      g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
-      Font fonteNome = new Font("Serif", Font.BOLD, 26);
-      g2.setFont(fonteNome);
-      FontMetrics fm = g2.getFontMetrics();
-
-      int textoLargura = fm.stringWidth(nomeBoss);
-      int textoX = (telaLargura - textoLargura)/2;
-      int textoY = (BLACK_BORDER_HEIGHT / 2) + (fm.getAscent() / 2) - 4;
-
-      g2.setColor(new Color(0, 0, 0, 160));
-      g2.drawString(nomeBoss, textoX + 2, textoY + 2);
-
-      g2.setColor(new Color(230, 230, 230));
-      g2.drawString(nomeBoss, textoX, textoY);
-
-      if(antialiasAntigo != null){
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, antialiasAntigo);
-      }
+        camera.focarEmRect(wallRect, (int) WALL_REVEAL_DURATION, gameCore.getWidth(), gameCore.getHeight());
+        player.setBlockInputs(true);
     }
-  }
+
+    public boolean isWallRevealAtiva() {
+        return isWallFadeAtiva();
+    }
+
+    public Rectangle2D.Double getWallFadeRect() {
+        return wallFadeRect;
+    }
+
+    public float getWallFadeAlpha() {
+        if (type != CutsceneType.WALL_REVEAL) {
+            return 1f;
+        }
+        return Math.min(1f, (float) wallTimer / (float) WALL_REVEAL_DURATION);
+    }
+
+    // ---------------- Shared update/draw ----------------
+    public void update() {
+        if (type == CutsceneType.BOSS_INTRO) {
+            timer++;
+            if (phase == Phase.OPENING && timer >= DURATION - TRANSICAO_BORDA) {
+                phase = Phase.CLOSING;
+                gameCore.setCinematicBorderAnimation(Renderer.BorderState.OUT);
+            }
+            if (phase == Phase.CLOSING && timer >= DURATION) {
+                phase = Phase.NONE;
+                timer = 0;
+                nomeBoss = "";
+                type = CutsceneType.NONE;
+            }
+        } else if (type == CutsceneType.WALL_REVEAL) {
+            wallTimer++;
+            // teste de conserto da parede inicial.
+            if (wallTimer == WALL_REVEAL_DURATION - TRANSICAO_BORDA) {
+                if (gameCore.getArenaManager() != null && !gameCore.getArenaManager().existeCombateAtivo()) {
+                    gameCore.setCinematicBorderAnimation(Renderer.BorderState.OUT);
+                }
+            }
+
+            if (wallTimer >= WALL_REVEAL_DURATION) {
+                wallFadeRect = null;
+                wallRevealPlayer = null;
+                wallTimer = 0;
+                type = CutsceneType.NONE;
+            }
+        }
+    }
+
+    public boolean isAtiva() {
+        // só conta como cutscene "de verdade" (que pausa o jogo) se tiver player
+        // vinculado
+        return type == CutsceneType.BOSS_INTRO || (type == CutsceneType.WALL_REVEAL && wallRevealPlayer != null);
+    }
+
+    public boolean isWallFadeAtiva() {
+        return type == CutsceneType.WALL_REVEAL;
+    }
+
+    private double getWallShakeAmplitude() {
+        double progress = wallTimer / (double) WALL_REVEAL_DURATION;
+        return WALL_SHAKE_AMPLITUDE_MAX * Math.pow(1.0 - progress, 2.0);
+    }
+
+    public double getWallShakeX() {
+        if (type != CutsceneType.WALL_REVEAL) {
+            return 0;
+        }
+
+        return Math.sin(wallTimer * WALL_SHAKE_SPEED) * getWallShakeAmplitude();
+    }
+
+    public double getWallShakeY() {
+        if (type != CutsceneType.WALL_REVEAL) {
+            return 0;
+        }
+
+        return Math.cos(wallTimer * WALL_SHAKE_SPEED * 1.3) * getWallShakeAmplitude();
+    }
+
+    public void draw(Graphics2D g2, int telaLargura, int telaAltura) {
+        if (type != CutsceneType.BOSS_INTRO) {
+            return;
+        }
+        AffineTransform transformOriginal = g2.getTransform();
+        g2.setTransform(new AffineTransform());
+
+        if (nomeBoss != null && !nomeBoss.isEmpty()) {
+            desenharNomeBoss(g2, telaLargura, telaAltura);
+        }
+
+        g2.setTransform(transformOriginal);
+    }
+
+    private void desenharNomeBoss(Graphics2D g2, int telaLargura, int telaAltura) {
+        Object antialiasAntigo = g2.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        Font fonteNome = new Font("Serif", Font.BOLD, 26);
+        g2.setFont(fonteNome);
+        FontMetrics fm = g2.getFontMetrics();
+        int textoLargura = fm.stringWidth(nomeBoss);
+        int textoX = (telaLargura - textoLargura) / 2;
+        int textoY = (TEXT_AREA_HEIGHT / 2) + (fm.getAscent() / 2) - 4;
+
+        g2.setColor(new Color(0, 0, 0, 160));
+        g2.drawString(nomeBoss, textoX + 2, textoY + 2);
+        g2.setColor(new Color(230, 230, 230));
+        g2.drawString(nomeBoss, textoX, textoY);
+
+        if (antialiasAntigo != null) {
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, antialiasAntigo);
+        }
+    }
+}

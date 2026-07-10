@@ -2,22 +2,27 @@
 public class TileProperties {
 
     int HOLEid = 9 + 1; // esse é o ID especifico dos buracos
+    static int keyFishingHoleID = 65;
 
     // isSolid diz o que não é atravessavel
     public static boolean isSolid(int tileID) {
         int tempID = tileID - 1;
         if (tempID >= 0) {
-            return (tempID >= 45 && tempID <= 50) || (tempID >= 6 && tempID <= 8) || (tempID >= 20 && tempID <= 22) || (tempID >= 118 && tempID <= 124) || (tempID >= 25 && tempID <= 27) || (tempID >= 53 && tempID <= 55)
+            return (tempID >= 45 && tempID <= 50) || (tempID >= 6 && tempID <= 8) || (tempID >= 20 && tempID <= 22)
+                    || (tempID >= 118 && tempID <= 124) || (tempID >= 25 && tempID <= 27)
+                    || (tempID >= 53 && tempID <= 55)
                     || (tempID >= 81 && tempID <= 83) || (tempID >= 112 && tempID <= 117);
         }
         return false;
     }
 
-    // isSemiSolid diz o que é atravessavel usando alguma movimentação especifica (ex: dash)
+    // isSemiSolid diz o que é atravessavel usando alguma movimentação especifica
+    // (ex: dash)
     public static boolean isSemiSolid(int tileID) {
         int tempID = tileID - 1;
         if (tempID >= 0) {
-            return (tempID >= 42 && tempID <= 44) || (tempID >= 61 && tempID <= 63) || (tempID >= 70 && tempID <= 75) || tempID == 9 || tempID == 56 || tempID == 57;
+            return (tempID >= 42 && tempID <= 44) || (tempID >= 61 && tempID <= 63) || (tempID >= 70 && tempID <= 75)
+                    || tempID == 9 || tempID == 56 || tempID == 57 || tempID == keyFishingHoleID;
         }
         return false;
     }
@@ -26,9 +31,22 @@ public class TileProperties {
     public static boolean isHole(int tileID) {
         int tempID = tileID - 1;
         if (tempID >= 0) {
-            return (tempID >= 42 && tempID <= 44) || (tempID >= 61 && tempID <= 63) || (tempID >= 70 && tempID <= 75) || tempID == 9 || tempID == 56 || tempID == 57;
+            return (tempID >= 42 && tempID <= 44) || (tempID >= 61 && tempID <= 63) || (tempID >= 70 && tempID <= 75)
+                    || tempID == 9 || tempID == 56 || tempID == 57 || tempID == keyFishingHoleID;
         }
         return false;
+    }
+
+    public static boolean isFishingHole(int tileID) {
+        int tempID = tileID - 1;
+        return tempID == 9;
+    }
+
+    public static boolean isKeyFishingHole(int tileID) {
+        int tempID = tileID - 1;
+        if (tempID == keyFishingHoleID)
+            System.out.println("is key fishing hole");
+        return tempID == keyFishingHoleID;
     }
 
     // isIce diz o que é gelo, para aplicar a fisica "escorregadia"
@@ -43,8 +61,8 @@ public class TileProperties {
     public static boolean isAdjacentToHole(int row, int col, int[][] lvlData) {
         int maxRow = lvlData.length;
         int maxCol = lvlData[0].length;
-        int[] dr = {-1, 1, 0, 0};
-        int[] dc = {0, 0, -1, 1};
+        int[] dr = { -1, 1, 0, 0 };
+        int[] dc = { 0, 0, -1, 1 };
 
         for (int i = 0; i < 4; i++) {
             int nr = row + dr[i];
