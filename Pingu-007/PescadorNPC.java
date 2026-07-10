@@ -1,3 +1,4 @@
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -27,39 +28,36 @@ public class PescadorNPC extends NPC {
     @Override
     public void update(Player player, InputManager input,
             DialogueManager dialogueManager, ItemManager itemManager) {
-        if (Yfinal != y)
+        if (Yfinal != y) {
             return;
-        if (playerNearby(player))
-            proximo = true;
-        else
-            proximo = false;
+        }
+        proximo = playerNearby(player);
         switch (state) {
             case IDLE -> {
                 if (proximo && input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)) {
-                    if (laEle)
+                    if (laEle || player.hasFishingRod()) {
                         dialogueManager.iniciarDialogo(
-                                new String[] {
-                                        "PESCADOR: Esqueceu como pescar? É fácil, é só chegar perto de um buraco de água e apertar E para lançar a linha." });
-                    else
+                                new String[]{
+                                    "PESCADOR: Esqueceu como pescar? É fácil, é só chegar perto de um buraco de água e apertar E para lançar a linha."});
+                        laEle = true;
+                    } else {
                         dialogueManager.iniciarDialogo(
-                                new String[] {
-                                        "PESCADOR: Ei, agente! Vejo que você ainda não tem uma vara de pesca.",
-                                        "PESCADOR: Ainda bem que tenho uma sobrando. Pode ficar com ela!",
-                                        "PESCADOR: Sabe como pescar? É fácil, e só chegar perto de um buraco de água e apertar E para lançar a linha." });
+                                new String[]{
+                                    "PESCADOR: Ei, agente! Vejo que você ainda não tem uma vara de pesca.",
+                                    "PESCADOR: Ainda bem que tenho uma sobrando. Pode ficar com ela!",
+                                    "PESCADOR: Sabe como pescar? É fácil, e só chegar perto de um buraco de água e apertar E para lançar a linha."});
+                    }
                     state = State.TALKING;
                 }
             }
             case TALKING -> {
-
                 if (!dialogueManager.isAtivo()) {
-                    if (!laEle) {
-
+                    if (!laEle && !player.hasFishingRod()) {
                         itemManager.spawn(new FishingRodItem(x + (largura / 2.0), y + altura + 40));
                         laEle = true;
                     }
                     state = State.IDLE;
                 }
-
             }
         }
     }
@@ -67,12 +65,14 @@ public class PescadorNPC extends NPC {
     @Override
     public void draw(Graphics2D g2, double delta) {
 
-        if (!active)
+        if (!active) {
             return;
+        }
         if (y > Yfinal) {
             y -= 10.0 * delta;
-            if (y <= Yfinal)
+            if (y <= Yfinal) {
                 y = Yfinal;
+            }
         }
         g2.drawImage(Sprite, (int) x, (int) y, (int) WIDTH, (int) HEIGHT, null);
         if (state == State.IDLE && proximo) {

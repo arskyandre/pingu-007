@@ -1,6 +1,6 @@
 
-import java.util.ArrayList;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 
 public class ArenaManager {
 
@@ -8,8 +8,9 @@ public class ArenaManager {
     private final EnemyManager enemyManager;
     private final ItemManager itemManager;
     private final ArenaContext context;
-    private NPCManager npcManager;
-    private CutsceneManager cutsceneManager;
+    private final NPCManager npcManager;
+    private final CutsceneManager cutsceneManager;
+    private final GameCore gameCore;
     // public boolean flagArena16Ativada = false;
     private boolean chave14_15_spawnada = false;
     private boolean cutsceneBossSolicitada = false;
@@ -34,7 +35,6 @@ public class ArenaManager {
     private final ArrayList<PressureButton> buttons = new ArrayList<>();
     private final ArrayList<CollisionBlock> collisionBlocks = new ArrayList<>();
     private final ArrayList<ArenaObject> allObjects = new ArrayList<>();
-    private GameCore gameCore;
 
     public ArenaManager(EnemyManager enemyManager, LevelManager levelManager, ItemManager itemManager,
             NPCManager npcm, CutsceneManager CM, GameCore gc) {
@@ -57,6 +57,7 @@ public class ArenaManager {
         allObjects.clear();
         // flagArena16Ativada = false;
         chave14_15_spawnada = false;
+        pesqueiro_spawnado = false;
 
         for (TiledObject obj : objetos) {
             String tipo = obj.tipo != null ? obj.tipo.toLowerCase().trim() : "";
@@ -135,7 +136,7 @@ public class ArenaManager {
                 }
             }
             if (arena.ativa && !arena.concluida) {
-                arena.inimigosVivos.removeIf(Enemy::isDead);
+                arena.inimigosVivos.removeIf(e -> e.isDead() || e.isCaindo);
                 if (arena.inimigosVivos.isEmpty()) {
                     if (arena.hordaAtual < arena.totalHordas) {
                         arena.hordaAtual++;
@@ -143,9 +144,12 @@ public class ArenaManager {
                     } else {
                         arena.concluida = true;
                         verificarDesativacaoParedes(arena.id, player);
-                        if (!existeArenaAtiva()) {
+                        if (!existeCombateAtivo()) {
                             gameCore.setCinematicBorderAnimation(Renderer.BorderState.OUT);
                         }
+                        /*if (!existeArenaAtiva()) {
+                            gameCore.setCinematicBorderAnimation(Renderer.BorderState.OUT);
+                        }*/
                         if (arena.id == 9 || arena.id == 10 || arena.id == 13 || arena.id == 14 || arena.id == 15
                                 || arena.id == 16) {
                             player.solicitarCheckpoint();
@@ -157,7 +161,18 @@ public class ArenaManager {
         }
     }
 
-    private boolean existeArenaAtiva() {
+    public boolean existeCombateAtivo() {
+        for (Arena arena : arenas) {
+            if (arena.ativa && !arena.concluida) {
+                if (!arena.inimigosVivos.isEmpty() || arena.hordaAtual < arena.totalHordas) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean existeArenaAtiva() {
         for (Arena arena : arenas) {
             if (arena.ativa && !arena.concluida) {
                 return true;
@@ -377,6 +392,7 @@ public class ArenaManager {
             spawnHorda(arena);
         }
         Rectangle2D.Double wallRect = getCombinedWallRect(id);
+
         if (wallRect != null) {
             if (isFirstArena) {
                 double wallCenterX = wallRect.x + wallRect.width / 2.0;
@@ -396,16 +412,17 @@ public class ArenaManager {
             case 0 -> {
             }
             case 2, 3 -> {
-                if (isArenaConcluida(2) && isArenaConcluida(3)) {
-                    setWallState(2, false, player);
-                    setWallState(3, false, player);
-
+                if (id == 2 && !pesqueiro_spawnado) {
                     // cutsceneManager.iniciar("seila animacao mostrando o pescador");
-
                     // spawna o pesqueiro
                     npcManager.spawn(new PescadorNPC(20.5 * GameCore.tiles_size, 45.3 * GameCore.tiles_size));
                     System.out.printf("Spawnou pesqueiro em: %f, %f\n", 20.5 * GameCore.tiles_size,
                             45.7 * GameCore.tiles_size);
+                    pesqueiro_spawnado = true;
+                }
+                if (isArenaConcluida(2) && isArenaConcluida(3)) {
+                    setWallState(2, false, player);
+                    setWallState(3, false, player);
                 }
             }
             case 4, 5 -> {
@@ -471,6 +488,12 @@ public class ArenaManager {
 
     public void restaurarArenas(ArrayList<Integer> salvas, Player player, ItemManager itemManager) {
         boolean rebobinouAlgumPuzzle = false;
+        // impedindo de spawnar varas infinitamente (vixi la ele)
+        pesqueiro_spawnado = false;
+        if (npcManager != null) {
+            npcManager.getNpcs().removeIf(npc -> npc instanceof PescadorNPC);
+        }
+        itemManager.getItems().removeIf(item -> item instanceof FishingRodItem);
 
         for (Arena arena : arenas) {
             for (Enemy e : arena.inimigosVivos) {
@@ -491,6 +514,7 @@ public class ArenaManager {
                 arena.concluida = false;
                 arena.ativa = false;
                 arena.hordaAtual = 0;
+
                 if (arena.id == 3 || arena.id == 101 || arena.id == 102) {
                     setWallState(arena.id, true, player);
                 } else {
@@ -503,6 +527,7 @@ public class ArenaManager {
                         btn.setPressed(context, btn.getData().ativa);
                     }
                 }
+
                 if (arena.id == 14 || arena.id == 15) {
                     chave14_15_spawnada = false;
                 }
