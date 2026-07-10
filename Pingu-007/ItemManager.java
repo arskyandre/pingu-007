@@ -35,7 +35,7 @@ public class ItemManager {
             if (Math.random() < 0.75) {
                 spawn(new HealthPackItem(dropX, dropY));
             }
-            if (enemy instanceof Bomber) {
+            if (enemy instanceof Bomber && Math.random() < 0.5) {
                 spawn(new AmmoPackItem(dropX + 16, dropY + 8));
             }
         }

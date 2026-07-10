@@ -8,7 +8,7 @@ import javax.swing.*;
 
 public class GameCore extends Canvas implements Runnable {
 
-    // VARIÁVEL DO FPS CAP (60, 144, ou 0 para ilimitado)
+    // VARIÁVEL DO FPS CAP (0 para ilimitado)
     public int targetFps = 120;
 
     private GameState gameState = GameState.MAIN_MENU;
@@ -94,7 +94,7 @@ public class GameCore extends Canvas implements Runnable {
         levelManager.inicializarPrimeiroNivel();
 
         player.loadLvlData(levelManager.getCurLevelData());
-        npcManager.spawn(new IgluNPC(5576, 8062));
+        npcManager.spawn(new IgluNPC(5704, 8062));
         System.out.println(player.getX() + ", " + player.getY());
 
         addKeyListener(input);
@@ -236,6 +236,15 @@ public class GameCore extends Canvas implements Runnable {
             double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
             // itemManager.spawn(new KeyItem(12839, 4870));
             itemManager.spawn(new KeyItem(mouseXWorld, mouseYWorld));
+            System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
+            debugSpawnCooldown = 30;
+        }
+
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_H) && debugSpawnCooldown <= 0) {
+            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+            // itemManager.spawn(new KeyItem(12839, 4870));
+            itemManager.spawn(new HealthPackItem(mouseXWorld, mouseYWorld));
             System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
             debugSpawnCooldown = 30;
         }
@@ -459,7 +468,7 @@ public class GameCore extends Canvas implements Runnable {
         setCinematicBorderAnimation(Renderer.BorderState.IDLE);
         levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
 
-        npcManager.spawn(new IgluNPC(player.getX() - 64, player.getY()));
+        npcManager.spawn(new IgluNPC(5704, 8062));
     }
 
     private void drawFpsCounter(Graphics2D g2) {

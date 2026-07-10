@@ -44,6 +44,8 @@ public class TileProperties {
 
     public static boolean isKeyFishingHole(int tileID) {
         int tempID = tileID - 1;
+        if (tempID == keyFishingHoleID)
+            System.out.println("is key fishing hole");
         return tempID == keyFishingHoleID;
     }
 
