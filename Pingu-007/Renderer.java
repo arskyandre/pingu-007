@@ -18,8 +18,9 @@ public class Renderer {
     // Boolean preDash = false;
 
     private final ArrayList<Object> renderQueue = new ArrayList<>(200);
-    private final java.util.Comparator<Object> depthComparator = (o1, o2) -> Double.compare(getRenderBaseY(o1), getRenderBaseY(o2));
-    //private final Polygon dashPoly = new Polygon();
+    private final java.util.Comparator<Object> depthComparator = (o1, o2) -> Double.compare(getRenderBaseY(o1),
+            getRenderBaseY(o2));
+    // private final Polygon dashPoly = new Polygon();
     private final Ellipse2D.Double mouseShape = new Ellipse2D.Double(0, 0, 20, 20);
     public boolean useAntiAliasing = false;
 
@@ -30,7 +31,8 @@ public class Renderer {
     public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura,
             int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager,
             EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager,
-            FishingManager fishingManager, NPCManager npcManager, CutsceneManager cutsceneManager, double delta, boolean animateBorder) {
+            FishingManager fishingManager, NPCManager npcManager, CutsceneManager cutsceneManager, double delta,
+            boolean animateBorder) {
 
         // Mantem o tamanho da borda proporcional a altura da tela
         cinematicBorderHeight = telaAltura / 8;
@@ -52,7 +54,8 @@ public class Renderer {
         lm.drawBackground(g2, camera, telaLargura, telaAltura);
         if (cutsceneManager.isWallRevealAtiva()) {
             lm.drawGround(g2, camera, telaLargura, telaAltura,
-                    cutsceneManager.getWallFadeRect(), cutsceneManager.getWallFadeAlpha(), cutsceneManager.getWallShakeX(), cutsceneManager.getWallShakeY());
+                    cutsceneManager.getWallFadeRect(), cutsceneManager.getWallFadeAlpha(),
+                    cutsceneManager.getWallShakeX(), cutsceneManager.getWallShakeY());
         } else {
             lm.drawGround(g2, camera, telaLargura, telaAltura);
         }
@@ -134,7 +137,7 @@ public class Renderer {
         }
 
         g2.setTransform(originalTransform);
-        HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager);
+        HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager, delta);
 
         // Animacao das bordas cinematicas
         if (animateBorder) {
@@ -230,27 +233,29 @@ public class Renderer {
 
     private void renderDashEffect(Graphics2D g2, Player p) {
         // TODO: talvez implementar afterimages no pingu e inimigos quando derem dash
-        /*if (preDash && p.isEmDash()) {
-            double centerX = p.getX() + p.getLargura() / 2.0;
-            double centerY = p.getY() + p.getAltura() / 2.0;
-            double dashDirX = p.getDashDirX();
-            double dashDirY = p.getDashDirY();
-
-            double tipX = centerX + dashDirX * 40;
-            double tipY = centerY + dashDirY * 40;
-            double perpX = -dashDirY;
-            double perpY = dashDirX;
-            double baseX = centerX - dashDirX * 20;
-            double baseY = centerY - dashDirY * 20;
-
-            Polygon tri = new Polygon();
-            tri.addPoint((int) tipX, (int) tipY);
-            tri.addPoint((int) (baseX + perpX * 20), (int) (baseY + perpY * 20));
-            tri.addPoint((int) (baseX - perpX * 20), (int) (baseY - perpY * 20));
-
-            g2.setColor(Color.PINK);
-            g2.fillPolygon(tri);
-        }*/
+        /*
+         * if (preDash && p.isEmDash()) {
+         * double centerX = p.getX() + p.getLargura() / 2.0;
+         * double centerY = p.getY() + p.getAltura() / 2.0;
+         * double dashDirX = p.getDashDirX();
+         * double dashDirY = p.getDashDirY();
+         * 
+         * double tipX = centerX + dashDirX * 40;
+         * double tipY = centerY + dashDirY * 40;
+         * double perpX = -dashDirY;
+         * double perpY = dashDirX;
+         * double baseX = centerX - dashDirX * 20;
+         * double baseY = centerY - dashDirY * 20;
+         * 
+         * Polygon tri = new Polygon();
+         * tri.addPoint((int) tipX, (int) tipY);
+         * tri.addPoint((int) (baseX + perpX * 20), (int) (baseY + perpY * 20));
+         * tri.addPoint((int) (baseX - perpX * 20), (int) (baseY - perpY * 20));
+         * 
+         * g2.setColor(Color.PINK);
+         * g2.fillPolygon(tri);
+         * }
+         */
     }
 
     private void renderDebug(Graphics2D g2, CameraManager camera,
