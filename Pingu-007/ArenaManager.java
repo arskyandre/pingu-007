@@ -381,7 +381,7 @@ public class ArenaManager {
                 double wallCenterY = wallRect.y + wallRect.height / 2.0;
                 cutsceneManager.iniciarWallRevealComCamera(wallCenterX, wallCenterY, wallRect, camera, player);
                 gameCore.setGameState(GameState.CUTSCENE);
-                isFirstArena = false;
+                // isFirstArena = false;
             } else {
                 cutsceneManager.iniciarWallFade(wallRect);
             }

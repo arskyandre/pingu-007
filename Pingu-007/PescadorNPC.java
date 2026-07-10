@@ -9,7 +9,6 @@ public class PescadorNPC extends NPC {
     }
 
     private State state = State.IDLE;
-    private boolean dialogueStarted = false;
     private boolean laEle = false;
     private static final double WIDTH = GameCore.tiles_size;
     private static final double HEIGHT = GameCore.tiles_size;
@@ -72,6 +71,8 @@ public class PescadorNPC extends NPC {
             return;
         if (y > Yfinal) {
             y -= 10.0 * delta;
+            if (y <= Yfinal)
+                y = Yfinal;
         }
         g2.drawImage(Sprite, (int) x, (int) y, (int) WIDTH, (int) HEIGHT, null);
         if (state == State.IDLE && proximo) {

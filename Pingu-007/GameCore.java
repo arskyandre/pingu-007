@@ -25,6 +25,10 @@ public class GameCore extends Canvas implements Runnable {
     boolean running = true;
     private boolean isFullscreen = false;
     private Rectangle windowedBounds;
+    private boolean showFpsCounter = false;
+    private int currentFps = 0;
+    private int fpsFrameCount = 0;
+    private long fpsUpdateTimer = 0;
 
     private final CameraManager camera;
     private CutsceneManager cutsceneManager;
@@ -115,6 +119,14 @@ public class GameCore extends Canvas implements Runnable {
         requestFocusInWindow();
     }
 
+    public boolean isShowFpsCounter() {
+        return showFpsCounter;
+    }
+
+    public void toggleFpsCounter() {
+        showFpsCounter = !showFpsCounter;
+    }
+
     public void update() {
         if (input.isKeyJustPressed(KeyEvent.VK_F11)) {
             toggleFullscreen();
@@ -179,6 +191,10 @@ public class GameCore extends Canvas implements Runnable {
 
     public void debugInputProcessing() {
 
+        if (input.isKeyJustPressed(KeyEvent.VK_F)) {
+            toggleFpsCounter();
+            
+        }
         if (input.isKeyJustPressed(KeyEvent.VK_I)) {
             setCinematicBorderAnimation(Renderer.BorderState.IN);
         }
@@ -420,21 +436,33 @@ public class GameCore extends Canvas implements Runnable {
         levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
     }
 
+    private void drawFpsCounter(Graphics2D g2) {
+        g2.setFont(new Font("Monospaced", Font.BOLD, 16));
+        String text = "FPS: " + currentFps;
+        g2.setColor(Color.BLACK);
+        g2.drawString(text, 11, 21);
+        g2.setColor(Color.GREEN);
+        g2.drawString(text, 10, 20);
+    }
+
     public void render(BufferStrategy bs, double delta) {
         do {
             do {
                 Graphics2D g2 = (Graphics2D) bs.getDrawGraphics();
                 switch (gameState) {
-                    case MAIN_MENU ->
+                    case MAIN_MENU -> {
                         mainMenu.render(g2, getWidth(), getHeight());
-
-                    case PLAYING ->
+                    }
+                    case PLAYING -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
                                 cutsceneManager, delta,
                                 true);
+                        if (showFpsCounter)
+                            drawFpsCounter(g2);
+                    }
                     case GAME_OVER -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
@@ -454,14 +482,18 @@ public class GameCore extends Canvas implements Runnable {
                         pauseMenu.render(g2, getWidth(), getHeight());
                     }
                     case CUTSCENE -> {
-                        renderer.renderizar(g2, camera, player, input,
-                                getWidth(), getHeight(),
-                                levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
-                                cutsceneManager, delta,
-                                true);
+                        {
+                            renderer.renderizar(g2, camera, player, input,
+                                    getWidth(), getHeight(),
+                                    levelManager, bulletmanager, itemManager,
+                                    enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
+                                    cutsceneManager, delta,
+                                    true);
 
-                        cutsceneManager.draw(g2, getWidth(), getHeight());
+                            cutsceneManager.draw(g2, getWidth(), getHeight());
+                            if (showFpsCounter)
+                                drawFpsCounter(g2);
+                        }
                     }
                     case OPTIONS -> {
                         optionsMenu.render(g2, getWidth(), getHeight());
@@ -495,6 +527,8 @@ public class GameCore extends Canvas implements Runnable {
 
         while (running) {
             long now = System.nanoTime();
+            long frameTime = now - lastTime;
+
             delta += (now - lastTime) / nsPerFrame;
             double deltaTime = (now - lastTime) / 1_000_000_000.0;
             lastTime = now;
@@ -506,9 +540,16 @@ public class GameCore extends Canvas implements Runnable {
             BufferStrategy bs = getBufferStrategy();
             if (bs == null) {
                 createBufferStrategy(3);
-                continue; // skip rendering this frame, try again next loop
+                continue;
             }
             render(bs, deltaTime);
+            fpsFrameCount++;
+            fpsUpdateTimer += frameTime;
+            if (fpsUpdateTimer >= 1_000_000_000L) {
+                currentFps = fpsFrameCount;
+                fpsFrameCount = 0;
+                fpsUpdateTimer -= 1_000_000_000L;
+            }
         }
     }
 
