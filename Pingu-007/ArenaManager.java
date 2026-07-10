@@ -287,7 +287,8 @@ public class ArenaManager {
         }
     }
 
-    private void ativarArena(int id, Player player, CameraManager camera, CutsceneManager cutsceneManager, SoundManager sound) {
+    private void ativarArena(int id, Player player, CameraManager camera, CutsceneManager cutsceneManager,
+            SoundManager sound) {
         System.out.println("Ativou arena");
         gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
         sound.playSFX(SoundManager.SFX.ARENA_ENTER);
@@ -381,7 +382,7 @@ public class ArenaManager {
                 double wallCenterY = wallRect.y + wallRect.height / 2.0;
                 cutsceneManager.iniciarWallRevealComCamera(wallCenterX, wallCenterY, wallRect, camera, player);
                 gameCore.setGameState(GameState.CUTSCENE);
-                // isFirstArena = false;
+                isFirstArena = false;
             } else {
                 cutsceneManager.iniciarWallFade(wallRect);
             }
