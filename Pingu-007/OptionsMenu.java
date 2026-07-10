@@ -28,6 +28,7 @@ public class OptionsMenu {
     private final MenuButton backBtn;
     private final MenuButton keyBindBtn;
     private final IconButton fullScreenButton;
+    private final IconButton showFpsButton;
 
     private Font pixelFont;
     private Font pixelFontSmall;
@@ -43,6 +44,7 @@ public class OptionsMenu {
         toggleMuteBGM = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED, false);
         toggleMuteSFX = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED, false);
         fullScreenButton = new IconButton(0, 0, BTN_SIZE, IconIndex.FULLSCREEN, false);
+        showFpsButton = new IconButton(0, 0, BTN_SIZE, IconIndex.RED_X, false);
         backBtn = new MenuButton("VOLTAR", 0, 0, 160, 46);
         keyBindBtn = new MenuButton("Consultar teclas", 0, 0, 160, 46);
 
@@ -63,7 +65,7 @@ public class OptionsMenu {
         this.returnTo = state;
     }
 
-    public void repositionElements(int width, int height) {
+    public void repositionElements(int width, int height, GameCore GC) {
         int sliderX = (width - SLIDER_W) / 2;
 
         musicSlider.setPosition(sliderX, height / 2 - 10);
@@ -79,10 +81,17 @@ public class OptionsMenu {
         keyBindBtn.setPosition((width - 160) / 2, height * 3 / 4);
         backBtn.setPosition((width - 160) / 2, height * 3 / 4 + BTN_GAP + 46);
         fullScreenButton.setPosition(width - FSBTN_MARGIN - BTN_SIZE, height - FSBTN_MARGIN - BTN_SIZE);
+        showFpsButton.setPosition(width / 2 + 82, height / 2 - SLIDER_H - BTN_SIZE - BTN_GAP - 23);
     }
 
     public GameState update(InputManager input, int width, int height, GameCore GC) {
-        repositionElements(width, height);
+        repositionElements(width, height, GC);
+
+        if (GC.isShowFpsCounter()) {
+            showFpsButton.setIcon(IconIndex.GREEN_CHECK);
+        } else {
+            showFpsButton.setIcon(IconIndex.RED_X);
+        }
 
         if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE))
             return returnTo;
@@ -184,8 +193,15 @@ public class OptionsMenu {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
         }
         if (fullScreenButton.update(input) == IconButton.CLICKED) {
+            soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             GC.toggleFullscreen();
         }
+
+        if (showFpsButton.update(input) == IconButton.CLICKED) {
+            soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
+            GC.toggleFpsCounter();
+        }
+
         if (backBtn.update(input) == MenuButton.CLICKED) {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             return returnTo;
@@ -209,9 +225,9 @@ public class OptionsMenu {
         String title = "OPÇÕES";
         int tw = g2.getFontMetrics().stringWidth(title);
         g2.setColor(new Color(0, 0, 0, 180));
-        g2.drawString(title, (width - tw) / 2 + 2, height / 4 + 2);
+        g2.drawString(title, (width - tw) / 2 + 2, height / 8 + 2);
         g2.setColor(Color.WHITE);
-        g2.drawString(title, (width - tw) / 2, height / 4);
+        g2.drawString(title, (width - tw) / 2, height / 8);
 
         // music label + slider
         drawLabel(g2, "VOLUME DA MÚSICA", musicSlider.getRect(), width, height / 2 - 30);
@@ -229,8 +245,19 @@ public class OptionsMenu {
             drawPct(g2, soundManager.getSfxVolume(), sfxSlider.getRect(), false);
         sfxSlider.draw(g2);
 
+        // Botoes e texto
+        String showFps = "MOSTRAR FPS";
+        g2.setFont(pixelFontSmall);
+        tw = g2.getFontMetrics().stringWidth(showFps);
+        g2.setColor(new Color(0, 0, 0, 180));
+        int posX = (width - tw) / 2 - 21;
+        int posY = height / 2 - SLIDER_H - BTN_GAP - 32;
+        g2.drawString(showFps, posX + 2, posY + 2);
+        g2.setColor(Color.WHITE);
+        g2.drawString(showFps, posX, posY);
         toggleMuteBGM.draw(g2);
         toggleMuteSFX.draw(g2);
+        showFpsButton.draw(g2);
         keyBindBtn.draw(g2);
         backBtn.draw(g2);
         fullScreenButton.draw(g2);
