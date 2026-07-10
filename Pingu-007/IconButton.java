@@ -22,6 +22,10 @@ public class IconButton extends MenuButton {
         this.iconIndex = index;
     }
 
+    public IconIndex getIcon() {
+        return iconIndex;
+    }
+
     @Override
     public void draw(Graphics2D g2) {
         if (hovered) {

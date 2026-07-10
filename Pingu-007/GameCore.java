@@ -1,6 +1,7 @@
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 import javax.swing.*;
@@ -444,12 +445,20 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     private void drawFpsCounter(Graphics2D g2) {
+        int MARGIN = 12;
         g2.setFont(new Font("Monospaced", Font.BOLD, 16));
         String text = "FPS: " + currentFps;
+        Rectangle2D textbounds = g2.getFontMetrics().getStringBounds(text, g2);
+        int tw = (int) textbounds.getWidth();
+        int th = (int) textbounds.getHeight();
+        g2.setColor(Color.GRAY);
+        g2.fillRect(getWidth() - tw - MARGIN - 4, MARGIN + 1, tw + 4, th + 2);
+        int textX = getWidth() - tw - MARGIN - 2;
+        int textY = th + MARGIN;
         g2.setColor(Color.BLACK);
-        g2.drawString(text, 11, 21);
+        g2.drawString(text, textX + 1, textY + 1);
         g2.setColor(Color.GREEN);
-        g2.drawString(text, 10, 20);
+        g2.drawString(text, textX, textY);
     }
 
     public void render(BufferStrategy bs, double delta) {
@@ -598,7 +607,7 @@ public class GameCore extends Canvas implements Runnable {
         game.frame.setLocationRelativeTo(null);
         game.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         game.frame.setResizable(true);
-        game.optionsMenu.repositionElements(game.getWidth(), game.getHeight());
+        game.optionsMenu.repositionElements(game.getWidth(), game.getHeight(), game);
         game.keyBindingsMenu.repositionElements(game.getWidth(), game.getHeight());
         game.frame.setVisible(true);
         game.start();
