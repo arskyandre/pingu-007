@@ -22,7 +22,7 @@ public class Renderer {
             getRenderBaseY(o2));
     // private final Polygon dashPoly = new Polygon();
     private final Ellipse2D.Double mouseShape = new Ellipse2D.Double(0, 0, 20, 20);
-    public boolean useAntiAliasing = false;
+    public boolean useAntiAliasing = true;
 
     public void setBorderProgress(double prog) {
         borderProgress = prog;

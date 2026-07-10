@@ -9,7 +9,7 @@ import javax.swing.*;
 public class GameCore extends Canvas implements Runnable {
 
     // VARIÁVEL DO FPS CAP (60, 144, ou 0 para ilimitado)
-    public int targetFps = 60;
+    public int targetFps = 120;
 
     private GameState gameState = GameState.MAIN_MENU;
     private final MainMenu mainMenu;
@@ -296,9 +296,6 @@ public class GameCore extends Canvas implements Runnable {
         cutsceneManager.update();
         if (input.isKeyPressed(KeyEvent.VK_T)) {
             if (!dialogueManager.isAtivo()) {
-                soundManager.playBGM(SoundManager.BGM.OS_CRIA);
-                setCinematicBorderAnimation(Renderer.BorderState.IN);
-
                 dialogueManager.iniciarDialogo(new String[] {
                         "PINGU: Entrando na base de operações.",
                         "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
@@ -471,7 +468,7 @@ public class GameCore extends Canvas implements Runnable {
         g2.setColor(Color.GRAY);
         g2.fillRect(getWidth() - tw - MARGIN - 4, MARGIN + 1, tw + 4, th + 2);
         int textX = getWidth() - tw - MARGIN - 2;
-        int textY = th + MARGIN;
+        int textY = th + MARGIN - 2;
         g2.setColor(Color.BLACK);
         g2.drawString(text, textX + 1, textY + 1);
         g2.setColor(Color.GREEN);

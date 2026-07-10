@@ -122,10 +122,6 @@ public class FishingManager {
         }
     }
 
-    /**
-     * Finds the row of a valid fishing hole (normal or key) at the given column.
-     * Returns -1 if no fishing hole is found — void/abyss holes are ignored.
-     */
     private int resolveFishingHoleRow(int mouseRow, int col, int[][] lvlData) {
         if (isFishingHoleAt(mouseRow, col, lvlData))
             return mouseRow;
@@ -134,10 +130,6 @@ public class FishingManager {
         return -1;
     }
 
-    /**
-     * Returns true only for designated fishing holes (normal or key),
-     * NOT for generic void/abyss tiles.
-     */
     private boolean isFishingHoleAt(int row, int col, int[][] lvlData) {
         if (lvlData == null || row < 0 || row >= lvlData.length
                 || col < 0 || col >= lvlData[row].length) {
@@ -147,9 +139,6 @@ public class FishingManager {
         return TileProperties.isFishingHole(tileID) || TileProperties.isKeyFishingHole(tileID);
     }
 
-    /**
-     * Returns the HoleType for a given tileID.
-     */
     private HoleType getFishingHoleType(int tileID) {
         if (TileProperties.isKeyFishingHole(tileID))
             return HoleType.KEY;
@@ -239,21 +228,21 @@ public class FishingManager {
         player.setBlockInputs(false);
     }
 
-    /**
-     * Recompensa baseada no tipo de buraco:
-     * NORMAL -> cura o player
-     * KEY -> dropa uma chave
-     */
+    /** Quando o player pesca */
     private void onFishCaught() {
         switch (currentHoleType) {
             case NORMAL -> {
-                System.out.println("peixe pego, curando player");
-                player.curar(15);
+                System.out.println("peixe pego, dropando recompensa");
+                if (Math.random() > 0.66) {
+                    itemManager.spawn(new AmmoPackItem(targetWorldX, targetWorldY + 24));
+                } else {
+                    itemManager.spawn(new HealthPackItem(targetWorldX, targetWorldY + 24));
+                }
             }
             case KEY -> {
-                System.out.printf("encontrou a chave! spawnando em %f, %f\n", 114.5 * GameCore.tiles_size,
+                System.out.printf("encontrou a chave! spawnando em %f, %f\n", 114.3 * GameCore.tiles_size,
                         57.7 * GameCore.tiles_size);
-                itemManager.spawn(new KeyItem(114.5 * GameCore.tiles_size, 57.7 * GameCore.tiles_size));
+                itemManager.spawn(new KeyItem(114.3 * GameCore.tiles_size, 57.7 * GameCore.tiles_size));
             }
             default -> {
                 System.out.println("Fish caught! (unknown hole type)");
