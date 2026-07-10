@@ -116,8 +116,10 @@ public class ArenaManager {
                 interactives.add(interactive);
             case PressureButton button ->
                 buttons.add(button);
-            case CollisionBlock block ->
+            case CollisionBlock block -> {
+                block.setDialogueManager(gameCore.getDialogueManager());
                 collisionBlocks.add(block);
+            }
             default -> {
             }
         }

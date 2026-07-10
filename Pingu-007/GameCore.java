@@ -141,6 +141,10 @@ public class GameCore extends Canvas implements Runnable {
         targetFps = targ;
     }
 
+    public DialogueManager getDialogueManager() {
+        return dialogueManager;
+    }
+
     public void update() {
         if (input.isKeyJustPressed(KeyEvent.VK_F11)) {
             toggleFullscreen();
@@ -307,10 +311,10 @@ public class GameCore extends Canvas implements Runnable {
         cutsceneManager.update();
         if (input.isKeyPressed(KeyEvent.VK_T)) {
             if (!dialogueManager.isAtivo()) {
-                dialogueManager.iniciarDialogo(new String[] {
-                        "PINGU: Entrando na base de operações.",
-                        "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
-                        "PINGU: Eles não vão nem ver de onde veio."
+                dialogueManager.iniciarDialogo(new String[]{
+                    "PINGU: Entrando na base de operações.",
+                    "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
+                    "PINGU: Eles não vão nem ver de onde veio."
 
                 });
             }
