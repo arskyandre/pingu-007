@@ -1,3 +1,4 @@
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -45,7 +46,6 @@ public class CutsceneManager {
     }
 
     // ---------------- Boss intro ----------------
-
     public void iniciar(String nomeBoss) {
         this.type = CutsceneType.BOSS_INTRO;
         this.nomeBoss = nomeBoss;
@@ -54,7 +54,9 @@ public class CutsceneManager {
         gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
     }
 
-    /** cutscene das pareedes de arena */
+    /**
+     * cutscene das pareedes de arena
+     */
     public void iniciarWallReveal(double wallCenterX, double wallCenterY, Rectangle2D.Double wallRect,
             CameraManager camera, Player player) {
         this.type = CutsceneType.WALL_REVEAL;
@@ -102,7 +104,6 @@ public class CutsceneManager {
     }
 
     // ---------------- Shared update/draw ----------------
-
     public void update() {
         if (type == CutsceneType.BOSS_INTRO) {
             timer++;
@@ -118,6 +119,13 @@ public class CutsceneManager {
             }
         } else if (type == CutsceneType.WALL_REVEAL) {
             wallTimer++;
+            // teste de conserto da parede inicial.
+            if (wallTimer == WALL_REVEAL_DURATION - TRANSICAO_BORDA) {
+                if (gameCore.getArenaManager() != null && !gameCore.getArenaManager().existeCombateAtivo()) {
+                    gameCore.setCinematicBorderAnimation(Renderer.BorderState.OUT);
+                }
+            }
+
             if (wallTimer >= WALL_REVEAL_DURATION) {
                 wallFadeRect = null;
                 wallRevealPlayer = null;

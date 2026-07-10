@@ -7,6 +7,9 @@ import javax.swing.*;
 
 public class GameCore extends Canvas implements Runnable {
 
+    // VARIÁVEL DO FPS CAP (60, 144, ou 0 para ilimitado)
+    public int targetFps = 60;
+
     private GameState gameState = GameState.MAIN_MENU;
     private final MainMenu mainMenu;
     private final PauseMenu pauseMenu;
@@ -193,7 +196,6 @@ public class GameCore extends Canvas implements Runnable {
 
         if (input.isKeyJustPressed(KeyEvent.VK_F)) {
             toggleFpsCounter();
-            
         }
         if (input.isKeyJustPressed(KeyEvent.VK_I)) {
             setCinematicBorderAnimation(Renderer.BorderState.IN);
@@ -237,6 +239,7 @@ public class GameCore extends Canvas implements Runnable {
 
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_0) && debugSpawnCooldown <= 0) {
             renderer.modoDebug = !renderer.modoDebug;
+            toggleFpsCounter();
             if (renderer.modoDebug) {
                 System.out.println("DEBUG: Visão dos Triggers e Objetos Ativada");
             } else {
@@ -261,6 +264,10 @@ public class GameCore extends Canvas implements Runnable {
             levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
             mapLoadCooldown = 60;
         }
+        // TODO: adicionar o toggle do antialiasing no menu de configurações
+        if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_3)) {
+            renderer.toggleAntiAliasing();
+        }
     }
 
     public void updateGame() {
@@ -274,10 +281,10 @@ public class GameCore extends Canvas implements Runnable {
                 soundManager.playBGM(SoundManager.BGM.OS_CRIA);
                 setCinematicBorderAnimation(Renderer.BorderState.IN);
 
-                dialogueManager.iniciarDialogo(new String[] {
-                        "PINGU: Entrando na base de operações.",
-                        "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
-                        "PINGU: Eles não vão nem ver de onde veio."
+                dialogueManager.iniciarDialogo(new String[]{
+                    "PINGU: Entrando na base de operações.",
+                    "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
+                    "PINGU: Eles não vão nem ver de onde veio."
 
                 });
             }
@@ -460,8 +467,9 @@ public class GameCore extends Canvas implements Runnable {
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
                                 cutsceneManager, delta,
                                 true);
-                        if (showFpsCounter)
+                        if (showFpsCounter) {
                             drawFpsCounter(g2);
+                        }
                     }
                     case GAME_OVER -> {
                         renderer.renderizar(g2, camera, player, input,
@@ -491,8 +499,9 @@ public class GameCore extends Canvas implements Runnable {
                                     true);
 
                             cutsceneManager.draw(g2, getWidth(), getHeight());
-                            if (showFpsCounter)
+                            if (showFpsCounter) {
                                 drawFpsCounter(g2);
+                            }
                         }
                     }
                     case OPTIONS -> {
@@ -522,16 +531,16 @@ public class GameCore extends Canvas implements Runnable {
     @Override
     public void run() {
         long lastTime = System.nanoTime();
-        double nsPerFrame = 1_000_000_000.0 / 60.0;
+        double nsPerUpdate = 1_000_000_000.0 / 60.0;
         double delta = 0;
 
         while (running) {
             long now = System.nanoTime();
             long frameTime = now - lastTime;
-
-            delta += (now - lastTime) / nsPerFrame;
-            double deltaTime = (now - lastTime) / 1_000_000_000.0;
             lastTime = now;
+
+            delta += frameTime / nsPerUpdate;
+
             while (delta >= 1) {
                 update();
                 delta--;
@@ -542,13 +551,33 @@ public class GameCore extends Canvas implements Runnable {
                 createBufferStrategy(3);
                 continue;
             }
-            render(bs, deltaTime);
+
+            double deltaTimeRender = frameTime / 1_000_000_000.0;
+            render(bs, deltaTimeRender);
+
             fpsFrameCount++;
             fpsUpdateTimer += frameTime;
             if (fpsUpdateTimer >= 1_000_000_000L) {
                 currentFps = fpsFrameCount;
                 fpsFrameCount = 0;
                 fpsUpdateTimer -= 1_000_000_000L;
+            }
+
+            if (targetFps > 0) {
+                long optimalTime = 1_000_000_000L / targetFps;
+                while (System.nanoTime() - now < optimalTime) {
+                    long timeLeft = optimalTime - (System.nanoTime() - now);
+
+                    if (timeLeft > 2_000_000) {
+                        try {
+                            Thread.sleep(1);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        Thread.yield();
+                    }
+                }
             }
         }
     }

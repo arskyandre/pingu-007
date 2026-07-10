@@ -4,6 +4,7 @@ import java.awt.geom.*;
 import java.util.ArrayList;
 
 public class Renderer {
+
     public enum BorderState {
         IN, OUT, IDLE
     }
@@ -12,9 +13,15 @@ public class Renderer {
     public boolean modoDebug = false;
 
     private int cinematicBorderHeight;
-    private double borderFadeDuration = 0.7;
+    private final double borderFadeDuration = 0.7;
     private double borderProgress = 0;
-    Boolean preDash = false;
+    // Boolean preDash = false;
+
+    private final ArrayList<Object> renderQueue = new ArrayList<>(200);
+    private final java.util.Comparator<Object> depthComparator = (o1, o2) -> Double.compare(getRenderBaseY(o1), getRenderBaseY(o2));
+    //private final Polygon dashPoly = new Polygon();
+    private final Ellipse2D.Double mouseShape = new Ellipse2D.Double(0, 0, 20, 20);
+    public boolean useAntiAliasing = false;
 
     public void setBorderProgress(double prog) {
         borderProgress = prog;
@@ -29,33 +36,39 @@ public class Renderer {
         cinematicBorderHeight = telaAltura / 8;
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, telaLargura, telaAltura);
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Anti-Aliasing e Interpolação
+        if (useAntiAliasing) {
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        } else {
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        }
 
         AffineTransform originalTransform = g2.getTransform();
         g2.scale(camera.getZoom(), camera.getZoom());
         g2.translate(-camera.getX(), -camera.getY());
 
         lm.drawBackground(g2, camera, telaLargura, telaAltura);
-        if(cutsceneManager.isWallRevealAtiva()){
+        if (cutsceneManager.isWallRevealAtiva()) {
             lm.drawGround(g2, camera, telaLargura, telaAltura,
-                cutsceneManager.getWallFadeRect(), cutsceneManager.getWallFadeAlpha(), cutsceneManager.getWallShakeX(), cutsceneManager.getWallShakeY());
+                    cutsceneManager.getWallFadeRect(), cutsceneManager.getWallFadeAlpha(), cutsceneManager.getWallShakeX(), cutsceneManager.getWallShakeY());
+        } else {
+            lm.drawGround(g2, camera, telaLargura, telaAltura);
         }
-        else lm.drawGround(g2, camera, telaLargura, telaAltura);
 
         if (arenaManager != null) {
             arenaManager.drawOverlays(g2);
         }
 
-        ArrayList<Object> renderQueue = new ArrayList<>();
+        renderQueue.clear();
         renderQueue.add(quadrado);
         renderQueue.addAll(enemyManager.getEnemies());
         renderQueue.addAll(itemManager.getItems());
         renderQueue.addAll(npcManager.getNpcs());
-        renderQueue.sort((Object o1, Object o2) -> {
-            double base1 = getRenderBaseY(o1);
-            double base2 = getRenderBaseY(o2);
-            return Double.compare(base1, base2);
-        });
+
+        renderQueue.sort(depthComparator);
 
         for (Object entidade : renderQueue) {
             switch (entidade) {
@@ -66,7 +79,7 @@ public class Renderer {
                     }
                 }
                 case Player p -> {
-                    renderDashEffect(g2, p);
+                    // renderDashEffect(g2, p);
                     p.animate(g2, delta);
                 }
                 case Item item -> {
@@ -207,8 +220,18 @@ public class Renderer {
         }
     }
 
+    public void setAntiAliasing(boolean aa) {
+        this.useAntiAliasing = aa;
+        System.out.println("Anti-Aliasing: " + (aa ? "LIGADO" : "DESLIGADO"));
+    }
+
+    public void toggleAntiAliasing() {
+        setAntiAliasing(!this.useAntiAliasing);
+    }
+
     private void renderDashEffect(Graphics2D g2, Player p) {
-        if (preDash && p.isEmDash()) {
+        // TODO: talvez implementar afterimages no pingu e inimigos quando derem dash
+        /*if (preDash && p.isEmDash()) {
             double centerX = p.getX() + p.getLargura() / 2.0;
             double centerY = p.getY() + p.getAltura() / 2.0;
             double dashDirX = p.getDashDirX();
@@ -228,7 +251,7 @@ public class Renderer {
 
             g2.setColor(Color.PINK);
             g2.fillPolygon(tri);
-        }
+        }*/
     }
 
     private void renderDebug(Graphics2D g2, CameraManager camera,
@@ -244,7 +267,9 @@ public class Renderer {
 
     private void renderMouse(Graphics2D g2, InputManager input) {
         g2.setColor(Color.RED);
-        g2.fill(new Ellipse2D.Double(
-                input.getMouseX() - 10, input.getMouseY() - 10, 20, 20));
+        g2.setColor(Color.RED);
+        mouseShape.x = input.getMouseX() - 10;
+        mouseShape.y = input.getMouseY() - 10;
+        g2.fill(mouseShape);
     }
 }
