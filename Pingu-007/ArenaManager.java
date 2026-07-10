@@ -290,7 +290,8 @@ public class ArenaManager {
     private void ativarArena(int id, Player player, CameraManager camera, CutsceneManager cutsceneManager,
             SoundManager sound) {
         System.out.println("Ativou arena");
-        gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
+        if (id != 0)
+            gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
         sound.playSFX(SoundManager.SFX.ARENA_ENTER);
         Arena arena = getOuCriarArena(id);
         arena.ativa = true;
