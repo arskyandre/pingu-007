@@ -352,6 +352,12 @@ public class ArenaManager {
                 player.solicitarCheckpoint();
             }
             case 9, 10 -> {
+                if (arena.totalHordas == 0) {
+                    arena.concluida = true;
+                }
+                if (id == 9) {
+                    player.solicitarCheckpoint();
+                }
                 setWallState(9, true, player);
                 setWallState(10, true, player);
             }
