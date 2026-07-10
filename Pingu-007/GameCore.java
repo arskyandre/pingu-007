@@ -131,6 +131,14 @@ public class GameCore extends Canvas implements Runnable {
         showFpsCounter = !showFpsCounter;
     }
 
+    public int getTargetFps() {
+        return targetFps;
+    }
+
+    public void setTargetFps(int targ) {
+        targetFps = targ;
+    }
+
     public void update() {
         if (input.isKeyJustPressed(KeyEvent.VK_F11)) {
             toggleFullscreen();
@@ -265,10 +273,19 @@ public class GameCore extends Canvas implements Runnable {
             levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
             mapLoadCooldown = 60;
         }
+
         // TODO: adicionar o toggle do antialiasing no menu de configurações
         if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_3)) {
             renderer.toggleAntiAliasing();
         }
+    }
+
+    public void toggleAntiAliasing() {
+        renderer.toggleAntiAliasing();
+    }
+
+    public boolean isAntiAliasingEnabled() {
+        return renderer.useAntiAliasing;
     }
 
     public void updateGame() {
@@ -282,10 +299,10 @@ public class GameCore extends Canvas implements Runnable {
                 soundManager.playBGM(SoundManager.BGM.OS_CRIA);
                 setCinematicBorderAnimation(Renderer.BorderState.IN);
 
-                dialogueManager.iniciarDialogo(new String[]{
-                    "PINGU: Entrando na base de operações.",
-                    "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
-                    "PINGU: Eles não vão nem ver de onde veio."
+                dialogueManager.iniciarDialogo(new String[] {
+                        "PINGU: Entrando na base de operações.",
+                        "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
+                        "PINGU: Eles não vão nem ver de onde veio."
 
                 });
             }

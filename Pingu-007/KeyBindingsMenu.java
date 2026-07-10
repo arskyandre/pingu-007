@@ -71,6 +71,43 @@ public class KeyBindingsMenu {
         g2.drawString(title, (width - tw) / 2 + 2, height / 8 + 2);
         g2.setColor(Color.WHITE);
         g2.drawString(title, (width - tw) / 2, height / 8);
+        g2.setFont(pixelFont);
+
+        int textY = height / 8 + 64;
+        g2.setFont(pixelFont.deriveFont(Font.PLAIN, 24f));
+        title = "ANDAR: WASD";
+        tw = g2.getFontMetrics().stringWidth(title);
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.drawString(title, (width - tw) / 2 + 2, textY + 2);
+        g2.setColor(Color.WHITE);
+        g2.drawString(title, (width - tw) / 2, textY);
+        g2.setFont(pixelFont);
+
+        textY += 32;
+        title = "ATIRAR: BOTÃO ESQUERDO DO MOUSE";
+        tw = g2.getFontMetrics().stringWidth(title);
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.drawString(title, (width - tw) / 2 + 2, textY + 2);
+        g2.setColor(Color.WHITE);
+        g2.drawString(title, (width - tw) / 2, textY);
+        g2.setFont(pixelFont);
+
+        textY += 32;
+        title = "RECARREGAR: R";
+        tw = g2.getFontMetrics().stringWidth(title);
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.drawString(title, (width - tw) / 2 + 2, textY + 2);
+        g2.setColor(Color.WHITE);
+        g2.drawString(title, (width - tw) / 2, textY);
+        g2.setFont(pixelFont);
+
+        textY += 32;
+        title = "INTERAGIR/PESCAR: E";
+        tw = g2.getFontMetrics().stringWidth(title);
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.drawString(title, (width - tw) / 2 + 2, textY + 2);
+        g2.setColor(Color.WHITE);
+        g2.drawString(title, (width - tw) / 2, textY);
 
         backBtn.draw(g2);
 
