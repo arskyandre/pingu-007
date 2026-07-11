@@ -57,6 +57,7 @@ public class DialogueManager {
     this.ultimoFrameTempo = System.currentTimeMillis();
     this.sonsAtual = null;
     soundManager.stopDialogue();
+    aplicarPrefixoInstantaneo();
   }
 
   public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons) {
@@ -68,12 +69,53 @@ public class DialogueManager {
     this.ultimoFrameTempo = System.currentTimeMillis();
     this.sonsAtual = sons;
     tocarSomFalaAtual();
+    aplicarPrefixoInstantaneo();
   }
 
   private void tocarSomFalaAtual() {
     if (sonsAtual != null && falaAtualIndex < sonsAtual.length) {
       soundManager.playDialogue(sonsAtual[falaAtualIndex]);
     }
+  }
+
+  /**
+   * Se a fala atual comeca com um prefixo tipo "NOME: ", esse prefixo
+   * (nome + ":") e escrito instantaneamente, pulando a animacao de
+   * digitacao apenas para essa parte.
+   */
+  private void aplicarPrefixoInstantaneo() {
+    int prefixLen = tamanhoPrefixoNome(falas[falaAtualIndex]);
+    if (prefixLen > 0) {
+      textoExibido = falas[falaAtualIndex].substring(0, prefixLen);
+      caractereIndex = prefixLen;
+    }
+  }
+
+  /**
+   * Detecta a primeira ocorrencia de ":" na string. Se tudo antes dela for
+   * maiusculo (ignorando espacos), retorna o indice logo apos o ":" (e o
+   * espaco seguinte, se houver) — ou seja, o tamanho do prefixo "NOME: ".
+   * Retorna 0 se nao houver prefixo valido.
+   */
+  private int tamanhoPrefixoNome(String texto) {
+    int colonIndex = texto.indexOf(':');
+    if (colonIndex <= 0) {
+      return 0;
+    }
+
+    String possivelNome = texto.substring(0, colonIndex);
+    for (int i = 0; i < possivelNome.length(); i++) {
+      char c = possivelNome.charAt(i);
+      if (Character.isLetter(c) && !Character.isUpperCase(c)) {
+        return 0;
+      }
+    }
+
+    int fim = colonIndex + 1;
+    if (fim < texto.length() && texto.charAt(fim) == ' ') {
+      fim++;
+    }
+    return fim;
   }
 
   public void atualizar(InputManager input) {
@@ -126,6 +168,7 @@ public class DialogueManager {
         caractereIndex = 0;
         ultimoFrameTempo = System.currentTimeMillis();
         tocarSomFalaAtual();
+        aplicarPrefixoInstantaneo();
       } else {
         ativo = false;
         soundManager.stopDialogue();
