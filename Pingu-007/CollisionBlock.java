@@ -83,7 +83,7 @@ public class CollisionBlock extends ArenaObject {
             setActive(context, false, null);
             GateReplacer.applyUnlockVisuals(context.getMapData());
             dialogueManager.iniciarDialogo(new String[]{
-                "RADIO: Você conseguiu! O portão abriu."});
+                "RADIO: Você conseguiu! O portão abriu."}, DialogueSounds.PortaoAbriu);
             return true;
         }
 

@@ -828,4 +828,27 @@ public class DialogueSounds {
                                         SoundManager.SFX.KATAKANA_A, SoundManager.SFX.KATAKANA_SA,
                                         SoundManager.SFX.KATAKANA_SU
                         } };
+        public static SoundManager.SFX[][] PortaoAbriu = new SoundManager.SFX[][] {
+                        new SoundManager.SFX[] {
+
+                                        // VOCE
+                                        SoundManager.SFX.KATAKANA_BO, SoundManager.SFX.KATAKANA_SE,
+
+                                        // CONSEGUIU
+                                        SoundManager.SFX.KATAKANA_KO, SoundManager.SFX.KATAKANA_N,
+                                        SoundManager.SFX.KATAKANA_SE, SoundManager.SFX.KATAKANA_GI,
+                                        SoundManager.SFX.KATAKANA_U,
+
+                                        // O
+                                        SoundManager.SFX.KATAKANA_O,
+
+                                        // PORTAO
+                                        SoundManager.SFX.KATAKANA_PO, SoundManager.SFX.KATAKANA_RU,
+                                        SoundManager.SFX.KATAKANA_TA, SoundManager.SFX.KATAKANA_O,
+
+                                        // ABRIU
+                                        SoundManager.SFX.KATAKANA_A, SoundManager.SFX.KATAKANA_BU,
+                                        SoundManager.SFX.KATAKANA_RI, SoundManager.SFX.KATAKANA_U
+                        }
+        };
 }
