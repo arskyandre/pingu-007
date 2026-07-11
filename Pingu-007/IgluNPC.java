@@ -39,7 +39,7 @@ public class IgluNPC extends NPC {
         switch (state) {
             case IDLE -> {
                 if (proximo && input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)) {
-                    dialogueManager.iniciarDialogo(falas);
+                    dialogueManager.iniciarDialogo(falas, DialogueSounds.InstrutorFalas);
                     state = State.TALKING;
                 }
             }

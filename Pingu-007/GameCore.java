@@ -81,7 +81,7 @@ public class GameCore extends Canvas implements Runnable {
         renderer.modoDebug = false;
         levelManager = new LevelManager(this);
 
-        dialogueManager = new DialogueManager();
+        dialogueManager = new DialogueManager(soundManager);
         itemManager = new ItemManager();
         fishingManager = new FishingManager(player, soundManager, itemManager);
         enemyManager = new EnemyManager(levelManager, bulletmanager, soundManager);
@@ -311,10 +311,10 @@ public class GameCore extends Canvas implements Runnable {
         cutsceneManager.update();
         if (input.isKeyPressed(KeyEvent.VK_T)) {
             if (!dialogueManager.isAtivo()) {
-                dialogueManager.iniciarDialogo(new String[]{
-                    "PINGU: Entrando na base de operações.",
-                    "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
-                    "PINGU: Eles não vão nem ver de onde veio."
+                dialogueManager.iniciarDialogo(new String[] {
+                        "PINGU: Entrando na base de operações.",
+                        "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
+                        "PINGU: Eles não vão nem ver de onde veio."
 
                 });
             }

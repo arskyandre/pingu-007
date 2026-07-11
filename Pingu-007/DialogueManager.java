@@ -17,7 +17,7 @@ public class DialogueManager {
   private Font pixelFont;
 
   private long ultimoFrameTempo = 0;
-  private final int delayLetrasMs = 40;
+  private final int delayLetrasMs = 30;
 
   private int shakeX = 0;
   private int shakeY = 0;
@@ -28,8 +28,11 @@ public class DialogueManager {
   private BufferedImage rostoFechado;
   private BufferedImage rostoAberto;
   private boolean mostrarBocaAberta = false;
+  private SoundManager soundManager;
+  private SoundManager.SFX[][] sonsAtual;
 
-  public DialogueManager() {
+  public DialogueManager(SoundManager s) {
+    soundManager = s;
     try {
       Font base = Font.createFont(Font.TRUETYPE_FONT, new File("font/PressStart2P-Regular.ttf"));
       pixelFont = base.deriveFont(Font.PLAIN, 14f);
@@ -52,7 +55,25 @@ public class DialogueManager {
     this.textoExibido = "";
     this.ativo = true;
     this.ultimoFrameTempo = System.currentTimeMillis();
+    this.sonsAtual = null;
+    soundManager.stopDialogue();
+  }
 
+  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons) {
+    this.falas = texto;
+    this.falaAtualIndex = 0;
+    this.caractereIndex = 0;
+    this.textoExibido = "";
+    this.ativo = true;
+    this.ultimoFrameTempo = System.currentTimeMillis();
+    this.sonsAtual = sons;
+    tocarSomFalaAtual();
+  }
+
+  private void tocarSomFalaAtual() {
+    if (sonsAtual != null && falaAtualIndex < sonsAtual.length) {
+      soundManager.playDialogue(sonsAtual[falaAtualIndex]);
+    }
   }
 
   public void atualizar(InputManager input) {
@@ -97,15 +118,17 @@ public class DialogueManager {
     if (caractereIndex < falas[falaAtualIndex].length()) {
       textoExibido = falas[falaAtualIndex];
       caractereIndex = falas[falaAtualIndex].length();
-
+      soundManager.stopDialogue();
     } else {
       falaAtualIndex++;
       if (falaAtualIndex < falas.length) {
         textoExibido = "";
         caractereIndex = 0;
         ultimoFrameTempo = System.currentTimeMillis();
+        tocarSomFalaAtual();
       } else {
         ativo = false;
+        soundManager.stopDialogue();
       }
     }
   }

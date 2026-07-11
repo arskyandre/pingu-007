@@ -15,11 +15,18 @@ public class PescadorNPC extends NPC {
     private static final double HEIGHT = GameCore.tiles_size;
     private boolean proximo = false;
     private double Yfinal;
-
+    private String[] dialogo1;
+    private String[] dialogo2;
     private BufferedImage Sprite;
 
     public PescadorNPC(double x, double y) {
         super(x, y, WIDTH, HEIGHT);
+        dialogo1 = new String[] {
+                "PESCADOR: Ei, agente! Vejo que você ainda não tem uma vara de pesca.",
+                "PESCADOR: Ainda bem que tenho uma sobrando. Pode ficar com ela!",
+                "PESCADOR: Sabe como pescar? É fácil, e só chegar perto de um buraco de água e apertar E para lançar a linha." };
+        dialogo2 = new String[] {
+                "PESCADOR: Esqueceu como pescar? É fácil, é só chegar perto de um buraco de água e apertar E para lançar a linha." };
         Yfinal = y;
         this.y = Yfinal + 40;
         Sprite = LoadSave.GetSpriteAtlas("pescador.png");
@@ -36,16 +43,10 @@ public class PescadorNPC extends NPC {
             case IDLE -> {
                 if (proximo && input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)) {
                     if (laEle || player.hasFishingRod()) {
-                        dialogueManager.iniciarDialogo(
-                                new String[]{
-                                    "PESCADOR: Esqueceu como pescar? É fácil, é só chegar perto de um buraco de água e apertar E para lançar a linha."});
+                        dialogueManager.iniciarDialogo(dialogo2, DialogueSounds.PescadorFala2);
                         laEle = true;
                     } else {
-                        dialogueManager.iniciarDialogo(
-                                new String[]{
-                                    "PESCADOR: Ei, agente! Vejo que você ainda não tem uma vara de pesca.",
-                                    "PESCADOR: Ainda bem que tenho uma sobrando. Pode ficar com ela!",
-                                    "PESCADOR: Sabe como pescar? É fácil, e só chegar perto de um buraco de água e apertar E para lançar a linha."});
+                        dialogueManager.iniciarDialogo(dialogo1, DialogueSounds.PescadorFala1);
                     }
                     state = State.TALKING;
                 }
