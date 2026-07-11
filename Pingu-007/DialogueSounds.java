@@ -301,11 +301,9 @@ public class DialogueSounds {
                                         SoundManager.SFX.KATAKANA_GU,
                                         null, null, null,
                                         // FINALMENTE
-                                        SoundManager.SFX.KATAKANA_FA, SoundManager.SFX.KATAKANA_I,
-                                        SoundManager.SFX.KATAKANA_NA,
+                                        SoundManager.SFX.KATAKANA_FI, SoundManager.SFX.KATAKANA_NA,
                                         SoundManager.SFX.KATAKANA_RU, SoundManager.SFX.KATAKANA_ME,
-                                        SoundManager.SFX.KATAKANA_N,
-                                        SoundManager.SFX.KATAKANA_TE,
+                                        SoundManager.SFX.KATAKANA_N, SoundManager.SFX.KATAKANA_TE,
 
                                         // VOCE
                                         SoundManager.SFX.KATAKANA_BO, SoundManager.SFX.KATAKANA_SE,
