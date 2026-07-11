@@ -16,7 +16,8 @@ public class PescadorNPC extends NPC {
     private boolean proximo = false;
     private double Yfinal;
     private String[] dialogo1;
-    private String[] dialogo2;
+    private String[] dialogo2_noKey;
+    private String[] dialogo2_hasKey;
     private BufferedImage Sprite;
 
     public PescadorNPC(double x, double y) {
@@ -24,9 +25,17 @@ public class PescadorNPC extends NPC {
         dialogo1 = new String[] {
                 "PESCADOR: Ei, agente! Vejo que você ainda não tem uma vara de pesca.",
                 "PESCADOR: Ainda bem que tenho uma sobrando. Pode ficar com ela!",
-                "PESCADOR: Sabe como pescar? É fácil, e só chegar perto de um buraco de água e apertar E para lançar a linha." };
-        dialogo2 = new String[] {
-                "PESCADOR: Esqueceu como pescar? É fácil, é só chegar perto de um buraco de água e apertar E para lançar a linha." };
+                "PESCADOR: Sabe como pescar? É fácil, e só chegar perto de um buraco de água e apertar E para lançar a linha.",
+                "PESCADOR: Ouvi rumores de que um buraco de pesca por aí esconde um tesouro secreto! Tentei pescar por lá, mas não tive sorte e ainda esqueci meu banquinho.",
+                "PESCADOR: Se encontrar, tente pescar lá!" };
+        dialogo2_noKey = new String[] {
+                "PESCADOR: Esqueceu como pescar? É fácil, é só chegar perto de um buraco de água e apertar E para lançar a linha.",
+                "PESCADOR: Ouvi rumores de que um buraco de pesca por aí esconde um tesouro secreto! Tentei pescar por lá, mas não tive sorte e ainda esqueci meu banquinho.",
+                "PESCADOR: Se encontrar, tente pescar lá!" };
+        dialogo2_hasKey = new String[] {
+                "PESCADOR: Quer dizer que você encontrou o tesouro no buraco de pesca? O que era?",
+                "PESCADOR: Uma chave para o portão da Morsa? Uau, talvez você seja bom o suficiente para derrotá-la!",
+                "PESCADOR: Boa jornada, agente!" };
         Yfinal = y;
         this.y = Yfinal + 40;
         Sprite = LoadSave.GetSpriteAtlas("pescador.png");
@@ -43,7 +52,10 @@ public class PescadorNPC extends NPC {
             case IDLE -> {
                 if (proximo && input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)) {
                     if (laEle || player.hasFishingRod()) {
-                        dialogueManager.iniciarDialogo(dialogo2, DialogueSounds.PescadorFala2);
+                        if (FishingManager.isPlayerHasKey())
+                            dialogueManager.iniciarDialogo(dialogo2_hasKey, DialogueSounds.PescadorFala2_hasKey);
+                        else
+                            dialogueManager.iniciarDialogo(dialogo2_noKey, DialogueSounds.PescadorFala2_noKey);
                         laEle = true;
                     } else {
                         dialogueManager.iniciarDialogo(dialogo1, DialogueSounds.PescadorFala1);
@@ -70,7 +82,7 @@ public class PescadorNPC extends NPC {
             return;
         }
         if (y > Yfinal) {
-            y -= 10.0 * delta;
+            y -= 80.0 * delta;
             if (y <= Yfinal) {
                 y = Yfinal;
             }

@@ -321,6 +321,7 @@ public class GameCore extends Canvas implements Runnable {
         }
         if (dialogueManager.isAtivo()) {
             dialogueManager.atualizar(input);
+            camera.update(player, input, getWidth(), getHeight());
         } else {
             // Intercepta a morte e carrega o save
             if (player.isDead()) {

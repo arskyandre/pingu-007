@@ -43,11 +43,21 @@ public class FishingManager {
     private static final int BUTTON_SIZE = 40;
     private static final double BASE_ZOOM = 1.25;
 
+    private static boolean playerHasKey = false;
+
     public FishingManager(Player player, SoundManager sound, ItemManager item) {
         itemManager = item;
         soundManager = sound;
         this.player = player;
         this.fishingButton = new IconButton(0, 0, BUTTON_SIZE, IconIndex.FISHING, true);
+    }
+
+    public static boolean isPlayerHasKey() {
+        return playerHasKey;
+    }
+
+    public static void setPlayerHasKey(boolean b){
+        playerHasKey = b;
     }
 
     public boolean isActive() {
@@ -230,23 +240,18 @@ public class FishingManager {
 
     /** Quando o player pesca */
     private void onFishCaught() {
-        switch (currentHoleType) {
-            case NORMAL -> {
-                System.out.println("peixe pego, dropando recompensa");
-                if (Math.random() > 0.66) {
-                    itemManager.spawn(new AmmoPackItem(targetWorldX, targetWorldY + 24));
-                } else {
-                    itemManager.spawn(new HealthPackItem(targetWorldX, targetWorldY + 24));
-                }
+        if (currentHoleType == HoleType.NORMAL || playerHasKey) {
+            System.out.println("peixe pego, dropando recompensa");
+            if (Math.random() > 0.66) {
+                itemManager.spawn(new AmmoPackItem(targetWorldX, targetWorldY + 24));
+            } else {
+                itemManager.spawn(new HealthPackItem(targetWorldX, targetWorldY + 24));
             }
-            case KEY -> {
-                System.out.printf("encontrou a chave! spawnando em %f, %f\n", 114.3 * GameCore.tiles_size,
-                        57.7 * GameCore.tiles_size);
-                itemManager.spawn(new KeyItem(114.3 * GameCore.tiles_size, 57.7 * GameCore.tiles_size));
-            }
-            default -> {
-                System.out.println("Fish caught! (unknown hole type)");
-            }
+        } else {
+            System.out.printf("encontrou a chave! spawnando em %f, %f\n", 114.3 * GameCore.tiles_size,
+                    57.7 * GameCore.tiles_size);
+            itemManager.spawn(new KeyItem(114.3 * GameCore.tiles_size, 57.7 * GameCore.tiles_size));
+            setPlayerHasKey(true);
         }
     }
 
