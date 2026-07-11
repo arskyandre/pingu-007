@@ -17,7 +17,7 @@ public class DialogueManager {
   private Font pixelFont;
 
   private long ultimoFrameTempo = 0;
-  private final int delayLetrasMs = 30;
+  private final int delayLetrasMs = 40;
 
   private int shakeX = 0;
   private int shakeY = 0;
