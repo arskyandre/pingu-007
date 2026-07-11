@@ -515,6 +515,53 @@ public class DialogueSounds {
                     SoundManager.SFX.KATAKANA_RU
             },
             new SoundManager.SFX[] {
+
+                // NAO
+                SoundManager.SFX.KATAKANA_NA, SoundManager.SFX.KATAKANA_O,
+
+                // DESPERDICE
+                SoundManager.SFX.KATAKANA_DE, SoundManager.SFX.KATAKANA_SU, SoundManager.SFX.KATAKANA_PE, SoundManager.SFX.KATAKANA_RU,
+                SoundManager.SFX.KATAKANA_DI, SoundManager.SFX.KATAKANA_SE,
+
+                // MUNICAO
+                SoundManager.SFX.KATAKANA_MU, SoundManager.SFX.KATAKANA_NI,
+                SoundManager.SFX.KATAKANA_SA, SoundManager.SFX.KATAKANA_O,
+
+                // PRESSIONE
+                SoundManager.SFX.KATAKANA_PU, SoundManager.SFX.KATAKANA_RE, SoundManager.SFX.KATAKANA_SI,
+                SoundManager.SFX.KATAKANA_O, SoundManager.SFX.KATAKANA_NE,
+
+                // R
+                SoundManager.SFX.KATAKANA_A, SoundManager.SFX.KATAKANA_RU,
+
+                // PARA
+                SoundManager.SFX.KATAKANA_PA, SoundManager.SFX.KATAKANA_RA,
+
+                // RECARREGAR
+                SoundManager.SFX.KATAKANA_RE, SoundManager.SFX.KATAKANA_KA,
+                SoundManager.SFX.KATAKANA_RE, SoundManager.SFX.KATAKANA_GA,
+                SoundManager.SFX.KATAKANA_RU,
+
+                // SEMPRE
+                SoundManager.SFX.KATAKANA_SE, SoundManager.SFX.KATAKANA_N,
+                SoundManager.SFX.KATAKANA_PU, SoundManager.SFX.KATAKANA_RE,
+
+                // QUE
+                SoundManager.SFX.KATAKANA_KE,
+
+                // ESTIVER
+                SoundManager.SFX.KATAKANA_E, SoundManager.SFX.KATAKANA_SU,
+                SoundManager.SFX.KATAKANA_TI, SoundManager.SFX.KATAKANA_BE,
+
+                // EM
+                SoundManager.SFX.KATAKANA_E, SoundManager.SFX.KATAKANA_MU,
+
+                // SEGURANCA
+                SoundManager.SFX.KATAKANA_SE, SoundManager.SFX.KATAKANA_GU,
+                SoundManager.SFX.KATAKANA_RA, SoundManager.SFX.KATAKANA_N,
+                SoundManager.SFX.KATAKANA_SA
+        },
+            new SoundManager.SFX[] {
                     // SE
                     SoundManager.SFX.KATAKANA_SE,
 
