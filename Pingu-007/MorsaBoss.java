@@ -202,6 +202,15 @@ public class MorsaBoss extends Enemy {
         g.drawString("MORSA GIGANTE", barraX, barraY - 4);
     }
 
+    public void forçarRugidoAtivo(){
+      this.rugindo = true;
+      this.timerRugido = 120;
+      this.animT = 0;
+      if(this.camera != null){
+        this.camera.tremer(10,60);
+      }
+    }
+
     @Override
     public Collider getHurtbox() {
         return this.bodyCollider;

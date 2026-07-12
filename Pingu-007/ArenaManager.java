@@ -326,13 +326,20 @@ public class ArenaManager {
     private void ativarArena(int id, Player player, CameraManager camera, CutsceneManager cutsceneManager,
             SoundManager sound) {
         System.out.println("Ativou arena");
-        // em teoria, já funciona bem para o id == 0
-        // if (id != 0) {
-        gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
-        // }
-        sound.playSFX(SoundManager.SFX.ARENA_ENTER);
+
+        if (id != 999) {
+            gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
+            sound.playSFX(SoundManager.SFX.ARENA_ENTER);
+        }
+
         Arena arena = getOuCriarArena(id);
         arena.ativa = true;
+
+        if (arena.totalHordas > 0) {
+            arena.hordaAtual = 1;
+            spawnHorda(arena);
+        }
+
         switch (id) {
             case 0 -> {
                 setWallState(0, true, player);
@@ -389,21 +396,14 @@ public class ArenaManager {
                 spawnHorda(arena);
 
 
-                MorsaBoss morsaBoss = enemyManager.getMorsaBoss();
-
-                arena.concluida = true;
-                // player.solicitarCheckpoint();
-                //
-                //
-                //
                 MorsaBoss morsa = enemyManager.getMorsaBoss();
+                arena.concluida = true;
+
+
                 if (morsa != null && camera != null && cutsceneManager != null) {
                     morsa.vincularCamera(camera);
-                    morsa.iniciarCutsceneEntrada(CutsceneManager.getDuracaoTotal());
-                    cutsceneManager.iniciar("Morsa Gigante, o terror do Ártico");
-                    player.setBlockInputs(true);
-                    cutsceneBossSolicitada = true;
-                }
+                    cutsceneManager.setBossRef(morsa); 
+                }           
             }
             case 102 -> {
                 setWallState(102, false, player);
@@ -422,10 +422,6 @@ public class ArenaManager {
             }
         }
 
-        if (!arena.concluida && arena.totalHordas > 0) {
-            arena.hordaAtual = 1;
-            spawnHorda(arena);
-        }
         Rectangle2D.Double wallRect = getCombinedWallRect(id);
 
         if (wallRect != null) {
@@ -437,10 +433,11 @@ public class ArenaManager {
                 cutsceneManager.iniciarWallFade(wallRect);
             }
         }
-        if (id == 0)
+        if (id == 0) {
             isFirstArena = true;
+        }
         // pra rodar a cutscene em uma arena de verdade
-        // depois vou fazer o foco da camera funcionar direito
+        //TODO: depois vou fazer o foco da camera funcionar direito
     }
 
     private void verificarDesativacaoParedes(int id, Player player) {

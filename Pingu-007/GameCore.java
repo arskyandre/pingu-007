@@ -365,7 +365,12 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void updateCutscene() {
+        input.update();
         cutsceneManager.update();
+
+        if(dialogueManager != null && dialogueManager.isAtivo()){
+          dialogueManager.atualizar(input);
+        }
         double dynamicZoom = BASE_ZOOM * (getHeight() / (double) BASE_HEIGHT);
         camera.setBaseZoom(dynamicZoom);
         camera.update(player, input, getWidth(), getHeight());
@@ -562,6 +567,10 @@ public class GameCore extends Canvas implements Runnable {
 
     public boolean isFullscreen() {
         return isFullscreen;
+    }
+
+    public DialogueManager getDialogueManager(){
+      return this.dialogueManager;
     }
 
     @Override
