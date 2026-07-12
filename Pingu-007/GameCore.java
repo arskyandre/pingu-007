@@ -84,10 +84,10 @@ public class GameCore extends Canvas implements Runnable {
         dialogueManager = new DialogueManager(soundManager);
         itemManager = new ItemManager();
         fishingManager = new FishingManager(player, soundManager, itemManager);
-        enemyManager = new EnemyManager(levelManager, bulletmanager, soundManager);
+        enemyManager = new EnemyManager(levelManager, bulletmanager, soundManager, this);
         enemyManager.setItemManager(itemManager);
         npcManager = new NPCManager(dialogueManager, itemManager);
-        cutsceneManager = new CutsceneManager(this);
+        cutsceneManager = new CutsceneManager(this, soundManager);
         arenaManager = new ArenaManager(enemyManager, levelManager, itemManager, npcManager, cutsceneManager, this);
         hud = new Hud();
 
@@ -207,6 +207,12 @@ public class GameCore extends Canvas implements Runnable {
         renderer.setCinematicBorderAnimation(state);
     }
 
+    public void shakeCamera(double intensidade, int duracaoFrames) {
+        if (gameState == GameState.PLAYING || gameState == GameState.CUTSCENE) {
+            camera.tremer(intensidade, duracaoFrames);
+        }
+    }
+
     public void debugInputProcessing() {
 
         if (input.isKeyJustPressed(KeyEvent.VK_F)) {
@@ -286,6 +292,8 @@ public class GameCore extends Canvas implements Runnable {
             System.out.println("Indo para o Mapa 2 de Testes...");
             // Substitua pelo nome exato do seu arquivo JSON de teste
             levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
+            arenaManager.setFirstArenaFlag(false);
+            soundManager.BGMfadeOut(2500);
             mapLoadCooldown = 60;
         }
 
@@ -373,12 +381,18 @@ public class GameCore extends Canvas implements Runnable {
         cutsceneManager.update();
         double dynamicZoom = BASE_ZOOM * (getHeight() / (double) BASE_HEIGHT);
         camera.setBaseZoom(dynamicZoom);
+        if (cutsceneManager.isBossIntroAtiva()) {
+            MorsaBoss morsa = enemyManager.getMorsaBoss();
+            if (morsa != null) {
+                morsa.atualizarCutsceneIntro(); // só cuida do rugido/tremida — sem alvo, sem ataque, sem BossMao
+            }
+        }
         camera.update(player, input, getWidth(), getHeight());
-
         if (!cutsceneManager.isAtiva()) {
             player.setBlockInputs(false);
             gameState = GameState.PLAYING;
         }
+
     }
 
     public void setGameState(GameState state) {
@@ -567,6 +581,79 @@ public class GameCore extends Canvas implements Runnable {
 
     public boolean isFullscreen() {
         return isFullscreen;
+    }
+
+    public static Rectangle2D getRetanguloComum(Rectangle2D[] rects) {
+        if (rects == null || rects.length == 0)
+            return null;
+        double Ymin, Ymax;
+        double Xmin, Xmax;
+        Ymin = rects[0].getY();
+        Xmin = rects[0].getX();
+        Ymax = Ymin;
+        Xmax = Xmin;
+        for (Rectangle2D rect : rects) {
+            double x = rect.getX();
+            double y = rect.getY();
+            if (x > Xmax)
+                Xmax = x;
+            else if (x < Xmax)
+                Xmax = x;
+            if (y > Ymax)
+                Ymax = y;
+            else if (y < Ymin)
+                Ymin = y;
+        }
+        return new Rectangle2D.Double(Xmin, Ymin, Xmax - Xmin, Ymax - Ymin);
+    }
+
+    public static Rectangle2D getRetanguloComum(Rectangle2D[] rects, double margin) {
+        if (rects == null || rects.length == 0)
+            return null;
+        double Ymin, Ymax;
+        double Xmin, Xmax;
+        Ymin = rects[0].getY();
+        Xmin = rects[0].getX();
+        Ymax = Ymin;
+        Xmax = Xmin;
+        for (Rectangle2D rect : rects) {
+            double x = rect.getX();
+            double y = rect.getY();
+            if (x > Xmax)
+                Xmax = x;
+            else if (x < Xmax)
+                Xmax = x;
+            if (y > Ymax)
+                Ymax = y;
+            else if (y < Ymin)
+                Ymin = y;
+        }
+        return new Rectangle2D.Double(Xmin - margin, Ymin - margin, Xmax - Xmin + 2 * margin, Ymax - Ymin + 2 * margin);
+    }
+
+    public static Rectangle2D getRetanguloComum(Rectangle2D[] rects, double marginX, double marginY) {
+        if (rects == null || rects.length == 0)
+            return null;
+        double Ymin, Ymax;
+        double Xmin, Xmax;
+        Ymin = rects[0].getY();
+        Xmin = rects[0].getX();
+        Ymax = Ymin;
+        Xmax = Xmin;
+        for (Rectangle2D rect : rects) {
+            double x = rect.getX();
+            double y = rect.getY();
+            if (x > Xmax)
+                Xmax = x;
+            else if (x < Xmax)
+                Xmax = x;
+            if (y > Ymax)
+                Ymax = y;
+            else if (y < Ymin)
+                Ymin = y;
+        }
+        return new Rectangle2D.Double(Xmin - marginX, Ymin - marginY, Xmax - Xmin + 2 * marginX,
+                Ymax - Ymin + 2 * marginY);
     }
 
     @Override

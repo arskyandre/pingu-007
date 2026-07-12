@@ -330,7 +330,8 @@ public class ArenaManager {
         System.out.println("Ativou arena");
 
         if (id != 999) {
-            gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
+            if (id != 67)
+                gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
             sound.playSFX(SoundManager.SFX.ARENA_ENTER);
         }
 
@@ -392,20 +393,28 @@ public class ArenaManager {
                 player.solicitarCheckpoint();
             }
             case 67 -> {
-                // trigger do level 2
+                // trigger do level 2(BOSS)
                 setWallState(67, true, player);
                 // arena.concluida = true;
                 // player.solicitarCheckpoint();
                 //
                 //
                 //
+                // nao travar na parede caso o trigger ative com o player em cima da agua
+                if (player.getDashDirX() < 0) {
+                    player.setX(GameCore.tiles_size * 38);
+                    player.setY(GameCore.tiles_size * 58);
+                } else {
+                    player.setX(GameCore.tiles_size * 44);
+                    player.setY(GameCore.tiles_size * 58);
+                }
                 MorsaBoss morsa = enemyManager.getMorsaBoss();
                 if (morsa != null && camera != null && cutsceneManager != null) {
                     morsa.vincularCamera(camera);
-                    morsa.iniciarCutsceneEntrada(CutsceneManager.getDuracaoTotal());
-                    cutsceneManager.iniciar("Morsa Gigante, o terror do Ártico");
-                    player.setBlockInputs(true);
+                    cutsceneManager.iniciarBossIntro(getHordaInfo(), camera, player, morsa.getCenterX(),
+                            morsa.getCenterY());
                     cutsceneBossSolicitada = true;
+                    gameCore.setGameState(GameState.CUTSCENE);
                 } else {
                     System.out.println("ERRO: Morsa não encontrada na Arena 67!");
                 }
@@ -442,7 +451,7 @@ public class ArenaManager {
             isFirstArena = true;
         }
         // pra rodar a cutscene em uma arena de verdade
-        //TODO: depois vou fazer o foco da camera funcionar direito
+        // TODO: depois vou fazer o foco da camera funcionar direito
     }
 
     private void verificarDesativacaoParedes(int id, Player player) {

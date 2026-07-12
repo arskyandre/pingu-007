@@ -4,7 +4,7 @@ import java.util.ArrayList;
 public class EnemyManager {
 
     private final ArrayList<Enemy> enemies = new ArrayList<>();
-
+private final GameCore gameCore;
     private final BulletManager bulmgr;
     private final LevelManager levelManager;
     private ItemManager itemManager;
@@ -12,7 +12,8 @@ public class EnemyManager {
     private SoundManager soundManager;
     private MorsaBoss morsaAtual;
 
-    public EnemyManager(LevelManager lm, BulletManager bm, SoundManager sound) {
+    public EnemyManager(LevelManager lm, BulletManager bm, SoundManager sound, GameCore GC) {
+        gameCore = GC;
         levelManager = lm;
         bulmgr = bm;
         soundManager = sound;
@@ -88,7 +89,7 @@ public class EnemyManager {
             case "bomber" ->
                 novo = new Bomber(x, y, 48, 48, lvlData, bulmgr, enemies, soundManager);
             case "morsa" -> {
-                MorsaBoss morsaInstancia = new MorsaBoss(x, y, lvlData, bulmgr, soundManager);
+                MorsaBoss morsaInstancia = new MorsaBoss(x, y, lvlData, bulmgr, soundManager, gameCore);
 
                 this.morsaAtual = morsaInstancia;
 

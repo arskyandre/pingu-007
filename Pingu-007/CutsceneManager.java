@@ -1,4 +1,3 @@
-
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -22,10 +21,13 @@ public class CutsceneManager {
     // --- boss intro state ---
     private Phase phase = Phase.NONE;
     private int timer = 0;
-    private static final int DURATION = 100;
+    private static final int DURATION = 240;
+    private static final int BOSS_BGM_DELAY = 120;
     private static final int TEXT_AREA_HEIGHT = 80;
     private static final int TRANSICAO_BORDA = 20;
     private String nomeBoss = "";
+    private boolean bossBgmTocada = false;
+    private Player bossIntroPlayer;
 
     // --- wall reveal state ---
     private static final int WALL_REVEAL_DURATION = 150;
@@ -36,9 +38,11 @@ public class CutsceneManager {
     private static final double WALL_SHAKE_SPEED = 1.2;
 
     private GameCore gameCore;
+    private SoundManager soundManager;
 
-    public CutsceneManager(GameCore GC) {
+    public CutsceneManager(GameCore GC, SoundManager sound) {
         gameCore = GC;
+        soundManager = sound;
     }
 
     public static int getDuracaoTotal() {
@@ -46,31 +50,56 @@ public class CutsceneManager {
     }
 
     // ---------------- Boss intro ----------------
-    public void iniciar(String nomeBoss) {
+
+    /**
+     * Inicia a cutscene de entrada do boss. Agora o CutsceneManager cuida
+     * de tudo: foco de câmera, bloqueio de input do player, borda cinematica
+     * e troca de BGM — nada disso deve ser feito fora daqui.
+     */
+    public void iniciarBossIntro(String nomeBoss, CameraManager camera, Player player, double focoX, double focoY) {
         this.type = CutsceneType.BOSS_INTRO;
         this.nomeBoss = nomeBoss;
         this.phase = Phase.OPENING;
         this.timer = 0;
+        this.bossBgmTocada = false;
+        this.bossIntroPlayer = player;
+        soundManager.playRandomSnowStep();
+        if (camera != null) {
+            camera.focarEm(focoX, focoY, DURATION);
+        }
+        if (player != null) {
+            player.setBlockInputs(true);
+        }
+
         gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
     }
 
+    // ---------------- Wall reveal (fade always, camera focus só na primeira arena)
+    // ----------------
+
     public void iniciarWallFade(Rectangle2D.Double wallRect) {
+        this.wallTimer = 0;
+        if (type == CutsceneType.BOSS_INTRO) {
+            return; // não interrompe uma cutscene de boss já em andamento
+        }
         if (type == CutsceneType.WALL_REVEAL && wallRevealPlayer != null) {
             return;
         }
         this.type = CutsceneType.WALL_REVEAL;
-        this.wallTimer = 0;
         this.wallFadeRect = wallRect;
         this.wallRevealPlayer = null;
     }
 
     public void iniciarWallRevealComCamera(Rectangle2D.Double wallRect, CameraManager camera, Player player) {
-        this.type = CutsceneType.WALL_REVEAL;
         this.wallTimer = 0;
+        if (type == CutsceneType.BOSS_INTRO) {
+            return; // não interrompe uma cutscene de boss já em andamento
+        }
+        this.type = CutsceneType.WALL_REVEAL;
         this.wallFadeRect = wallRect;
         this.wallRevealPlayer = player;
 
-        camera.focarEmRect(wallRect, (int) WALL_REVEAL_DURATION, gameCore.getWidth(), gameCore.getHeight());
+        camera.focarEmRect(wallRect, WALL_REVEAL_DURATION, gameCore.getWidth(), gameCore.getHeight());
         player.setBlockInputs(true);
     }
 
@@ -82,6 +111,10 @@ public class CutsceneManager {
         return wallFadeRect;
     }
 
+    public boolean isBossIntroAtiva() {
+        return type == CutsceneType.BOSS_INTRO;
+    }
+
     public float getWallFadeAlpha() {
         if (type != CutsceneType.WALL_REVEAL) {
             return 1f;
@@ -90,22 +123,33 @@ public class CutsceneManager {
     }
 
     // ---------------- Shared update/draw ----------------
+
     public void update() {
+        timer++;
+        wallTimer++;
         if (type == CutsceneType.BOSS_INTRO) {
-            timer++;
+            if (!bossBgmTocada && timer >= BOSS_BGM_DELAY) {
+                soundManager.playBGM(SoundManager.BGM.BOSS_INTRO, SoundManager.BGM.BOSS_LOOP);
+                bossBgmTocada = true;
+            }
+
             if (phase == Phase.OPENING && timer >= DURATION - TRANSICAO_BORDA) {
                 phase = Phase.CLOSING;
                 gameCore.setCinematicBorderAnimation(Renderer.BorderState.OUT);
             }
+
             if (phase == Phase.CLOSING && timer >= DURATION) {
                 phase = Phase.NONE;
                 timer = 0;
-                nomeBoss = "";
                 type = CutsceneType.NONE;
+
+                if (bossIntroPlayer != null) {
+                    bossIntroPlayer.setBlockInputs(false);
+                    bossIntroPlayer = null;
+                }
             }
         } else if (type == CutsceneType.WALL_REVEAL) {
-            wallTimer++;
-            // teste de conserto da parede inicial.
+
             if (wallTimer == WALL_REVEAL_DURATION - TRANSICAO_BORDA) {
                 if (gameCore.getArenaManager() != null && !gameCore.getArenaManager().existeCombateAtivo()) {
                     gameCore.setCinematicBorderAnimation(Renderer.BorderState.OUT);
@@ -122,8 +166,6 @@ public class CutsceneManager {
     }
 
     public boolean isAtiva() {
-        // só conta como cutscene "de verdade" (que pausa o jogo) se tiver player
-        // vinculado
         return type == CutsceneType.BOSS_INTRO || (type == CutsceneType.WALL_REVEAL && wallRevealPlayer != null);
     }
 

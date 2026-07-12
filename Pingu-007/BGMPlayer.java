@@ -4,6 +4,7 @@ import java.io.File;
 public class BGMPlayer {
 
     private Thread thread;
+    private Thread fadeThread;
     private volatile boolean running = false;
     private volatile float volume = 1.0f;
     private String currentPath = null;
@@ -123,5 +124,34 @@ public class BGMPlayer {
             float dB = (float) (Math.log10(Math.max(curved, 0.0001)) * 20);
             gain.setValue(Math.clamp(dB, gain.getMinimum(), gain.getMaximum()));
         }
+    }
+
+    public void fadeOut(long durationMs) {
+        if (fadeThread != null && fadeThread.isAlive()) {
+            return; // ja tem um fade em andamento
+        }
+
+        float startVolume = volume;
+
+        fadeThread = new Thread(() -> {
+            try {
+                long startTime = System.currentTimeMillis();
+                while (running) {
+                    long elapsed = System.currentTimeMillis() - startTime;
+                    if (elapsed >= durationMs) {
+                        volume = 0f;
+                        break;
+                    }
+                    float progress = elapsed / (float) durationMs;
+                    volume = startVolume * (1f - progress);
+                    Thread.sleep(16); // ~60 atualizacoes por segundo
+                }
+            } catch (InterruptedException ignored) {
+            }
+            stop();
+            volume = startVolume; // restaura o volume para a proxima musica tocar normal
+        }, "BGMFadeOut");
+        fadeThread.setDaemon(true);
+        fadeThread.start();
     }
 }

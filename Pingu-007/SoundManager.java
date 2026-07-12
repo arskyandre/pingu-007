@@ -13,7 +13,8 @@ public class SoundManager {
         MAIN_MENU("sound/bgm/main_menu.wav"),
         LEVEL_1_INTRO("sound/bgm/level_1_intro.wav"),
         LEVEL_1_LOOP("sound/bgm/level_1_loop.wav"),
-        OS_CRIA("sound/bgm/os_cria.wav");
+        BOSS_INTRO("sound/bgm/boss_intro.wav"),
+        BOSS_LOOP("sound/bgm/boss_loop.wav");
 
         public final String path;
 
@@ -36,17 +37,19 @@ public class SoundManager {
         SNOW_STEP_4("sound/sfx/snow_footstep4.wav", 6),
         ICE_STEP_1("sound/sfx/ice_footstep1.wav", 6),
         ICE_STEP_2("sound/sfx/ice_footstep2.wav", 6),
+        ARENA_ENTER("sound/sfx/arena_enter.wav", 2),
+        PLAYER_DAMAGE("sound/sfx/player_damage.wav", 8),
         FISHING_START("sound/sfx/fishing_start.wav", 2),
         // FISHING_FISH_FOUND("sound/sfx/fishing_fish_found.wav", 2),
         // FISHING_CAUGHT("sound/sfx/fishing_caught.wav", 2),
         // FISHING_LOST("sound/sfx/fishing_lost.wav", 2),
-        ARENA_ENTER("sound/sfx/arena_enter.wav", 2),
+        GUNSHOT("sound/sfx/gunshot.wav", 16),
         BOMBER_AVISO("sound/sfx/bomber_aviso.wav", 6),
         EXPLOSION("sound/sfx/bomber_explosion.wav", 6),
-        GUNSHOT("sound/sfx/gunshot.wav", 16),
         SHOOTER_METRALHADA("sound/sfx/shooter_metralhada.wav", 8),
-        PLAYER_DAMAGE("sound/sfx/player_damage.wav", 8),
         WOLF_DEATH("sound/sfx/wolf_death.wav", 8),
+        // MORSA_ROAR("sound/sfx/morsa_roar.wav", 2),
+
         HUD_CLICK("sound/hud/click.wav", 2),
 
         // para o dialogo animal crossing
@@ -218,6 +221,14 @@ public class SoundManager {
         loadSFX();
         setMusicVolume(musicVolume);
         setSfxVolume(sfxVolume);
+    }
+
+    public void BGMfadeOut() {
+        BGMfadeOut(1000);
+    }
+
+    public void BGMfadeOut(int duration) {
+        bgmPlayer.fadeOut(duration);
     }
 
     private void loadSFX() {

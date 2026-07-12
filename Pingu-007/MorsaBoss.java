@@ -17,12 +17,12 @@ public class MorsaBoss extends Enemy {
     private BufferedImage[] Sprites;
     private int Direita = 1;
     private int dirS = 1;
-    private int[] idle = {0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 4, 5};
-    private int[] rugidoSprites = {8, 9}; // Sprites do rugido
+    private int[] idle = { 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 4, 5 };
+    private int[] rugidoSprites = { 8, 9 }; // Sprites do rugido
     private double animT = 0;
     private double timerVirar = 0;
     private BulletManager bulletManager;
-
+    private GameCore gameCore;
     // --- Controle do Rugido ---
     private boolean rugindo = false;
     private double timerRugido = 0;
@@ -31,14 +31,17 @@ public class MorsaBoss extends Enemy {
     // --- Câmera (tremida ao rugir / foco de entrada na arena) ---
     private CameraManager camera;
 
-    public MorsaBoss(double startX, double startY, int[][] lvlData, BulletManager bulmgr, SoundManager sound) {
+    public MorsaBoss(double startX, double startY, int[][] lvlData, BulletManager bulmgr, SoundManager sound,
+            GameCore GC) {
+
         super(startX, startY, GameCore.tiles_size * 6, GameCore.tiles_size * 6, lvlData, sound);
+        gameCore = GC;
         this.bulletManager = bulmgr;
         this.vida = 500;
         this.cor = Color.BLUE;
         this.aggroPermanente = true;
         this.bodyCollider = new Collider(0, 0, GameCore.tiles_size * 6, GameCore.tiles_size * 6);
-        
+
         // Inicializando sua posição de origem
         this.xHome = startX;
         this.yHome = startY;
@@ -66,8 +69,40 @@ public class MorsaBoss extends Enemy {
 
         if (timerVirar > 0)
             timerVirar -= 1.0;
+        atualizarRugido();
 
-        // Controle do tempo do rugido ativo
+        // Lógica de virar o sprite baseada na posição do jogador (só vira se não
+        // estiver rugindo)
+        if (!rugindo) {
+            double playerCenterX = player.getX() + player.getLargura() / 2.0;
+            double CenterX = x + (getLargura() / 2);
+            if (CenterX < playerCenterX) {
+                Direita = 1;
+            } else if (CenterX > playerCenterX) {
+                Direita = 0;
+            }
+        }
+    }
+
+    /**
+     * Usado exclusivamente durante a cutscene de entrada do boss. Cuida
+     * apenas do rugido/tremida da câmera — nunca mira no player, nunca
+     * mexe nas mãos (BossMao), e não é chamado via enemyManager.update().
+     */
+    public void atualizarCutsceneIntro() {
+        velX = 0;
+        velY = 0;
+        this.x = xHome;
+        this.y = yHome;
+
+        if (timerVirar > 0) {
+            timerVirar -= 1.0;
+        }
+
+        atualizarRugido();
+    }
+
+    private void atualizarRugido() {
         if (rugindo) {
             timerRugido -= 1.0;
             if (timerRugido <= 0) {
@@ -82,29 +117,24 @@ public class MorsaBoss extends Enemy {
                 rugindo = true;
                 timerRugido = 120; // O rugido dura 2 segundos (120 frames)
                 animT = 0; // Reinicia o timer de animação
-                
-                // Ativa o efeito visual de tremer a câmera se ela estiver vinculada
-                if (camera != null) {
-                    camera.tremer(10, 60); // Exemplo: intensidade 10, por 60 frames
-                }
-                
-                // Toca o som do rugido se houver gerenciador de áudio
-                if (soundManager != null) {
-                    // soundManager.playVoice(SoundManager.MORSA_ROAR); // Ajuste para a sua constante de som
-                }
-            }
-        }
 
-        // Lógica de virar o sprite baseada na posição do jogador (só vira se não estiver rugindo)
-        if (!rugindo) {
-            double playerCenterX = player.getX() + player.getLargura() / 2.0;
-            double CenterX = x + (getLargura()/2); 
-            if (CenterX < playerCenterX) {
-                Direita = 1;
-            } else if (CenterX > playerCenterX) {
-                Direita = 0;
+                if (gameCore != null) {
+                    gameCore.shakeCamera(10, 60);
+                }
+
+                if (soundManager != null) {
+                    // soundManager.playSFX(SoundManager.SFX.MORSA_ROAR);
+                }
             }
         }
+    }
+
+    public double getCenterX() {
+        return this.x + (this.width / 2.0);
+    }
+
+    public double getCenterY() {
+        return this.y + (this.height / 2.0);
     }
 
     public void vincularCamera(CameraManager camera) {
@@ -129,7 +159,7 @@ public class MorsaBoss extends Enemy {
         if (dirS != Direita && timerVirar <= 0 && !rugindo) {
             timerVirar = 40;
         }
-        
+
         if (timerVirar > 0 && !rugindo) {
             if (timerVirar > 30) {
                 index = 6;
@@ -148,14 +178,14 @@ public class MorsaBoss extends Enemy {
                 if (animT >= 2)
                     animT = 0;
                 index = rugidoSprites[(int) animT];
-                if(timerRugido > 110)
-                  index = 6;
-                else if(timerRugido > 100)
-                  index = 7;
-                else if(timerRugido < 10)
-                  index = 6;
-                else if(timerRugido < 20)
-                  index = 7;
+                if (timerRugido > 110)
+                    index = 6;
+                else if (timerRugido > 100)
+                    index = 7;
+                else if (timerRugido < 10)
+                    index = 6;
+                else if (timerRugido < 20)
+                    index = 7;
             } else {
                 // Animação padrão (Idle)
                 animT += 3 * delta;
