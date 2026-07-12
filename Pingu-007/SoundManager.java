@@ -48,7 +48,7 @@ public class SoundManager {
         EXPLOSION("sound/sfx/bomber_explosion.wav", 6),
         SHOOTER_METRALHADA("sound/sfx/shooter_metralhada.wav", 8),
         WOLF_DEATH("sound/sfx/wolf_death.wav", 8),
-        // MORSA_ROAR("sound/sfx/morsa_roar.wav", 2),
+        MORSA_ROAR("sound/sfx/morsa_roar.wav", 2),
 
         HUD_CLICK("sound/hud/click.wav", 2),
 

@@ -32,7 +32,7 @@ public class Renderer {
             int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager,
             EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager,
             FishingManager fishingManager, NPCManager npcManager, CutsceneManager cutsceneManager, double delta,
-            boolean animateBorder) {
+            boolean animateBorder, boolean mouseCircle) {
 
         // Mantem o tamanho da borda proporcional a altura da tela
         cinematicBorderHeight = telaAltura / 8;
@@ -172,7 +172,8 @@ public class Renderer {
         HUD.player_hearts(g2, quadrado, (int) cinematicBorder);
         HUD.ammobar(g2, telaLargura, telaAltura, quadrado, (int) cinematicBorder);
         fishingManager.render(g2, camera, telaLargura, telaAltura);
-        renderMouse(g2, input);
+        if (mouseCircle)
+            renderMouse(g2, input);
 
         if (cinematicBorder > 0) {
             g2.setColor(Color.BLACK);

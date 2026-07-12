@@ -26,7 +26,7 @@ public class MorsaBoss extends Enemy {
     // --- Controle do Rugido ---
     private boolean rugindo = false;
     private double timerRugido = 0;
-    private double cooldownRugido = 0;
+    private double cooldownRugido = 30;
 
     // --- Câmera (tremida ao rugir / foco de entrada na arena) ---
     private CameraManager camera;
@@ -123,7 +123,7 @@ public class MorsaBoss extends Enemy {
                 }
 
                 if (soundManager != null) {
-                    // soundManager.playSFX(SoundManager.SFX.MORSA_ROAR);
+                    soundManager.playSFX(SoundManager.SFX.MORSA_ROAR);
                 }
             }
         }

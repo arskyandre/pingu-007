@@ -411,8 +411,8 @@ public class ArenaManager {
                 MorsaBoss morsa = enemyManager.getMorsaBoss();
                 if (morsa != null && camera != null && cutsceneManager != null) {
                     morsa.vincularCamera(camera);
-                    cutsceneManager.iniciarBossIntro(getHordaInfo(), camera, player, morsa.getCenterX(),
-                            morsa.getCenterY());
+                    cutsceneManager.iniciarBossIntro(camera, player, morsa.getCenterX(),
+                            morsa.getCenterY(), enemyManager);
                     cutsceneBossSolicitada = true;
                     gameCore.setGameState(GameState.CUTSCENE);
                 } else {

@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
+import java.io.File;
 import java.util.ArrayList;
 import javax.swing.*;
 
@@ -24,6 +25,8 @@ public class GameCore extends Canvas implements Runnable {
     private ArrayList<Integer> checkArenas = new ArrayList<>();
     private boolean hasCheckpoint = false;
     private boolean checkVaraDePesca = false;
+
+    public static Font pixelFont;
 
     JFrame frame;
     boolean running = true;
@@ -102,6 +105,13 @@ public class GameCore extends Canvas implements Runnable {
         addMouseListener(input);
         setFocusable(true);
         requestFocus();
+        try {
+            Font base = Font.createFont(Font.TRUETYPE_FONT, new File("font/PressStart2P-Regular.ttf"));
+            pixelFont = base.deriveFont(Font.BOLD, 32f);
+        } catch (Exception e) {
+            System.err.println("Font not found, falling back");
+            pixelFont = new Font("Monospaced", Font.BOLD, 12);
+        }
     }
 
     public void toggleFullscreen() {
@@ -521,7 +531,7 @@ public class GameCore extends Canvas implements Runnable {
                                 levelManager, bulletmanager, itemManager,
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
                                 cutsceneManager, delta,
-                                true);
+                                true, true);
                         if (showFpsCounter) {
                             drawFpsCounter(g2);
                         }
@@ -532,7 +542,7 @@ public class GameCore extends Canvas implements Runnable {
                                 levelManager, bulletmanager, itemManager,
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
                                 cutsceneManager, delta,
-                                true);
+                                true, false);
                         gameOverScreen.render(g2, getWidth(), getHeight());
                     }
                     case PAUSED -> {
@@ -541,7 +551,7 @@ public class GameCore extends Canvas implements Runnable {
                                 levelManager, bulletmanager, itemManager,
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
                                 cutsceneManager, delta,
-                                false);
+                                false, false);
                         pauseMenu.render(g2, getWidth(), getHeight());
                     }
                     case CUTSCENE -> {
@@ -551,9 +561,9 @@ public class GameCore extends Canvas implements Runnable {
                                     levelManager, bulletmanager, itemManager,
                                     enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
                                     cutsceneManager, delta,
-                                    true);
+                                    true, false);
 
-                            cutsceneManager.draw(g2, getWidth(), getHeight());
+                            cutsceneManager.draw(g2, getWidth(), getHeight(), delta);
                             if (showFpsCounter) {
                                 drawFpsCounter(g2);
                             }
