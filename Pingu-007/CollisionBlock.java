@@ -1,5 +1,6 @@
 
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 
 public class CollisionBlock extends ArenaObject {
 
@@ -84,7 +85,7 @@ public class CollisionBlock extends ArenaObject {
             setActive(context, false, null);
             GateReplacer.applyUnlockVisuals(context.getMapData());
             dialogueManager.iniciarDialogo(new String[] {
-                    "RADIO: Você conseguiu! O portão abriu." }, GameCore.cellphone_image,
+                    "RADIO: Você conseguiu! O portão abriu." }, new BufferedImage[] { GameCore.cellphone_image },
                     true);
             return true;
         }
@@ -98,7 +99,7 @@ public class CollisionBlock extends ArenaObject {
         }
         dialogueManager.iniciarDialogo(new String[] {
                 "RADIO: De acordo com as nossas informações, você precisará de 3 chaves para abrir esse portão.",
-                qtdChaves }, GameCore.cellphone_image,
+                qtdChaves }, new BufferedImage[] { GameCore.cellphone_image },
                 true);
         System.out.println("Você precisa de 3 chaves para abrir isso!");
 

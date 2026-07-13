@@ -29,7 +29,7 @@ public class LevelManager {
         if (filename.equals(LoadSave.LEVEL_2_DATA)) {
             soundManager.BGMfadeOut(2500);
         }
-        System.out.println(filename + ", " + LoadSave.LEVEL_2_DATA);
+        System.out.println(filename + " loaded");
         carregarMapData(filename);
         Game.processarNovoMapa(mapDataAtual.objects);
     }

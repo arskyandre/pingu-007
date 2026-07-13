@@ -85,7 +85,7 @@ public class CutsceneManager {
         this.type = CutsceneType.BOSS_INTRO;
         bossIntroState = BossIntroState.DIALOGUE;
         enemyManager = EM;
-        dialogueManager.iniciarDialogo(falasBossIntro, morsaFalaSprite, true);
+        dialogueManager.iniciarDialogo(falasBossIntro, new BufferedImage[] { morsaFalaSprite }, true);
         blackBarProgress = 0.0;
         this.timer = 0;
         this.bossIntroPlayer = player;

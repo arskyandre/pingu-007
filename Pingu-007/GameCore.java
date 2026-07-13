@@ -30,6 +30,7 @@ public class GameCore extends Canvas implements Runnable {
     private boolean checkVaraDePesca = false;
 
     public static BufferedImage cellphone_image = LoadSave.GetSpriteAtlas("cellphone.png");
+    public static BufferedImage pingu_portrait = LoadSave.GetSpriteAtlas("pingu_portrait_close.jpg");
 
     public static Font pixelFont;
 
@@ -102,7 +103,6 @@ public class GameCore extends Canvas implements Runnable {
         levelManager.inicializarPrimeiroNivel();
 
         player.loadLvlData(levelManager.getCurLevelData());
-        npcManager.spawn(new IgluNPC(5704, 8062));
         System.out.println(player.getX() + ", " + player.getY());
 
         addKeyListener(input);
@@ -251,6 +251,31 @@ public class GameCore extends Canvas implements Runnable {
         }
     }
 
+    public void triggerDialogoInicial() {
+        if (!dialogueManager.isAtivo()) {
+            dialogueManager.iniciarDialogo(new String[] {
+                    "PINGU: Entrando na base de operações.",
+                    "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
+                    "PINGU: Eles não vão nem ver de onde veio.",
+                    "RADIO: Antes de prosseguir, vamos recapitular o protocolo da missão.",
+                    "RADIO: Seu objetivo é atravessar o complexo e eliminar a Morsa.",
+                    "RADIO: Mas primeiro, encontre as 9 chaves. Só elas abrem o portão da Morsa.",
+                    "RADIO: Movimente-se com WASD, use ESPAÇO para dar um dash e o botão esquerdo do mouse para atirar.",
+                    "RADIO: Mantenha sua munição sob controle. Recarregue com R sempre que tiver uma oportunidade.",
+                    "RADIO: Se uma arena fechar atrás de você, elimine todos os inimigos. A saída será liberada quando o último cair.",
+                    "RADIO: Há buracos de pesca espalhados pela região, mas você ainda não possui uma vara.",
+                    "RADIO: Nossos relatórios indicam a presença de um pescador. Se encontrá-lo, ele pode ser útil.",
+                    "RADIO: Isso é tudo, agente. Boa sorte. A colônia está contando com você."
+            }, DialogueSounds.FalaInicialRadio,
+                    new BufferedImage[] {
+                            pingu_portrait,
+                            cellphone_image,
+                            pingu_portrait,
+                            cellphone_image
+                    }, true);
+        }
+    }
+
     public void debugInputProcessing() {
 
         if (input.isKeyJustPressed(KeyEvent.VK_F)) {
@@ -361,14 +386,7 @@ public class GameCore extends Canvas implements Runnable {
         }
         cutsceneManager.update();
         if (input.isKeyPressed(KeyEvent.VK_T)) {
-            if (!dialogueManager.isAtivo()) {
-                dialogueManager.iniciarDialogo(new String[] {
-                        "PINGU: Entrando na base de operações.",
-                        "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
-                        "PINGU: Eles não vão nem ver de onde veio."
-
-                }, true);
-            }
+            triggerDialogoInicial();
         }
 
         // Intercepta a morte e carrega o save
@@ -523,7 +541,6 @@ public class GameCore extends Canvas implements Runnable {
         setCinematicBorderAnimation(Renderer.BorderState.IDLE);
         levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
 
-        npcManager.spawn(new IgluNPC(5704, 8062));
     }
 
     private void drawFpsCounter(Graphics2D g2) {

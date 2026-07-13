@@ -13,6 +13,8 @@ public class SoundManager {
         MAIN_MENU("sound/bgm/main_menu.wav"),
         LEVEL_1_INTRO("sound/bgm/level_1_intro.wav"),
         LEVEL_1_LOOP("sound/bgm/level_1_loop.wav"),
+        INSIDE_INTRO("sound/bgm/inside_intro.wav"),
+        INSIDE_LOOP("sound/bgm/inside_loop.wav"),
         BOSS_INTRO("sound/bgm/boss_intro.wav"),
         BOSS_LOOP("sound/bgm/boss_loop.wav");
 
@@ -31,6 +33,7 @@ public class SoundManager {
      *                 exemplo)
      */
     public enum SFX {
+        NOOT_NOOT("sound/sfx/noot_noot.wav", 3),
         SNOW_STEP_1("sound/sfx/snow_footstep1.wav", 6),
         SNOW_STEP_2("sound/sfx/snow_footstep2.wav", 6),
         SNOW_STEP_3("sound/sfx/snow_footstep3.wav", 6),

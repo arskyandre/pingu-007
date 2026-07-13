@@ -28,8 +28,8 @@ public class DialogueManager {
   private boolean tocarSomDeEscrita = true;
   private BufferedImage rostoFechado;
   private BufferedImage rostoAberto;
-
-  private BufferedImage rostoTemporario = null;
+  private BufferedImage[] retratosAtual;
+  private BufferedImage rostoTemporario;
 
   private boolean mostrarBocaAberta = false;
   private SoundManager soundManager;
@@ -64,9 +64,9 @@ public class DialogueManager {
     aplicarPrefixoInstantaneo();
   }
 
-  public void iniciarDialogo(String[] texto, BufferedImage img, boolean tocarSomDeEscrita) {
-    rostoTemporario = img;
+  public void iniciarDialogo(String[] texto, BufferedImage[] imgs, boolean tocarSomDeEscrita) {
     this.falas = texto;
+    retratosAtual = imgs;
     this.falaAtualIndex = 0;
     this.caractereIndex = 0;
     this.textoExibido = "";
@@ -89,9 +89,10 @@ public class DialogueManager {
     aplicarPrefixoInstantaneo();
   }
 
-  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons, BufferedImage img, boolean tocarSomDeEscrita) {
+  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons, BufferedImage[] imgs,
+      boolean tocarSomDeEscrita) {
     this.falas = texto;
-    rostoTemporario = img;
+    retratosAtual = imgs;
     this.falaAtualIndex = 0;
     this.caractereIndex = 0;
     this.textoExibido = "";
@@ -105,6 +106,12 @@ public class DialogueManager {
   private void tocarSomFalaAtual() {
     if (sonsAtual != null && falaAtualIndex < sonsAtual.length) {
       soundManager.playDialogue(sonsAtual[falaAtualIndex]);
+    }
+  }
+
+  private void aplicarRetratoFalaAtual() {
+    if (retratosAtual != null && falaAtualIndex < retratosAtual.length && retratosAtual[falaAtualIndex] != null) {
+      rostoTemporario = retratosAtual[falaAtualIndex];
     }
   }
 
@@ -202,6 +209,7 @@ public class DialogueManager {
         caractereIndex = 0;
         ultimoFrameTempo = System.currentTimeMillis();
         tocarSomFalaAtual();
+        aplicarRetratoFalaAtual();
         aplicarPrefixoInstantaneo();
       } else {
         ativo = false;
@@ -287,6 +295,7 @@ public class DialogueManager {
 
   private void onDialogoTerminado() {
     rostoTemporario = null;
+    retratosAtual = null;
   }
 
   public boolean isAtivo() {
