@@ -60,6 +60,8 @@ public class Player extends Entity {
     private int animIndex = 0;
     private double animTick = 0;
     private int animSp = 0;
+    private int spriteOverrideIndex = -1;
+    private int spriteOverrideTimer = 0;
     int t = 0;
 
     private int[][] lvlData;
@@ -100,23 +102,26 @@ public class Player extends Entity {
     private final int muniCooldown = 60;
 
     // debug
-    /*public void testemunicao(InputManager input, int telaLargura, int telaAltura, ItemManager itemManager,
-            CameraManager camera) {
-        if (muniCOoldownTimer > 0) {
-            muniCOoldownTimer--;
-        }
-
-        if (input.isMouseButtonPressed(MouseEvent.BUTTON3)) {
-            if (muniCOoldownTimer == 0) {
-                double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-                double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-
-                itemManager.spawn(new AmmoPackItem(mouseXWorld, mouseYWorld, 32));
-                muniCOoldownTimer = muniCooldown;
-                System.out.println("Spawnou municao");
-            }
-        }
-    }*/
+    /*
+     * public void testemunicao(InputManager input, int telaLargura, int telaAltura,
+     * ItemManager itemManager,
+     * CameraManager camera) {
+     * if (muniCOoldownTimer > 0) {
+     * muniCOoldownTimer--;
+     * }
+     * 
+     * if (input.isMouseButtonPressed(MouseEvent.BUTTON3)) {
+     * if (muniCOoldownTimer == 0) {
+     * double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+     * double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+     * 
+     * itemManager.spawn(new AmmoPackItem(mouseXWorld, mouseYWorld, 32));
+     * muniCOoldownTimer = muniCooldown;
+     * System.out.println("Spawnou municao");
+     * }
+     * }
+     * }
+     */
     @Override
     public void receberDano(int dano) {
         if ((iFramesTimer == 0 && !emDash) || isCaindo) {
@@ -128,13 +133,61 @@ public class Player extends Entity {
         }
     }
 
+    public void setEmDash(boolean set) {
+        emDash = set;
+        if (!set) {
+            dashDuracaoTimer = 0;
+            this.isAirborne = false;
+            iFramesTimer = iFramesDashGrace;
+        }
+
+    }
+
     public boolean consumirDanoFlag() {
         boolean val = danoRecebidoFlag;
         danoRecebidoFlag = false;
         return val;
     }
 
-    public void update(InputManager input, int telaLargura, int telaAltura, CameraManager camera, ArrayList<Enemy> enemies) {
+    public void updatePlayerMovement() {
+        double atritoSalvo = this.atritoAtual;
+        if (emDash) {
+            this.atritoAtual = atritoDash;
+        }
+        aplicarFisicaBasica();
+        this.atritoAtual = atritoSalvo;
+
+        moveAndCollideWithMap(lvlData);
+
+        int mapaLargura = lvlData[0].length * GameCore.tiles_size;
+        int mapaAltura = lvlData.length * GameCore.tiles_size;
+
+        if (x < 0) {
+            x = 0;
+            velX = 0;
+        }
+        if (y < 0) {
+            y = 0;
+            velY = 0;
+        }
+        if (x + largura > mapaLargura) {
+            x = mapaLargura - largura;
+            velX = 0;
+        }
+        if (y + altura > mapaAltura) {
+            y = mapaAltura - altura;
+            velY = 0;
+        }
+
+        if (isMoving() && !emDash) {
+            updateFootsteps(soundManager, lvlData);
+        } else {
+            footstepTimer = 0;
+        }
+    }
+
+    public void update(InputManager input, int telaLargura, int telaAltura, CameraManager camera,
+            ArrayList<Enemy> enemies) {
         if (!podeDash) {
             dashCooldownTimer--;
             if (dashCooldownTimer <= 0) {
@@ -153,6 +206,12 @@ public class Player extends Entity {
 
         if (iFramesTimer > 0) {
             iFramesTimer--;
+        }
+        if (spriteOverrideTimer > 0) {
+            spriteOverrideTimer--;
+            if (spriteOverrideTimer <= 0) {
+                spriteOverrideIndex = -1;
+            }
         }
         dmgCheck();
         double controleAtual = emDash ? controleDash : 1.0;
@@ -266,39 +325,7 @@ public class Player extends Entity {
             }
         }
 
-        double atritoSalvo = this.atritoAtual;
-        if (emDash) {
-            this.atritoAtual = atritoDash;
-        }
-        aplicarFisicaBasica();
-        this.atritoAtual = atritoSalvo;
-
-        moveAndCollideWithMap(lvlData);
-
-        int mapaLargura = lvlData[0].length * GameCore.tiles_size;
-        int mapaAltura = lvlData.length * GameCore.tiles_size;
-
-        if (x < 0) {
-            x = 0;
-            velX = 0;
-        }
-        if (y < 0) {
-            y = 0;
-            velY = 0;
-        }
-        if (x + largura > mapaLargura) {
-            x = mapaLargura - largura;
-            velX = 0;
-        }
-        if (y + altura > mapaAltura) {
-            y = mapaAltura - altura;
-            velY = 0;
-        }
-        if (isMoving() && !emDash) {
-            updateFootsteps(soundManager, lvlData);
-        } else {
-            footstepTimer = 0;
-        }
+        updatePlayerMovement();
     }
 
     private void updatePlayerDirection(double mouseX, double mouseY) {
@@ -344,6 +371,11 @@ public class Player extends Entity {
             fishingCooldown = 20;
         }
         fishingBobber.update(enemies, lvlData);
+    }
+
+    public void setTemporarySpriteOverride(int spriteIndex, int durationFrames) {
+        this.spriteOverrideIndex = spriteIndex;
+        this.spriteOverrideTimer = durationFrames;
     }
 
     @Override
@@ -417,8 +449,11 @@ public class Player extends Entity {
                 animSp = 22;
             }
         }
+        boolean overrideAtivo = spriteOverrideTimer > 0 && spriteOverrideIndex >= 0
+                && spriteOverrideIndex < Sprites.length;
+        int spriteFinal = overrideAtivo ? spriteOverrideIndex : (animSp + animIndex);
 
-        g2.drawImage(Sprites[animSp + animIndex], xx, (int) y, 48 * inv, 48, null);
+        g2.drawImage(Sprites[spriteFinal], xx, (int) y, 48 * inv, 48, null);
 
         if (hasFishingRod && fishingBobber != null && fishingBobber.isAtivo()) {
             fishingBobber.draw(g2);
@@ -454,6 +489,8 @@ public class Player extends Entity {
     public void respawn(double cx, double cy, int cvida, int cmunicao, int cpente, int cchaves) {
         this.x = cx;
         this.y = cy;
+        this.spriteOverrideIndex = -1;
+        this.spriteOverrideTimer = 0;
         this.vida = cvida;
         this.municao = cmunicao;
         this.pente = cpente;
@@ -556,6 +593,10 @@ public class Player extends Entity {
 
     public void setBlockInputs(boolean valor) {
         this.blockInputs = valor;
+    }
+
+    public boolean isBlockInputs() {
+        return blockInputs;
     }
 
     public Boolean isMoving() {

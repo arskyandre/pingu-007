@@ -6,6 +6,7 @@ import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.awt.image.BufferedImage;
 
 public class CutsceneManager {
 
@@ -26,6 +27,11 @@ public class CutsceneManager {
     private CutsceneType type = CutsceneType.NONE;
 
     // --- boss intro state ---
+    private enum BossIntroState {
+        DIALOGUE, CAMERA_PAN, FINISHED
+    }
+
+    private BossIntroState bossIntroState = BossIntroState.DIALOGUE;
     private Phase phase = Phase.NONE;
     private int timer = 0;
     private static final int DURATION = 240;
@@ -38,6 +44,7 @@ public class CutsceneManager {
     private double blackBarDuration = 0.5;
     private BlackBarState blackBarState = BlackBarState.IDLE;
     private String nomeBoss = "Morsa Gigante, o terror do Ártico";
+    private String[] falasBossIntro;
 
     // --- wall reveal state ---
     private static final int WALL_REVEAL_DURATION = 150;
@@ -50,10 +57,21 @@ public class CutsceneManager {
     private GameCore gameCore;
     private SoundManager soundManager;
     private EnemyManager enemyManager;
+    private DialogueManager dialogueManager;
+    private CameraManager cameraManager;
+    private BufferedImage morsaFalaSprite;
 
-    public CutsceneManager(GameCore GC, SoundManager sound) {
+    public CutsceneManager(GameCore GC, SoundManager sound, DialogueManager dialogo, CameraManager camera) {
         gameCore = GC;
         soundManager = sound;
+        dialogueManager = dialogo;
+        cameraManager = camera;
+        falasBossIntro = new String[] {
+                "...: Então foi você quem atravessou toda a minha base...",
+                "...: Você ousou desafiar o meu domínio e eliminar meus homens.",
+                "...: Sua missão termina aqui, agente. Prepare-se para dar adeus a esse mundo!"
+        };
+        morsaFalaSprite = LoadSave.GetSpriteAtlas("morsa_portrait.png");
     }
 
     public static int getDuracaoTotal() {
@@ -65,22 +83,20 @@ public class CutsceneManager {
     /**
      * Inicia a cutscene de entrada do boss. Agora o CutsceneManager cuida
      * de tudo: foco de câmera, bloqueio de input do player, borda cinematica
-     * e troca de BGM — nada disso deve ser feito fora daqui.
+     * e troca de BGM, nada disso deve ser feito fora daqui.
      */
     public void iniciarBossIntro(CameraManager camera, Player player, double focoX, double focoY, EnemyManager EM) {
+        GameCore.setGameState(GameState.CUTSCENE);
+        player.setTemporarySpriteOverride(14, 2);
         this.type = CutsceneType.BOSS_INTRO;
-        blackBarState = BlackBarState.IN;
+        bossIntroState = BossIntroState.DIALOGUE;
+        enemyManager = EM;
+        dialogueManager.iniciarDialogo(falasBossIntro, morsaFalaSprite);
         blackBarProgress = 0.0;
         this.phase = Phase.OPENING;
         this.timer = 0;
         this.bossIntroPlayer = player;
         soundManager.playRandomSnowStep();
-        if (camera != null) {
-            camera.focarEm(focoX, focoY, DURATION);
-        }
-        if (player != null) {
-            player.setBlockInputs(true);
-        }
 
         gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
     }
@@ -110,7 +126,7 @@ public class CutsceneManager {
         this.wallFadeRect = wallRect;
         this.wallRevealPlayer = player;
 
-        camera.focarEmRect(wallRect, WALL_REVEAL_DURATION, gameCore.getWidth(), gameCore.getHeight());
+        camera.focarEmRect(wallRect, WALL_REVEAL_DURATION, gameCore.getWidth(), gameCore.getHeight(), false);
         player.setBlockInputs(true);
     }
 
@@ -136,27 +152,47 @@ public class CutsceneManager {
     // ---------------- Shared update/draw ----------------
 
     public void update() {
-        timer++;
-        wallTimer++;
         if (type == CutsceneType.BOSS_INTRO) {
-            if (timer == BOSS_BGM_DELAY) {
-                soundManager.playBGM(SoundManager.BGM.BOSS_INTRO, SoundManager.BGM.BOSS_LOOP);
-            }
-            if (phase == Phase.OPENING && timer >= DURATION - TRANSICAO_BORDA) {
-                phase = Phase.CLOSING;
-                gameCore.setCinematicBorderAnimation(Renderer.BorderState.OUT);
-            }
+            if (bossIntroState == BossIntroState.DIALOGUE) {
+                if (!dialogueManager.isAtivo()) {
 
-            if (phase == Phase.CLOSING && timer >= DURATION) {
-                phase = Phase.NONE;
-                timer = 0;
-                type = CutsceneType.NONE;
+                    bossIntroState = BossIntroState.CAMERA_PAN;
+                    timer = 0;
+                    if (cameraManager != null) {
+                        cameraManager.focarEm(enemyManager.getMorsaBoss().getCenterX(),
+                                enemyManager.getMorsaBoss().getCenterY(), DURATION, true);
+                    }
 
-                if (bossIntroPlayer != null) {
-                    bossIntroPlayer.setBlockInputs(false);
-                    bossIntroPlayer = null;
+                    blackBarState = BlackBarState.IN;
+                    blackBarProgress = 0;
+
+                    gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
                 }
+            } else if (bossIntroState == BossIntroState.CAMERA_PAN) {
+                gameCore.setGameState(GameState.CUTSCENE);
+                timer++;
+
+                if (timer == BOSS_BGM_DELAY) {
+
+                    soundManager.playBGM(SoundManager.BGM.BOSS_INTRO, SoundManager.BGM.BOSS_LOOP);
+                }
+
+                if (timer >= DURATION - TRANSICAO_BORDA) {
+                    cameraManager.desfocarCamera();
+                }
+
+                if (timer >= DURATION) {
+
+                    bossIntroState = BossIntroState.FINISHED;
+                    type = CutsceneType.NONE;
+
+                    enemyManager.getMorsaBoss().setPodeRugir(true);
+
+                    bossIntroPlayer.setBlockInputs(false);
+                }
+
             }
+
         } else if (type == CutsceneType.WALL_REVEAL) {
 
             if (wallTimer == WALL_REVEAL_DURATION - TRANSICAO_BORDA) {
@@ -172,6 +208,9 @@ public class CutsceneManager {
                 type = CutsceneType.NONE;
             }
         }
+        timer++;
+
+        wallTimer++;
     }
 
     public boolean isAtiva() {
@@ -204,7 +243,7 @@ public class CutsceneManager {
     }
 
     public void draw(Graphics2D g2, int telaLargura, int telaAltura, double delta) {
-        if (type != CutsceneType.BOSS_INTRO) {
+        if (type != CutsceneType.BOSS_INTRO && bossIntroState != BossIntroState.CAMERA_PAN) {
             return;
         }
         AffineTransform transformOriginal = g2.getTransform();
@@ -218,9 +257,6 @@ public class CutsceneManager {
 
         g2.setTransform(transformOriginal);
     }
-
-    private static final int BASE_SCREEN_HEIGHT = 672;
-    private static final float BASE_FONT_SIZE = 32f;
 
     private void desenharBarraPreta(Graphics2D g2, int telaLargura, int telaAltura, double delta) {
         double progressSpeed = 1.0 / blackBarDuration;

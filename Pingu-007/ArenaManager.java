@@ -330,8 +330,10 @@ public class ArenaManager {
         System.out.println("Ativou arena");
 
         if (id != 999) {
-            if (id != 67)
-                gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
+            if (id != 67) {
+                System.out.println("CUTSCENE setado em ArenaManager, id = " + id);
+                gameCore.setGameState(GameState.CUTSCENE);
+            }
             sound.playSFX(SoundManager.SFX.ARENA_ENTER);
         }
 
@@ -400,21 +402,13 @@ public class ArenaManager {
                 //
                 //
                 //
-                // nao travar na parede caso o trigger ative com o player em cima da agua
-                if (player.getDashDirX() < 0) {
-                    player.setX(GameCore.tiles_size * 38);
-                    player.setY(GameCore.tiles_size * 58);
-                } else {
-                    player.setX(GameCore.tiles_size * 44);
-                    player.setY(GameCore.tiles_size * 58);
-                }
+                //
                 MorsaBoss morsa = enemyManager.getMorsaBoss();
                 if (morsa != null && camera != null && cutsceneManager != null) {
                     morsa.vincularCamera(camera);
                     cutsceneManager.iniciarBossIntro(camera, player, morsa.getCenterX(),
                             morsa.getCenterY(), enemyManager);
                     cutsceneBossSolicitada = true;
-                    gameCore.setGameState(GameState.CUTSCENE);
                 } else {
                     System.out.println("ERRO: Morsa não encontrada na Arena 67!");
                 }
@@ -441,7 +435,8 @@ public class ArenaManager {
         if (wallRect != null) {
             if (isFirstArena) {
                 cutsceneManager.iniciarWallRevealComCamera(wallRect, camera, player);
-                gameCore.setGameState(GameState.CUTSCENE);
+                if (id != 67)
+                    gameCore.setGameState(GameState.CUTSCENE);
                 isFirstArena = false;
             } else {
                 cutsceneManager.iniciarWallFade(wallRect);
@@ -615,13 +610,6 @@ public class ArenaManager {
         return "";
     }
 
-    public boolean consumirSolicitacaoCutsceneBoss() {
-        if (cutsceneBossSolicitada) {
-            cutsceneBossSolicitada = false;
-            return true;
-        }
-        return false;
-    }
 
     public ArrayList<Integer> getArenasConcluidas() {
         ArrayList<Integer> concluidas = new ArrayList<>();

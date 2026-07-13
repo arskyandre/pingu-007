@@ -18,6 +18,7 @@ public class CameraManager {
     private double focoAlvoX, focoAlvoY;
     private int focoTimer = 0;
     private double focoVelocidade = 0.18; // mais rápido que o acompanhamento normal do player (0.1)
+    private boolean foco_indefinido = false;
 
     // --- Zoom dinâmico (normal vs. foco com zoom-out para caber um retângulo) ---
     private double zoomBase; // zoom "normal" desejado pelo jogo (atualizado todo frame pelo GameCore)
@@ -39,7 +40,7 @@ public class CameraManager {
         double targetY;
         double velocidade;
 
-        if (focoTimer > 0) {
+        if (focoTimer > 0 || foco_indefinido) {
             // Cutscene em andamento: ignora player e mouse, mira direto no alvo do foco
             targetX = focoAlvoX - (centroTelaX / zoom);
             targetY = focoAlvoY - (centroTelaY / zoom);
@@ -47,7 +48,6 @@ public class CameraManager {
 
             zoom += (zoomFocoAlvo - zoom) * velocidade;
 
-            focoTimer--;
         } else {
             // distancia do mouse para o centro da tela
             double distMouseX = input.getMouseX() - centroTelaX;
@@ -81,7 +81,10 @@ public class CameraManager {
                 zoom = zoomBase;
             }
         }
-
+        focoTimer--;
+        if (focoTimer == Integer.MIN_VALUE) {
+            focoTimer = -1;
+        }
         // suavização
         x += (targetX - x) * velocidade;
         y += (targetY - y) * velocidade;
@@ -120,7 +123,8 @@ public class CameraManager {
     // mundo por um tempo (cutscene de entrada na arena do boss, por exemplo).
     // Ao acabar a duração, ela volta a seguir o player normalmente e suavemente.
     // Não altera o zoom.
-    public void focarEm(double worldX, double worldY, int duracaoFrames) {
+    public void focarEm(double worldX, double worldY, int duracaoFrames, boolean tempo_indefinido) {
+        this.foco_indefinido = tempo_indefinido;
         this.focoAlvoX = worldX;
         this.focoAlvoY = worldY;
         this.focoTimer = duracaoFrames;
@@ -131,7 +135,9 @@ public class CameraManager {
     // necessário para que todo o retângulo dado caiba na tela, com uma margem.
     // Nunca faz zoom-in além do zoom normal — só reduz o zoom se o retângulo
     // for maior do que a área visível atual.
-    public void focarEmRect(Rectangle2D.Double rect, int duracaoFrames, int telaLargura, int telaAltura) {
+    public void focarEmRect(Rectangle2D.Double rect, int duracaoFrames, int telaLargura, int telaAltura,
+            boolean tempo_indefinido) {
+        this.foco_indefinido = tempo_indefinido;
         double centerX = rect.x + rect.width / 2.0;
         double centerY = rect.y + rect.height / 2.0;
 
@@ -146,6 +152,10 @@ public class CameraManager {
 
         // só reduz o zoom quando necessário; nunca ultrapassa o zoom normal
         this.zoomFocoAlvo = Math.min(fitZoom, zoomBase);
+    }
+
+    public void desfocarCamera() {
+        foco_indefinido = false;
     }
 
     // Útil para, por exemplo, travar o input do player enquanto a cutscene roda.

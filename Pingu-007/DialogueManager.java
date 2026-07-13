@@ -27,6 +27,9 @@ public class DialogueManager {
 
   private BufferedImage rostoFechado;
   private BufferedImage rostoAberto;
+
+  private BufferedImage rostoTemporario = null;
+
   private boolean mostrarBocaAberta = false;
   private SoundManager soundManager;
   private SoundManager.SFX[][] sonsAtual;
@@ -60,8 +63,34 @@ public class DialogueManager {
     aplicarPrefixoInstantaneo();
   }
 
+  public void iniciarDialogo(String[] texto, BufferedImage img) {
+    rostoTemporario = img;
+    this.falas = texto;
+    this.falaAtualIndex = 0;
+    this.caractereIndex = 0;
+    this.textoExibido = "";
+    this.ativo = true;
+    this.ultimoFrameTempo = System.currentTimeMillis();
+    this.sonsAtual = null;
+    soundManager.stopDialogue();
+    aplicarPrefixoInstantaneo();
+  }
+
   public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons) {
     this.falas = texto;
+    this.falaAtualIndex = 0;
+    this.caractereIndex = 0;
+    this.textoExibido = "";
+    this.ativo = true;
+    this.ultimoFrameTempo = System.currentTimeMillis();
+    this.sonsAtual = sons;
+    tocarSomFalaAtual();
+    aplicarPrefixoInstantaneo();
+  }
+
+  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons, BufferedImage img) {
+    this.falas = texto;
+    rostoTemporario = img;
     this.falaAtualIndex = 0;
     this.caractereIndex = 0;
     this.textoExibido = "";
@@ -172,6 +201,7 @@ public class DialogueManager {
       } else {
         ativo = false;
         soundManager.stopDialogue();
+        onDialogoTerminado();
       }
     }
   }
@@ -218,8 +248,9 @@ public class DialogueManager {
     int fotoX = x + 15;
     int fotoY = y + 15;
     int fotoTamanho = 80;
-
-    if (rostoFechado != null && rostoAberto != null) {
+    if (rostoTemporario != null) {
+      g2.drawImage(rostoTemporario, fotoX, fotoY, fotoTamanho, fotoTamanho, null);
+    } else if (rostoFechado != null && rostoAberto != null) {
       BufferedImage frameAtual = mostrarBocaAberta ? rostoAberto : rostoFechado;
       g2.drawImage(frameAtual, fotoX, fotoY, fotoTamanho, fotoTamanho, null);
     } else {
@@ -247,6 +278,10 @@ public class DialogueManager {
     for (int i = 0; i < lines.size(); i++) {
       g2.drawString(lines.get(i), textX, startY + i * lineHeight);
     }
+  }
+
+  private void onDialogoTerminado() {
+    rostoTemporario = null;
   }
 
   public boolean isAtivo() {

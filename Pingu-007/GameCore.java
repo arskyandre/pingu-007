@@ -12,7 +12,7 @@ public class GameCore extends Canvas implements Runnable {
     // VARIÁVEL DO FPS CAP (0 para ilimitado)
     public int targetFps = 120;
 
-    private GameState gameState = GameState.MAIN_MENU;
+    private static GameState gameState = GameState.MAIN_MENU;
     private final MainMenu mainMenu;
     private final PauseMenu pauseMenu;
     private final OptionsMenu optionsMenu;
@@ -90,7 +90,7 @@ public class GameCore extends Canvas implements Runnable {
         enemyManager = new EnemyManager(levelManager, bulletmanager, soundManager, this);
         enemyManager.setItemManager(itemManager);
         npcManager = new NPCManager(dialogueManager, itemManager);
-        cutsceneManager = new CutsceneManager(this, soundManager);
+        cutsceneManager = new CutsceneManager(this, soundManager, dialogueManager, camera);
         arenaManager = new ArenaManager(enemyManager, levelManager, itemManager, npcManager, cutsceneManager, this);
         hud = new Hud();
 
@@ -112,6 +112,10 @@ public class GameCore extends Canvas implements Runnable {
             System.err.println("Font not found, falling back");
             pixelFont = new Font("Monospaced", Font.BOLD, 12);
         }
+    }
+
+    public static GameState getGameState() {
+        return gameState;
     }
 
     public void toggleFullscreen() {
@@ -171,8 +175,16 @@ public class GameCore extends Canvas implements Runnable {
                 }
                 gameState = next;
             }
-            case PLAYING ->
+            case PLAYING -> {
+                if (dialogueManager.isAtivo()) {
+                    dialogueManager.atualizar(input);
+                    // camera.update(player, input, getWidth(), getHeight()); dar um jeito de fazer
+                    // a camera nao seguir o mouse no update, apenas para arrumar a posicao da
+                    // camera caso o tamanho da tela mude durante o dialogo
+                    return;
+                }
                 updateGame();
+            }
             case GAME_OVER -> {
                 GameState next = gameOverScreen.update(input, getWidth(), getHeight());
                 if (next == GameState.MAIN_MENU) {
@@ -188,6 +200,15 @@ public class GameCore extends Canvas implements Runnable {
             }
             case CUTSCENE -> {
                 updateCutscene();
+                updatePlayerMovement();
+                player.setEmDash(false);
+                if (dialogueManager.isAtivo()) {
+                    dialogueManager.atualizar(input);
+                    // camera.update(player, input, getWidth(), getHeight()); dar um jeito de fazer
+                    // a camera nao seguir o mouse no update, apenas para arrumar a posicao da
+                    // camera caso o tamanho da tela mude durante o dialogo
+                    return;
+                }
             }
             case PAUSED -> {
                 GameState next = pauseMenu.update(input, getWidth(), getHeight());
@@ -211,6 +232,10 @@ public class GameCore extends Canvas implements Runnable {
                 System.exit(0);
         }
         input.update();
+    }
+
+    public void updatePlayerMovement() {
+        player.updatePlayerMovement();
     }
 
     public void setCinematicBorderAnimation(Renderer.BorderState state) {
@@ -337,54 +362,46 @@ public class GameCore extends Canvas implements Runnable {
                 });
             }
         }
-        if (dialogueManager.isAtivo()) {
-            dialogueManager.atualizar(input);
-            camera.update(player, input, getWidth(), getHeight());
-        } else {
-            // Intercepta a morte e carrega o save
-            if (player.isDead()) {
-                gameState = GameState.GAME_OVER;
-                return;
-            }
 
-            // Cria o save se pegou chave nova OU passou em um trigger de checkpoint
-            if (player.getTotalChavesColetadas() > chavesColetadasCheckpoint || player.isCheckpointSolicitado()) {
-                salvarCheckpoint();
-                chavesColetadasCheckpoint = player.getTotalChavesColetadas();
-                player.limparSolicitacaoCheckpoint();
-            }
-
-            fishingManager.update(input, camera, levelManager.getCurLevelData(), getWidth(), getHeight());
-
-            player.update(input, getWidth(), getHeight(), camera, enemyManager.getEnemies());
-            npcManager.update(player, input);
-            itemManager.update(player);
-
-            ArrayList<JumpLink> linksAtuais = levelManager.getJumpLinks();
-            enemyManager.update(player, linksAtuais);
-
-            arenaManager.update(player, camera, soundManager);
-
-            if (arenaManager.consumirSolicitacaoCutsceneBoss()) {
-                gameState = GameState.CUTSCENE;
-                return;
-            }
-
-            bulletmanager.update(camera, getWidth(), getHeight(),
-                    player, enemyManager.getEnemies());
-
-            levelManager.update();
-            double dynamicZoom = BASE_ZOOM * (getHeight() / (double) BASE_HEIGHT);
-            camera.setBaseZoom(dynamicZoom);
-            camera.update(player, input, getWidth(), getHeight());
-            fishingManager.syncToCamera(camera, getWidth(), getHeight());
-
-            if (input.isKeyPressed(java.awt.event.KeyEvent.VK_E) && debugSpawnCooldown <= 0) {
-                arenaManager.interagir(player, player.getChaves());
-            }
-
-            debugInputProcessing();
+        // Intercepta a morte e carrega o save
+        if (player.isDead()) {
+            gameState = GameState.GAME_OVER;
+            return;
         }
+
+        // Cria o save se pegou chave nova OU passou em um trigger de checkpoint
+        if (player.getTotalChavesColetadas() > chavesColetadasCheckpoint || player.isCheckpointSolicitado()) {
+            salvarCheckpoint();
+            chavesColetadasCheckpoint = player.getTotalChavesColetadas();
+            player.limparSolicitacaoCheckpoint();
+        }
+
+        fishingManager.update(input, camera, levelManager.getCurLevelData(), getWidth(), getHeight());
+
+        player.update(input, getWidth(), getHeight(), camera, enemyManager.getEnemies());
+        npcManager.update(player, input);
+        itemManager.update(player);
+
+        ArrayList<JumpLink> linksAtuais = levelManager.getJumpLinks();
+        enemyManager.update(player, linksAtuais);
+
+        arenaManager.update(player, camera, soundManager);
+
+        bulletmanager.update(camera, getWidth(), getHeight(),
+                player, enemyManager.getEnemies());
+
+        levelManager.update();
+        double dynamicZoom = BASE_ZOOM * (getHeight() / (double) BASE_HEIGHT);
+        camera.setBaseZoom(dynamicZoom);
+        camera.update(player, input, getWidth(), getHeight());
+        fishingManager.syncToCamera(camera, getWidth(), getHeight());
+
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_E) && debugSpawnCooldown <= 0) {
+            arenaManager.interagir(player, player.getChaves());
+        }
+
+        debugInputProcessing();
+
     }
 
     public void updateCutscene() {
@@ -405,8 +422,8 @@ public class GameCore extends Canvas implements Runnable {
 
     }
 
-    public void setGameState(GameState state) {
-        this.gameState = state;
+    public static void setGameState(GameState state) {
+        gameState = state;
     }
 
     public void processarNovoMapa(ArrayList<TiledObject> objetosDoMapa) {
@@ -490,6 +507,7 @@ public class GameCore extends Canvas implements Runnable {
         hasCheckpoint = false;
         checkArenas.clear();
         arenaManager.setFirstArenaFlag(true);
+        fishingManager.setPlayerHasKey(false);
         npcManager.clearAll();
         chavesColetadasCheckpoint = 0;
         player.resetarProgresso();
@@ -551,7 +569,7 @@ public class GameCore extends Canvas implements Runnable {
                                 levelManager, bulletmanager, itemManager,
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
                                 cutsceneManager, delta,
-                                false, false);
+                                true, false);
                         pauseMenu.render(g2, getWidth(), getHeight());
                     }
                     case CUTSCENE -> {
@@ -563,7 +581,6 @@ public class GameCore extends Canvas implements Runnable {
                                     cutsceneManager, delta,
                                     true, false);
 
-                            cutsceneManager.draw(g2, getWidth(), getHeight(), delta);
                             if (showFpsCounter) {
                                 drawFpsCounter(g2);
                             }

@@ -11,6 +11,8 @@ public class Renderer {
 
     public BorderState borderState = BorderState.IDLE;
     public boolean modoDebug = false;
+    private double mouseCircleAlpha = 1.0; // 0 = fully transparent, 1 = fully opaque
+    private static final double MOUSE_CIRCLE_FADE_DURATION = 0.2; // seconds for a full fade
 
     private int cinematicBorderHeight;
     private final double borderFadeDuration = 0.7;
@@ -172,9 +174,20 @@ public class Renderer {
         HUD.player_hearts(g2, quadrado, (int) cinematicBorder);
         HUD.ammobar(g2, telaLargura, telaAltura, quadrado, (int) cinematicBorder);
         fishingManager.render(g2, camera, telaLargura, telaAltura);
-        if (mouseCircle)
-            renderMouse(g2, input);
+        double mouseCircleTarget = mouseCircle ? 1.0 : 0.0;
+        double mouseCircleFadeSpeed = 1.0 / MOUSE_CIRCLE_FADE_DURATION;
 
+        if (mouseCircleAlpha < mouseCircleTarget) {
+            mouseCircleAlpha = Math.min(mouseCircleTarget, mouseCircleAlpha + mouseCircleFadeSpeed * delta);
+        } else if (mouseCircleAlpha > mouseCircleTarget) {
+            mouseCircleAlpha = Math.max(mouseCircleTarget, mouseCircleAlpha - mouseCircleFadeSpeed * delta);
+        }
+
+        if (mouseCircleAlpha > 0.0) {
+            renderMouse(g2, input, mouseCircleAlpha);
+        }
+        if (GameCore.getGameState() == GameState.CUTSCENE)
+            cutsceneManager.draw(g2, telaLargura, telaAltura, delta);
         if (cinematicBorder > 0) {
             g2.setColor(Color.BLACK);
             g2.fillRect(0, 0, telaLargura, (int) cinematicBorder);
@@ -270,11 +283,13 @@ public class Renderer {
                 (int) mouseXWorld, (int) mouseYWorld);
     }
 
-    private void renderMouse(Graphics2D g2, InputManager input) {
-        g2.setColor(Color.RED);
+    private void renderMouse(Graphics2D g2, InputManager input, double alpha) {
+        Composite originalComposite = g2.getComposite();
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) alpha));
         g2.setColor(Color.RED);
         mouseShape.x = input.getMouseX() - 10;
         mouseShape.y = input.getMouseY() - 10;
         g2.fill(mouseShape);
+        g2.setComposite(originalComposite);
     }
 }

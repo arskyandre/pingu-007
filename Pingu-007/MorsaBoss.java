@@ -27,6 +27,8 @@ public class MorsaBoss extends Enemy {
     private boolean rugindo = false;
     private double timerRugido = 0;
     private double cooldownRugido = 30;
+    private boolean podeRugir = false; // IMPORTANTE: NAO DEIXAR NADA NENHUM INIMIGO ATACAR ENQUANTO PODERUGIR FOR
+                                       // FALSO, SE NAO VAI COMECAR A ATACAR NO MEIO DA CUTSCENE
 
     // --- Câmera (tremida ao rugir / foco de entrada na arena) ---
     private CameraManager camera;
@@ -69,7 +71,8 @@ public class MorsaBoss extends Enemy {
 
         if (timerVirar > 0)
             timerVirar -= 1.0;
-        atualizarRugido();
+        if (podeRugir)
+            atualizarRugido();
 
         // Lógica de virar o sprite baseada na posição do jogador (só vira se não
         // estiver rugindo)
@@ -82,6 +85,10 @@ public class MorsaBoss extends Enemy {
                 Direita = 0;
             }
         }
+    }
+
+    public void setPodeRugir(boolean set) {
+        podeRugir = set;
     }
 
     /**
@@ -98,8 +105,8 @@ public class MorsaBoss extends Enemy {
         if (timerVirar > 0) {
             timerVirar -= 1.0;
         }
-
-        atualizarRugido();
+        if (podeRugir)
+            atualizarRugido();
     }
 
     private void atualizarRugido() {
@@ -107,7 +114,8 @@ public class MorsaBoss extends Enemy {
             timerRugido -= 1.0;
             if (timerRugido <= 0) {
                 rugindo = false;
-                cooldownRugido = 300; // 5 segundos de recarga antes de rugir de novo (a 60fps)
+                cooldownRugido = 300 + (Math.random()) * 300; // 5 - 10 segundos de recarga antes de rugir de novo (a
+                                                              // 60fps)
             }
         } else {
             if (cooldownRugido > 0) {
@@ -139,14 +147,6 @@ public class MorsaBoss extends Enemy {
 
     public void vincularCamera(CameraManager camera) {
         this.camera = camera;
-    }
-
-    public void iniciarCutsceneEntrada(int duracaoFrames) {
-        if (camera != null) {
-            double centroBossX = this.x + (this.width / 2);
-            double centroBossY = this.y + (this.height / 2);
-            camera.focarEm(centroBossX, centroBossY, duracaoFrames);
-        }
     }
 
     @Override
