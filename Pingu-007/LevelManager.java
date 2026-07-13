@@ -12,9 +12,11 @@ public class LevelManager {
     private Level level_1;
     private MapDATA mapDataAtual;
     private ArrayList<JumpLink> jumpLinksDaFase;
+    private SoundManager soundManager;
 
-    public LevelManager(GameCore Game) {
+    public LevelManager(GameCore Game, SoundManager sound) {
         this.Game = Game;
+        soundManager = sound;
         importOutsideSprites();
         carregarMapData(LoadSave.LEVEL_1_DATA);
     }
@@ -24,6 +26,10 @@ public class LevelManager {
     }
 
     public void carregarNivel(String filename) {
+        if (filename.equals(LoadSave.LEVEL_2_DATA)) {
+            soundManager.BGMfadeOut(2500);
+        }
+        System.out.println(filename + ", " + LoadSave.LEVEL_2_DATA);
         carregarMapData(filename);
         Game.processarNovoMapa(mapDataAtual.objects);
     }

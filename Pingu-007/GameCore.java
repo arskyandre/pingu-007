@@ -87,7 +87,7 @@ public class GameCore extends Canvas implements Runnable {
         camera = new CameraManager(player.getX(), player.getY(), BASE_ZOOM);
         renderer = new Renderer();
         renderer.modoDebug = false;
-        levelManager = new LevelManager(this);
+        levelManager = new LevelManager(this, soundManager);
 
         dialogueManager = new DialogueManager(soundManager);
         itemManager = new ItemManager();
@@ -343,7 +343,6 @@ public class GameCore extends Canvas implements Runnable {
     public void entrarNivelBoss() {
         levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
         arenaManager.setFirstArenaFlag(false);
-        soundManager.BGMfadeOut(2500);
         mapLoadCooldown = 60;
     }
 
