@@ -52,6 +52,9 @@ public class SoundManager {
 
         HUD_CLICK("sound/hud/click.wav", 2),
 
+        DIALOGUE_SOUND_1("sound/dialogue/dialogue_sound_1.wav", 9),
+        DIALOGUE_SOUND_2("sound/dialogue/dialogue_sound_2.wav", 9),
+        DIALOGUE_SOUND_3("sound/dialogue/dialogue_sound_3.wav", 9),
         // para o dialogo animal crossing
         KATAKANA_A("sound/dialogue/kata_a.wav", 3),
         KATAKANA_BA("sound/dialogue/kata_ba.wav", 3),
@@ -278,6 +281,11 @@ public class SoundManager {
     public void playRandomSnowStep() {
         SFX[] steps = { SFX.SNOW_STEP_1, SFX.SNOW_STEP_2, SFX.SNOW_STEP_3, SFX.SNOW_STEP_4 };
         playSFX(steps[random.nextInt(steps.length)]);
+    }
+
+    public void playRandomDialogueSound() {
+        SFX[] sounds = { SFX.DIALOGUE_SOUND_1, SFX.DIALOGUE_SOUND_2, SFX.DIALOGUE_SOUND_3 };
+        playSFX(sounds[random.nextInt(sounds.length)]);
     }
 
     public void playRandomIceStep() {

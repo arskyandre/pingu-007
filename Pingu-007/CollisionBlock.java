@@ -82,13 +82,14 @@ public class CollisionBlock extends ArenaObject {
         if (chavesDoPlayer >= 3) {
             setActive(context, false, null);
             GateReplacer.applyUnlockVisuals(context.getMapData());
-            dialogueManager.iniciarDialogo(new String[]{
-                "RADIO: Você conseguiu! O portão abriu."}, DialogueSounds.PortaoAbriu);
+            dialogueManager.iniciarDialogo(new String[] {
+                    "RADIO: Você conseguiu! O portão abriu." }, DialogueSounds.PortaoAbriu, true);
             return true;
         }
 
-        dialogueManager.iniciarDialogo(new String[]{
-            "RADIO: Baseado nas nossas informações. Você precisará de 3 chaves para abrir esse portão."});
+        dialogueManager.iniciarDialogo(new String[] {
+                "RADIO: De acordo com as nossas informações, Você precisará de 3 chaves para abrir esse portão." },
+                true);
         System.out.println("Você precisa de 3 chaves para abrir isso!");
 
         return true;

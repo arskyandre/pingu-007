@@ -53,12 +53,12 @@ public class PescadorNPC extends NPC {
                 if (proximo && input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)) {
                     if (laEle || player.hasFishingRod()) {
                         if (FishingManager.isPlayerHasKey())
-                            dialogueManager.iniciarDialogo(dialogo2_hasKey, DialogueSounds.PescadorFala2_hasKey);
+                            dialogueManager.iniciarDialogo(dialogo2_hasKey, DialogueSounds.PescadorFala2_hasKey, true);
                         else
-                            dialogueManager.iniciarDialogo(dialogo2_noKey, DialogueSounds.PescadorFala2_noKey);
+                            dialogueManager.iniciarDialogo(dialogo2_noKey, DialogueSounds.PescadorFala2_noKey, true);
                         laEle = true;
                     } else {
-                        dialogueManager.iniciarDialogo(dialogo1, DialogueSounds.PescadorFala1);
+                        dialogueManager.iniciarDialogo(dialogo1, DialogueSounds.PescadorFala1, true);
                     }
                     state = State.TALKING;
                 }

@@ -25,6 +25,7 @@ public class DialogueManager {
 
   private boolean teclaLiberada = true;
 
+  private boolean tocarSomDeEscrita = true;
   private BufferedImage rostoFechado;
   private BufferedImage rostoAberto;
 
@@ -51,7 +52,7 @@ public class DialogueManager {
     }
   }
 
-  public void iniciarDialogo(String[] texto) {
+  public void iniciarDialogo(String[] texto, boolean tocarSomDeEscrita) {
     this.falas = texto;
     this.falaAtualIndex = 0;
     this.caractereIndex = 0;
@@ -63,7 +64,7 @@ public class DialogueManager {
     aplicarPrefixoInstantaneo();
   }
 
-  public void iniciarDialogo(String[] texto, BufferedImage img) {
+  public void iniciarDialogo(String[] texto, BufferedImage img, boolean tocarSomDeEscrita) {
     rostoTemporario = img;
     this.falas = texto;
     this.falaAtualIndex = 0;
@@ -76,7 +77,7 @@ public class DialogueManager {
     aplicarPrefixoInstantaneo();
   }
 
-  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons) {
+  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons, boolean tocarSomDeEscrita) {
     this.falas = texto;
     this.falaAtualIndex = 0;
     this.caractereIndex = 0;
@@ -88,7 +89,7 @@ public class DialogueManager {
     aplicarPrefixoInstantaneo();
   }
 
-  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons, BufferedImage img) {
+  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons, BufferedImage img, boolean tocarSomDeEscrita) {
     this.falas = texto;
     rostoTemporario = img;
     this.falaAtualIndex = 0;
@@ -156,6 +157,10 @@ public class DialogueManager {
     if (caractereIndex < falas[falaAtualIndex].length()) {
       if (agora - ultimoFrameTempo >= delayLetrasMs) {
         textoExibido += falas[falaAtualIndex].charAt(caractereIndex);
+        if (falas[falaAtualIndex].charAt(caractereIndex) != ' '
+            && falas[falaAtualIndex].charAt(caractereIndex) != '-') {
+          soundManager.playRandomDialogueSound();
+        }
         caractereIndex++;
         ultimoFrameTempo = agora;
 

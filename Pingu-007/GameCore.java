@@ -326,16 +326,20 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_2) && mapLoadCooldown <= 0) {
             System.out.println("Indo para o Mapa 2 de Testes...");
             // Substitua pelo nome exato do seu arquivo JSON de teste
-            levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
-            arenaManager.setFirstArenaFlag(false);
-            soundManager.BGMfadeOut(2500);
-            mapLoadCooldown = 60;
+            entrarNivelBoss();
         }
 
         // TODO: adicionar o toggle do antialiasing no menu de configurações
         if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_3)) {
             renderer.toggleAntiAliasing();
         }
+    }
+
+    public void entrarNivelBoss() {
+        levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
+        arenaManager.setFirstArenaFlag(false);
+        soundManager.BGMfadeOut(2500);
+        mapLoadCooldown = 60;
     }
 
     public void toggleAntiAliasing() {
@@ -359,7 +363,7 @@ public class GameCore extends Canvas implements Runnable {
                         "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
                         "PINGU: Eles não vão nem ver de onde veio."
 
-                });
+                }, true);
             }
         }
 

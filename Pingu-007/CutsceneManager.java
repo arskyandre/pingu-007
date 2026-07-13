@@ -10,10 +10,6 @@ import java.awt.image.BufferedImage;
 
 public class CutsceneManager {
 
-    public enum Phase {
-        NONE, OPENING, CLOSING
-    }
-
     public enum CutsceneType {
         NONE, BOSS_INTRO, WALL_REVEAL
     }
@@ -32,11 +28,9 @@ public class CutsceneManager {
     }
 
     private BossIntroState bossIntroState = BossIntroState.DIALOGUE;
-    private Phase phase = Phase.NONE;
     private int timer = 0;
     private static final int DURATION = 240;
-    private static final int BOSS_BGM_DELAY = 120;
-    private static final int TEXT_AREA_HEIGHT = 80;
+    private static final int BOSS_BGM_DELAY = 200;
     private static final int TRANSICAO_BORDA = 20;
     private Player bossIntroPlayer;
     // desenhar barra preta e nome boss
@@ -67,9 +61,9 @@ public class CutsceneManager {
         dialogueManager = dialogo;
         cameraManager = camera;
         falasBossIntro = new String[] {
-                "...: Então foi você quem atravessou toda a minha base...",
-                "...: Você ousou desafiar o meu domínio e eliminar meus homens.",
-                "...: Sua missão termina aqui, agente. Prepare-se para dar adeus a esse mundo!"
+                "... : Então foi você quem atravessou toda a minha base...",
+                "... : Você ousou desafiar o meu domínio e eliminar meus homens.",
+                "... : Sua missão termina aqui, Pingu. Prepare-se para dar adeus a esse mundo!"
         };
         morsaFalaSprite = LoadSave.GetSpriteAtlas("morsa_portrait.png");
     }
@@ -91,9 +85,8 @@ public class CutsceneManager {
         this.type = CutsceneType.BOSS_INTRO;
         bossIntroState = BossIntroState.DIALOGUE;
         enemyManager = EM;
-        dialogueManager.iniciarDialogo(falasBossIntro, morsaFalaSprite);
+        dialogueManager.iniciarDialogo(falasBossIntro, morsaFalaSprite, true);
         blackBarProgress = 0.0;
-        this.phase = Phase.OPENING;
         this.timer = 0;
         this.bossIntroPlayer = player;
         soundManager.playRandomSnowStep();
@@ -172,6 +165,7 @@ public class CutsceneManager {
                 gameCore.setGameState(GameState.CUTSCENE);
                 timer++;
 
+                enemyManager.getMorsaBoss().setPodeRugir(true);
                 if (timer == BOSS_BGM_DELAY) {
 
                     soundManager.playBGM(SoundManager.BGM.BOSS_INTRO, SoundManager.BGM.BOSS_LOOP);
@@ -185,8 +179,6 @@ public class CutsceneManager {
 
                     bossIntroState = BossIntroState.FINISHED;
                     type = CutsceneType.NONE;
-
-                    enemyManager.getMorsaBoss().setPodeRugir(true);
 
                     bossIntroPlayer.setBlockInputs(false);
                 }
