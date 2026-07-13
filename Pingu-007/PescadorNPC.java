@@ -58,6 +58,7 @@ public class PescadorNPC extends NPC {
                             dialogueManager.iniciarDialogo(dialogo2_noKey, DialogueSounds.PescadorFala2_noKey, true);
                         laEle = true;
                     } else {
+
                         dialogueManager.iniciarDialogo(dialogo1, DialogueSounds.PescadorFala1, true);
                     }
                     state = State.TALKING;

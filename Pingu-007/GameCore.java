@@ -181,9 +181,8 @@ public class GameCore extends Canvas implements Runnable {
                     // camera.update(player, input, getWidth(), getHeight()); dar um jeito de fazer
                     // a camera nao seguir o mouse no update, apenas para arrumar a posicao da
                     // camera caso o tamanho da tela mude durante o dialogo
-                    return;
-                }
-                updateGame();
+                } else
+                    updateGame();
             }
             case GAME_OVER -> {
                 GameState next = gameOverScreen.update(input, getWidth(), getHeight());
@@ -207,7 +206,6 @@ public class GameCore extends Canvas implements Runnable {
                     // camera.update(player, input, getWidth(), getHeight()); dar um jeito de fazer
                     // a camera nao seguir o mouse no update, apenas para arrumar a posicao da
                     // camera caso o tamanho da tela mude durante o dialogo
-                    return;
                 }
             }
             case PAUSED -> {
