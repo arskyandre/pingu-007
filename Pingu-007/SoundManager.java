@@ -213,7 +213,7 @@ public class SoundManager {
     private final BGMPlayer bgmPlayer = new BGMPlayer();
     private BGM currentTrack = null;
     // private float musicVolume = 0f;
-    private float musicVolume = 0.25f;
+    private float musicVolume = 0.35f;
     private float sfxVolume = 0.4f;
 
     private Thread dialogueThread;

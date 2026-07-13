@@ -11,8 +11,8 @@ public class Renderer {
 
     public BorderState borderState = BorderState.IDLE;
     public boolean modoDebug = false;
-    private double mouseCircleAlpha = 1.0; // 0 = fully transparent, 1 = fully opaque
-    private static final double MOUSE_CIRCLE_FADE_DURATION = 0.2; // seconds for a full fade
+    private double mouseCircleAlpha = 1.0;
+    private static final double MOUSE_CIRCLE_FADE_DURATION = 0.5; // segundos
 
     private int cinematicBorderHeight;
     private final double borderFadeDuration = 0.7;

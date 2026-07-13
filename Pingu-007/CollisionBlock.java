@@ -9,6 +9,7 @@ public class CollisionBlock extends ArenaObject {
 
     public CollisionBlock(TiledObject data) {
         super(data);
+
     }
 
     @Override
@@ -83,12 +84,19 @@ public class CollisionBlock extends ArenaObject {
             setActive(context, false, null);
             GateReplacer.applyUnlockVisuals(context.getMapData());
             dialogueManager.iniciarDialogo(new String[] {
-                    "RADIO: Você conseguiu! O portão abriu." }, DialogueSounds.PortaoAbriu, true);
+                    "RADIO: Você conseguiu! O portão abriu." }, DialogueSounds.PortaoAbriu, GameCore.cellphone_image,
+                    true);
             return true;
         }
-
+        String qtdChaves;
+        if (chavesDoPlayer == 0) {
+            qtdChaves = "RADIO: Você ainda não tem nenhuma chave. Continue procurando as chaves, Pingu.";
+        } else
+            qtdChaves = "RADIO: Agora, você possui " + Integer.toString(chavesDoPlayer) + " chaves. Procure a"
+                    + ((3 - chavesDoPlayer == 1) ? " última chave" : "s 2 outras chaves") + ", Pingu";
         dialogueManager.iniciarDialogo(new String[] {
-                "RADIO: De acordo com as nossas informações, Você precisará de 3 chaves para abrir esse portão." },
+                "RADIO: De acordo com as nossas informações, Você precisará de 3 chaves para abrir esse portão.",
+                "Ago" }, GameCore.cellphone_image,
                 true);
         System.out.println("Você precisa de 3 chaves para abrir isso!");
 

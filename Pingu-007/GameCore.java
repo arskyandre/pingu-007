@@ -5,6 +5,9 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.EventListener;
+import java.awt.image.BufferedImage;
+
 import javax.swing.*;
 
 public class GameCore extends Canvas implements Runnable {
@@ -25,6 +28,8 @@ public class GameCore extends Canvas implements Runnable {
     private ArrayList<Integer> checkArenas = new ArrayList<>();
     private boolean hasCheckpoint = false;
     private boolean checkVaraDePesca = false;
+
+    public static BufferedImage cellphone_image = LoadSave.GetSpriteAtlas("cellphone.png");
 
     public static Font pixelFont;
 
@@ -318,6 +323,8 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_1) && mapLoadCooldown <= 0) {
             System.out.println("Voltando para o Mapa 1...");
             levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
+            if (soundManager.currentSong() != SoundManager.BGM.LEVEL_1_LOOP)
+                soundManager.playBGM(SoundManager.BGM.LEVEL_1_INTRO, SoundManager.BGM.LEVEL_1_LOOP);
             mapLoadCooldown = 60;
         }
 
