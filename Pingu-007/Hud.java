@@ -18,7 +18,10 @@ public class Hud {
     private static final int AMMO_BAR_HEIGHT = 14;
     private static final int AMMO_BAR_MARGIN = 16;
 
-    private BufferedImage heartSheet;
+    private boolean animateChave = false;
+
+    private BufferedImage heartSheet = null;
+    private BufferedImage chaveSprite[] = null;
 
     // ── Partículas ──────────────────────────────────────────────────────────────
     private static class HeartParticle {
@@ -49,6 +52,15 @@ public class Hud {
             System.err.println("Erro ao carregar heart_sprites.png: " + e.getMessage());
         }
         try {
+            BufferedImage base = LoadSave.GetSpriteAtlas("images/hud/chavesprite.png");
+            chaveSprite = new BufferedImage[2];
+            for (int i = 0; i < 2; i++) {
+                chaveSprite[i] = base.getSubimage(i * 16, 0, 16, 16);
+            }
+        } catch (Exception e) {
+            System.err.println("Erro ao carregar chavesprite.png: " + e.getMessage());
+        }
+        try {
             Font base = Font.createFont(Font.TRUETYPE_FONT, new File("font/PressStart2P-Regular.ttf"));
             pixelFont = base.deriveFont(Font.BOLD, 7f);
         } catch (Exception e) {
@@ -58,15 +70,22 @@ public class Hud {
     }
 
     public void draw(Graphics2D g2, int telaLargura, int telaAltura,
-            CameraManager camera, Player p, EnemyManager em, double delta) {
+            CameraManager camera, Player p, EnemyManager em, double delta, int offset) {
 
         // spawna particulas de dano
         if (p.consumirDanoFlag()) {
             spawnHeartParticles(p);
         }
+        if (p.consumirNovaChave()) {
+            animateChave = true;
+        }
 
-        updateAndDrawParticles(g2, delta);
+        updateAndDrawParticles(g2, delta, offset);
         healthbar_inimigos(g2, telaLargura, telaAltura, camera, em);
+        player_hearts(g2, p, offset);
+        if (!GameCore.isLevel2())
+            desenha_chaves(g2, p, offset, telaLargura);
+        ammobar(g2, telaLargura, telaAltura, p, offset);
     }
 
     public void ammobar(Graphics2D g2, int telaLargura, int telaAltura, Player p, int offset) {
@@ -158,7 +177,7 @@ public class Hud {
         }
     }
 
-    private void updateAndDrawParticles(Graphics2D g2, double delta) {
+    private void updateAndDrawParticles(Graphics2D g2, double delta, int offset) {
         if (heartSheet == null) {
             return;
         }
@@ -189,7 +208,7 @@ public class Hud {
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, Math.max(0f, (float) alpha)));
             g2.drawImage(halfHeart,
                     (int) (pt.x - size / 2.0),
-                    (int) (pt.y - size / 2.0),
+                    (int) (pt.y - size / 2.0) + offset,
                     size, size, null);
             g2.setComposite(comp);
 
@@ -231,6 +250,30 @@ public class Hud {
             g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
             g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
             g2.drawImage(sprite, drawX, 16 + offset, HEART_RENDER, HEART_RENDER, null);
+        }
+    }
+
+    public void desenha_chaves(Graphics2D g2, Player p, int offset, int telaLargura) {
+        if (chaveSprite == null || p.getChaves() <= 0) {
+            return;
+        }
+
+        int chaves = p.getChaves();
+        int chavesMax = 3; // mudar caso exista mais chave no jogo
+        int iconSize = 32;
+
+        for (int i = 0; i < chavesMax; i++) {
+            int drawX = telaLargura - iconSize - 16 - i * (iconSize + HEART_GAP);
+
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+
+            // preenche da direita pra esquerda conforme as chaves sao coletadas
+            if (i < chaves) {
+                g2.drawImage(chaveSprite[1], drawX, 16 + offset, iconSize, iconSize, null);
+            } else {
+                g2.drawImage(chaveSprite[0], drawX, 16 + offset, iconSize, iconSize, null);
+            }
         }
     }
 

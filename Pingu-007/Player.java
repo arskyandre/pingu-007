@@ -40,6 +40,7 @@ public class Player extends Entity {
     private final int reloadOnZeroCooldown = 35;
     private int reloadOnZeroCooldownTimer = 0;
     private boolean danoRecebidoFlag = false;
+    private boolean novaChaveFlag = false;
     private boolean reloading = false;
     private boolean hasFishingRod = false;
     private FishingBobber fishingBobber;
@@ -146,6 +147,12 @@ public class Player extends Entity {
     public boolean consumirDanoFlag() {
         boolean val = danoRecebidoFlag;
         danoRecebidoFlag = false;
+        return val;
+    }
+
+    public boolean consumirNovaChave() {
+        boolean val = novaChaveFlag;
+        novaChaveFlag = false;
         return val;
     }
 

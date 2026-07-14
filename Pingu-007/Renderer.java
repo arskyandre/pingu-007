@@ -139,7 +139,6 @@ public class Renderer {
         }
 
         g2.setTransform(originalTransform);
-        HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager, delta);
 
         // Animacao das bordas cinematicas
         if (animateBorder) {
@@ -171,8 +170,7 @@ public class Renderer {
 
         int cinematicBorder = (int) (cinematicBorderHeight * eased);
 
-        HUD.player_hearts(g2, quadrado, (int) cinematicBorder);
-        HUD.ammobar(g2, telaLargura, telaAltura, quadrado, (int) cinematicBorder);
+        HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager, delta, (int) cinematicBorder);
         fishingManager.render(g2, camera, telaLargura, telaAltura);
         double mouseCircleTarget = mouseCircle ? 1.0 : 0.0;
         double mouseCircleFadeSpeed = 1.0 / MOUSE_CIRCLE_FADE_DURATION;

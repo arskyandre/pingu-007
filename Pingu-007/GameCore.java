@@ -68,6 +68,7 @@ public class GameCore extends Canvas implements Runnable {
     public final static int tiles_size = (int) (tiles_default_size * scale);
     public final static int game_width = tiles_size * tiles_in_width;
     public final static int game_height = tiles_size * tiles_in_height;
+    public static boolean estaLevel2 = false;
 
     private static final double BASE_ZOOM = 1.25;
     private static final int BASE_HEIGHT = game_height;
@@ -121,6 +122,12 @@ public class GameCore extends Canvas implements Runnable {
 
     public static GameState getGameState() {
         return gameState;
+    }
+    public static void setLevel2(boolean set){
+        estaLevel2 = set;
+    }
+    public static boolean isLevel2() {
+        return estaLevel2;
     }
 
     public void toggleFullscreen() {

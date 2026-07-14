@@ -28,7 +28,9 @@ public class LevelManager {
     public void carregarNivel(String filename) {
         if (filename.equals(LoadSave.LEVEL_2_DATA)) {
             soundManager.BGMfadeOut(2500);
-        }
+            GameCore.setLevel2(true);
+        } else
+            GameCore.setLevel2(false);
         System.out.println(filename + " loaded");
         carregarMapData(filename);
         Game.processarNovoMapa(mapDataAtual.objects);
