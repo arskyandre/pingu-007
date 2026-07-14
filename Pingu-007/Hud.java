@@ -84,7 +84,7 @@ public class Hud {
         healthbar_inimigos(g2, telaLargura, telaAltura, camera, em);
         player_hearts(g2, p, offset);
         if (!GameCore.isLevel2())
-            desenha_chaves(g2, p, offset, telaLargura);
+            desenha_chaves(g2, p, telaLargura, telaAltura, offset);
         ammobar(g2, telaLargura, telaAltura, p, offset);
     }
 
@@ -253,7 +253,7 @@ public class Hud {
         }
     }
 
-    public void desenha_chaves(Graphics2D g2, Player p, int offset, int telaLargura) {
+    public void desenha_chaves(Graphics2D g2, Player p, int telaLargura, int telaAltura, int offset) {
         if (chaveSprite == null || p.getChaves() <= 0) {
             return;
         }
@@ -263,18 +263,23 @@ public class Hud {
         int iconSize = 32;
 
         for (int i = 0; i < chavesMax; i++) {
-            int drawX = telaLargura - iconSize - 16 - i * (iconSize + HEART_GAP);
+            int drawX = iconSize / 2 + 16 + i * (iconSize + HEART_GAP);
 
             g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
             g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
 
             // preenche da direita pra esquerda conforme as chaves sao coletadas
             if (i < chaves) {
-                g2.drawImage(chaveSprite[1], drawX, 16 + offset, iconSize, iconSize, null);
+                g2.drawImage(chaveSprite[1], drawX, telaAltura - iconSize - 16 - offset, iconSize, iconSize, null);
             } else {
-                g2.drawImage(chaveSprite[0], drawX, 16 + offset, iconSize, iconSize, null);
+                g2.drawImage(chaveSprite[0], drawX, telaAltura - iconSize - 16 - offset, iconSize, iconSize, null);
             }
         }
+        int drawX = iconSize / 2 + 16 + chavesMax * (iconSize + HEART_GAP);
+        String ch = Integer.toString(chaves) + "/" + Integer.toString(chavesMax);
+        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 24f));
+        g2.setColor(new Color(255, 170, 0));
+        g2.drawString(ch, drawX, telaAltura - iconSize - 16 - offset);
     }
 
     // Desenha barra de vida para inimigos que nao estao com a vida cheia
