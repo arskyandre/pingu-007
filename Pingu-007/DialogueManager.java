@@ -60,6 +60,8 @@ public class DialogueManager {
     this.ativo = true;
     this.ultimoFrameTempo = System.currentTimeMillis();
     this.sonsAtual = null;
+    this.retratosAtual = null;
+    this.rostoTemporario = null;
     soundManager.stopDialogue();
     aplicarPrefixoInstantaneo();
   }
@@ -74,6 +76,7 @@ public class DialogueManager {
     this.ultimoFrameTempo = System.currentTimeMillis();
     this.sonsAtual = null;
     soundManager.stopDialogue();
+    aplicarRetratoFalaAtual();
     aplicarPrefixoInstantaneo();
   }
 
@@ -85,6 +88,8 @@ public class DialogueManager {
     this.ativo = true;
     this.ultimoFrameTempo = System.currentTimeMillis();
     this.sonsAtual = sons;
+    this.retratosAtual = null;
+    this.rostoTemporario = null;
     tocarSomFalaAtual();
     aplicarPrefixoInstantaneo();
   }
@@ -101,6 +106,7 @@ public class DialogueManager {
     this.sonsAtual = sons;
     tocarSomFalaAtual();
     aplicarPrefixoInstantaneo();
+    aplicarRetratoFalaAtual();
   }
 
   private void tocarSomFalaAtual() {

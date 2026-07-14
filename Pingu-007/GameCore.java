@@ -29,6 +29,14 @@ public class GameCore extends Canvas implements Runnable {
     private boolean hasCheckpoint = false;
     private boolean checkVaraDePesca = false;
 
+    private boolean introPendente = false;
+    private boolean introDialogoAtiva = false;
+    private int introTimer = 0;
+    private static final int INTRO_DELAY_FRAMES = 120;
+    private boolean introPreDelay = false;
+    private int introPreDelayTimer = 0;
+    private static final int INTRO_PRE_DELAY_FRAMES = 60;
+
     public static BufferedImage cellphone_image = LoadSave.GetSpriteAtlas("cellphone.png");
     public static BufferedImage pingu_portrait = LoadSave.GetSpriteAtlas("pingu_portrait_close.jpg");
 
@@ -123,9 +131,11 @@ public class GameCore extends Canvas implements Runnable {
     public static GameState getGameState() {
         return gameState;
     }
-    public static void setLevel2(boolean set){
+
+    public static void setLevel2(boolean set) {
         estaLevel2 = set;
     }
+
     public static boolean isLevel2() {
         return estaLevel2;
     }
@@ -184,17 +194,38 @@ public class GameCore extends Canvas implements Runnable {
                 if (next == GameState.PLAYING) {
                     soundManager.playBGM(SoundManager.BGM.LEVEL_1_INTRO, SoundManager.BGM.LEVEL_1_LOOP);
                     player.setShootCooldownTimer(30);
+                    iniciarSequenciaIntro();
                 }
                 gameState = next;
             }
             case PLAYING -> {
+                if (introPreDelay) {
+                    introPreDelayTimer--;
+                    if (introPreDelayTimer <= 0) {
+                        introPreDelay = false;
+                        introPendente = true;
+                        introTimer = INTRO_DELAY_FRAMES;
+                        player.setBlockInputs(true);
+                        soundManager.playSFX(SoundManager.SFX.CALL_RING);
+                    }
+                }
+                if (introPendente) {
+                    introTimer--;
+                    if (introTimer <= 0) {
+                        introPendente = false;
+                        introDialogoAtiva = true;
+                        triggerDialogoInicial();
+                    }
+                }
                 if (dialogueManager.isAtivo()) {
                     dialogueManager.atualizar(input);
-                    // camera.update(player, input, getWidth(), getHeight()); dar um jeito de fazer
-                    // a camera nao seguir o mouse no update, apenas para arrumar a posicao da
-                    // camera caso o tamanho da tela mude durante o dialogo
-                } else
+                } else {
+                    if (introDialogoAtiva) {
+                        introDialogoAtiva = false;
+                        player.setBlockInputs(false);
+                    }
                     updateGame();
+                }
             }
             case GAME_OVER -> {
                 GameState next = gameOverScreen.update(input, getWidth(), getHeight());
@@ -244,6 +275,13 @@ public class GameCore extends Canvas implements Runnable {
         input.update();
     }
 
+    private void iniciarSequenciaIntro() {
+        introPreDelay = true;
+        introPendente = false;
+        introDialogoAtiva = false;
+        introPreDelayTimer = INTRO_PRE_DELAY_FRAMES;
+    }
+
     public void updatePlayerMovement() {
         player.updatePlayerMovement();
     }
@@ -268,7 +306,7 @@ public class GameCore extends Canvas implements Runnable {
                     "RADIO: Seu objetivo é atravessar o complexo e eliminar a Morsa.",
                     "RADIO: Mas primeiro, encontre as 9 chaves. Só elas abrem o portão da Morsa.",
                     "RADIO: Movimente-se com WASD, use ESPAÇO para dar um dash e o botão esquerdo do mouse para atirar.",
-                    "RADIO: Mantenha sua munição sob controle. Recarregue com R sempre que tiver uma oportunidade.",
+                    "RADIO: Mantenha sua munição sob controle. Pressione R para recarregar sua pistola.",
                     "RADIO: Se uma arena fechar atrás de você, elimine todos os inimigos. A saída será liberada quando o último cair.",
                     "RADIO: Há buracos de pesca espalhados pela região, mas você ainda não possui uma vara.",
                     "RADIO: Nossos relatórios indicam a presença de um pescador. Se encontrá-lo, ele pode ser útil.",
@@ -392,9 +430,6 @@ public class GameCore extends Canvas implements Runnable {
             return;
         }
         cutsceneManager.update();
-        if (input.isKeyPressed(KeyEvent.VK_T)) {
-            triggerDialogoInicial();
-        }
 
         // Intercepta a morte e carrega o save
         if (player.isDead()) {
@@ -546,8 +581,12 @@ public class GameCore extends Canvas implements Runnable {
         player.resetarProgresso();
         renderer.setBorderProgress(0.0);
         setCinematicBorderAnimation(Renderer.BorderState.IDLE);
+        introPreDelay = false;
+        introPreDelayTimer = 0;
+        introPendente = false;
+        introDialogoAtiva = false;
+        introTimer = 0;
         levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
-
     }
 
     private void drawFpsCounter(Graphics2D g2) {

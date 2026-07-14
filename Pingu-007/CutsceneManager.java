@@ -66,6 +66,7 @@ public class CutsceneManager {
                 "... : Sua missão termina aqui, Pingu. Prepare-se para dar adeus a esse mundo!"
         };
         morsaFalaSprite = LoadSave.GetSpriteAtlas("morsa_portrait.png");
+        System.out.println(morsaFalaSprite);
     }
 
     public static int getDuracaoTotal() {
@@ -85,7 +86,8 @@ public class CutsceneManager {
         this.type = CutsceneType.BOSS_INTRO;
         bossIntroState = BossIntroState.DIALOGUE;
         enemyManager = EM;
-        dialogueManager.iniciarDialogo(falasBossIntro, new BufferedImage[] { morsaFalaSprite }, true);
+        dialogueManager.iniciarDialogo(falasBossIntro,
+                new BufferedImage[] { morsaFalaSprite}, true);
         blackBarProgress = 0.0;
         this.timer = 0;
         this.bossIntroPlayer = player;

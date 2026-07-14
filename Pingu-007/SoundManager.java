@@ -33,6 +33,7 @@ public class SoundManager {
      *                 exemplo)
      */
     public enum SFX {
+        CALL_RING("sound/sfx/call_ring.wav", 2),
         NOOT_NOOT("sound/sfx/noot_noot.wav", 3),
         SNOW_STEP_1("sound/sfx/snow_footstep1.wav", 6),
         SNOW_STEP_2("sound/sfx/snow_footstep2.wav", 6),
