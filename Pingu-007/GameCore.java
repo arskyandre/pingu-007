@@ -3,11 +3,9 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.EventListener;
-import java.awt.image.BufferedImage;
-
 import javax.swing.*;
 
 public class GameCore extends Canvas implements Runnable {
@@ -298,25 +296,25 @@ public class GameCore extends Canvas implements Runnable {
 
     public void triggerDialogoInicial() {
         if (!dialogueManager.isAtivo()) {
-            dialogueManager.iniciarDialogo(new String[] {
-                    "PINGU: Entrando na base de operações.",
-                    "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
-                    "PINGU: Eles não vão nem ver de onde veio.",
-                    "RADIO: Antes de prosseguir, vamos recapitular o protocolo da missão.",
-                    "RADIO: Seu objetivo é atravessar o complexo e eliminar a Morsa.",
-                    "RADIO: Mas primeiro, encontre as 9 chaves. Só elas abrem o portão da Morsa.",
-                    "RADIO: Movimente-se com WASD, use ESPAÇO para dar um dash e o botão esquerdo do mouse para atirar.",
-                    "RADIO: Mantenha sua munição sob controle. Pressione R para recarregar sua pistola.",
-                    "RADIO: Se uma arena fechar atrás de você, elimine todos os inimigos. A saída será liberada quando o último cair.",
-                    "RADIO: Há buracos de pesca espalhados pela região, mas você ainda não possui uma vara.",
-                    "RADIO: Nossos relatórios indicam a presença de um pescador. Se encontrá-lo, ele pode ser útil.",
-                    "RADIO: Isso é tudo, agente. Boa sorte. A colônia está contando com você."
+            dialogueManager.iniciarDialogo(new String[]{
+                "PINGU: Entrando na base de operações.",
+                "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
+                "PINGU: Eles não vão nem ver de onde veio.",
+                "RADIO: Antes de prosseguir, vamos recapitular o protocolo da missão.",
+                "RADIO: Seu objetivo é atravessar o complexo e eliminar a Morsa.",
+                "RADIO: Mas primeiro, encontre as 3 chaves. Só elas abrem o portão da Morsa.",
+                "RADIO: Movimente-se com WASD, use ESPAÇO para dar um dash e o botão esquerdo do mouse para atirar.",
+                "RADIO: Mantenha sua munição sob controle. Pressione R para recarregar sua pistola.",
+                "RADIO: Se uma arena fechar atrás de você, elimine todos os inimigos. A saída será liberada quando o último cair.",
+                "RADIO: Há buracos de pesca espalhados pela região, mas você ainda não possui uma vara.",
+                "RADIO: Nossos relatórios indicam a presença de um pescador. Se encontrá-lo, ele pode ser útil.",
+                "RADIO: Isso é tudo, agente. Boa sorte. A colônia está contando com você."
             }, DialogueSounds.FalaInicialRadio,
-                    new BufferedImage[] {
-                            pingu_portrait,
-                            cellphone_image,
-                            pingu_portrait,
-                            cellphone_image
+                    new BufferedImage[]{
+                        pingu_portrait,
+                        cellphone_image,
+                        pingu_portrait,
+                        cellphone_image
                     }, true);
         }
     }
@@ -393,8 +391,9 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_1) && mapLoadCooldown <= 0) {
             System.out.println("Voltando para o Mapa 1...");
             levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
-            if (soundManager.currentSong() != SoundManager.BGM.LEVEL_1_LOOP)
+            if (soundManager.currentSong() != SoundManager.BGM.LEVEL_1_LOOP) {
                 soundManager.playBGM(SoundManager.BGM.LEVEL_1_INTRO, SoundManager.BGM.LEVEL_1_LOOP);
+            }
             mapLoadCooldown = 60;
         }
 
@@ -404,7 +403,6 @@ public class GameCore extends Canvas implements Runnable {
             entrarNivelBoss();
         }
 
-        // TODO: adicionar o toggle do antialiasing no menu de configurações
         if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_3)) {
             renderer.toggleAntiAliasing();
         }
@@ -682,8 +680,9 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public static Rectangle2D getRetanguloComum(Rectangle2D[] rects) {
-        if (rects == null || rects.length == 0)
+        if (rects == null || rects.length == 0) {
             return null;
+        }
         double Ymin, Ymax;
         double Xmin, Xmax;
         Ymin = rects[0].getY();
@@ -693,21 +692,24 @@ public class GameCore extends Canvas implements Runnable {
         for (Rectangle2D rect : rects) {
             double x = rect.getX();
             double y = rect.getY();
-            if (x > Xmax)
+            if (x > Xmax) {
                 Xmax = x;
-            else if (x < Xmax)
+            } else if (x < Xmax) {
                 Xmax = x;
-            if (y > Ymax)
+            }
+            if (y > Ymax) {
                 Ymax = y;
-            else if (y < Ymin)
+            } else if (y < Ymin) {
                 Ymin = y;
+            }
         }
         return new Rectangle2D.Double(Xmin, Ymin, Xmax - Xmin, Ymax - Ymin);
     }
 
     public static Rectangle2D getRetanguloComum(Rectangle2D[] rects, double margin) {
-        if (rects == null || rects.length == 0)
+        if (rects == null || rects.length == 0) {
             return null;
+        }
         double Ymin, Ymax;
         double Xmin, Xmax;
         Ymin = rects[0].getY();
@@ -717,21 +719,24 @@ public class GameCore extends Canvas implements Runnable {
         for (Rectangle2D rect : rects) {
             double x = rect.getX();
             double y = rect.getY();
-            if (x > Xmax)
+            if (x > Xmax) {
                 Xmax = x;
-            else if (x < Xmax)
+            } else if (x < Xmax) {
                 Xmax = x;
-            if (y > Ymax)
+            }
+            if (y > Ymax) {
                 Ymax = y;
-            else if (y < Ymin)
+            } else if (y < Ymin) {
                 Ymin = y;
+            }
         }
         return new Rectangle2D.Double(Xmin - margin, Ymin - margin, Xmax - Xmin + 2 * margin, Ymax - Ymin + 2 * margin);
     }
 
     public static Rectangle2D getRetanguloComum(Rectangle2D[] rects, double marginX, double marginY) {
-        if (rects == null || rects.length == 0)
+        if (rects == null || rects.length == 0) {
             return null;
+        }
         double Ymin, Ymax;
         double Xmin, Xmax;
         Ymin = rects[0].getY();
@@ -741,14 +746,16 @@ public class GameCore extends Canvas implements Runnable {
         for (Rectangle2D rect : rects) {
             double x = rect.getX();
             double y = rect.getY();
-            if (x > Xmax)
+            if (x > Xmax) {
                 Xmax = x;
-            else if (x < Xmax)
+            } else if (x < Xmax) {
                 Xmax = x;
-            if (y > Ymax)
+            }
+            if (y > Ymax) {
                 Ymax = y;
-            else if (y < Ymin)
+            } else if (y < Ymin) {
                 Ymin = y;
+            }
         }
         return new Rectangle2D.Double(Xmin - marginX, Ymin - marginY, Xmax - Xmin + 2 * marginX,
                 Ymax - Ymin + 2 * marginY);
