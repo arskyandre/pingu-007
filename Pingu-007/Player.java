@@ -475,6 +475,7 @@ public class Player extends Entity {
     public void curar(int qtd) {
         vida = Math.min(vidaMaxima, vida + qtd);
         System.out.println("coletou cura +" + qtd + " vida: " + vida);
+        soundManager.playSFX(SoundManager.SFX.PLAYER_HEAL);
     }
 
     public void addChave(int qtd) {

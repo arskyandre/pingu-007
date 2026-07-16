@@ -53,13 +53,16 @@ public class PescadorNPC extends NPC {
                 if (proximo && input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)) {
                     if (laEle || player.hasFishingRod()) {
                         if (FishingManager.isPlayerHasKey())
-                            dialogueManager.iniciarDialogo(dialogo2_hasKey, DialogueSounds.PescadorFala2_hasKey, true);
+                            dialogueManager.iniciarDialogo(dialogo2_hasKey, DialogueCatalogo.PescadorFala2_hasKey,
+                                    new BufferedImage[] { GameCore.pescador_portrait }, true);
                         else
-                            dialogueManager.iniciarDialogo(dialogo2_noKey, DialogueSounds.PescadorFala2_noKey, true);
+                            dialogueManager.iniciarDialogo(dialogo2_noKey, DialogueCatalogo.PescadorFala2_noKey,
+                                    new BufferedImage[] { GameCore.pescador_portrait }, true);
                         laEle = true;
                     } else {
 
-                        dialogueManager.iniciarDialogo(dialogo1, DialogueSounds.PescadorFala1, true);
+                        dialogueManager.iniciarDialogo(dialogo1, DialogueCatalogo.PescadorFala1,
+                                new BufferedImage[] { GameCore.pescador_portrait }, true);
                     }
                     state = State.TALKING;
                 }

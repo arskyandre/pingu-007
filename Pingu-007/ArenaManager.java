@@ -449,7 +449,6 @@ public class ArenaManager {
             isFirstArena = true;
         }
         // pra rodar a cutscene em uma arena de verdade
-        // TODO: depois vou fazer o foco da camera funcionar direito
     }
 
     private void verificarDesativacaoParedes(int id, Player player) {

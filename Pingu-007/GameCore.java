@@ -37,8 +37,9 @@ public class GameCore extends Canvas implements Runnable {
     private int introPreDelayTimer = 0;
     private static final int INTRO_PRE_DELAY_FRAMES = 60;
 
-    public static BufferedImage cellphone_image = LoadSave.GetSpriteAtlas("cellphone.png");
+    public static BufferedImage cellphone_image = LoadSave.GetSpriteAtlas("images/portrait/cellphone.png");
     public static BufferedImage pingu_portrait = LoadSave.GetSpriteAtlas("pingu_portrait_close.jpg");
+    public static BufferedImage pescador_portrait = LoadSave.GetSpriteAtlas("images/portrait/pescador_portrait.png");
 
     public static Font pixelFont;
 
@@ -298,20 +299,7 @@ public class GameCore extends Canvas implements Runnable {
 
     public void triggerDialogoInicial() {
         if (!dialogueManager.isAtivo()) {
-            dialogueManager.iniciarDialogo(new String[] {
-                    "PINGU: Entrando na base de operações.",
-                    "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
-                    "PINGU: Eles não vão nem ver de onde veio.",
-                    "RADIO: Antes de prosseguir, vamos recapitular o protocolo da missão.",
-                    "RADIO: Seu objetivo é atravessar o complexo e eliminar a Morsa.",
-                    "RADIO: Mas primeiro, encontre as 9 chaves. Só elas abrem o portão da Morsa.",
-                    "RADIO: Movimente-se com WASD, use ESPAÇO para dar um dash e o botão esquerdo do mouse para atirar.",
-                    "RADIO: Mantenha sua munição sob controle. Pressione R para recarregar sua pistola.",
-                    "RADIO: Se uma arena fechar atrás de você, elimine todos os inimigos. A saída será liberada quando o último cair.",
-                    "RADIO: Há buracos de pesca espalhados pela região, mas você ainda não possui uma vara.",
-                    "RADIO: Nossos relatórios indicam a presença de um pescador. Se encontrá-lo, ele pode ser útil.",
-                    "RADIO: Isso é tudo, agente. Boa sorte. A colônia está contando com você."
-            }, DialogueSounds.FalaInicialRadio,
+            dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadio, DialogueCatalogo.FalaInicialRadio,
                     new BufferedImage[] {
                             pingu_portrait,
                             cellphone_image,

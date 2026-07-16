@@ -4,7 +4,7 @@
  * <p>
  * <b>null = nenhum som = pausa</b>
  */
-public class DialogueSounds {
+public class DialogueCatalogo {
 
         // separador
 
@@ -15,16 +15,30 @@ public class DialogueSounds {
         // das almas penadas
 
         // que encostarem nesse arquivo
-        public static SoundManager.SFX[][] FalaInicialRadio = new SoundManager.SFX[][]{
-                new SoundManager.SFX[]{
-                        SoundManager.SFX.NOOT_NOOT
-                },
-                new SoundManager.SFX[]{
-null,
-                },
-                new SoundManager.SFX[]{
-                        SoundManager.SFX.NOOT_NOOT
-                },
+        public static final String[] TextoInicialRadio = new String[] {
+                        "PINGU: Entrando na base de operações.",
+                        "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
+                        "PINGU: Eles não vão nem ver de onde veio.",
+                        "RADIO: Antes de prosseguir, vamos recapitular o protocolo da missão.",
+                        "RADIO: Seu objetivo é atravessar o complexo e eliminar a Morsa.",
+                        "RADIO: Mas, para chegar à Morsa, você precisa encontrar as 3 chaves que destrancam o portão da sua arena.",
+                        "RADIO: Movimente-se com WASD, use ESPAÇO para dar um dash e o botão esquerdo do mouse para atirar.",
+                        "RADIO: Mantenha sua munição sob controle. Pressione R para recarregar sua pistola.",
+                        "RADIO: Se uma arena fechar atrás de você, elimine todos os inimigos. A saída será liberada quando o último cair.",
+                        "RADIO: Há buracos de pesca espalhados pela região, mas você ainda não possui uma vara.",
+                        "RADIO: Nossos relatórios indicam a presença de um pescador. Se encontrá-lo, ele pode ser útil.",
+                        "RADIO: Isso é tudo, agente. Boa sorte. A colônia está contando com você."
+        };
+        public static final SoundManager.SFX[][] FalaInicialRadio = new SoundManager.SFX[][] {
+                        new SoundManager.SFX[] {
+                                        SoundManager.SFX.NOOT_NOOT
+                        },
+                        new SoundManager.SFX[] {
+                                        null,
+                        },
+                        new SoundManager.SFX[] {
+                                        SoundManager.SFX.NOOT_NOOT
+                        },
         };
 
         // separador
@@ -36,7 +50,7 @@ null,
         // das almas penadas
 
         // que encostarem nesse arquivo
-        public static SoundManager.SFX[][] PescadorFala1 = new SoundManager.SFX[][] {
+        public static final SoundManager.SFX[][] PescadorFala1 = new SoundManager.SFX[][] {
                         new SoundManager.SFX[] {
                                         null,
                                         // Ei
@@ -363,7 +377,7 @@ null,
         // das almas penadas
 
         // que encostarem nesse arquivo
-        public static SoundManager.SFX[][] PescadorFala2_noKey = new SoundManager.SFX[][] {
+        public static final SoundManager.SFX[][] PescadorFala2_noKey = new SoundManager.SFX[][] {
                         new SoundManager.SFX[] {
                                         null,
                                         // ESQUECEU
@@ -591,7 +605,7 @@ null,
         // das almas penadas
 
         // que encostarem nesse arquivo
-        public static SoundManager.SFX[][] PescadorFala2_hasKey = new SoundManager.SFX[][] {
+        public static final SoundManager.SFX[][] PescadorFala2_hasKey = new SoundManager.SFX[][] {
                         new SoundManager.SFX[] {
 
                                         // QUER
@@ -727,7 +741,7 @@ null,
         // das almas penadas
 
         // que encostarem nesse arquivo
-        public static SoundManager.SFX[][] PortaoAbriu = new SoundManager.SFX[][] {
+        public static final SoundManager.SFX[][] PortaoAbriu = new SoundManager.SFX[][] {
                         new SoundManager.SFX[] {
 
                                         null,

@@ -43,6 +43,8 @@ public class SoundManager {
         ICE_STEP_2("sound/sfx/ice_footstep2.wav", 6),
         ARENA_ENTER("sound/sfx/arena_enter.wav", 2),
         PLAYER_DAMAGE("sound/sfx/player_damage.wav", 8),
+        PLAYER_HEAL("sound/sfx/player_heal.wav", 4),
+        // GET_AMMO("sound/sfx/get_ammo.wav", 4),
         FISHING_START("sound/sfx/fishing_start.wav", 2),
         // FISHING_FISH_FOUND("sound/sfx/fishing_fish_found.wav", 2),
         // FISHING_CAUGHT("sound/sfx/fishing_caught.wav", 2),
