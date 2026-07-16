@@ -392,7 +392,6 @@ public class GameCore extends Canvas implements Runnable {
             entrarNivelBoss();
         }
 
-        // TODO: adicionar o toggle do antialiasing no menu de configurações
         if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_3)) {
             renderer.toggleAntiAliasing();
         }
