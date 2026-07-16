@@ -208,6 +208,7 @@ public class GameCore extends Canvas implements Runnable {
                         introTimer = INTRO_DELAY_FRAMES;
                         player.setBlockInputs(true);
                         soundManager.playSFX(SoundManager.SFX.CALL_RING);
+                        player.setTemporarySpriteOverride(0, introTimer);
                     }
                 }
                 if (introPendente) {
@@ -311,6 +312,10 @@ public class GameCore extends Canvas implements Runnable {
 
     public void debugInputProcessing() {
 
+        if (input.isKeyJustPressed(KeyEvent.VK_P)) {
+            System.out.println("Coordenadas do player: (X, Y) = (" + player.getX() / GameCore.tiles_size + ", "
+                    + player.getY() / GameCore.tiles_size + ")");
+        }
         if (input.isKeyJustPressed(KeyEvent.VK_F)) {
             toggleFpsCounter();
         }
@@ -321,8 +326,8 @@ public class GameCore extends Canvas implements Runnable {
             setCinematicBorderAnimation(Renderer.BorderState.OUT);
         }
         if (input.isKeyJustPressed(KeyEvent.VK_N)) {
-            player.setX(20.5 * GameCore.tiles_size);
-            player.setY(48.0 * GameCore.tiles_size);
+            player.setX(48.5 * GameCore.tiles_size);
+            player.setY(47.0 * GameCore.tiles_size);
         }
 
         if (debugSpawnCooldown > 0) {
@@ -446,6 +451,13 @@ public class GameCore extends Canvas implements Runnable {
                 player, enemyManager.getEnemies());
 
         levelManager.update();
+
+        MorsaBoss morsa = enemyManager.getMorsaBoss();
+        if (morsa != null && !morsa.isDead() && morsa.isPodeRugir()) {
+            camera.setCombatTarget(morsa.getX(), morsa.getY(), morsa.getLargura(), morsa.getAltura());
+        } else {
+            camera.clearCombatTarget();
+        }
         double dynamicZoom = BASE_ZOOM * (getHeight() / (double) BASE_HEIGHT);
         camera.setBaseZoom(dynamicZoom);
         camera.update(player, input, getWidth(), getHeight());

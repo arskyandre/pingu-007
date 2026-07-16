@@ -8,21 +8,27 @@ public class CameraManager {
     public double margemX = 180;
     public double margemY = 120;
 
-    // --- Tremida de câmera (avisos de ataque, impactos, etc.) ---
     private double shakeIntensidade = 0;
     private int shakeTimer = 0;
     private int shakeDuracaoTotal = 0;
     private double shakeOffsetX = 0, shakeOffsetY = 0;
 
-    // --- Foco temporário de câmera (cutscene de entrada na arena, etc.) ---
     private double focoAlvoX, focoAlvoY;
     private int focoTimer = 0;
-    private double focoVelocidade = 0.18; // mais rápido que o acompanhamento normal do player (0.1)
+    private double focoVelocidade = 0.18;
     private boolean foco_indefinido = false;
 
-    // --- Zoom dinâmico (normal vs. foco com zoom-out para caber um retângulo) ---
-    private double zoomBase; // zoom "normal" desejado pelo jogo (atualizado todo frame pelo GameCore)
+    private double zoomBase; // zoom "normal" desejado pelo jogo
     private double zoomFocoAlvo; // zoom alvo enquanto o foco estiver ativo
+
+    // para o boss
+    private boolean combatModeAtivo = false;
+    private double combatX, combatY, combatW, combatH;
+    private double combatVelocidade = 0.08;
+    private double combatPadding = GameCore.tiles_size * 0.75;
+    private double zoomMinimoCombate = 0.4;
+    private boolean letterboxAtivo = false;
+    private double letterboxAspect = 21.0 / 9.0;
 
     public CameraManager(double x, double y, double zoom) {
         this.x = x;
@@ -48,7 +54,34 @@ public class CameraManager {
 
             zoom += (zoomFocoAlvo - zoom) * velocidade;
 
+        } else if (combatModeAtivo) {
+            double minX = Math.min(player.getX(), combatX);
+            double maxX = Math.max(player.getX() + player.getLargura(), combatX + combatW);
+            double minY = Math.min(player.getY(), combatY);
+            double maxY = Math.max(player.getY() + player.getAltura(), combatY + combatH);
+
+            double rectW = maxX - minX;
+            double rectH = maxY - minY;
+            double centerX = (minX + maxX) / 2.0;
+            double centerY = (minY + maxY) / 2.0;
+
+            double alturaVisivel = getAlturaVisivel(telaLargura, telaAltura);
+
+            double neededZoomW = telaLargura / (rectW + combatPadding * 2);
+            double neededZoomH = alturaVisivel / (rectH + combatPadding * 2);
+            double fitZoom = Math.min(neededZoomW, neededZoomH);
+
+            double targetZoom = Math.min(fitZoom, zoomBase);
+            targetZoom = Math.max(targetZoom, zoomMinimoCombate);
+
+            targetX = centerX - (centroTelaX / zoom);
+            targetY = centerY - (centroTelaY / zoom);
+            velocidade = combatVelocidade;
+
+            zoom += (targetZoom - zoom) * velocidade;
+
         } else {
+
             // distancia do mouse para o centro da tela
             double distMouseX = input.getMouseX() - centroTelaX;
             double distMouseY = input.getMouseY() - centroTelaY;
@@ -73,8 +106,6 @@ public class CameraManager {
             targetY = playerCentroY - (centroTelaY / zoom) + (telaOffsetY / zoom);
             velocidade = 0.1;
 
-            // fora do foco, zoom acompanha o zoomBase; se ainda estiver "voltando"
-            // de um foco com zoom-out, suaviza o retorno em vez de saltar
             if (Math.abs(zoom - zoomBase) > 0.0005) {
                 zoom += (zoomBase - zoom) * 0.1;
             } else {
@@ -106,8 +137,6 @@ public class CameraManager {
         }
     }
 
-    // Dispara uma tremida de câmera. Se já tem uma tremida mais forte em andamento,
-    // essa chamada é ignorada para não "suavizar" um impacto grande com um menor.
     public void tremer(double intensidade, int duracaoFrames) {
         if (duracaoFrames <= 0)
             return;
@@ -119,10 +148,21 @@ public class CameraManager {
         }
     }
 
-    // Faz a câmera parar de seguir o player e focar rapidamente em um ponto do
-    // mundo por um tempo (cutscene de entrada na arena do boss, por exemplo).
-    // Ao acabar a duração, ela volta a seguir o player normalmente e suavemente.
-    // Não altera o zoom.
+    public void setLetterboxAtivo(boolean ativo) {
+        this.letterboxAtivo = ativo;
+    }
+
+    public void setLetterboxAspect(double aspect) {
+        this.letterboxAspect = aspect;
+    }
+
+    private double getAlturaVisivel(int telaLargura, int telaAltura) {
+        if (!letterboxAtivo)
+            return telaAltura;
+        double alturaLetterbox = telaLargura / letterboxAspect;
+        return Math.min(telaAltura, alturaLetterbox);
+    }
+
     public void focarEm(double worldX, double worldY, int duracaoFrames, boolean tempo_indefinido) {
         this.foco_indefinido = tempo_indefinido;
         this.focoAlvoX = worldX;
@@ -131,10 +171,6 @@ public class CameraManager {
         this.zoomFocoAlvo = zoomBase; // mantém o zoom normal
     }
 
-    // Igual a focarEm, mas também calcula (e aplica com zoom-out suave) o zoom
-    // necessário para que todo o retângulo dado caiba na tela, com uma margem.
-    // Nunca faz zoom-in além do zoom normal — só reduz o zoom se o retângulo
-    // for maior do que a área visível atual.
     public void focarEmRect(Rectangle2D.Double rect, int duracaoFrames, int telaLargura, int telaAltura,
             boolean tempo_indefinido) {
         this.foco_indefinido = tempo_indefinido;
@@ -145,12 +181,11 @@ public class CameraManager {
         this.focoAlvoY = centerY;
         this.focoTimer = duracaoFrames;
 
-        double padding = GameCore.tiles_size * 2; // margem ao redor da(s) parede(s)
+        double padding = GameCore.tiles_size * 2;
         double neededZoomW = telaLargura / (rect.width + padding * 2);
         double neededZoomH = telaAltura / (rect.height + padding * 2);
         double fitZoom = Math.min(neededZoomW, neededZoomH);
 
-        // só reduz o zoom quando necessário; nunca ultrapassa o zoom normal
         this.zoomFocoAlvo = Math.min(fitZoom, zoomBase);
     }
 
@@ -163,9 +198,33 @@ public class CameraManager {
         return focoTimer > 0;
     }
 
+    public void setCombatTarget(double bossX, double bossY, double bossWidth, double bossHeight) {
+        this.combatModeAtivo = true;
+        this.combatX = bossX;
+        this.combatY = bossY;
+        this.combatW = bossWidth;
+        this.combatH = bossHeight;
+    }
+
+    public void clearCombatTarget() {
+        this.combatModeAtivo = false;
+    }
+
+    public boolean isCombatModeAtivo() {
+        return combatModeAtivo;
+    }
+
+    public void setZoomMinimoCombate(double zoomMinimo) {
+        this.zoomMinimoCombate = zoomMinimo;
+    }
+
+    public void setCombatPadding(double padding) {
+        this.combatPadding = padding;
+    }
+
     public boolean onScreen(double objX, double objY, double objW, double objH, int telaLargura, int telaAltura) {
         // Calcula os limites reais da visão da câmera no mundo, considerando o zoom
-        // e a tremida atual (usando getX()/getY() em vez do campo direto)
+        // e a tremida atual
         double viewLeft = getX();
         double viewTop = getY();
         double viewRight = viewLeft + (telaLargura / this.zoom);

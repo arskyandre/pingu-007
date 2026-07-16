@@ -187,10 +187,12 @@ public class Renderer {
         if (GameCore.getGameState() == GameState.CUTSCENE)
             cutsceneManager.draw(g2, telaLargura, telaAltura, delta);
         if (cinematicBorder > 0) {
+            camera.setLetterboxAtivo(true);
             g2.setColor(Color.BLACK);
             g2.fillRect(0, 0, telaLargura, (int) cinematicBorder);
             g2.fillRect(0, telaAltura - (int) cinematicBorder, telaLargura, (int) cinematicBorder);
-        }
+        } else
+            camera.setLetterboxAtivo(false);
 
         if (dialogueManager != null && dialogueManager.isAtivo()) {
             dialogueManager.renderizar(g2, telaLargura, telaAltura);

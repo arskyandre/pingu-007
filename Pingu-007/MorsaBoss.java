@@ -91,6 +91,10 @@ public class MorsaBoss extends Enemy {
         podeRugir = set;
     }
 
+    public boolean isPodeRugir() {
+        return podeRugir;
+    }
+
     /**
      * Usado exclusivamente durante a cutscene de entrada do boss. Cuida
      * apenas do rugido/tremida da câmera — nunca mira no player, nunca
