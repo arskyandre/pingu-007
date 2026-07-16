@@ -9,7 +9,7 @@ import javax.imageio.ImageIO;
 
 public class LoadSave {
 
-    public static final String LEVEL_ATLAS = "tile_set.png";
+    public static final String LEVEL_ATLAS = "images/tile_set.png";
     public static final String LEVEL_1_DATA = "LEVEL_1_DATA.json";
     public static final String LEVEL_2_DATA = "LEVEL_2_DATA.tmj";
 

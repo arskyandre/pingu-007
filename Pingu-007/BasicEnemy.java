@@ -26,7 +26,7 @@ public class BasicEnemy extends Enemy {
         this.hurtbox = new Collider(0, 0, width, height);
         this.hitbox = new Collider(4, 4, width - 8, height - 8);
 
-        BufferedImage img = LoadSave.GetSpriteAtlas("lobo_sprite_sheet.png");
+        BufferedImage img = LoadSave.GetSpriteAtlas("images/enemy/lobo_sprite_sheet.png");
         Sprites = new BufferedImage[7];
         for (int j = 0; j < 7; j++) {
             Sprites[j] = img.getSubimage(j * 16, 0, 16, 16);

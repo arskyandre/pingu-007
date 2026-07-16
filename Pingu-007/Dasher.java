@@ -45,7 +45,7 @@ public class Dasher extends Enemy {
         this.hitbox = new Collider(4, 4, width - 8, height - 8);
         this.cor = Color.CYAN;
 
-        BufferedImage img = LoadSave.GetSpriteAtlas("narval_sprite_sheet.png");
+        BufferedImage img = LoadSave.GetSpriteAtlas("images/enemy/narval_sprite_sheet.png");
         Sprites = new BufferedImage[10];
         for (int j = 0; j < 2; j++) {
             for (int i = 0; i < 4; i++) {

@@ -49,7 +49,7 @@ public class MorsaBoss extends Enemy {
         this.yHome = startY;
 
         // Inicializando o sistema de Sprites
-        BufferedImage img = LoadSave.GetSpriteAtlas("MorsaBoss-Sheet.png");
+        BufferedImage img = LoadSave.GetSpriteAtlas("images/enemy/MorsaBoss-Sheet.png");
         Sprites = new BufferedImage[10];
         for (int j = 0; j < 10; j++) {
             Sprites[j] = img.getSubimage(j * 96, 0, 96, 96);

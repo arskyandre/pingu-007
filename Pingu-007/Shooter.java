@@ -52,7 +52,7 @@ public class Shooter extends Enemy {
 
         this.cor = Color.RED;
 
-        BufferedImage img = LoadSave.GetSpriteAtlas("teste.png");
+        BufferedImage img = LoadSave.GetSpriteAtlas("images/enemy/shooter.png");
         Sprites = new BufferedImage[5];
         arma = new BufferedImage[2];
         Sprites[0] = img.getSubimage(0, 0, 20, 20);

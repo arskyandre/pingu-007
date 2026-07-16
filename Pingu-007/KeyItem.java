@@ -11,7 +11,7 @@ public class KeyItem extends Item {
     public KeyItem(double x, double y) {
         super(x, y, 32, 32);
 
-        String nomeDoAtlas = "tile_set.png";
+        String nomeDoAtlas = "images/tile_set.png";
         BufferedImage atlas = LoadSave.GetSpriteAtlas(nomeDoAtlas);
 
         int colunasNoAtlas = 14;

@@ -50,7 +50,7 @@ public class Bomber extends Enemy {
         this.hurtbox = new Collider(0, 0, width, height);
         this.hitbox = new Collider(4, 4, width - 8, height - 8);
 
-        BufferedImage img = LoadSave.GetSpriteAtlas("nineeleven_sprite_sheet.png");
+        BufferedImage img = LoadSave.GetSpriteAtlas("images/enemy/nineeleven_sprite_sheet.png");
         Sprites = new BufferedImage[23];
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 7; j++) {

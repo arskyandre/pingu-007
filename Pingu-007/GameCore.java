@@ -38,7 +38,7 @@ public class GameCore extends Canvas implements Runnable {
     private static final int INTRO_PRE_DELAY_FRAMES = 60;
 
     public static BufferedImage cellphone_image = LoadSave.GetSpriteAtlas("images/portrait/cellphone.png");
-    public static BufferedImage pingu_portrait = LoadSave.GetSpriteAtlas("pingu_portrait_close.jpg");
+    public static BufferedImage pingu_portrait = LoadSave.GetSpriteAtlas("images/portrait/pingu_portrait_close.jpg");
     public static BufferedImage pescador_portrait = LoadSave.GetSpriteAtlas("images/portrait/pescador_portrait.png");
 
     public static Font pixelFont;
@@ -817,7 +817,8 @@ public class GameCore extends Canvas implements Runnable {
         Toolkit.getDefaultToolkit().setDynamicLayout(false);
         game.frame = new JFrame("Pingu 007 (ALPHA)");
         game.frame.setIconImage(
-                LoadSave.GetSpriteAtlas("pingu_portrait_close.jpg").getScaledInstance(64, 64, Image.SCALE_SMOOTH));
+                pingu_portrait.getScaledInstance(64, 64,
+                        Image.SCALE_SMOOTH));
         game.frame.add(game);
         game.frame.pack();
         game.frame.setLocationRelativeTo(null);

@@ -10,7 +10,7 @@ public class HealthPackItem extends ConsumableItem {
 
     public HealthPackItem(double x, double y) {
         this(x, y, 15);
-        String nomeDoAtlas = "tile_set.png";
+        String nomeDoAtlas = "images/tile_set.png";
         BufferedImage atlas = LoadSave.GetSpriteAtlas(nomeDoAtlas);
 
         int colunasNoAtlas = 14;

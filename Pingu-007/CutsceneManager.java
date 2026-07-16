@@ -65,7 +65,7 @@ public class CutsceneManager {
                 "... : Você ousou desafiar o meu domínio e eliminar meus homens.",
                 "... : Sua missão termina aqui, Pingu. Prepare-se para dar adeus a esse mundo!"
         };
-        morsaFalaSprite = LoadSave.GetSpriteAtlas("morsa_portrait.png");
+        morsaFalaSprite = LoadSave.GetSpriteAtlas("images/portrait/morsa_portrait.png");
         System.out.println(morsaFalaSprite);
     }
 
@@ -87,7 +87,7 @@ public class CutsceneManager {
         bossIntroState = BossIntroState.DIALOGUE;
         enemyManager = EM;
         dialogueManager.iniciarDialogo(falasBossIntro,
-                new BufferedImage[] { morsaFalaSprite}, true);
+                new BufferedImage[] { morsaFalaSprite }, true);
         blackBarProgress = 0.0;
         this.timer = 0;
         this.bossIntroPlayer = player;

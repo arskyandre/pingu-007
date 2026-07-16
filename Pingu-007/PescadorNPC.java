@@ -38,7 +38,7 @@ public class PescadorNPC extends NPC {
                 "PESCADOR: Boa jornada, agente!" };
         Yfinal = y;
         this.y = Yfinal + 40;
-        Sprite = LoadSave.GetSpriteAtlas("pescador.png");
+        Sprite = LoadSave.GetSpriteAtlas("images/npc/pescador.png");
     }
 
     @Override

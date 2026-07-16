@@ -44,12 +44,8 @@ public class DialogueManager {
       System.err.println("nao encontrou font/PressStart2P-Regular.ttf.");
       pixelFont = new Font("Courier New", Font.BOLD, 18);
     }
-    try {
-      rostoFechado = ImageIO.read(new File("pingu_portrait_close.jpg"));
-      rostoAberto = ImageIO.read(new File("pingu_portrait_close.jpg"));
-    } catch (IOException e) {
-      System.out.println("Aviso: Imagens de retrato não encontradas. Usando retângulos de teste.");
-    }
+    rostoFechado = GameCore.pingu_portrait;
+    rostoAberto = GameCore.pingu_portrait;
   }
 
   public void iniciarDialogo(String[] texto, boolean tocarSomDeEscrita) {

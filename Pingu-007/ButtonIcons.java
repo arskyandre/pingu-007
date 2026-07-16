@@ -4,10 +4,10 @@ public class ButtonIcons {
     private static BufferedImage img;
     static {
         try {
-            img = LoadSave.GetSpriteAtlas("button_icons.png");
+            img = LoadSave.GetSpriteAtlas("images/hud/button_icons.png");
 
         } catch (Exception e) {
-            System.err.println("Erro ao carregar button_icons.png: " + e.getMessage());
+            System.err.println("Erro ao carregar images/hud/button_icons.png: " + e.getMessage());
         }
     }
 

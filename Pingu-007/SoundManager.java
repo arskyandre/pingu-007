@@ -220,7 +220,7 @@ public class SoundManager {
     private BGM currentTrack = null;
     // private float musicVolume = 0f;
     private float musicVolume = 0.35f;
-    private float sfxVolume = 0.4f;
+    private float sfxVolume = 0.5f;
 
     private Thread dialogueThread;
     private volatile boolean dialogueAtiva = false;

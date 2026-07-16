@@ -84,7 +84,7 @@ public class Player extends Entity {
         this.vidaMaxima = 50;
         this.vida = this.vidaMaxima;
 
-        BufferedImage img = LoadSave.GetSpriteAtlas("pingu_sprite_sheet.png");
+        BufferedImage img = LoadSave.GetSpriteAtlas("images/pingu_sprite_sheet.png");
 
         Sprites = new BufferedImage[24];
         for (int j = 0; j < 3; j++) {

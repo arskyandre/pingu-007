@@ -31,7 +31,7 @@ public class MainMenu {
                 BTN_H);
 
         try {
-            background = ImageIO.read(new File("menu_background.png"));
+            background = ImageIO.read(new File("images/hud/menu_background.png"));
         } catch (Exception e) {
             System.err.println("menu_background.png not found");
         }
