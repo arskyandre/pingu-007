@@ -401,6 +401,10 @@ public class DialogueManager {
   }
 
   public void iniciarEscolha(String pergunta, String[] opcoes, EscolhaListener listener) {
+    iniciarEscolha(pergunta, opcoes, 0, listener);
+  }
+
+  public void iniciarEscolha(String pergunta, String[] opcoes, int escolhaInicial, EscolhaListener listener) {
     this.falas = new String[] { pergunta };
     this.sonsAtual = null;
     this.retratosAtual = null;
@@ -410,7 +414,7 @@ public class DialogueManager {
     this.ultimoFrameTempo = System.currentTimeMillis();
     this.rostoTemporario = null;
     this.opcoesEscolha = opcoes;
-    this.escolhaSelecionada = 0;
+    this.escolhaSelecionada = Math.max(0, Math.min(escolhaInicial, opcoes.length - 1));
     this.escolhaListener = listener;
     this.isEscolha = true;
     this.modoEscolha = false;
@@ -420,6 +424,11 @@ public class DialogueManager {
   }
 
   public void iniciarEscolha(String pergunta, String[] opcoes, BufferedImage retrato, EscolhaListener listener) {
+    iniciarEscolha(pergunta, opcoes, retrato, 0, listener);
+  }
+
+  public void iniciarEscolha(String pergunta, String[] opcoes, BufferedImage retrato, int escolhaInicial,
+      EscolhaListener listener) {
     this.falas = new String[] { pergunta };
     this.sonsAtual = null;
     this.retratosAtual = null;
@@ -429,7 +438,7 @@ public class DialogueManager {
     this.ultimoFrameTempo = System.currentTimeMillis();
     this.rostoTemporario = retrato;
     this.opcoesEscolha = opcoes;
-    this.escolhaSelecionada = 0;
+    this.escolhaSelecionada = Math.max(0, Math.min(escolhaInicial, opcoes.length - 1));
     this.escolhaListener = listener;
     this.isEscolha = true;
     this.modoEscolha = false;
@@ -439,6 +448,11 @@ public class DialogueManager {
   }
 
   public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[][] sons, EscolhaListener listener) {
+    iniciarEscolha(pergunta, opcoes, sons, 0, listener);
+  }
+
+  public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[][] sons, int escolhaInicial,
+      EscolhaListener listener) {
     this.falas = new String[] { pergunta };
     this.sonsAtual = sons;
     this.retratosAtual = null;
@@ -448,7 +462,7 @@ public class DialogueManager {
     this.ultimoFrameTempo = System.currentTimeMillis();
     this.rostoTemporario = null;
     this.opcoesEscolha = opcoes;
-    this.escolhaSelecionada = 0;
+    this.escolhaSelecionada = Math.max(0, Math.min(escolhaInicial, opcoes.length - 1));
     this.escolhaListener = listener;
     this.isEscolha = true;
     this.modoEscolha = false;
@@ -459,6 +473,11 @@ public class DialogueManager {
 
   public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[][] sons, BufferedImage retrato,
       EscolhaListener listener) {
+    iniciarEscolha(pergunta, opcoes, sons, retrato, 0, listener);
+  }
+
+  public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[][] sons, BufferedImage retrato,
+      int escolhaInicial, EscolhaListener listener) {
     this.falas = new String[] { pergunta };
     this.sonsAtual = sons;
     this.retratosAtual = null;
@@ -468,7 +487,7 @@ public class DialogueManager {
     this.ultimoFrameTempo = System.currentTimeMillis();
     this.rostoTemporario = retrato;
     this.opcoesEscolha = opcoes;
-    this.escolhaSelecionada = 0;
+    this.escolhaSelecionada = Math.max(0, Math.min(escolhaInicial, opcoes.length - 1));
     this.escolhaListener = listener;
     this.isEscolha = true;
     this.modoEscolha = false;

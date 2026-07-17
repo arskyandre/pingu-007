@@ -47,17 +47,17 @@ public class PescadorNPC extends NPC {
     }
 
     private void loopCompra(DialogueManager dialogueManager, Player player) {
-        loopCompra(dialogueManager, player, "Deseja comprar mais iscas?");
+        loopCompra(dialogueManager, player, "Deseja comprar mais iscas?", 0);
     }
 
-    private void loopCompra(DialogueManager dialogueManager, Player player, String pergunta) {
+    private void loopCompra(DialogueManager dialogueManager, Player player, String pergunta, int index) {
         dialogueManager.iniciarEscolha(
                 pergunta,
                 new String[] {
                         "Não",
                         "Comprar 5 Iscas: 10 moedas",
                         "Comprar 10 Iscas: 20 moedas"
-                }, GameCore.pescador_portrait,
+                }, GameCore.pescador_portrait, index,
                 escolha -> {
                     switch (escolha) {
                         case 0 -> dialogueManager.iniciarDialogo(
@@ -71,10 +71,10 @@ public class PescadorNPC extends NPC {
                             if (player.getMoedas() >= 10) {
                                 player.addMoedas(-10);
                                 player.addIscas(5);
-                                loopCompra(dialogueManager, player, "Aqui estão 5 iscas. Mais alguma coisa?");
+                                loopCompra(dialogueManager, player, "Aqui estão 5 iscas. Mais alguma coisa?", 1);
                             } else {
                                 loopCompra(dialogueManager, player,
-                                        "Você não tem moedas suficientes. Ainda deseja algo?");
+                                        "Você não tem moedas suficientes. Ainda deseja algo?", 1);
                             }
                         }
 
@@ -82,10 +82,10 @@ public class PescadorNPC extends NPC {
                             if (player.getMoedas() >= 20) {
                                 player.addMoedas(-20);
                                 player.addIscas(10);
-                                loopCompra(dialogueManager, player, "Aqui estão 10 iscas. Mais alguma coisa?");
+                                loopCompra(dialogueManager, player, "Aqui estão 10 iscas. Mais alguma coisa?", 2);
                             } else {
                                 loopCompra(dialogueManager, player,
-                                        "Você não tem moedas suficientes. Ainda deseja algo?");
+                                        "Você não tem moedas suficientes. Ainda deseja algo?", 2);
                             }
                         }
                     }
