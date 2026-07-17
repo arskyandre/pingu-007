@@ -2,6 +2,7 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 
 public class PescadorNPC extends NPC {
 
@@ -45,6 +46,76 @@ public class PescadorNPC extends NPC {
         Sprite = LoadSave.GetSpriteAtlas("images/npc/pescador.png");
     }
 
+    private void loopCompra(DialogueManager dialogueManager, Player player) {
+        dialogueManager.iniciarEscolha(
+                "Deseja comprar mais iscas?",
+                new String[] {
+                        "Não",
+                        "Comprar 5 Iscas: 10 moedas",
+                        "Comprar 10 Iscas: 15 moedas"
+                }, GameCore.pescador_portrait,
+                escolha -> {
+                    switch (escolha) {
+                        case 0 -> dialogueManager.iniciarDialogo(
+                                new String[] {
+                                        "Tudo bem, quando quiser comprar iscas, estarei aqui!"
+                                },
+                                new BufferedImage[] { GameCore.pescador_portrait },
+                                true);
+
+                        case 1 -> {
+                            if (player.getMoedas() >= 10) {
+                                player.addMoedas(-10);
+                                player.addIscas(5);
+
+                                dialogueManager.iniciarDialogo(
+                                        new String[] { "Aqui estão 5 iscas. Mais alguma coisa?" },
+                                        new BufferedImage[] { GameCore.pescador_portrait },
+                                        true);
+
+                                dialogueManager.setAoTerminarDialogo(() -> {
+                                    loopCompra(dialogueManager, player);
+                                });
+                            } else {
+                                dialogueManager.iniciarDialogo(
+                                        new String[] { "Você não tem moedas suficientes." },
+                                        new BufferedImage[] { GameCore.pescador_portrait },
+                                        true);
+
+                                dialogueManager.setAoTerminarDialogo(() -> {
+                                    loopCompra(dialogueManager, player);
+                                });
+                            }
+                        }
+
+                        case 2 -> {
+                            if (player.getMoedas() >= 15) {
+                                player.addMoedas(-15);
+                                player.addIscas(10);
+
+                                dialogueManager.iniciarDialogo(
+                                        new String[] { "Aqui estão 10 iscas. Mais alguma coisa?" },
+                                        new BufferedImage[] { GameCore.pescador_portrait },
+                                        true);
+
+                                dialogueManager.setAoTerminarDialogo(() -> {
+                                    loopCompra(dialogueManager, player);
+                                });
+                            } else {
+                                dialogueManager.iniciarDialogo(
+                                        new String[] { "Você não tem moedas suficientes." },
+                                        new BufferedImage[] { GameCore.pescador_portrait },
+                                        true);
+
+                                dialogueManager.setAoTerminarDialogo(() -> {
+                                    loopCompra(dialogueManager, player);
+                                });
+                            }
+                        }
+                    }
+                });
+    }
+
     @Override
     public void update(Player player, InputManager input,
             DialogueManager dialogueManager, ItemManager itemManager) {
@@ -62,6 +133,10 @@ public class PescadorNPC extends NPC {
                         else
                             dialogueManager.iniciarDialogo(dialogo2_noKey, DialogueCatalogo.PescadorFala2_noKey,
                                     new BufferedImage[] { GameCore.pescador_portrait }, true);
+
+                        dialogueManager.setAoTerminarDialogo(() -> {
+                            loopCompra(dialogueManager, player);
+                        });
                         laEle = true;
                     } else {
 
@@ -69,8 +144,6 @@ public class PescadorNPC extends NPC {
                                 new BufferedImage[] { GameCore.pescador_portrait }, true);
                         dialogueManager.setAoTerminarDialogo(() -> {
                             player.addIscas(5);
-                            ToastNotifications.RequestNotification(
-                                    "DICA: Pressione o botão direito do mouse para fisgar inimigos.");
 
                         });
                     }

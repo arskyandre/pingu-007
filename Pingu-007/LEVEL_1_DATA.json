@@ -6344,10 +6344,43 @@
                  "width":0,
                  "x":3280,
                  "y":1474
+                }, 
+                {
+                 "height":0,
+                 "id":838,
+                 "name":"",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"enemy",
+                         "type":"string",
+                         "value":"shooter"
+                        }, 
+                        {
+                         "name":"horda",
+                         "type":"int",
+                         "value":1
+                        }, 
+                        {
+                         "name":"id_arena",
+                         "type":"int",
+                         "value":2
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"spawner"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":319,
+                 "y":809.5
                 }],
          "opacity":1,
          "type":"objectgroup",
-         "visible":false,
+         "visible":true,
          "x":0,
          "y":0
         }, 
@@ -15640,7 +15673,7 @@
          "y":0
         }],
  "nextlayerid":24,
- "nextobjectid":838,
+ "nextobjectid":839,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

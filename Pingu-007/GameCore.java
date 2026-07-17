@@ -220,6 +220,7 @@ public class GameCore extends Canvas implements Runnable {
                 }
                 if (dialogueManager.isAtivo()) {
                     dialogueManager.atualizar(input);
+                    camera.update(player, input, getWidth(), getHeight());
                 } else {
                     if (introDialogoAtiva) {
                         introDialogoAtiva = false;
@@ -251,7 +252,8 @@ public class GameCore extends Canvas implements Runnable {
                 player.setEmDash(false);
                 if (dialogueManager.isAtivo()) {
                     dialogueManager.atualizar(input);
-                    // camera.update(player, input, getWidth(), getHeight()); dar um jeito de fazer
+                    camera.update(player, input, getWidth(), getHeight());
+                    // dar um jeito de fazer
                     // a camera nao seguir o mouse no update, apenas para arrumar a posicao da
                     // camera caso o tamanho da tela mude durante o dialogo
                 }
@@ -312,7 +314,7 @@ public class GameCore extends Canvas implements Runnable {
                     }, true);
             dialogueManager.setAoTerminarDialogo(() -> {
                 ToastNotifications.RequestNotification("Use as setas para selecionar a opção e ENTER para confirmar.",
-                        2.0);
+                        10.0);
                 dialogueManager.iniciarEscolha("RADIO: Deseja ouvir o protocolo novamente, Pingu?",
                         new String[] { "Não", "Sim" }, cellphone_image, escolha -> {
                             ToastNotifications.skipNotification();
@@ -397,6 +399,7 @@ public class GameCore extends Canvas implements Runnable {
             double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
             double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
             itemManager.spawn(new FishingRodItem(mouseXWorld, mouseYWorld));
+            player.addIscas(5);
             System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
             debugSpawnCooldown = 30;
         }

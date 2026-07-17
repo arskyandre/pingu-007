@@ -9,6 +9,12 @@ public class MoedaItem extends ConsumableItem {
 
     public MoedaItem(double x, double y) {
         this(x, y, 5);
+
+    }
+
+    public MoedaItem(double x, double y, int qtd) {
+        super(x, y, 32, 32);
+        quantidade = qtd;
         String nomeDoAtlas = "images/tile_set.png";
         BufferedImage atlas = LoadSave.GetSpriteAtlas(nomeDoAtlas);
 
@@ -21,11 +27,6 @@ public class MoedaItem extends ConsumableItem {
         if (atlas != null) {
             sprite = atlas.getSubimage(col * 16, row * 16, 16, 16);
         }
-    }
-
-    public MoedaItem(double x, double y, int quantidade) {
-        super(x, y, 32, 32);
-        this.quantidade = quantidade;
     }
 
     @Override

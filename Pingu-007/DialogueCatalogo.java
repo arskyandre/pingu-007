@@ -256,7 +256,76 @@ public class DialogueCatalogo {
                                         SoundManager.SFX.KATAKANA_YA
                         },
                         new SoundManager.SFX[] {
-                                        null
+                                        SoundManager.SFX.KATAKANA_SE,
+
+                                        SoundManager.SFX.KATAKANA_BO, SoundManager.SFX.KATAKANA_BE,
+                                        SoundManager.SFX.KATAKANA_A, SoundManager.SFX.KATAKANA_RU,
+
+                                        null, null,
+
+                                        SoundManager.SFX.KATAKANA_BO, SoundManager.SFX.KATAKANA_SE,
+
+                                        SoundManager.SFX.KATAKANA_KO, SoundManager.SFX.KATAKANA_N,
+                                        SoundManager.SFX.KATAKANA_SE, SoundManager.SFX.KATAKANA_GE,
+
+                                        SoundManager.SFX.KATAKANA_A, SoundManager.SFX.KATAKANA_TE,
+
+                                        SoundManager.SFX.KATAKANA_FI, SoundManager.SFX.KATAKANA_ZU,
+                                        SoundManager.SFX.KATAKANA_GA, SoundManager.SFX.KATAKANA_RU,
+
+                                        SoundManager.SFX.KATAKANA_U, SoundManager.SFX.KATAKANA_N,
+
+                                        SoundManager.SFX.KATAKANA_I, SoundManager.SFX.KATAKANA_NI,
+                                        SoundManager.SFX.KATAKANA_MI, SoundManager.SFX.KATAKANA_GO,
+
+                                        SoundManager.SFX.KATAKANA_E,
+
+                                        SoundManager.SFX.KATAKANA_TO, SoundManager.SFX.KATAKANA_RA,
+                                        SoundManager.SFX.KATAKANA_ZE, SoundManager.SFX.KATAKANA_RU,
+
+                                        SoundManager.SFX.KATAKANA_E, SoundManager.SFX.KATAKANA_RI,
+
+                                        SoundManager.SFX.KATAKANA_PU, SoundManager.SFX.KATAKANA_RA,
+
+                                        SoundManager.SFX.KATAKANA_PE, SoundManager.SFX.KATAKANA_RU,
+                                        SoundManager.SFX.KATAKANA_TO,
+
+                                        null, null,
+
+                                        SoundManager.SFX.KATAKANA_NA, SoundManager.SFX.KATAKANA_O,
+
+                                        SoundManager.SFX.KATAKANA_TE, SoundManager.SFX.KATAKANA_NYO,
+
+                                        SoundManager.SFX.KATAKANA_A,
+
+                                        SoundManager.SFX.KATAKANA_KO, SoundManager.SFX.KATAKANA_RA,
+                                        SoundManager.SFX.KATAKANA_JE, SoundManager.SFX.KATAKANA_N,
+
+                                        SoundManager.SFX.KATAKANA_PU, SoundManager.SFX.KATAKANA_RA,
+
+                                        SoundManager.SFX.KATAKANA_TE, SoundManager.SFX.KATAKANA_SU,
+                                        SoundManager.SFX.KATAKANA_TA, SoundManager.SFX.KATAKANA_RU,
+
+                                        null,
+
+                                        SoundManager.SFX.KATAKANA_E, SoundManager.SFX.KATAKANA_N,
+                                        SoundManager.SFX.KATAKANA_TA, SoundManager.SFX.KATAKANA_O,
+                                        null,
+                                        SoundManager.SFX.KATAKANA_SE,
+
+                                        SoundManager.SFX.KATAKANA_FO, SoundManager.SFX.KATAKANA_N,
+                                        SoundManager.SFX.KATAKANA_SI, SoundManager.SFX.KATAKANA_O,
+                                        SoundManager.SFX.KATAKANA_NA, SoundManager.SFX.KATAKANA_RU,
+
+                                        null,
+                                        SoundManager.SFX.KATAKANA_ME,
+
+                                        SoundManager.SFX.KATAKANA_KO, SoundManager.SFX.KATAKANA_N,
+                                        SoundManager.SFX.KATAKANA_TA,
+
+                                        SoundManager.SFX.KATAKANA_DE, SoundManager.SFX.KATAKANA_PO,
+                                        SoundManager.SFX.KATAKANA_I, SoundManager.SFX.KATAKANA_SU
+
                         },
                         new SoundManager.SFX[] {
                                         // OUVI
@@ -381,7 +450,101 @@ public class DialogueCatalogo {
 
                                         // LA
                                         SoundManager.SFX.KATAKANA_RA,
+                        },
+                        new SoundManager.SFX[] {
+                                        null,
+                        },
+                        new SoundManager.SFX[] {
+                                        SoundManager.SFX.KATAKANA_A,
+                                        null, null,
+                                        SoundManager.SFX.KATAKANA_KWA, SoundManager.SFX.KATAKANA_ZE,
+
+                                        // "me esqueci"
+                                        SoundManager.SFX.KATAKANA_ME, SoundManager.SFX.KATAKANA_I,
+                                        SoundManager.SFX.KATAKANA_SU, SoundManager.SFX.KATAKANA_KE,
+                                        SoundManager.SFX.KATAKANA_SI,
+
+                                        null, null,
+
+                                        // "Você vai precisar"
+                                        SoundManager.SFX.KATAKANA_BO,
+                                        SoundManager.SFX.KATAKANA_SE,
+                                        SoundManager.SFX.KATAKANA_BA,
+                                        SoundManager.SFX.KATAKANA_I,
+                                        SoundManager.SFX.KATAKANA_PE,
+                                        SoundManager.SFX.KATAKANA_RE,
+                                        SoundManager.SFX.KATAKANA_SI,
+                                        SoundManager.SFX.KATAKANA_ZA,
+                                        SoundManager.SFX.KATAKANA_RU,
+
+                                        // "de iscas"
+                                        SoundManager.SFX.KATAKANA_DE,
+                                        SoundManager.SFX.KATAKANA_I,
+                                        SoundManager.SFX.KATAKANA_SU,
+                                        SoundManager.SFX.KATAKANA_KA,
+                                        SoundManager.SFX.KATAKANA_SU,
+
+                                        // "para pescar"
+                                        SoundManager.SFX.KATAKANA_PA,
+                                        SoundManager.SFX.KATAKANA_RA,
+                                        SoundManager.SFX.KATAKANA_PE,
+                                        SoundManager.SFX.KATAKANA_SU,
+                                        SoundManager.SFX.KATAKANA_KA,
+                                        SoundManager.SFX.KATAKANA_RU,
+
+                                        null, null,
+
+                                        // "Tome 5 de graça"
+                                        SoundManager.SFX.KATAKANA_TO,
+                                        SoundManager.SFX.KATAKANA_ME,
+                                        SoundManager.SFX.KATAKANA_SI,
+                                        SoundManager.SFX.KATAKANA_N,
+                                        SoundManager.SFX.KATAKANA_KO,
+                                        SoundManager.SFX.KATAKANA_DE,
+                                        SoundManager.SFX.KATAKANA_GU,
+                                        SoundManager.SFX.KATAKANA_RA,
+                                        SoundManager.SFX.KATAKANA_SA,
+
+                                        // "para começar"
+                                        SoundManager.SFX.KATAKANA_PA,
+                                        SoundManager.SFX.KATAKANA_RA,
+                                        SoundManager.SFX.KATAKANA_KO,
+                                        SoundManager.SFX.KATAKANA_ME,
+                                        SoundManager.SFX.KATAKANA_SA,
+                                        SoundManager.SFX.KATAKANA_RU,
+
+                                        null, null,
+
+                                        // "Se acabar"
+                                        SoundManager.SFX.KATAKANA_SE,
+                                        SoundManager.SFX.KATAKANA_A,
+                                        SoundManager.SFX.KATAKANA_KA,
+                                        SoundManager.SFX.KATAKANA_BA,
+                                        SoundManager.SFX.KATAKANA_RU,
+
+                                        null,
+
+                                        // "é só voltar aqui"
+                                        SoundManager.SFX.KATAKANA_SO,
+                                        SoundManager.SFX.KATAKANA_BO,
+                                        SoundManager.SFX.KATAKANA_RU,
+                                        SoundManager.SFX.KATAKANA_TA,
+                                        SoundManager.SFX.KATAKANA_RU,
+                                        SoundManager.SFX.KATAKANA_A,
+                                        SoundManager.SFX.KATAKANA_KI,
+
+                                        // "que eu vendo mais"
+                                        SoundManager.SFX.KATAKANA_KE,
+                                        SoundManager.SFX.KATAKANA_E,
+                                        SoundManager.SFX.KATAKANA_U,
+                                        SoundManager.SFX.KATAKANA_BE,
+                                        SoundManager.SFX.KATAKANA_N,
+                                        SoundManager.SFX.KATAKANA_DO,
+                                        SoundManager.SFX.KATAKANA_MA,
+                                        SoundManager.SFX.KATAKANA_I,
+                                        SoundManager.SFX.KATAKANA_SU
                         }
+
         };
 
         // separador
