@@ -545,7 +545,6 @@
         {
          "draworder":"topdown",
          "id":4,
-         "locked":true,
          "name":"Spawners",
          "objects":[
                 {
@@ -563,8 +562,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":672,
-                 "y":1264
+                 "x":671,
+                 "y":1323
                 }, 
                 {
                  "height":65.0007,
@@ -607,6 +606,7 @@
         {
          "draworder":"topdown",
          "id":10,
+         "locked":true,
          "name":"Triggers",
          "objects":[
                 {

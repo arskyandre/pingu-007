@@ -1,6 +1,7 @@
 
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -19,8 +20,12 @@ public class Hud {
     private static final int AMMO_BAR_MARGIN = 16;
 
     private boolean animateChave = false;
-
+    private boolean jaPegouChave = false;
+    private boolean jaPegouMoeda = false;
+    private boolean jaPegouIsca = false;
     private BufferedImage heartSheet = null;
+    private BufferedImage moedaSprite[] = null;
+    private BufferedImage iscaSprite[] = null;
     private BufferedImage chaveSprite[] = null;
 
     // ── Partículas ──────────────────────────────────────────────────────────────
@@ -52,6 +57,15 @@ public class Hud {
             System.err.println("Erro ao carregar heart_sprites.png: " + e.getMessage());
         }
         try {
+            BufferedImage base = LoadSave.GetSpriteAtlas("images/hud/moedasprite.png");
+            moedaSprite = new BufferedImage[2];
+            for (int i = 0; i < 2; i++) {
+                moedaSprite[i] = base.getSubimage(i * 16, 0, 16, 16);
+            }
+        } catch (Exception e) {
+            System.err.println("Erro ao carregar moedasprite.png: " + e.getMessage());
+        }
+        try {
             BufferedImage base = LoadSave.GetSpriteAtlas("images/hud/chavesprite.png");
             chaveSprite = new BufferedImage[2];
             for (int i = 0; i < 2; i++) {
@@ -59,6 +73,15 @@ public class Hud {
             }
         } catch (Exception e) {
             System.err.println("Erro ao carregar chavesprite.png: " + e.getMessage());
+        }
+        try {
+            BufferedImage base = LoadSave.GetSpriteAtlas("images/hud/iscasprite.png");
+            iscaSprite = new BufferedImage[2];
+            for (int i = 0; i < 2; i++) {
+                iscaSprite[i] = base.getSubimage(i * 16, 0, 16, 16);
+            }
+        } catch (Exception e) {
+            System.err.println("Erro ao carregar iscasprite.png: " + e.getMessage());
         }
         try {
             Font base = Font.createFont(Font.TRUETYPE_FONT, new File("font/PressStart2P-Regular.ttf"));
@@ -83,9 +106,20 @@ public class Hud {
         updateAndDrawParticles(g2, delta, offset);
         healthbar_inimigos(g2, telaLargura, telaAltura, camera, em);
         player_hearts(g2, p, offset);
-        if (!GameCore.isLevel2())
-            desenha_chaves(g2, p, telaLargura, telaAltura, offset);
+        if (!GameCore.isLevel2()) {
+            desenha_chaves(g2, p, telaLargura, telaAltura, offset, delta);
+            desenha_moedas_e_isca(g2, p, telaLargura, telaAltura, offset, delta);
+        }
         ammobar(g2, telaLargura, telaAltura, p, offset);
+    }
+
+    public void resetJaPegou() {
+        chaveAlpha = 0;
+        moedaAlpha = 0;
+        iscaAlpha = 0.0;
+        jaPegouIsca = false;
+        jaPegouChave = false;
+        jaPegouMoeda = false;
     }
 
     public void ammobar(Graphics2D g2, int telaLargura, int telaAltura, Player p, int offset) {
@@ -253,15 +287,32 @@ public class Hud {
         }
     }
 
-    public void desenha_chaves(Graphics2D g2, Player p, int telaLargura, int telaAltura, int offset) {
-        if (chaveSprite == null || p.getChaves() <= 0) {
+    private double chaveAlpha = 0.0;
+
+    public void desenha_chaves(Graphics2D g2, Player p, int telaLargura, int telaAltura, int offset, double delta) {
+        if (chaveSprite == null) {
             return;
         }
 
         int chaves = p.getChaves();
+        if (chaves > 0)
+            jaPegouChave = true;
+        double chaveAlphaTarget = (jaPegouChave) ? 1.0 : 0.0;
+        double chave_fade_duracao = 0.75;
+        double chaveAlphaFadeSpeed = 1.0 / chave_fade_duracao;
+        if (chaveAlpha < chaveAlphaTarget) {
+            chaveAlpha = Math.min(chaveAlphaTarget, chaveAlpha + chaveAlphaFadeSpeed * delta);
+        } else if (chaveAlpha > chaveAlphaTarget) {
+            chaveAlpha = Math.max(chaveAlphaTarget, chaveAlpha - chaveAlphaFadeSpeed * delta);
+        }
+        if (chaveAlpha <= 0.0)
+            return;
         int chavesMax = 3; // mudar caso exista mais chave no jogo
         int iconSize = 32;
-
+        Composite oldComposite = g2.getComposite();
+        g2.setComposite(AlphaComposite.getInstance(
+                AlphaComposite.SRC_OVER,
+                (float) chaveAlpha));
         for (int i = 0; i < chavesMax; i++) {
             int drawX = iconSize / 2 + 16 + i * (iconSize + HEART_GAP);
 
@@ -269,17 +320,112 @@ public class Hud {
             g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
 
             // preenche da direita pra esquerda conforme as chaves sao coletadas
+            g2.drawImage(chaveSprite[0], drawX + 2, telaAltura - iconSize - 16 - offset + 2, iconSize, iconSize,
+                    null);
             if (i < chaves) {
                 g2.drawImage(chaveSprite[1], drawX, telaAltura - iconSize - 16 - offset, iconSize, iconSize, null);
-            } else {
-                g2.drawImage(chaveSprite[0], drawX, telaAltura - iconSize - 16 - offset, iconSize, iconSize, null);
             }
+
         }
         int drawX = iconSize / 2 + 16 + chavesMax * (iconSize + HEART_GAP);
         String ch = Integer.toString(chaves) + "/" + Integer.toString(chavesMax);
         g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 24f));
+        g2.setColor(new Color(0, 0, 0, 160));
+        g2.drawString(ch, drawX + 2, telaAltura - iconSize - 16 - offset + 2);
         g2.setColor(new Color(255, 170, 0));
         g2.drawString(ch, drawX, telaAltura - iconSize - 16 - offset);
+        g2.setComposite(oldComposite);
+    }
+
+    private double moedaAlpha = 0.0;
+    private double iscaAlpha = 0.0;
+
+    public void desenha_moedas_e_isca(Graphics2D g2, Player p, int telaLargura, int telaAltura, int offset,
+            double delta) {
+        if (moedaSprite == null) {
+            return;
+        }
+
+        // ── Fade das moedas ──
+        int moedas = p.getMoedas();
+        if (moedas > 0)
+            jaPegouMoeda = true;
+        double moedaAlphaTarget = (jaPegouMoeda) ? 1.0 : 0.0;
+        double moeda_fade_duracao = 0.75;
+        double moedaAlphaFadeSpeed = 1.0 / moeda_fade_duracao;
+        if (moedaAlpha < moedaAlphaTarget) {
+            moedaAlpha = Math.min(moedaAlphaTarget, moedaAlpha + moedaAlphaFadeSpeed * delta);
+        } else if (moedaAlpha > moedaAlphaTarget) {
+            moedaAlpha = Math.max(moedaAlphaTarget, moedaAlpha - moedaAlphaFadeSpeed * delta);
+        }
+
+        // ── Fade das iscas ──
+        int iscas = p.getIscas();
+        if (iscas > 0)
+            jaPegouIsca = true;
+        double iscaAlphaTarget = (jaPegouIsca) ? 1.0 : 0.0;
+        double isca_fade_duracao = 0.75;
+        double iscaAlphaFadeSpeed = 1.0 / isca_fade_duracao;
+        if (iscaAlpha < iscaAlphaTarget) {
+            iscaAlpha = Math.min(iscaAlphaTarget, iscaAlpha + iscaAlphaFadeSpeed * delta);
+        } else if (iscaAlpha > iscaAlphaTarget) {
+            iscaAlpha = Math.max(iscaAlphaTarget, iscaAlpha - iscaAlphaFadeSpeed * delta);
+        }
+
+        if (moedaAlpha <= 0.0 && iscaAlpha <= 0.0)
+            return;
+
+        int iconSize = 32;
+        int margin = 16;
+        int icon_text_distance = 8;
+        int group_gap = 24; // espaço entre o grupo de iscas e o grupo de moedas
+
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 24f));
+
+        String chMoeda = Integer.toString(moedas);
+        Rectangle2D textBoundsMoeda = g2.getFontMetrics().getStringBounds(chMoeda, g2);
+        int twMoeda = (int) textBoundsMoeda.getWidth();
+        int thMoeda = (int) textBoundsMoeda.getHeight();
+        int moedaDrawX = telaLargura - iconSize - margin - twMoeda - icon_text_distance;
+
+        if (moedaAlpha > 0.0) {
+            Composite oldComposite = g2.getComposite();
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) moedaAlpha));
+            g2.drawImage(moedaSprite[0], moedaDrawX + 2, margin + offset + 2, iconSize, iconSize, null);
+            g2.drawImage(moedaSprite[1], moedaDrawX, margin + offset, iconSize, iconSize, null);
+
+            int textX = moedaDrawX + iconSize + icon_text_distance;
+            int textY = margin + 4 + offset + thMoeda;
+            g2.setColor(new Color(0, 0, 0, 160));
+            g2.drawString(chMoeda, textX + 2, textY + 2);
+            g2.setColor(new Color(255, 170, 0));
+            g2.drawString(chMoeda, textX, textY);
+            g2.setComposite(oldComposite);
+        }
+
+        if (iscaSprite != null && iscaAlpha > 0.0) {
+            String chIsca = Integer.toString(iscas);
+            Rectangle2D textBoundsIsca = g2.getFontMetrics().getStringBounds(chIsca, g2);
+            int twIsca = (int) textBoundsIsca.getWidth();
+            int thIsca = (int) textBoundsIsca.getHeight();
+
+            int iscaDrawX = moedaDrawX - group_gap - iconSize - icon_text_distance - twIsca;
+
+            Composite oldComposite = g2.getComposite();
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) iscaAlpha));
+            g2.drawImage(iscaSprite[0], iscaDrawX + 2, margin + offset + 2, iconSize, iconSize, null);
+            g2.drawImage(iscaSprite[1], iscaDrawX, margin + offset, iconSize, iconSize, null);
+
+            int textX = iscaDrawX + iconSize + icon_text_distance;
+            int textY = margin + 4 + offset + thIsca;
+            g2.setColor(new Color(0, 0, 0, 160));
+            g2.drawString(chIsca, textX + 2, textY + 2);
+            g2.setColor(new Color(156, 81, 46));
+            g2.drawString(chIsca, textX, textY);
+            g2.setComposite(oldComposite);
+        }
     }
 
     // Desenha barra de vida para inimigos que nao estao com a vida cheia

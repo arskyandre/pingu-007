@@ -66,7 +66,6 @@ public class CutsceneManager {
                 "... : Sua missão termina aqui, Pingu. Prepare-se para dar adeus a esse mundo!"
         };
         morsaFalaSprite = LoadSave.GetSpriteAtlas("images/portrait/morsa_portrait.png");
-        System.out.println(morsaFalaSprite);
     }
 
     public static int getDuracaoTotal() {

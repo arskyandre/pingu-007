@@ -28,6 +28,8 @@ public class Player extends Entity {
     private double dashDirY = 0;
 
     private final BulletManager bulletmanager;
+    private int moedas = 0; // TODO: sistema de dinheiro
+    private int iscas = 0; // TODO: sistema de iscas de pesca
     private int armas = 1;
     private int chaves = 0;
     private int pente = 15;
@@ -469,12 +471,23 @@ public class Player extends Entity {
 
     public void addMunicao(int qtd) {
         municao += qtd;
-        System.out.println("coletou " + String.valueOf(qtd) + " total: " + String.valueOf(municao));
+        System.out.println("coletou " + String.valueOf(qtd) + "municao, total: " + String.valueOf(municao));
+    }
+
+    public void addMoedas(int qtd) {
+        moedas += qtd;
+        System.out.println("coletou " + String.valueOf(qtd) + "moedas, total: " + String.valueOf(municao));
+    }
+
+    public void addIscas(int qtd) {
+        iscas += qtd;
+        System.out.println("coletou " + String.valueOf(qtd) + "iscas, total: " + String.valueOf(iscas));
+
     }
 
     public void curar(int qtd) {
         vida = Math.min(vidaMaxima, vida + qtd);
-        System.out.println("coletou cura +" + qtd + " vida: " + vida);
+        System.out.println("coletou cura +" + qtd + ", vida: " + vida);
         soundManager.playSFX(SoundManager.SFX.PLAYER_HEAL);
     }
 
@@ -536,6 +549,18 @@ public class Player extends Entity {
 
     public int getChaves() {
         return chaves;
+    }
+
+    public int getMoedas() {
+        return moedas;
+    }
+
+    public int getIscas() {
+        return iscas;
+    }
+
+    public void setMoedas(int valor) {
+        moedas = valor;
     }
 
     public void equiparArma(String tipoArma) {

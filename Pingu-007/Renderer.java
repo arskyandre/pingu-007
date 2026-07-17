@@ -197,6 +197,7 @@ public class Renderer {
         if (dialogueManager != null && dialogueManager.isAtivo()) {
             dialogueManager.renderizar(g2, telaLargura, telaAltura);
         }
+        ToastNotifications.draw(g2, telaLargura, telaAltura);
     }
 
     public void setCinematicBorderAnimation(BorderState state) {

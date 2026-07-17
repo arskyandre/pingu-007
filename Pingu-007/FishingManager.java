@@ -56,7 +56,7 @@ public class FishingManager {
         return playerHasKey;
     }
 
-    public static void setPlayerHasKey(boolean b){
+    public static void setPlayerHasKey(boolean b) {
         playerHasKey = b;
     }
 
@@ -127,8 +127,9 @@ public class FishingManager {
         boolean triggered = fishingButton.update(input) == MenuButton.CLICKED
                 || input.isKeyJustPressed(KeyEvent.VK_E);
 
-        if (triggered) {
+        if (triggered && player.getIscas() > 0) {
             startFishing();
+            player.addIscas(-1);
         }
     }
 
@@ -241,16 +242,22 @@ public class FishingManager {
     /** Quando o player pesca */
     private void onFishCaught() {
         if (currentHoleType == HoleType.NORMAL || playerHasKey) {
-            System.out.println("peixe pego, dropando recompensa");
-            if (Math.random() > 0.66) {
+            double rand = Math.random();
+            if (rand > 0.66) {
                 itemManager.spawn(new AmmoPackItem(targetWorldX, targetWorldY + 24));
+                System.out.println("peixe pego, dropando municao");
+            } else if (rand > 0.61) {
+                itemManager.spawn(new MoedaItem(targetWorldX, targetWorldY + 24, 10));
+                System.out.println("peixe pego, dropando moeda");
             } else {
                 itemManager.spawn(new HealthPackItem(targetWorldX, targetWorldY + 24));
+                System.out.println("peixe pego, dropando cura");
             }
         } else {
             System.out.printf("encontrou a chave! spawnando em %f, %f\n", 114.3 * GameCore.tiles_size,
                     57.7 * GameCore.tiles_size);
             itemManager.spawn(new KeyItem(114.3 * GameCore.tiles_size, 57.7 * GameCore.tiles_size));
+            itemManager.spawn(new MoedaItem(113. * GameCore.tiles_size, 57.7 * GameCore.tiles_size, 30));
             setPlayerHasKey(true);
         }
     }

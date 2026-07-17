@@ -23,11 +23,15 @@ public class PescadorNPC extends NPC {
     public PescadorNPC(double x, double y) {
         super(x, y, WIDTH, HEIGHT);
         dialogo1 = new String[] {
-                "PESCADOR: Ei, agente! Vejo que você ainda não tem uma vara de pesca.",
+                "PESCADOR: Ei, Pingu! Vejo que você ainda não tem uma vara de pesca.",
                 "PESCADOR: Ainda bem que tenho uma sobrando. Pode ficar com ela!",
                 "PESCADOR: Sabe como pescar? É fácil, e só chegar perto de um buraco de água e apertar E para lançar a linha.",
+                "PESCADOR: Se bobear, você consegue até fisgar um inimigo e trazer ele pra perto. Não tenho a coragem pra testar, então, se funcionar, me conta depois!",
                 "PESCADOR: Ouvi rumores de que um buraco de pesca por aí esconde um tesouro secreto! Tentei pescar por lá, mas não tive sorte e ainda esqueci meu banquinho.",
-                "PESCADOR: Se encontrar, tente pescar lá!" };
+                "PESCADOR: Se encontrar, tente pescar lá!",
+                "PESCADOR: ...",
+                "PESCADOR: Ah, quase me esqueci! Você vai precisar de iscas para pescar. Tome 5 de graça para começar. Se acabar, é só voltar aqui que eu vendo mais."
+        };
         dialogo2_noKey = new String[] {
                 "PESCADOR: Esqueceu como pescar? É fácil, é só chegar perto de um buraco de água e apertar E para lançar a linha.",
                 "PESCADOR: Ouvi rumores de que um buraco de pesca por aí esconde um tesouro secreto! Tentei pescar por lá, mas não tive sorte e ainda esqueci meu banquinho.",
@@ -63,6 +67,12 @@ public class PescadorNPC extends NPC {
 
                         dialogueManager.iniciarDialogo(dialogo1, DialogueCatalogo.PescadorFala1,
                                 new BufferedImage[] { GameCore.pescador_portrait }, true);
+                        dialogueManager.setAoTerminarDialogo(() -> {
+                            player.addIscas(5);
+                            ToastNotifications.RequestNotification(
+                                    "DICA: Pressione o botão direito do mouse para fisgar inimigos.");
+
+                        });
                     }
                     state = State.TALKING;
                 }

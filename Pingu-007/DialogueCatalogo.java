@@ -27,6 +27,20 @@ public class DialogueCatalogo {
                         "RADIO: Se uma arena fechar atrás de você, elimine todos os inimigos. A saída será liberada quando o último cair.",
                         "RADIO: Há buracos de pesca espalhados pela região, mas você ainda não possui uma vara.",
                         "RADIO: Nossos relatórios indicam a presença de um pescador. Se encontrá-lo, ele pode ser útil.",
+                        "RADIO: Deseja ouvir o protocolo novamente, Pingu?"
+        };
+        public static final String[] TextoInicialRadioRepetido = new String[] {
+                        "RADIO: Ok, vamos recapitular o protocolo da missão.",
+                        "RADIO: Seu objetivo é atravessar o complexo e eliminar a Morsa.",
+                        "RADIO: Mas, para chegar à Morsa, você precisa encontrar as 3 chaves que destrancam o portão da sua arena.",
+                        "RADIO: Movimente-se com WASD, use ESPAÇO para dar um dash e o botão esquerdo do mouse para atirar.",
+                        "RADIO: Mantenha sua munição sob controle. Pressione R para recarregar sua pistola.",
+                        "RADIO: Se uma arena fechar atrás de você, elimine todos os inimigos. A saída será liberada quando o último cair.",
+                        "RADIO: Há buracos de pesca espalhados pela região, mas você ainda não possui uma vara.",
+                        "RADIO: Nossos relatórios indicam a presença de um pescador. Se encontrá-lo, ele pode ser útil."
+        };
+        public static final String[] TextoInicialRadioFinal = new String[] {
+
                         "RADIO: Isso é tudo, agente. Boa sorte. A colônia está contando com você."
         };
         public static final SoundManager.SFX[][] FalaInicialRadio = new SoundManager.SFX[][] {
@@ -57,11 +71,10 @@ public class DialogueCatalogo {
                                         SoundManager.SFX.KATAKANA_E,
                                         SoundManager.SFX.KATAKANA_I,
 
-                                        // agente
-                                        SoundManager.SFX.KATAKANA_A,
-                                        SoundManager.SFX.KATAKANA_JE,
+                                        // Pingu
+                                        SoundManager.SFX.KATAKANA_PI,
                                         SoundManager.SFX.KATAKANA_N,
-                                        SoundManager.SFX.KATAKANA_TE,
+                                        SoundManager.SFX.KATAKANA_GU,
 
                                         null, null, null,
                                         // vejo
@@ -241,6 +254,9 @@ public class DialogueCatalogo {
                                         SoundManager.SFX.KATAKANA_RI,
                                         SoundManager.SFX.KATAKANA_N,
                                         SoundManager.SFX.KATAKANA_YA
+                        },
+                        new SoundManager.SFX[] {
+                                        null
                         },
                         new SoundManager.SFX[] {
                                         // OUVI

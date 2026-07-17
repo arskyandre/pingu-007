@@ -35,6 +35,16 @@ public class DialogueManager {
   private SoundManager soundManager;
   private SoundManager.SFX[][] sonsAtual;
 
+  public interface EscolhaListener {
+    void onEscolha(int indiceEscolhido);
+  }
+
+  private boolean modoEscolha = false;
+  private String[] opcoesEscolha;
+  private int escolhaSelecionada = 0;
+  private EscolhaListener escolhaListener;
+  private Runnable aoTerminarDialogo; // callback opcional, roda quando o diálogo normal termina
+
   public DialogueManager(SoundManager s) {
     soundManager = s;
     try {
@@ -157,12 +167,48 @@ public class DialogueManager {
     return fim;
   }
 
+  private void atualizarEscolha(InputManager input) {
+    if (input.isKeyJustPressed(KeyEvent.VK_LEFT) || input.isKeyJustPressed(KeyEvent.VK_A)) {
+      if (escolhaSelecionada > 0)
+        escolhaSelecionada--;
+    }
+    if (input.isKeyJustPressed(KeyEvent.VK_RIGHT) || input.isKeyJustPressed(KeyEvent.VK_D)) {
+      if (escolhaSelecionada < opcoesEscolha.length - 1)
+        escolhaSelecionada++;
+    }
+
+    boolean confirmar = input.isKeyPressed(KeyEvent.VK_SPACE) || input.isKeyPressed(KeyEvent.VK_ENTER);
+    if (confirmar && teclaLiberada) {
+      soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
+      teclaLiberada = false;
+      int escolhido = escolhaSelecionada;
+      EscolhaListener listener = escolhaListener;
+
+      modoEscolha = false;
+      ativo = false;
+      opcoesEscolha = null;
+      escolhaListener = null;
+      soundManager.stopDialogue();
+      onDialogoTerminado();
+
+      if (listener != null) {
+        listener.onEscolha(escolhido);
+      }
+    }
+    if (!confirmar) {
+      teclaLiberada = true;
+    }
+  }
+
   public void atualizar(InputManager input) {
     if (!ativo)
       return;
 
     long agora = System.currentTimeMillis();
-
+    if (modoEscolha) {
+      atualizarEscolha(input);
+      return;
+    }
     if (caractereIndex < falas[falaAtualIndex].length()) {
       if (agora - ultimoFrameTempo >= delayLetrasMs) {
         textoExibido += falas[falaAtualIndex].charAt(caractereIndex);
@@ -293,11 +339,88 @@ public class DialogueManager {
     for (int i = 0; i < lines.size(); i++) {
       g2.drawString(lines.get(i), textX, startY + i * lineHeight);
     }
+    if (modoEscolha) {
+      int optY = y + altura - 28;
+      int optX = textX;
+      FontMetrics fmOpt = g2.getFontMetrics();
+      for (int i = 0; i < opcoesEscolha.length; i++) {
+        String texto = (i == escolhaSelecionada ? "> " : "  ") + opcoesEscolha[i];
+        g2.setColor(i == escolhaSelecionada ? Color.YELLOW : Color.WHITE);
+        g2.drawString(texto, optX, optY);
+        optX += fmOpt.stringWidth(texto) + 30;
+      }
+    }
+  }
+
+  public void iniciarEscolha(String pergunta, String[] opcoes, EscolhaListener listener) {
+    this.falas = new String[] { pergunta };
+    this.sonsAtual = null;
+    this.falaAtualIndex = 0;
+    this.textoExibido = pergunta;
+    this.caractereIndex = pergunta.length();
+    this.rostoTemporario = null;
+    this.opcoesEscolha = opcoes;
+    this.escolhaSelecionada = 0;
+    this.escolhaListener = listener;
+    this.modoEscolha = true;
+    this.ativo = true;
+  }
+
+  public void iniciarEscolha(String pergunta, String[] opcoes, BufferedImage retrato, EscolhaListener listener) {
+    this.falas = new String[] { pergunta };
+    this.sonsAtual = null;
+    this.falaAtualIndex = 0;
+    this.textoExibido = pergunta;
+    this.caractereIndex = pergunta.length();
+    this.rostoTemporario = retrato;
+    this.opcoesEscolha = opcoes;
+    this.escolhaSelecionada = 0;
+    this.escolhaListener = listener;
+    this.modoEscolha = true;
+    this.ativo = true;
+  }
+
+  public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[][] sons, EscolhaListener listener) {
+    this.falas = new String[] { pergunta };
+    this.sonsAtual = sons;
+    this.falaAtualIndex = 0;
+    this.textoExibido = pergunta;
+    this.caractereIndex = pergunta.length();
+    this.rostoTemporario = null;
+    this.opcoesEscolha = opcoes;
+    this.escolhaSelecionada = 0;
+    this.escolhaListener = listener;
+    this.modoEscolha = true;
+    this.ativo = true;
+  }
+
+  public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[][] sons, BufferedImage retrato,
+      EscolhaListener listener) {
+    this.falas = new String[] { pergunta };
+    this.sonsAtual = sons;
+    this.falaAtualIndex = 0;
+    this.textoExibido = pergunta;
+    this.caractereIndex = pergunta.length();
+    this.rostoTemporario = null;
+    this.opcoesEscolha = opcoes;
+    this.escolhaSelecionada = 0;
+    this.escolhaListener = listener;
+    this.modoEscolha = true;
+    this.ativo = true;
   }
 
   private void onDialogoTerminado() {
     rostoTemporario = null;
     retratosAtual = null;
+    if (aoTerminarDialogo != null) {
+      Runnable callback = aoTerminarDialogo;
+      aoTerminarDialogo = null;
+      callback.run();
+    }
+  }
+
+  public void setAoTerminarDialogo(Runnable callback) {
+    this.aoTerminarDialogo = callback;
   }
 
   public boolean isAtivo() {

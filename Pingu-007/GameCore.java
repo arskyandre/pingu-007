@@ -5,7 +5,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.EventListener;
 import java.awt.image.BufferedImage;
 
 import javax.swing.*;
@@ -113,7 +112,6 @@ public class GameCore extends Canvas implements Runnable {
         levelManager.inicializarPrimeiroNivel();
 
         player.loadLvlData(levelManager.getCurLevelData());
-        System.out.println(player.getX() + ", " + player.getY());
 
         addKeyListener(input);
         addMouseMotionListener(input);
@@ -186,6 +184,7 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyJustPressed(KeyEvent.VK_F11)) {
             toggleFullscreen();
         }
+
         switch (gameState) {
             case MAIN_MENU -> {
                 GameState next = mainMenu.update(input, getWidth(), getHeight());
@@ -208,6 +207,7 @@ public class GameCore extends Canvas implements Runnable {
                         introTimer = INTRO_DELAY_FRAMES;
                         player.setBlockInputs(true);
                         soundManager.playSFX(SoundManager.SFX.CALL_RING);
+                        ToastNotifications.RequestNotification("Ligação vindo...", 1.5);
                         player.setTemporarySpriteOverride(0, introTimer);
                     }
                 }
@@ -228,6 +228,10 @@ public class GameCore extends Canvas implements Runnable {
                     }
                     updateGame();
                 }
+            }
+            case SHOP -> {
+                GameState next;
+                // atualizar logica da venda
             }
             case GAME_OVER -> {
                 GameState next = gameOverScreen.update(input, getWidth(), getHeight());
@@ -307,6 +311,25 @@ public class GameCore extends Canvas implements Runnable {
                             pingu_portrait,
                             cellphone_image
                     }, true);
+            dialogueManager.setAoTerminarDialogo(() -> {
+                dialogueManager.iniciarEscolha("RADIO: Deseja ouvir o protocolo novamente, Pingu?",
+                        new String[] { "Não", "Sim" }, cellphone_image, escolha -> {
+                            if (escolha == 1) {
+
+                                dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadioRepetido,
+                                        new BufferedImage[] { cellphone_image }, true);
+
+                                dialogueManager.setAoTerminarDialogo(() -> {
+                                    dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadioFinal,
+                                            new BufferedImage[] { cellphone_image }, true);
+                                });
+                            } else {
+
+                                dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadioFinal,
+                                        new BufferedImage[] { cellphone_image }, true);
+                            }
+                        });
+            });
         }
     }
 
@@ -334,7 +357,7 @@ public class GameCore extends Canvas implements Runnable {
             debugSpawnCooldown--;
         }
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_K) && debugSpawnCooldown <= 0) {
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_L) && debugSpawnCooldown <= 0) {
             double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
             double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
             enemyManager.adicionarInimigo("lobo", mouseXWorld, mouseYWorld, 0, -1);
@@ -342,10 +365,9 @@ public class GameCore extends Canvas implements Runnable {
             debugSpawnCooldown = 30;
         }
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_L) && debugSpawnCooldown <= 0) {
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_K) && debugSpawnCooldown <= 0) {
             double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
             double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-            // itemManager.spawn(new KeyItem(12839, 4870));
             itemManager.spawn(new KeyItem(mouseXWorld, mouseYWorld));
             System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
             debugSpawnCooldown = 30;
@@ -354,12 +376,21 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_H) && debugSpawnCooldown <= 0) {
             double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
             double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-            // itemManager.spawn(new KeyItem(12839, 4870));
             itemManager.spawn(new HealthPackItem(mouseXWorld, mouseYWorld));
             System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
             debugSpawnCooldown = 30;
         }
-
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_M) && debugSpawnCooldown <= 0) {
+            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+            itemManager.spawn(new MoedaItem(mouseXWorld, mouseYWorld));
+            System.out.println("DEBUG: Item moeda spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
+            debugSpawnCooldown = 30;
+        }
+        if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_MINUS) && player.getMoedas() >= 5) {
+            System.out.println("tirou 5 moedas");
+            player.addMoedas(-5);
+        }
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_V) && debugSpawnCooldown <= 0) {
             double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
             double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
@@ -574,10 +605,11 @@ public class GameCore extends Canvas implements Runnable {
         hasCheckpoint = false;
         checkArenas.clear();
         arenaManager.setFirstArenaFlag(true);
-        fishingManager.setPlayerHasKey(false);
+        FishingManager.setPlayerHasKey(false);
         npcManager.clearAll();
         chavesColetadasCheckpoint = 0;
         player.resetarProgresso();
+        hud.resetJaPegou();
         renderer.setBorderProgress(0.0);
         setCinematicBorderAnimation(Renderer.BorderState.IDLE);
         introPreDelay = false;
@@ -609,6 +641,11 @@ public class GameCore extends Canvas implements Runnable {
         do {
             do {
                 Graphics2D g2 = (Graphics2D) bs.getDrawGraphics();
+                if (gameState == GameState.PLAYING || gameState == GameState.SHOP || gameState == GameState.PAUSED
+                        || gameState == GameState.CUTSCENE) {
+                    ToastNotifications.update(delta);
+
+                }
                 switch (gameState) {
                     case MAIN_MENU -> {
                         mainMenu.render(g2, getWidth(), getHeight());
@@ -623,6 +660,15 @@ public class GameCore extends Canvas implements Runnable {
                         if (showFpsCounter) {
                             drawFpsCounter(g2);
                         }
+                    }
+                    case SHOP -> {
+                        renderer.renderizar(g2, camera, player, input,
+                                getWidth(), getHeight(),
+                                levelManager, bulletmanager, itemManager,
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
+                                cutsceneManager, delta,
+                                false, false);
+                        // renderizar os elementos de venda por cima
                     }
                     case GAME_OVER -> {
                         renderer.renderizar(g2, camera, player, input,
