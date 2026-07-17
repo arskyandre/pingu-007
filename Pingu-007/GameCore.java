@@ -315,7 +315,7 @@ public class GameCore extends Canvas implements Runnable {
             dialogueManager.setAoTerminarDialogo(() -> {
                 ToastNotifications.RequestNotification("Use as setas para selecionar a opção e ENTER para confirmar.",
                         10.0);
-                DialogueCatalogo.loopDialogoInicial(dialogueManager);
+                DialogueCatalogo.loopDialogoInicial(dialogueManager, soundManager);
             });
         }
     }

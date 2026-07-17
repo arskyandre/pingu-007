@@ -28,18 +28,18 @@ public class PescadorNPC extends NPC {
                 "PESCADOR: Ainda bem que tenho uma sobrando. Pode ficar com ela!",
                 "PESCADOR: Sabe como pescar? É fácil, e só chegar perto de um buraco de água e apertar E para lançar a linha.",
                 "PESCADOR: Se bobear, você consegue até fisgar um inimigo e trazer ele pra perto. Não tenho a coragem pra testar, então, se funcionar, me conta depois!",
-                "PESCADOR: Ouvi rumores de que um buraco de pesca por aí esconde um tesouro secreto! Tentei pescar por lá, mas não tive sorte e ainda esqueci meu banquinho.",
+                "PESCADOR: Ouvi rumores de que um buraco de pesca por aí esconde um tesouro. Tentei pescar por lá, mas não tive sorte e ainda esqueci meu banquinho...",
                 "PESCADOR: Se encontrar, tente pescar lá!",
                 "PESCADOR: ...",
                 "PESCADOR: Ah, quase me esqueci! Você vai precisar de iscas para pescar. Tome 5 de graça para começar. Se acabar, é só voltar aqui que eu vendo mais."
         };
         dialogo2_noKey = new String[] {
                 "PESCADOR: Esqueceu como pescar? É fácil, é só chegar perto de um buraco de água e apertar E para lançar a linha.",
-                "PESCADOR: Ouvi rumores de que um buraco de pesca por aí esconde um tesouro secreto! Tentei pescar por lá, mas não tive sorte e ainda esqueci meu banquinho.",
+                "PESCADOR: Ouvi rumores de que um buraco de pesca por aí esconde um tesouro. Tentei pescar por lá, mas não tive sorte e ainda esqueci meu banquinho...",
                 "PESCADOR: Se encontrar, tente pescar lá!" };
         dialogo2_hasKey = new String[] {
                 "PESCADOR: Quer dizer que você encontrou o tesouro no buraco de pesca? O que era?",
-                "PESCADOR: Uma chave para o portão da Morsa? Uau, talvez você seja bom o suficiente para derrotá-la!",
+                "PESCADOR: Uma chave para o portão da Morsa... Ainda bem que caiu nas mãos certas!",
                 "PESCADOR: Boa jornada, agente!" };
         Yfinal = y;
         this.y = Yfinal + 40;

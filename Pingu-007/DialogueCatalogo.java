@@ -17,10 +17,11 @@ public class DialogueCatalogo {
         // das almas penadas
 
         // que encostarem nesse arquivo
-        public static void loopDialogoInicial(DialogueManager dialogueManager) {
+        public static void loopDialogoInicial(DialogueManager dialogueManager, SoundManager soundManager) {
                 dialogueManager.iniciarEscolha("RADIO: Deseja ouvir o protocolo novamente, Pingu?",
                                 new String[] { "Sim", "Não" }, GameCore.cellphone_image, 1, escolha -> {
                                         ToastNotifications.skipNotification();
+                                        soundManager.playSFX(SoundManager.SFX.NOOT_NOOT);
                                         if (escolha == 0) {
 
                                                 dialogueManager.iniciarDialogo(
@@ -28,7 +29,7 @@ public class DialogueCatalogo {
                                                                 new BufferedImage[] { GameCore.cellphone_image }, true);
 
                                                 dialogueManager.setAoTerminarDialogo(() -> {
-                                                        loopDialogoInicial(dialogueManager);
+                                                        loopDialogoInicial(dialogueManager, soundManager);
                                                 });
                                         } else {
 
@@ -316,7 +317,8 @@ public class DialogueCatalogo {
 
                                         SoundManager.SFX.KATAKANA_NA, SoundManager.SFX.KATAKANA_O,
 
-                                        SoundManager.SFX.KATAKANA_TE, SoundManager.SFX.KATAKANA_NYO,
+                                        SoundManager.SFX.KATAKANA_TE, SoundManager.SFX.KATAKANA_N,
+                                        SoundManager.SFX.KATAKANA_NYO,
 
                                         SoundManager.SFX.KATAKANA_A,
 
@@ -345,7 +347,8 @@ public class DialogueCatalogo {
                                         SoundManager.SFX.KATAKANA_KO, SoundManager.SFX.KATAKANA_N,
                                         SoundManager.SFX.KATAKANA_TA,
 
-                                        SoundManager.SFX.KATAKANA_DE, SoundManager.SFX.KATAKANA_PO,
+                                        SoundManager.SFX.KATAKANA_DE, SoundManager.SFX.KATAKANA_E,
+                                        SoundManager.SFX.KATAKANA_PO,
                                         SoundManager.SFX.KATAKANA_I, SoundManager.SFX.KATAKANA_SU
 
                         },

@@ -8,7 +8,7 @@ public class MoedaItem extends ConsumableItem {
     private final int quantidade;
 
     public MoedaItem(double x, double y) {
-        this(x, y, 5);
+        this(x, y, 10);
 
     }
 

@@ -329,6 +329,9 @@ public class ArenaManager {
             SoundManager sound) {
         System.out.println("Ativou arena: " + id);
 
+        if (id == 0) {
+            player.setTemporarySpriteOverride(7, 2);
+        }
         if (id != 999) {
             if (id != 67) {
                 System.out.println("CUTSCENE setado em ArenaManager, id = " + id);
@@ -336,9 +339,6 @@ public class ArenaManager {
             }
             sound.playSFX(SoundManager.SFX.ARENA_ENTER);
             gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
-        }
-        if (id == 0) {
-            player.setTemporarySpriteOverride(7, 1);
         }
         Arena arena = getOuCriarArena(id);
         arena.ativa = true;
