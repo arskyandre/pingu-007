@@ -1,3 +1,5 @@
+import java.awt.image.BufferedImage;
+
 /**
  * a feiura mais assustadora, escabrosa, macabra e triste de toda a historia da
  * programacao
@@ -15,6 +17,27 @@ public class DialogueCatalogo {
         // das almas penadas
 
         // que encostarem nesse arquivo
+        public static void loopDialogoInicial(DialogueManager dialogueManager) {
+                dialogueManager.iniciarEscolha("RADIO: Deseja ouvir o protocolo novamente, Pingu?",
+                                new String[] { "Não", "Sim" }, GameCore.cellphone_image, escolha -> {
+                                        ToastNotifications.skipNotification();
+                                        if (escolha == 1) {
+
+                                                dialogueManager.iniciarDialogo(
+                                                                DialogueCatalogo.TextoInicialRadioRepetido,
+                                                                new BufferedImage[] { GameCore.cellphone_image }, true);
+
+                                                dialogueManager.setAoTerminarDialogo(() -> {
+                                                        loopDialogoInicial(dialogueManager);
+                                                });
+                                        } else {
+
+                                                dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadioFinal,
+                                                                new BufferedImage[] { GameCore.cellphone_image }, true);
+                                        }
+                                });
+        }
+
         public static final String[] TextoInicialRadio = new String[] {
                         "PINGU: Entrando na base de operações.",
                         "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",
@@ -26,8 +49,7 @@ public class DialogueCatalogo {
                         "RADIO: Mantenha sua munição sob controle. Pressione R para recarregar sua pistola.",
                         "RADIO: Se uma arena fechar atrás de você, elimine todos os inimigos. A saída será liberada quando o último cair.",
                         "RADIO: Há buracos de pesca espalhados pela região, mas você ainda não possui uma vara.",
-                        "RADIO: Nossos relatórios indicam a presença de um pescador. Se encontrá-lo, ele pode ser útil.",
-                        "RADIO: Deseja ouvir o protocolo novamente, Pingu?"
+                        "RADIO: Nossos relatórios indicam a presença de um pescador. Se encontrá-lo, ele pode ser útil."
         };
         public static final String[] TextoInicialRadioRepetido = new String[] {
                         "RADIO: Ok, vamos recapitular o protocolo da missão.",

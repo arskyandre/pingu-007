@@ -47,8 +47,12 @@ public class PescadorNPC extends NPC {
     }
 
     private void loopCompra(DialogueManager dialogueManager, Player player) {
+        loopCompra(dialogueManager, player, "Deseja comprar mais iscas?");
+    }
+
+    private void loopCompra(DialogueManager dialogueManager, Player player, String pergunta) {
         dialogueManager.iniciarEscolha(
-                "Deseja comprar mais iscas?",
+                pergunta,
                 new String[] {
                         "Não",
                         "Comprar 5 Iscas: 10 moedas",
@@ -67,24 +71,10 @@ public class PescadorNPC extends NPC {
                             if (player.getMoedas() >= 10) {
                                 player.addMoedas(-10);
                                 player.addIscas(5);
-
-                                dialogueManager.iniciarDialogo(
-                                        new String[] { "Aqui estão 5 iscas. Mais alguma coisa?" },
-                                        new BufferedImage[] { GameCore.pescador_portrait },
-                                        true);
-
-                                dialogueManager.setAoTerminarDialogo(() -> {
-                                    loopCompra(dialogueManager, player);
-                                });
+                                loopCompra(dialogueManager, player, "Aqui estão 5 iscas. Mais alguma coisa?");
                             } else {
-                                dialogueManager.iniciarDialogo(
-                                        new String[] { "Você não tem moedas suficientes." },
-                                        new BufferedImage[] { GameCore.pescador_portrait },
-                                        true);
-
-                                dialogueManager.setAoTerminarDialogo(() -> {
-                                    loopCompra(dialogueManager, player);
-                                });
+                                loopCompra(dialogueManager, player,
+                                        "Você não tem moedas suficientes. Ainda deseja algo?");
                             }
                         }
 
@@ -92,24 +82,10 @@ public class PescadorNPC extends NPC {
                             if (player.getMoedas() >= 20) {
                                 player.addMoedas(-20);
                                 player.addIscas(10);
-
-                                dialogueManager.iniciarDialogo(
-                                        new String[] { "Aqui estão 10 iscas. Mais alguma coisa?" },
-                                        new BufferedImage[] { GameCore.pescador_portrait },
-                                        true);
-
-                                dialogueManager.setAoTerminarDialogo(() -> {
-                                    loopCompra(dialogueManager, player);
-                                });
+                                loopCompra(dialogueManager, player, "Aqui estão 10 iscas. Mais alguma coisa?");
                             } else {
-                                dialogueManager.iniciarDialogo(
-                                        new String[] { "Você não tem moedas suficientes." },
-                                        new BufferedImage[] { GameCore.pescador_portrait },
-                                        true);
-
-                                dialogueManager.setAoTerminarDialogo(() -> {
-                                    loopCompra(dialogueManager, player);
-                                });
+                                loopCompra(dialogueManager, player,
+                                        "Você não tem moedas suficientes. Ainda deseja algo?");
                             }
                         }
                     }

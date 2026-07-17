@@ -315,24 +315,7 @@ public class GameCore extends Canvas implements Runnable {
             dialogueManager.setAoTerminarDialogo(() -> {
                 ToastNotifications.RequestNotification("Use as setas para selecionar a opção e ENTER para confirmar.",
                         10.0);
-                dialogueManager.iniciarEscolha("RADIO: Deseja ouvir o protocolo novamente, Pingu?",
-                        new String[] { "Não", "Sim" }, cellphone_image, escolha -> {
-                            ToastNotifications.skipNotification();
-                            if (escolha == 1) {
-
-                                dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadioRepetido,
-                                        new BufferedImage[] { cellphone_image }, true);
-
-                                dialogueManager.setAoTerminarDialogo(() -> {
-                                    dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadioFinal,
-                                            new BufferedImage[] { cellphone_image }, true);
-                                });
-                            } else {
-
-                                dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadioFinal,
-                                        new BufferedImage[] { cellphone_image }, true);
-                            }
-                        });
+                DialogueCatalogo.loopDialogoInicial(dialogueManager);
             });
         }
     }
@@ -366,7 +349,7 @@ public class GameCore extends Canvas implements Runnable {
             double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
             enemyManager.adicionarInimigo("lobo", mouseXWorld, mouseYWorld, 0, -1);
             System.out.println("DEBUG: Inimigo spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
-            debugSpawnCooldown = 30;
+            debugSpawnCooldown = 15;
         }
 
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_K) && debugSpawnCooldown <= 0) {
@@ -374,7 +357,7 @@ public class GameCore extends Canvas implements Runnable {
             double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
             itemManager.spawn(new KeyItem(mouseXWorld, mouseYWorld));
             System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
-            debugSpawnCooldown = 30;
+            debugSpawnCooldown = 15;
         }
 
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_H) && debugSpawnCooldown <= 0) {
@@ -382,14 +365,14 @@ public class GameCore extends Canvas implements Runnable {
             double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
             itemManager.spawn(new HealthPackItem(mouseXWorld, mouseYWorld));
             System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
-            debugSpawnCooldown = 30;
+            debugSpawnCooldown = 15;
         }
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_M) && debugSpawnCooldown <= 0) {
             double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
             double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
             itemManager.spawn(new MoedaItem(mouseXWorld, mouseYWorld));
             System.out.println("DEBUG: Item moeda spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
-            debugSpawnCooldown = 30;
+            debugSpawnCooldown = 15;
         }
         if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_MINUS) && player.getMoedas() >= 5) {
             System.out.println("tirou 5 moedas");
@@ -401,7 +384,7 @@ public class GameCore extends Canvas implements Runnable {
             itemManager.spawn(new FishingRodItem(mouseXWorld, mouseYWorld));
             player.addIscas(5);
             System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
-            debugSpawnCooldown = 30;
+            debugSpawnCooldown = 15;
         }
 
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_0) && debugSpawnCooldown <= 0) {
@@ -413,7 +396,7 @@ public class GameCore extends Canvas implements Runnable {
                 System.out.println("DEBUG: Visão dos Triggers e Objetos Desativada");
             }
 
-            debugSpawnCooldown = 30;
+            debugSpawnCooldown = 15;
         }
         if (mapLoadCooldown > 0) {
             mapLoadCooldown--;
