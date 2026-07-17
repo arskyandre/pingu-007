@@ -49,6 +49,16 @@ public class ToastNotifications {
         }
     }
 
+    public static void skipNotification() {
+        if (notifAtual == null)
+            return;
+        tempoNaNotifAtual = FADE_IN_DUR + holdAtualDur();
+    }
+
+    public static void clearNotifQueue() {
+        filaNotificacoes.clear();
+    }
+
     private static double holdAtualDur() {
         return customHoldDur >= 0 ? customHoldDur : HOLD_DUR;
     }

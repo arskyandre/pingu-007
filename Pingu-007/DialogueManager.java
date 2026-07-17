@@ -23,8 +23,6 @@ public class DialogueManager {
   private int shakeY = 0;
   private final Random random = new Random();
 
-  private boolean teclaLiberada = true;
-
   private boolean tocarSomDeEscrita = true;
   private BufferedImage rostoFechado;
   private BufferedImage rostoAberto;
@@ -177,10 +175,9 @@ public class DialogueManager {
         escolhaSelecionada++;
     }
 
-    boolean confirmar = input.isKeyPressed(KeyEvent.VK_SPACE) || input.isKeyPressed(KeyEvent.VK_ENTER);
-    if (confirmar && teclaLiberada) {
+    boolean confirmar = input.isKeyJustPressed(KeyEvent.VK_SPACE) || input.isKeyJustPressed(KeyEvent.VK_ENTER);
+    if (confirmar) {
       soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
-      teclaLiberada = false;
       int escolhido = escolhaSelecionada;
       EscolhaListener listener = escolhaListener;
 
@@ -194,9 +191,6 @@ public class DialogueManager {
       if (listener != null) {
         listener.onEscolha(escolhido);
       }
-    }
-    if (!confirmar) {
-      teclaLiberada = true;
     }
   }
 
@@ -233,16 +227,12 @@ public class DialogueManager {
       shakeY = 0;
       mostrarBocaAberta = false;
     }
-    boolean teclaApertada = input.isKeyPressed(KeyEvent.VK_SPACE) || input.isKeyPressed(KeyEvent.VK_ENTER);
+    boolean teclaApertada = input.isKeyJustPressed(KeyEvent.VK_SPACE) || input.isKeyJustPressed(KeyEvent.VK_ENTER);
 
-    if (teclaApertada && teclaLiberada) {
-      teclaLiberada = false;
+    if (teclaApertada) {
       avancarFala();
     }
 
-    if (!teclaApertada) {
-      teclaLiberada = true;
-    }
   }
 
   private void avancarFala() {

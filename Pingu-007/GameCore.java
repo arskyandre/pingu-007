@@ -207,7 +207,6 @@ public class GameCore extends Canvas implements Runnable {
                         introTimer = INTRO_DELAY_FRAMES;
                         player.setBlockInputs(true);
                         soundManager.playSFX(SoundManager.SFX.CALL_RING);
-                        ToastNotifications.RequestNotification("Ligação vindo...", 1.5);
                         player.setTemporarySpriteOverride(0, introTimer);
                     }
                 }
@@ -312,8 +311,11 @@ public class GameCore extends Canvas implements Runnable {
                             cellphone_image
                     }, true);
             dialogueManager.setAoTerminarDialogo(() -> {
+                ToastNotifications.RequestNotification("Use as setas para selecionar a opção e ENTER para confirmar.",
+                        2.0);
                 dialogueManager.iniciarEscolha("RADIO: Deseja ouvir o protocolo novamente, Pingu?",
                         new String[] { "Não", "Sim" }, cellphone_image, escolha -> {
+                            ToastNotifications.skipNotification();
                             if (escolha == 1) {
 
                                 dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadioRepetido,
