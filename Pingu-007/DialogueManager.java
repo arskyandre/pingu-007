@@ -46,6 +46,8 @@ public class DialogueManager {
   private int escolhaSelecionada = 0;
   private EscolhaListener escolhaListener;
   private Runnable aoTerminarDialogo; // callback opcional, roda quando o diálogo normal termina
+  private long modoEscolhaAtivadoEm = 0;
+  private static final long DELAY_INPUT_ESCOLHA_MS = 400;
 
   public DialogueManager(SoundManager s) {
     soundManager = s;
@@ -178,6 +180,10 @@ public class DialogueManager {
   }
 
   private void atualizarEscolha(InputManager input) {
+    if (System.currentTimeMillis() - modoEscolhaAtivadoEm < DELAY_INPUT_ESCOLHA_MS) {
+      return;
+    }
+
     if (input.isKeyJustPressed(KeyEvent.VK_UP) || input.isKeyJustPressed(KeyEvent.VK_W)) {
       if (escolhaSelecionada > 0)
         escolhaSelecionada--;
@@ -244,6 +250,7 @@ public class DialogueManager {
       // texto da pergunta terminou de digitar -> ativa as opções automaticamente
       if (isEscolha) {
         modoEscolha = true;
+        modoEscolhaAtivadoEm = System.currentTimeMillis();
         return;
       }
     }

@@ -19,9 +19,9 @@ public class DialogueCatalogo {
         // que encostarem nesse arquivo
         public static void loopDialogoInicial(DialogueManager dialogueManager) {
                 dialogueManager.iniciarEscolha("RADIO: Deseja ouvir o protocolo novamente, Pingu?",
-                                new String[] { "Não", "Sim" }, GameCore.cellphone_image, escolha -> {
+                                new String[] { "Sim", "Não" }, GameCore.cellphone_image, 1, escolha -> {
                                         ToastNotifications.skipNotification();
-                                        if (escolha == 1) {
+                                        if (escolha == 0) {
 
                                                 dialogueManager.iniciarDialogo(
                                                                 DialogueCatalogo.TextoInicialRadioRepetido,

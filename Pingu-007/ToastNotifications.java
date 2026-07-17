@@ -49,10 +49,14 @@ public class ToastNotifications {
         }
     }
 
+    public static String getNotifAtual() {
+        return notifAtual;
+    }
+
     public static void skipNotification() {
         if (notifAtual == null)
             return;
-        tempoNaNotifAtual = FADE_IN_DUR + holdAtualDur();
+        tempoNaNotifAtual = holdAtualDur();
     }
 
     public static void clearNotifQueue() {
