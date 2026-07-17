@@ -52,7 +52,7 @@ public class PescadorNPC extends NPC {
                 new String[] {
                         "Não",
                         "Comprar 5 Iscas: 10 moedas",
-                        "Comprar 10 Iscas: 15 moedas"
+                        "Comprar 10 Iscas: 20 moedas"
                 }, GameCore.pescador_portrait,
                 escolha -> {
                     switch (escolha) {
@@ -89,8 +89,8 @@ public class PescadorNPC extends NPC {
                         }
 
                         case 2 -> {
-                            if (player.getMoedas() >= 15) {
-                                player.addMoedas(-15);
+                            if (player.getMoedas() >= 20) {
+                                player.addMoedas(-20);
                                 player.addIscas(10);
 
                                 dialogueManager.iniciarDialogo(
