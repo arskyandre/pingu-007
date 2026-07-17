@@ -4,10 +4,12 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 
 /**
- * Gerencia o minigame de pesca, bloqueia os inputs do player
- * enquanto estiver no minigame mas sem pausar o jogo(inimigos ainda atacam)
+ * Gerencia apenas o minigame de pesca (espera -> fisgada -> resultado).
+ * Quem decide QUANDO iniciar é o FishingBobber, ao detectar que assentou
+ * sobre um buraco de pesca.
  */
 public class FishingManager {
 
@@ -15,8 +17,8 @@ public class FishingManager {
         IDLE, WAITING, BITING, SUCCESS, MISSED
     }
 
-    // type of the current fishing hole being targeted
-    private enum HoleType {
+    // tipo do buraco de pesca sendo trabalhado no momento
+    public enum HoleType {
         NONE, NORMAL, KEY
     }
 
@@ -28,7 +30,6 @@ public class FishingManager {
     private final Player player;
     private final IconButton fishingButton;
 
-    private boolean targetValid = false;
     private double targetWorldX, targetWorldY;
 
     private int waitTimer = 0;
@@ -39,7 +40,6 @@ public class FishingManager {
     private static final int WAIT_MAX = 600;
     private static final int BITE_WINDOW = 45;
     private static final int FEEDBACK_DURATION = 60;
-    private static final double RANGE = GameCore.tiles_size * 2;
     private static final int BUTTON_SIZE = 40;
     private static final double BASE_ZOOM = 1.25;
 
@@ -66,12 +66,8 @@ public class FishingManager {
 
     public void update(InputManager input, CameraManager camera, int[][] lvlData, int screenWidth,
             int screenHeight) {
-        if (!player.hasFishingRod()) {
-            targetValid = false;
-            return;
-        }
+        System.out.println(state);
         if (state == State.IDLE) {
-            updateTarget(input, camera, lvlData, screenWidth, screenHeight);
             return;
         }
 
@@ -81,7 +77,7 @@ public class FishingManager {
 
         switch (state) {
             case WAITING ->
-                updateWaiting();
+                updateWaiting(input);
             case BITING ->
                 updateBite(triggered);
             case SUCCESS, MISSED ->
@@ -91,57 +87,7 @@ public class FishingManager {
         }
     }
 
-    private void updateTarget(InputManager input, CameraManager camera, int[][] lvlData, int screenWidth,
-            int screenHeight) {
-        double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-        double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-
-        int col = (int) (mouseXWorld / GameCore.tiles_size);
-        int row = (int) (mouseYWorld / GameCore.tiles_size);
-
-        targetValid = false;
-        currentHoleType = HoleType.NONE;
-
-        // resolve which row contains a valid fishing hole
-        int holeRow = resolveFishingHoleRow(row, col, lvlData);
-
-        if (holeRow != -1) {
-            double centerX = col * GameCore.tiles_size + GameCore.tiles_size / 2.0;
-            double centerY = holeRow * GameCore.tiles_size + GameCore.tiles_size / 2.0;
-            double playerCenterX = player.getX() + player.getLargura() / 2.0;
-            double playerCenterY = player.getY() + player.getAltura() / 2.0;
-
-            if (Math.hypot(centerX - playerCenterX, centerY - playerCenterY) <= RANGE) {
-                targetValid = true;
-                targetWorldX = centerX;
-                targetWorldY = centerY;
-                currentHoleType = getFishingHoleType(lvlData[holeRow][col]);
-            }
-        }
-
-        if (!targetValid) {
-            return;
-        }
-
-        repositionButton(camera, screenWidth, screenHeight);
-        boolean triggered = fishingButton.update(input) == MenuButton.CLICKED
-                || input.isKeyJustPressed(KeyEvent.VK_E);
-
-        if (triggered && player.getIscas() > 0) {
-            startFishing();
-            player.addIscas(-1);
-        }
-    }
-
-    private int resolveFishingHoleRow(int mouseRow, int col, int[][] lvlData) {
-        if (isFishingHoleAt(mouseRow, col, lvlData))
-            return mouseRow;
-        if (isFishingHoleAt(mouseRow + 1, col, lvlData))
-            return mouseRow + 1;
-        return -1;
-    }
-
-    private boolean isFishingHoleAt(int row, int col, int[][] lvlData) {
+    public static boolean isFishingHoleAt(int row, int col, int[][] lvlData) {
         if (lvlData == null || row < 0 || row >= lvlData.length
                 || col < 0 || col >= lvlData[row].length) {
             return false;
@@ -150,7 +96,7 @@ public class FishingManager {
         return TileProperties.isFishingHole(tileID) || TileProperties.isKeyFishingHole(tileID);
     }
 
-    private HoleType getFishingHoleType(int tileID) {
+    public static HoleType getFishingHoleType(int tileID) {
         if (TileProperties.isKeyFishingHole(tileID))
             return HoleType.KEY;
         if (TileProperties.isFishingHole(tileID))
@@ -176,15 +122,19 @@ public class FishingManager {
 
     public void syncToCamera(CameraManager camera, int screenWidth, int screenHeight) {
         if (state == State.IDLE) {
-            if (targetValid) {
-                repositionButton(camera, screenWidth, screenHeight);
-            }
             return;
         }
         repositionButton(camera, screenWidth, screenHeight);
     }
 
-    private void startFishing() {
+    public void startFishing(HoleType holeType, double worldX, double worldY) {
+        if (state != State.IDLE) {
+            return;
+        }
+        this.currentHoleType = holeType;
+        this.targetWorldX = worldX;
+        this.targetWorldY = worldY;
+
         soundManager.playSFX(SoundManager.SFX.FISHING_START);
         state = State.WAITING;
         waitTimer = WAIT_MIN + (int) (Math.random() * (WAIT_MAX - WAIT_MIN));
@@ -192,7 +142,24 @@ public class FishingManager {
         System.out.println("Started fishing, waiting for a bite...");
     }
 
-    private void updateWaiting() {
+    public void cancelFishing() {
+        if (state == State.IDLE) {
+            return;
+        }
+        state = State.IDLE;
+        currentHoleType = HoleType.NONE;
+        waitTimer = 0;
+        biteTimer = 0;
+        feedbackTimer = 0;
+        player.setBlockInputs(false);
+        System.out.println("Fishing cancelled.");
+    }
+
+    private void updateWaiting(InputManager input) {
+        if (input.isMouseButtonJustPressed(MouseEvent.BUTTON3)) {
+            cancelFishing();
+            return;
+        }
         waitTimer--;
         if (waitTimer <= 0) {
             state = State.BITING;
@@ -234,13 +201,13 @@ public class FishingManager {
 
     private void finishFishing() {
         state = State.IDLE;
-        targetValid = false;
         currentHoleType = HoleType.NONE;
         player.setBlockInputs(false);
     }
 
     /** Quando o player pesca */
     private void onFishCaught() {
+        soundManager.playSFX(SoundManager.SFX.NOOT_NOOT);
         if (currentHoleType == HoleType.NORMAL || playerHasKey) {
             double rand = Math.random();
             if (currentHoleType == HoleType.KEY) {
@@ -267,9 +234,6 @@ public class FishingManager {
 
     public void render(Graphics2D g2, CameraManager camera, int screenWidth, int screenHeight) {
         if (state == State.IDLE) {
-            if (targetValid) {
-                fishingButton.draw(g2);
-            }
             return;
         }
 
@@ -288,8 +252,6 @@ public class FishingManager {
             default -> {
             }
         }
-        if (state == State.BITING)
-            fishingButton.draw(g2);
     }
 
     private void drawWaiting(Graphics2D g2, double screenX, double screenY) {
@@ -302,12 +264,10 @@ public class FishingManager {
         int centerX = rect.x + rect.width / 2;
         int centerY = rect.y + rect.height / 2;
 
-        // 1.0 right as the bite starts -> 0.0 as the window closes
         float progress = biteTimer / (float) BITE_WINDOW;
         double pulse = 0.5 + 0.5 * Math.sin(biteTimer * 0.6);
         int radius = (int) (rect.width * 0.75 + pulse * 8);
 
-        // Ring shifts from yellow toward red as time runs out
         Color ringColor = new Color(255, (int) (60 + 160 * progress), 40, 230);
         g2.setStroke(new BasicStroke(3f));
         g2.setColor(ringColor);

@@ -101,6 +101,10 @@ public class Player extends Entity {
 
     }
 
+    public void setFishingManager(FishingManager fishingMgr) {
+        fishingBobber.setFishingManager(fishingMgr);
+    }
+
     private int muniCOoldownTimer = 0;
     private final int muniCooldown = 60;
 
@@ -368,7 +372,7 @@ public class Player extends Entity {
             fishingCooldown--;
         }
 
-        if (input.isMouseButtonPressed(MouseEvent.BUTTON3) && fishingCooldown == 0) {
+        if (input.isMouseButtonJustPressed(MouseEvent.BUTTON3) && fishingCooldown == 0) {
             System.out.println(">>> CLIQUE DIREITO PROCESSADO COM SUCESSO! <<<");
             if (ToastNotifications.getNotifAtual() != null && ToastNotifications.getNotifAtual()
                     .equals("DICA: Pressione o botão direito do mouse para fisgar inimigos.")) {

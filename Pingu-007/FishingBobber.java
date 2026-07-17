@@ -1,4 +1,3 @@
-
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -9,17 +8,29 @@ public class FishingBobber {
     private double x, y;
     private double velX, velY;
     private boolean ativo = false;
+    private boolean waitingForFish = false; // anzol "ancorado" no buraco, aguardando o minigame terminar
     private Enemy hookedEnemy = null;
     private Player owner;
+    private FishingManager fishingManager;
 
     private final double MAX_DIST = 350.0; // Distância máxima antes da linha quebrar
-    private final double BASE_PULL_FORCE = 40.0; // Força base do puxão 
+    private final double BASE_PULL_FORCE = 40.0; // Força base do puxão
+    private static final double LANDING_SPEED_THRESHOLD = 0.5; // abaixo disso, a boia "assentou" naturalmente
+
+    public void setFishingManager(FishingManager fishingManager) {
+        this.fishingManager = fishingManager;
+    }
 
     public void cast(Player owner, double targetX, double targetY) {
+        if (!owner.hasFishingRod() || owner.getIscas() <= 0) {
+            return;
+        }
+
         this.owner = owner;
         this.x = owner.getX() + owner.getLargura() / 2.0;
         this.y = owner.getY() + owner.getAltura() / 2.0;
         this.ativo = true;
+        this.waitingForFish = false;
         this.hookedEnemy = null;
 
         double dx = targetX - x;
@@ -55,6 +66,7 @@ public class FishingBobber {
 
     public void reset() {
         this.ativo = false;
+        this.waitingForFish = false;
         if (hookedEnemy != null) {
             hookedEnemy.isHooked = false;
             hookedEnemy = null;
@@ -63,6 +75,16 @@ public class FishingBobber {
 
     public void update(ArrayList<Enemy> enemies, int[][] lvlData) {
         if (!ativo) {
+            return;
+        }
+
+        // Enquanto o minigame de pesca estiver rolando, o anzol fica parado
+        // exatamente onde caiu, só sendo desenhado. Assim que o minigame
+        // terminar (FishingManager volta a IDLE), a linha é recolhida.
+        if (waitingForFish) {
+            if (fishingManager == null || !fishingManager.isActive()) {
+                reset();
+            }
             return;
         }
 
@@ -101,9 +123,26 @@ public class FishingBobber {
                     }
                 }
             }
+
+            if (hookedEnemy != null) {
+                return; // fisgou um inimigo neste frame, nao processa pouso
+            }
+
+            // Captura em pleno voo: assim que a boia sobrevoa uma tile de buraco
+            // de pesca, ela para exatamente ali (mesmo que ainda tivesse
+            // velocidade sobrando, evitando "atravessar" buracos muito próximos).
+            int col = (int) (x / GameCore.tiles_size);
+            int row = (int) (y / GameCore.tiles_size);
+            if (FishingManager.isFishingHoleAt(row, col, lvlData)) {
+                x = col * GameCore.tiles_size + GameCore.tiles_size / 2.0;
+                y = row * GameCore.tiles_size + GameCore.tiles_size / 2.0;
+                velX = 0;
+                velY = 0;
+                onLanded(lvlData, row, col);
+                return;
+            }
+
             if (lvlData != null) {
-                int col = (int) (x / GameCore.tiles_size);
-                int row = (int) (y / GameCore.tiles_size);
                 if (row >= 0 && row < lvlData.length && col >= 0 && col < lvlData[0].length) {
                     if (TileProperties.isSolid(lvlData[row][col])) {
                         velX = 0;
@@ -111,7 +150,28 @@ public class FishingBobber {
                     }
                 }
             }
+
+            // pouso "natural" (agua comum, parede, etc.) por perda de velocidade
+            if (Math.hypot(velX, velY) < LANDING_SPEED_THRESHOLD) {
+                onLanded(lvlData, row, col);
+            }
         }
+    }
+
+    private void onLanded(int[][] lvlData, int row, int col) {
+        if (fishingManager != null && FishingManager.isFishingHoleAt(row, col, lvlData)) {
+            FishingManager.HoleType tipo = FishingManager.getFishingHoleType(lvlData[row][col]);
+            double centerX = col * GameCore.tiles_size + GameCore.tiles_size / 2.0;
+            double centerY = row * GameCore.tiles_size + GameCore.tiles_size / 2.0;
+            fishingManager.startFishing(tipo, centerX, centerY);
+            owner.addIscas(-1);
+            // fica ancorado e visivel ate o minigame terminar
+            waitingForFish = true;
+            return;
+        }
+
+        // nao caiu num buraco valido, so recolhe a linha
+        reset();
     }
 
     public void draw(Graphics2D g2) {
@@ -123,22 +183,19 @@ public class FishingBobber {
         double ownerCY = owner.getY() + owner.getAltura() / 2.0;
         double dist = Math.hypot(x - ownerCX, y - ownerCY);
 
-        // Feedback Visual da Tensão da Linha
         if (hookedEnemy != null && dist > MAX_DIST * 0.8) {
-            // Se estiver acima de 80% do limite de quebra, a linha pisca em vermelho
             if ((System.currentTimeMillis() / 100) % 2 == 0) {
                 g2.setColor(Color.RED);
             } else {
                 g2.setColor(Color.WHITE);
             }
         } else {
-            g2.setColor(new Color(200, 200, 200, 180)); // Cor normal da linha
+            g2.setColor(new Color(200, 200, 200, 180));
         }
 
         g2.setStroke(new BasicStroke(2.0f));
         g2.drawLine((int) ownerCX, (int) ownerCY, (int) x, (int) y);
 
-        // Desenha a boia/anzol
         g2.setColor(Color.RED);
         g2.fillOval((int) x - 4, (int) y - 4, 8, 8);
         g2.setColor(Color.WHITE);
