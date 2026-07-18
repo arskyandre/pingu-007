@@ -544,6 +544,8 @@ public class Player extends Entity {
         this.chaves = 0;
         this.municao = 45;
         this.pente = 15;
+        iscas = 0;
+        moedas = 0;
         this.vida = this.vidaMaxima;
         this.isDead = false;
         this.hasFishingRod = false;

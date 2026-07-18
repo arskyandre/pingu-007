@@ -853,7 +853,7 @@ public class GameCore extends Canvas implements Runnable {
     public static void main(String[] args) {
         GameCore game = new GameCore();
         Toolkit.getDefaultToolkit().setDynamicLayout(false);
-        game.frame = new JFrame("Pingu 007 (ALPHA)");
+        game.frame = new JFrame("Pingu 007");
         game.frame.setIconImage(
                 pingu_portrait.getScaledInstance(64, 64,
                         Image.SCALE_SMOOTH));
