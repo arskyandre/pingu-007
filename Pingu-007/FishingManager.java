@@ -5,6 +5,8 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Ellipse2D;
+import java.util.Random;
 
 /**
  * Gerencia apenas o minigame de pesca (espera -> fisgada -> resultado).
@@ -36,12 +38,26 @@ public class FishingManager {
     private int biteTimer = 0;
     private int feedbackTimer = 0;
 
+    // ── Mash de puxão durante o BITING ──
+    private double pullProgress = 0.0;
+
+    private static final double NORMAL_PRESS_GAIN = 0.20;
+    private static final double NORMAL_DECAY_PER_FRAME = 0.015;
+
+    private static final double HARD_PRESS_GAIN = 0.09;
+    private static final double HARD_DECAY_PER_FRAME = 0.020;
+
     private static final int WAIT_MIN = 180;
     private static final int WAIT_MAX = 600;
-    private static final int BITE_WINDOW = 45;
+    private static final int BITE_WINDOW = 180;
     private static final int FEEDBACK_DURATION = 60;
     private static final int BUTTON_SIZE = 40;
     private static final double BASE_ZOOM = 1.25;
+
+    private static final int START_ANIM_DURATION = 45;
+    private int startAnimTimer = 0;
+    private static final int BITE_START_ANIM_DURATION = 45;
+    private int biteStartAnimTimer = 0;
 
     private static boolean playerHasKey = false;
 
@@ -66,9 +82,15 @@ public class FishingManager {
 
     public void update(InputManager input, CameraManager camera, int[][] lvlData, int screenWidth,
             int screenHeight) {
-        System.out.println(state);
         if (state == State.IDLE) {
             return;
+        }
+
+        if (startAnimTimer > 0) {
+            startAnimTimer--;
+        }
+        if (biteStartAnimTimer > 0) {
+            biteStartAnimTimer--;
         }
 
         repositionButton(camera, screenWidth, screenHeight);
@@ -78,8 +100,10 @@ public class FishingManager {
         switch (state) {
             case WAITING ->
                 updateWaiting(input);
-            case BITING ->
+            case BITING -> {
                 updateBite(triggered);
+
+            }
             case SUCCESS, MISSED ->
                 updateFeedback();
             default -> {
@@ -134,6 +158,8 @@ public class FishingManager {
         this.currentHoleType = holeType;
         this.targetWorldX = worldX;
         this.targetWorldY = worldY;
+        this.pullProgress = 0.0;
+        this.startAnimTimer = START_ANIM_DURATION;
 
         soundManager.playSFX(SoundManager.SFX.FISHING_START);
         state = State.WAITING;
@@ -151,26 +177,52 @@ public class FishingManager {
         waitTimer = 0;
         biteTimer = 0;
         feedbackTimer = 0;
+        pullProgress = 0.0;
+        startAnimTimer = 0;
         player.setBlockInputs(false);
         System.out.println("Fishing cancelled.");
     }
 
     private void updateWaiting(InputManager input) {
-        if (input.isMouseButtonJustPressed(MouseEvent.BUTTON3)) {
+        if (input.isMouseButtonJustPressed(MouseEvent.BUTTON3) || input.isKeyJustPressed(KeyEvent.VK_E)) {
             cancelFishing();
             return;
         }
         waitTimer--;
         if (waitTimer <= 0) {
+            if (firstFlag) {
+                ToastNotifications
+                        .RequestNotification("Aperte E repetidamente para ajudar o Pingu a puxar o peixe!");
+            }
             state = State.BITING;
             biteTimer = BITE_WINDOW;
+            biteStartAnimTimer = BITE_START_ANIM_DURATION;
         }
     }
 
-    private void updateBite(boolean triggered) {
+    /**
+     * Retorna true se esse buraco esta na dificuldade "dificil" —
+     * ou seja, e um buraco KEY e o player ainda nao possui a chave dele.
+     * Assim que a chave e obtida (onFishCaught), esse mesmo buraco
+     * volta a dificuldade normal em futuras pescarias.
+     */
+    private boolean isHardBite() {
+        return currentHoleType == HoleType.KEY && !playerHasKey;
+    }
+
+    private void updateBite(boolean pressedNow) {
         biteTimer--;
 
-        if (triggered) {
+        boolean hard = isHardBite();
+        double gain = hard ? HARD_PRESS_GAIN : NORMAL_PRESS_GAIN;
+        double decay = hard ? HARD_DECAY_PER_FRAME : NORMAL_DECAY_PER_FRAME;
+
+        if (pressedNow) {
+            pullProgress = Math.min(1.0, pullProgress + gain);
+        } else
+            pullProgress = Math.max(0.0, pullProgress - decay);
+
+        if (pullProgress >= 1.0) {
             fishCaught();
             return;
         }
@@ -202,11 +254,16 @@ public class FishingManager {
     private void finishFishing() {
         state = State.IDLE;
         currentHoleType = HoleType.NONE;
+        pullProgress = 0.0;
         player.setBlockInputs(false);
     }
 
     /** Quando o player pesca */
     private void onFishCaught() {
+        if (firstFlag) {
+            firstFlag = false;
+            ToastNotifications.RequestNotification("Parabéns! O Pingu pescou algo!");
+        }
         soundManager.playSFX(SoundManager.SFX.NOOT_NOOT);
         if (currentHoleType == HoleType.NORMAL || playerHasKey) {
             double rand = Math.random();
@@ -232,7 +289,18 @@ public class FishingManager {
         }
     }
 
-    public void render(Graphics2D g2, CameraManager camera, int screenWidth, int screenHeight) {
+    private boolean firstFlag = true;
+
+    public void setfirstFlag(boolean set) {
+        firstFlag = set;
+
+    }
+
+    public boolean getfirstFlag() {
+        return firstFlag;
+    }
+
+    public void render(Graphics2D g2, CameraManager camera, int screenWidth, int screenHeight, double delta) {
         if (state == State.IDLE) {
             return;
         }
@@ -240,29 +308,35 @@ public class FishingManager {
         double screenX = (targetWorldX - camera.getX()) * camera.getZoom();
         double screenY = (targetWorldY - camera.getY()) * camera.getZoom();
 
+        if (startAnimTimer > 0) {
+            double startFrac = (START_ANIM_DURATION - startAnimTimer) / (double) START_ANIM_DURATION;
+            drawWaterRings(g2, screenX, screenY, startFrac, 3, 46, 6,
+                    new Color(180, 230, 255), 200, 2.5f, camera.getZoom());
+        }
+        if (biteStartAnimTimer > 0) {
+            double biteFrac = (BITE_START_ANIM_DURATION - biteStartAnimTimer) / (double) BITE_START_ANIM_DURATION;
+            drawWaterRings(g2, screenX, screenY, biteFrac, 3, 46, 6,
+                    new Color(180, 230, 255), 200, 2.5f, camera.getZoom());
+        }
         switch (state) {
-            case WAITING ->
-                drawWaiting(g2, screenX, screenY);
-            case BITING ->
+            case BITING -> {
                 drawBite(g2, screenX, screenY);
+            }
             case SUCCESS ->
-                drawFeedback(g2, screenX, screenY, "FISH CAUGHT!", new Color(120, 220, 120));
+                drawFeedback(g2, screenX, screenY, true, new Color(120, 220, 120), delta);
             case MISSED ->
-                drawFeedback(g2, screenX, screenY, "GOT AWAY...", new Color(220, 90, 90));
+                drawFeedback(g2, screenX, screenY, false, new Color(220, 90, 90), delta);
             default -> {
             }
         }
-    }
-
-    private void drawWaiting(Graphics2D g2, double screenX, double screenY) {
-        g2.setColor(new Color(255, 255, 255, 160));
-        g2.fillOval((int) screenX - 4, (int) screenY - 30, 8, 8);
     }
 
     private void drawBite(Graphics2D g2, double screenX, double screenY) {
         Rectangle rect = fishingButton.getRect();
         int centerX = rect.x + rect.width / 2;
         int centerY = rect.y + rect.height / 2;
+
+        boolean hard = isHardBite();
 
         float progress = biteTimer / (float) BITE_WINDOW;
         double pulse = 0.5 + 0.5 * Math.sin(biteTimer * 0.6);
@@ -273,27 +347,66 @@ public class FishingManager {
         g2.setColor(ringColor);
         g2.drawOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
 
-        g2.setFont(MenuButton.pixelFont.deriveFont(18f));
+        // Barra de progresso do puxão
+        int barW = 80;
+        int barH = 12;
+        int barX = centerX - barW / 2;
+        int barY = rect.y - 30;
+
+        g2.setColor(new Color(20, 20, 20, 200));
+        g2.fillRect(barX, barY, barW, barH);
+
+        int fillW = (int) (barW * pullProgress);
+        Color fillColor = hard ? new Color(255, 100, 40) : new Color(100, 220, 255);
+        g2.setColor(fillColor);
+        g2.fillRect(barX, barY, fillW, barH);
+
+        g2.setColor(Color.WHITE);
+        g2.drawRect(barX, barY, barW, barH);
+
+        // Texto indicativo
+        g2.setFont(MenuButton.pixelFont.deriveFont(hard ? 10f : 12f));
         FontMetrics fm = g2.getFontMetrics();
-        String texto = "!";
+        String texto = "[E]";
         int tx = centerX - fm.stringWidth(texto) / 2;
-        int ty = rect.y - 10;
+        int ty = barY - 6;
 
         g2.setColor(Color.BLACK);
         g2.drawString(texto, tx + 1, ty + 1);
-        g2.setColor(Color.YELLOW);
+        g2.setColor(Color.ORANGE);
         g2.drawString(texto, tx, ty);
     }
 
-    private void drawFeedback(Graphics2D g2, double screenX, double screenY, String text, Color color) {
-        g2.setFont(MenuButton.pixelFont.deriveFont(9f));
-        FontMetrics fm = g2.getFontMetrics();
-        int textX = (int) screenX - fm.stringWidth(text) / 2;
-        int textY = (int) screenY - 30;
+    private void drawWaterRings(Graphics2D g2, double centerX, double centerY, double frac,
+            int ringCount, double maxRadius, double baseRadius, Color ringBase, int maxAlpha, float strokeWidth,
+            double zoom) {
+        frac = Math.max(0.0, Math.min(1.0, frac));
+        double scale = 2.0 / 3.0 * zoom / BASE_ZOOM;
+        maxRadius *= scale;
+        baseRadius *= scale;
+        strokeWidth *= scale;
+        for (int i = 0; i < ringCount; i++) {
+            double stagger = i * 0.18;
+            double ringFrac = (frac - stagger) / (1.0 - stagger);
+            if (ringFrac <= 0) {
+                continue;
+            }
+            ringFrac = Math.min(1.0, ringFrac);
 
-        g2.setColor(Color.BLACK);
-        g2.drawString(text, textX + 1, textY + 1);
-        g2.setColor(color);
-        g2.drawString(text, textX, textY);
+            double radius = baseRadius + ringFrac * maxRadius;
+            int alpha = (int) (Math.max(0, 1.0 - ringFrac) * maxAlpha);
+            if (alpha <= 0) {
+                continue;
+            }
+
+            g2.setColor(new Color(ringBase.getRed(), ringBase.getGreen(), ringBase.getBlue(), alpha));
+            g2.setStroke(new BasicStroke(strokeWidth));
+            double h = radius;
+            g2.draw(new Ellipse2D.Double(centerX - radius, centerY - h / 2, radius * 2, h));
+        }
+    }
+
+    private void drawFeedback(Graphics2D g2, double screenX, double screenY, boolean pescou, Color color,
+            double delta) {
     }
 }

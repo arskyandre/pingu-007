@@ -26,7 +26,7 @@ public class PescadorNPC extends NPC {
         dialogo1 = new String[] {
                 "PESCADOR: Ei, Pingu! Vejo que você ainda não tem uma vara de pesca.",
                 "PESCADOR: Ainda bem que tenho uma sobrando. Pode ficar com ela!",
-                "PESCADOR: Sabe como pescar? É fácil, e só chegar perto de um buraco de água e apertar E para lançar a linha.",
+                "PESCADOR: Sabe como pescar? É fácil, e só chegar perto de um buraco de água e apertar o botão direito do mouse para lançar a linha.",
                 "PESCADOR: Se bobear, você consegue até fisgar um inimigo e trazer ele pra perto. Não tenho a coragem pra testar, então, se funcionar, me conta depois!",
                 "PESCADOR: Ouvi rumores de que um buraco de pesca por aí esconde um tesouro. Tentei pescar por lá, mas não tive sorte e ainda esqueci meu banquinho...",
                 "PESCADOR: Se encontrar, tente pescar lá!",

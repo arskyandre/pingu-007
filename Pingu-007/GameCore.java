@@ -82,7 +82,8 @@ public class GameCore extends Canvas implements Runnable {
     private static final int BASE_HEIGHT = game_height;
 
     public GameCore() {
-        setPreferredSize(new Dimension(game_width, game_height));
+        setPreferredSize(new Dimension(1600, 900));
+        // setPreferredSize(new Dimension(game_width, game_height));
         setBackground(Color.BLACK);
         soundManager = new SoundManager();
         gameOverScreen = new GameOverScreen(soundManager);
@@ -595,6 +596,8 @@ public class GameCore extends Canvas implements Runnable {
         checkArenas.clear();
         arenaManager.setFirstArenaFlag(true);
         FishingManager.setPlayerHasKey(false);
+        fishingManager.cancelFishing();
+        fishingManager.setfirstFlag(true);
         npcManager.clearAll();
         chavesColetadasCheckpoint = 0;
         player.resetarProgresso();

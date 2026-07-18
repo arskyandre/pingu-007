@@ -171,7 +171,7 @@ public class Renderer {
         int cinematicBorder = (int) (cinematicBorderHeight * eased);
 
         HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager, delta, (int) cinematicBorder);
-        fishingManager.render(g2, camera, telaLargura, telaAltura);
+        fishingManager.render(g2, camera, telaLargura, telaAltura, delta);
         double mouseCircleTarget = mouseCircle ? 1.0 : 0.0;
         double mouseCircleFadeSpeed = 1.0 / MOUSE_CIRCLE_FADE_DURATION;
 
