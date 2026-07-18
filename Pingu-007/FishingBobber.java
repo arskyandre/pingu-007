@@ -21,11 +21,11 @@ public class FishingBobber {
         this.fishingManager = fishingManager;
     }
 
-    public void cast(Player owner, double targetX, double targetY) {
+    public void cast(Player owner, SoundManager soundManager, double targetX, double targetY) {
         if (!owner.hasFishingRod() || owner.getIscas() <= 0) {
             return;
         }
-
+        soundManager.playSFX(SoundManager.SFX.LINE_CAST);
         this.owner = owner;
         this.x = owner.getX() + owner.getLargura() / 2.0;
         this.y = owner.getY() + owner.getAltura() / 2.0;

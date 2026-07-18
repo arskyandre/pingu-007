@@ -294,7 +294,7 @@ public class CutsceneManager {
         int alturaBarra = telaAltura / 10;
         int barraY = (telaAltura - alturaBarra) * 3 / 4;
         FontMetrics fm = g2.getFontMetrics();
-        // Vertically center the baseline inside the final bar
+        
         int textoY = barraY + (alturaBarra - (int) textBounds.getHeight()) / 2 + fm.getAscent();
 
         int alpha = (int) (255 * eased);

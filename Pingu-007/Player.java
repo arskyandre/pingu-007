@@ -383,7 +383,7 @@ public class Player extends Entity {
             } else {
                 double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
                 double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-                fishingBobber.cast(this, mouseXWorld, mouseYWorld);
+                fishingBobber.cast(this, soundManager, mouseXWorld, mouseYWorld);
             }
             fishingCooldown = 20;
         }

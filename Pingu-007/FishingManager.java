@@ -44,8 +44,8 @@ public class FishingManager {
     private static final double NORMAL_PRESS_GAIN = 0.20;
     private static final double NORMAL_DECAY_PER_FRAME = 0.015;
 
-    private static final double HARD_PRESS_GAIN = 0.09;
-    private static final double HARD_DECAY_PER_FRAME = 0.020;
+    private static final double HARD_PRESS_GAIN = 0.15;
+    private static final double HARD_DECAY_PER_FRAME = 0.018;
 
     private static final int WAIT_MIN = 180;
     private static final int WAIT_MAX = 600;
@@ -161,7 +161,7 @@ public class FishingManager {
         this.pullProgress = 0.0;
         this.startAnimTimer = START_ANIM_DURATION;
 
-        soundManager.playSFX(SoundManager.SFX.FISHING_START);
+        soundManager.playSFX(SoundManager.SFX.SPLASH);
         state = State.WAITING;
         waitTimer = WAIT_MIN + (int) (Math.random() * (WAIT_MAX - WAIT_MIN));
         player.setBlockInputs(true);

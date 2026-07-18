@@ -76,14 +76,15 @@ public class GameCore extends Canvas implements Runnable {
     public final static int tiles_size = (int) (tiles_default_size * scale);
     public final static int game_width = tiles_size * tiles_in_width;
     public final static int game_height = tiles_size * tiles_in_height;
+    // public final static int game_width = tiles_size * tiles_in_width;
+    // public final static int game_height = tiles_size * tiles_in_height;
     public static boolean estaLevel2 = false;
 
     private static final double BASE_ZOOM = 1.25;
     private static final int BASE_HEIGHT = game_height;
 
     public GameCore() {
-        setPreferredSize(new Dimension(1600, 900));
-        // setPreferredSize(new Dimension(game_width, game_height));
+        setPreferredSize(new Dimension(game_width, game_height));
         setBackground(Color.BLACK);
         soundManager = new SoundManager();
         gameOverScreen = new GameOverScreen(soundManager);
@@ -376,15 +377,14 @@ public class GameCore extends Canvas implements Runnable {
             System.out.println("DEBUG: Item moeda spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
             debugSpawnCooldown = 15;
         }
-        if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_MINUS) && player.getMoedas() >= 5) {
-            System.out.println("tirou 5 moedas");
-            player.addMoedas(-5);
+        if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_B)) {
+            System.out.println("deu 10 iscas");
+            player.addIscas(10);
         }
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_V) && debugSpawnCooldown <= 0) {
+        if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_V) && debugSpawnCooldown <= 0) {
             double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
             double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
             itemManager.spawn(new FishingRodItem(mouseXWorld, mouseYWorld));
-            player.addIscas(5);
             System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
             debugSpawnCooldown = 15;
         }
