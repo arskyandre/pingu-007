@@ -1,4 +1,3 @@
-
 public class Bullet {
 
     private double x, y;
@@ -15,7 +14,15 @@ public class Bullet {
     private final Collider collider;
     private final int dano = 10;
 
+    private final boolean damageFalloff;
+    private static final double DANO_MINIMO_FRACAO = 0.15;
+    private double distanciaPercorrida = 0;
+
     Bullet(double x, double y, double dirX, double dirY, BulletOwner owner) {
+        this(x, y, dirX, dirY, owner, false);
+    }
+
+    Bullet(double x, double y, double dirX, double dirY, BulletOwner owner, boolean damageFalloff) {
         this.x = x;
         this.y = y;
         this.startX = x;
@@ -23,6 +30,7 @@ public class Bullet {
         this.owner = owner;
         this.largura = 8;
         this.altura = 8;
+        this.damageFalloff = damageFalloff;
 
         this.collider = new Collider(0, 0, largura / 2.0);
 
@@ -40,8 +48,8 @@ public class Bullet {
         x += velX;
         y += velY;
 
-        double distPercorrida = Math.sqrt(Math.pow(x - startX, 2) + Math.pow(y - startY, 2));
-        if (distPercorrida > maxDistancia) {
+        distanciaPercorrida = Math.sqrt(Math.pow(x - startX, 2) + Math.pow(y - startY, 2));
+        if (distanciaPercorrida > maxDistancia) {
             desativar();
         }
     }
@@ -79,7 +87,12 @@ public class Bullet {
     }
 
     public int getDano() {
-        return dano;
+        if (!damageFalloff) {
+            return dano;
+        }
+        double fracaoPercorrida = Math.min(1.0, distanciaPercorrida / maxDistancia);
+        double multiplicador = 1.0 - (fracaoPercorrida * (1.0 - DANO_MINIMO_FRACAO));
+        return (int) Math.round(dano * multiplicador);
     }
 
     public double getKnockback() {

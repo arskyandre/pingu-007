@@ -10,6 +10,12 @@ public class Player extends Entity {
     final private double largura, altura;
     private Direction direction = Direction.DOWN;
 
+    public enum GunType {
+        PISTOL,
+        SHOTGUN
+    };
+
+    private GunType gunType = GunType.PISTOL;
     private double dirX = 0;
     private double dirY = 0;
 
@@ -28,15 +34,16 @@ public class Player extends Entity {
     private double dashDirY = 0;
 
     private final BulletManager bulletmanager;
-    private int moedas = 0; // TODO: sistema de dinheiro
-    private int iscas = 0; // TODO: sistema de iscas de pesca
+    private int moedas = 0;
+    private int iscas = 0;
     private int armas = 1;
     private int chaves = 0;
     private int pente = 15;
     private final int maxpente = 15;
     private int municao = 45;
     private int shootCooldownTimer = 0;
-    private final int shootCooldown = 20;
+    private final int pistolShootCooldown = 20;
+    private final int shotgunShootCooldown = 80;
     private int reloadCooldownTimer = 0;
     private final int reloadCooldown = 30;
     private final int reloadOnZeroCooldown = 35;
@@ -199,6 +206,14 @@ public class Player extends Entity {
         }
     }
 
+    public void setGunType(GunType type) {
+        gunType = type;
+    }
+
+    public GunType getGunType() {
+        return gunType;
+    }
+
     public void update(InputManager input, int telaLargura, int telaAltura, CameraManager camera,
             ArrayList<Enemy> enemies) {
         if (!podeDash) {
@@ -279,11 +294,33 @@ public class Player extends Entity {
                 if (shootCooldownTimer == 0 && pente > 0) {
                     double centerX = x + largura / 2.0;
                     double centerY = y + altura / 2.0;
+                    double dirToMouseX = mouseXWorld - centerX;
+                    double dirToMouseY = mouseYWorld - centerY;
 
-                    bulletmanager.shoot(centerX, centerY, mouseXWorld - centerX, mouseYWorld - centerY,
-                            BulletOwner.PLAYER);
-                    soundManager.playGunshot();
-                    shootCooldownTimer = shootCooldown;
+                    switch (gunType) {
+                        case PISTOL -> {
+                            bulletmanager.shoot(centerX, centerY, dirToMouseX, dirToMouseY, BulletOwner.PLAYER);
+                            soundManager.playGunshot();
+                            shootCooldownTimer = pistolShootCooldown;
+                        }
+                        case SHOTGUN -> {
+                            double anguloBase = Math.atan2(dirToMouseY, dirToMouseX);
+                            double angulo1 = anguloBase;
+                            double angulo2 = anguloBase - Math.toRadians(15);
+                            double angulo3 = anguloBase + Math.toRadians(15);
+
+                            bulletmanager.shoot(centerX, centerY, Math.cos(angulo1), Math.sin(angulo1),
+                                    BulletOwner.PLAYER, true);
+                            bulletmanager.shoot(centerX, centerY, Math.cos(angulo2), Math.sin(angulo2),
+                                    BulletOwner.PLAYER, true);
+                            bulletmanager.shoot(centerX, centerY, Math.cos(angulo3), Math.sin(angulo3),
+                                    BulletOwner.PLAYER, true);
+
+                            soundManager.playSFX(SoundManager.SFX.EXPLOSION);
+                            shootCooldownTimer = shotgunShootCooldown;
+                        }
+                    }
+
                     pente--;
                 }
             }

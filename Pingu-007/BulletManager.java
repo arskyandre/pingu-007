@@ -13,7 +13,12 @@ public class BulletManager {
     }
 
     public void shoot(double startX, double startY, double dirX, double dirY, BulletOwner owner) {
-        Bullets.add(new Bullet(startX, startY, dirX, dirY, owner));
+        shoot(startX, startY, dirX, dirY, owner, false);
+    }
+
+    public void shoot(double startX, double startY, double dirX, double dirY, BulletOwner owner,
+            boolean damageFalloff) {
+        Bullets.add(new Bullet(startX, startY, dirX, dirY, owner, damageFalloff));
     }
 
     public void update(CameraManager camera, int telaLargura, int telaAltura, Player player, ArrayList<Enemy> enemies) {
