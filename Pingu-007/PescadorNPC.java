@@ -16,16 +16,21 @@ public class PescadorNPC extends NPC {
     private static final double HEIGHT = GameCore.tiles_size;
     private boolean proximo = false;
     private double Yfinal;
-    private String[] dialogo1;
+    private String[] dialogo1_part1;
+    private String[] dialogo1_part2;
     private String[] dialogo2_noKey;
     private String[] dialogo2_hasKey;
     private BufferedImage Sprite;
+    private CameraManager camera;
 
-    public PescadorNPC(double x, double y) {
+    public PescadorNPC(double x, double y, CameraManager cameraMgr) {
         super(x, y, WIDTH, HEIGHT);
-        dialogo1 = new String[] {
+        camera = cameraMgr;
+        dialogo1_part1 = new String[] {
                 "PESCADOR: Ei, Pingu! Vejo que você ainda não tem uma vara de pesca.",
-                "PESCADOR: Ainda bem que tenho uma sobrando. Pode ficar com ela!",
+                "PESCADOR: Ainda bem que tenho uma sobrando. Pode ficar com ela!"
+        };
+        dialogo1_part2 = new String[] {
                 "PESCADOR: Sabe como pescar? É fácil, e só chegar perto de um buraco de água e apertar o botão direito do mouse para lançar a linha.",
                 "PESCADOR: Se bobear, você consegue até fisgar um inimigo e trazer ele pra perto. Não tenho a coragem pra testar, então, se funcionar, me conta depois!",
                 "PESCADOR: Ouvi rumores de que um buraco de pesca por aí esconde um tesouro. Tentei pescar por lá, mas não tive sorte e ainda esqueci meu banquinho...",
@@ -33,6 +38,7 @@ public class PescadorNPC extends NPC {
                 "PESCADOR: ...",
                 "PESCADOR: Ah, quase me esqueci! Você vai precisar de iscas para pescar. Tome 5 de graça para começar. Se acabar, é só voltar aqui que eu vendo mais."
         };
+
         dialogo2_noKey = new String[] {
                 "PESCADOR: Ouvi rumores de que um buraco de pesca por aí esconde um tesouro. Tentei pescar por lá, mas não tive sorte e ainda esqueci meu banquinho...",
                 "PESCADOR: Se encontrar, tente pescar lá!" };
@@ -115,11 +121,17 @@ public class PescadorNPC extends NPC {
                         laEle = true;
                     } else {
 
-                        dialogueManager.iniciarDialogo(dialogo1, DialogueCatalogo.PescadorFala1,
+                        dialogueManager.iniciarDialogo(dialogo1_part1, DialogueCatalogo.PescadorFala1_part1,
                                 new BufferedImage[] { GameCore.pescador_portrait }, true);
                         dialogueManager.setAoTerminarDialogo(() -> {
-                            player.addIscas(5);
-
+                            camera.focarEm(x + (largura / 2.0), y + altura + 40, 60, false);
+                            itemManager.spawn(new FishingRodItem(x + (largura / 2.0), y + altura + 40));
+                            dialogueManager.iniciarDialogo(dialogo1_part2, DialogueCatalogo.PescadorFala1_part2,
+                                    new BufferedImage[] { GameCore.pescador_portrait }, true);
+                            dialogueManager.setAoTerminarDialogo(() -> {
+                                laEle = true;
+                                player.addIscas(5);
+                            });
                         });
                     }
                     state = State.TALKING;
@@ -127,10 +139,6 @@ public class PescadorNPC extends NPC {
             }
             case TALKING -> {
                 if (!dialogueManager.isAtivo()) {
-                    if (!laEle && !player.hasFishingRod()) {
-                        itemManager.spawn(new FishingRodItem(x + (largura / 2.0), y + altura + 40));
-                        laEle = true;
-                    }
                     state = State.IDLE;
                 }
             }

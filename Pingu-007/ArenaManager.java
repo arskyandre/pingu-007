@@ -10,6 +10,7 @@ public class ArenaManager {
     private final ArenaContext context;
     private final NPCManager npcManager;
     private final CutsceneManager cutsceneManager;
+    private CameraManager camera;
     private final GameCore gameCore;
     // public boolean flagArena16Ativada = false;
     private boolean chave14_15_spawnada = false;
@@ -37,8 +38,9 @@ public class ArenaManager {
     private final ArrayList<ArenaObject> allObjects = new ArrayList<>();
 
     public ArenaManager(EnemyManager enemyManager, LevelManager levelManager, ItemManager itemManager,
-            NPCManager npcm, CutsceneManager CM, GameCore gc) {
+            NPCManager npcm, CutsceneManager CM, GameCore gc, CameraManager cameraMgr) {
         this.cutsceneManager = CM;
+        camera = cameraMgr;
         this.npcManager = npcm;
         this.enemyManager = enemyManager;
         this.levelManager = levelManager;
@@ -313,6 +315,8 @@ public class ArenaManager {
             System.out.println("=== PUZZLE LIGHTS OUT DA ARENA " + idArena + " CONCLUÍDO! ===");
             arena.concluida = true;
             setWallState(idArena, false, player);
+            // TODO: fazer a camera focar na chave
+            camera.focarEm(5029 + 16, 4200 + 16, 90, false);
             itemManager.spawn(new KeyItem(5029, 4200));
         }
     }
@@ -457,8 +461,9 @@ public class ArenaManager {
             }
             case 2, 3 -> {
                 if (id == 2 && !la_ele) {
-                    npcManager.spawn(new PescadorNPC(20.5 * GameCore.tiles_size, 45.3 * GameCore.tiles_size));
-                    System.out.printf("Spawnou pesqueiro em: %f, %f\n", 20.5 * GameCore.tiles_size,
+                    camera.focarEm(20.5 * GameCore.tiles_size, 45.3 * GameCore.tiles_size, 60, false);
+                    npcManager.spawn(new PescadorNPC(20.5 * GameCore.tiles_size, 45.3 * GameCore.tiles_size, camera));
+                    System.out.printf("Spawnou pescador em: %f, %f\n", 20.5 * GameCore.tiles_size,
                             45.7 * GameCore.tiles_size);
                     la_ele = true;
                 }
@@ -484,6 +489,8 @@ public class ArenaManager {
                     setWallState(15, false, player);
 
                     if (!chave14_15_spawnada) {
+                        // TODO: fazer a camera focar na chave
+                        camera.focarEm(12839 + 16, 4870 + 16, 90, false);
                         itemManager.spawn(new KeyItem(12839, 4870));
                         chave14_15_spawnada = true;
                     }

@@ -87,7 +87,7 @@ public class DialogueCatalogo {
         // das almas penadas
 
         // que encostarem nesse arquivo
-        public static final SoundManager.SFX[][] PescadorFala1 = new SoundManager.SFX[][] {
+        public static final SoundManager.SFX[][] PescadorFala1_part1 = new SoundManager.SFX[][] {
                         new SoundManager.SFX[] {
                                         null,
                                         // Ei
@@ -187,7 +187,21 @@ public class DialogueCatalogo {
                                         // ela
                                         SoundManager.SFX.KATAKANA_E,
                                         SoundManager.SFX.KATAKANA_RA
-                        },
+                        }
+        };
+
+        // separador
+
+        // de variaveis
+
+        // Deus tenha piedade
+
+        // das almas penadas
+
+        // que encostarem nesse arquivo
+        
+        public static final SoundManager.SFX[][] PescadorFala1_part2 = new SoundManager.SFX[][]{
+                
                         new SoundManager.SFX[] {
                                         // Sabe
                                         SoundManager.SFX.KATAKANA_SA,
