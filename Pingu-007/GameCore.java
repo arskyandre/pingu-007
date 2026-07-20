@@ -602,6 +602,7 @@ public class GameCore extends Canvas implements Runnable {
         hasCheckpoint = false;
         checkArenas.clear();
         arenaManager.setFirstArenaFlag(true);
+        arenaManager.setFezCutscene(false);
         FishingManager.setPlayerHasKey(false);
         fishingManager.cancelFishing();
         fishingManager.setfirstFlag(true);

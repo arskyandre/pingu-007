@@ -15,6 +15,7 @@ public class ArenaManager {
     // public boolean flagArena16Ativada = false;
     private boolean chave14_15_spawnada = false;
     private boolean cutsceneBossSolicitada = false;
+    private boolean fezCutscene = false;
     private boolean la_ele = false;
     private boolean isFirstArena = true;
 
@@ -93,7 +94,12 @@ public class ArenaManager {
         setWallState(101, true, null);
         setWallState(102, true, null);
     }
-
+    public void setFezCutscene(boolean set){
+        fezCutscene = set;
+    }
+    public boolean getFezCutscene(){
+        return fezCutscene;
+    }
     private Rectangle2D.Double getCombinedWallRect(int idArena) {
         Rectangle2D.Double combined = null;
         for (DoorObject door : doors) {
@@ -461,7 +467,10 @@ public class ArenaManager {
             }
             case 2, 3 -> {
                 if (id == 2 && !la_ele) {
-                    camera.focarEm(20.5 * GameCore.tiles_size, 45.3 * GameCore.tiles_size, 60, false);
+                    if (!fezCutscene){
+                        camera.focarEm(20.5 * GameCore.tiles_size, 45.3 * GameCore.tiles_size, 60, false);
+                        fezCutscene = true;
+                    }
                     npcManager.spawn(new PescadorNPC(20.5 * GameCore.tiles_size, 45.3 * GameCore.tiles_size, camera));
                     System.out.printf("Spawnou pescador em: %f, %f\n", 20.5 * GameCore.tiles_size,
                             45.7 * GameCore.tiles_size);
