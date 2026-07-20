@@ -257,8 +257,18 @@ public class DialogueCatalogo {
                                         SoundManager.SFX.KATAKANA_TA,
                                         SoundManager.SFX.KATAKANA_RU,
 
-                                        // E
-                                        SoundManager.SFX.KATAKANA_E,
+                                        SoundManager.SFX.KATAKANA_O,
+
+                                        SoundManager.SFX.KATAKANA_BO, SoundManager.SFX.KATAKANA_TA,
+                                        SoundManager.SFX.KATAKANA_O,
+
+                                        SoundManager.SFX.KATAKANA_DI, SoundManager.SFX.KATAKANA_RE,
+                                        SoundManager.SFX.KATAKANA_I, SoundManager.SFX.KATAKANA_TO,
+
+                                        SoundManager.SFX.KATAKANA_DO,
+
+                                        SoundManager.SFX.KATAKANA_MA, SoundManager.SFX.KATAKANA_U,
+                                        SoundManager.SFX.KATAKANA_ZI,
 
                                         // para
                                         SoundManager.SFX.KATAKANA_PA,
@@ -582,99 +592,6 @@ public class DialogueCatalogo {
 
         // que encostarem nesse arquivo
         public static final SoundManager.SFX[][] PescadorFala2_noKey = new SoundManager.SFX[][] {
-                        new SoundManager.SFX[] {
-                                        null,
-                                        // ESQUECEU
-                                        SoundManager.SFX.KATAKANA_E,
-                                        SoundManager.SFX.KATAKANA_SU,
-                                        SoundManager.SFX.KATAKANA_KE,
-                                        SoundManager.SFX.KATAKANA_SE,
-                                        SoundManager.SFX.KATAKANA_U,
-
-                                        // COMO
-                                        SoundManager.SFX.KATAKANA_KO,
-                                        SoundManager.SFX.KATAKANA_MO,
-
-                                        // PESCAR
-                                        SoundManager.SFX.KATAKANA_PE,
-                                        SoundManager.SFX.KATAKANA_SI,
-                                        SoundManager.SFX.KATAKANA_KA,
-                                        SoundManager.SFX.KATAKANA_RU,
-                                        null, null,
-                                        // E
-                                        SoundManager.SFX.KATAKANA_E,
-
-                                        // FACIL
-                                        SoundManager.SFX.KATAKANA_FA,
-                                        SoundManager.SFX.KATAKANA_SI,
-                                        SoundManager.SFX.KATAKANA_RU,
-                                        null,
-                                        // E
-                                        SoundManager.SFX.KATAKANA_E,
-
-                                        // SO
-                                        SoundManager.SFX.KATAKANA_SO,
-
-                                        // CHEGAR
-                                        SoundManager.SFX.KATAKANA_CHE,
-                                        SoundManager.SFX.KATAKANA_GA,
-                                        SoundManager.SFX.KATAKANA_RU,
-
-                                        // PERTO
-                                        SoundManager.SFX.KATAKANA_PE,
-                                        SoundManager.SFX.KATAKANA_RU,
-                                        SoundManager.SFX.KATAKANA_TO,
-
-                                        // DE
-                                        SoundManager.SFX.KATAKANA_DE,
-
-                                        // UM
-                                        SoundManager.SFX.KATAKANA_U,
-                                        SoundManager.SFX.KATAKANA_MU,
-
-                                        // BURACO
-                                        SoundManager.SFX.KATAKANA_BU,
-                                        SoundManager.SFX.KATAKANA_RA,
-                                        SoundManager.SFX.KATAKANA_KO,
-
-                                        // DE
-                                        SoundManager.SFX.KATAKANA_DE,
-
-                                        // AGUA
-                                        SoundManager.SFX.KATAKANA_A,
-                                        SoundManager.SFX.KATAKANA_GU,
-                                        SoundManager.SFX.KATAKANA_A,
-
-                                        // E
-                                        SoundManager.SFX.KATAKANA_E,
-
-                                        // APERTAR
-                                        SoundManager.SFX.KATAKANA_A,
-                                        SoundManager.SFX.KATAKANA_PE,
-                                        SoundManager.SFX.KATAKANA_RU,
-                                        SoundManager.SFX.KATAKANA_TA,
-                                        SoundManager.SFX.KATAKANA_RU,
-
-                                        // E
-                                        SoundManager.SFX.KATAKANA_E,
-
-                                        // PARA
-                                        SoundManager.SFX.KATAKANA_PA,
-                                        SoundManager.SFX.KATAKANA_RA,
-
-                                        // LANCAR
-                                        SoundManager.SFX.KATAKANA_RA,
-                                        SoundManager.SFX.KATAKANA_N,
-                                        SoundManager.SFX.KATAKANA_SA,
-                                        SoundManager.SFX.KATAKANA_RU,
-
-                                        // A
-                                        SoundManager.SFX.KATAKANA_A,
-
-                                        // LINHA
-                                        SoundManager.SFX.KATAKANA_RI,
-                                        SoundManager.SFX.KATAKANA_NYA
-                        },
                         new SoundManager.SFX[] {
                                         // OUVI
                                         SoundManager.SFX.KATAKANA_O, SoundManager.SFX.KATAKANA_U,

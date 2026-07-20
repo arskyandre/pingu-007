@@ -327,13 +327,6 @@ public class Hud {
             }
 
         }
-        int drawX = iconSize / 2 + 16 + chavesMax * (iconSize + HEART_GAP);
-        String ch = Integer.toString(chaves) + "/" + Integer.toString(chavesMax);
-        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 24f));
-        g2.setColor(new Color(0, 0, 0, 160));
-        g2.drawString(ch, drawX + 2, telaAltura - iconSize - 16 - offset + 2);
-        g2.setColor(new Color(255, 170, 0));
-        g2.drawString(ch, drawX, telaAltura - iconSize - 16 - offset);
         g2.setComposite(oldComposite);
     }
 

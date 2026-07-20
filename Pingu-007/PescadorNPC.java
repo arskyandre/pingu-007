@@ -34,7 +34,6 @@ public class PescadorNPC extends NPC {
                 "PESCADOR: Ah, quase me esqueci! Você vai precisar de iscas para pescar. Tome 5 de graça para começar. Se acabar, é só voltar aqui que eu vendo mais."
         };
         dialogo2_noKey = new String[] {
-                "PESCADOR: Esqueceu como pescar? É fácil, é só chegar perto de um buraco de água e apertar E para lançar a linha.",
                 "PESCADOR: Ouvi rumores de que um buraco de pesca por aí esconde um tesouro. Tentei pescar por lá, mas não tive sorte e ainda esqueci meu banquinho...",
                 "PESCADOR: Se encontrar, tente pescar lá!" };
         dialogo2_hasKey = new String[] {

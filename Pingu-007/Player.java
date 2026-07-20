@@ -541,6 +541,8 @@ public class Player extends Entity {
         if (qtd > 0) {
             chavesColetadasTotal += qtd;
         }
+        if (chaves == 1)
+            ToastNotifications.RequestNotification("Você encontrou a primeira chave para abrir o portão da Morsa!");
         System.out.println("coletou chave total: " + chaves);
     }
 
