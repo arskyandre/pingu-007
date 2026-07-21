@@ -601,6 +601,8 @@ public class GameCore extends Canvas implements Runnable {
     public void resetarJogoCompleto() {
         hasCheckpoint = false;
         checkArenas.clear();
+        camera.setModoCombate(false);
+        camera.desfocarCamera();
         arenaManager.setFirstArenaFlag(true);
         arenaManager.setFezCutscene(false);
         FishingManager.setPlayerHasKey(false);
@@ -618,6 +620,8 @@ public class GameCore extends Canvas implements Runnable {
         introDialogoAtiva = false;
         introTimer = 0;
         levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
+        camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
+                getWidth(), getHeight());
     }
 
     private void drawFpsCounter(Graphics2D g2) {

@@ -29,8 +29,8 @@ public class CutsceneManager {
 
     private BossIntroState bossIntroState = BossIntroState.DIALOGUE;
     private int timer = 0;
-    private static final int DURATION = 240;
-    private static final int BOSS_BGM_DELAY = 200;
+    private static final int DURATION = 120;
+    private static final int BOSS_BGM_DELAY = 100;
     private static final int TRANSICAO_BORDA = 20;
     private Player bossIntroPlayer;
     // desenhar barra preta e nome boss
@@ -74,11 +74,6 @@ public class CutsceneManager {
 
     // ---------------- Boss intro ----------------
 
-    /**
-     * Inicia a cutscene de entrada do boss. Agora o CutsceneManager cuida
-     * de tudo: foco de câmera, bloqueio de input do player, borda cinematica
-     * e troca de BGM, nada disso deve ser feito fora daqui.
-     */
     public void iniciarBossIntro(CameraManager camera, Player player, double focoX, double focoY, EnemyManager EM) {
         GameCore.setGameState(GameState.CUTSCENE);
         player.setTemporarySpriteOverride(14, 2);
@@ -87,6 +82,20 @@ public class CutsceneManager {
         enemyManager = EM;
         dialogueManager.iniciarDialogo(falasBossIntro,
                 new BufferedImage[] { morsaFalaSprite }, true);
+        dialogueManager.setAoTerminarDialogo(() -> {
+            bossIntroState = BossIntroState.CAMERA_PAN;
+            enemyManager.getMorsaBoss().setPodeRugir(true);
+            timer = 0;
+            if (cameraManager != null) {
+                cameraManager.focarEm(enemyManager.getMorsaBoss().getCenterX(),
+                        enemyManager.getMorsaBoss().getCenterY(), DURATION, true);
+            }
+
+            blackBarState = BlackBarState.IN;
+            blackBarProgress = 0;
+
+            gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
+        });
         blackBarProgress = 0.0;
         this.timer = 0;
         this.bossIntroPlayer = player;
@@ -147,26 +156,9 @@ public class CutsceneManager {
 
     public void update() {
         if (type == CutsceneType.BOSS_INTRO) {
-            if (bossIntroState == BossIntroState.DIALOGUE) {
-                if (!dialogueManager.isAtivo()) {
+            if (bossIntroState == BossIntroState.CAMERA_PAN) {
+                GameCore.setGameState(GameState.CUTSCENE);
 
-                    bossIntroState = BossIntroState.CAMERA_PAN;
-                    timer = 0;
-                    if (cameraManager != null) {
-                        cameraManager.focarEm(enemyManager.getMorsaBoss().getCenterX(),
-                                enemyManager.getMorsaBoss().getCenterY(), DURATION, true);
-                    }
-
-                    blackBarState = BlackBarState.IN;
-                    blackBarProgress = 0;
-
-                    gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
-                }
-            } else if (bossIntroState == BossIntroState.CAMERA_PAN) {
-                gameCore.setGameState(GameState.CUTSCENE);
-                timer++;
-
-                enemyManager.getMorsaBoss().setPodeRugir(true);
                 if (timer == BOSS_BGM_DELAY) {
 
                     soundManager.playBGM(SoundManager.BGM.BOSS_INTRO, SoundManager.BGM.BOSS_LOOP);
@@ -242,8 +234,6 @@ public class CutsceneManager {
         AffineTransform transformOriginal = g2.getTransform();
         g2.setTransform(new AffineTransform());
 
-        Rectangle2D textBounds = g2.getFontMetrics().getStringBounds(nomeBoss, g2);
-
         if (nomeBoss != null && !nomeBoss.isEmpty()) {
             desenharBarraPreta(g2, telaLargura, telaAltura, delta);
         }
@@ -294,7 +284,7 @@ public class CutsceneManager {
         int alturaBarra = telaAltura / 10;
         int barraY = (telaAltura - alturaBarra) * 3 / 4;
         FontMetrics fm = g2.getFontMetrics();
-        
+
         int textoY = barraY + (alturaBarra - (int) textBounds.getHeight()) / 2 + fm.getAscent();
 
         int alpha = (int) (255 * eased);

@@ -38,6 +38,10 @@ public class CameraManager {
         this.zoomFocoAlvo = zoom;
     }
 
+    public void setModoCombate(boolean set) {
+        combatModeAtivo = set;
+    }
+
     public void update(Player player, InputManager input, int telaLargura, int telaAltura) {
         double centroTelaX = telaLargura / 2.0;
         double centroTelaY = telaAltura / 2.0;
@@ -171,6 +175,15 @@ public class CameraManager {
         this.zoomFocoAlvo = zoomBase; // mantém o zoom normal
     }
 
+    /** overload, foca ate rodar desfocarCamera() */
+    public void focarEm(double worldX, double worldY) {
+        this.foco_indefinido = true;
+        this.focoAlvoX = worldX;
+        this.focoAlvoY = worldY;
+        this.focoTimer = 67;
+        this.zoomFocoAlvo = zoomBase; // mantém o zoom normal
+    }
+
     public void focarEmRect(Rectangle2D.Double rect, int duracaoFrames, int telaLargura, int telaAltura,
             boolean tempo_indefinido) {
         this.foco_indefinido = tempo_indefinido;
@@ -191,6 +204,29 @@ public class CameraManager {
 
     public void desfocarCamera() {
         foco_indefinido = false;
+        focoTimer = 0;
+    }
+
+    public void resetCameraState(double playerX, double playerY, double playerWidth, double playerHeight,
+            int telaLargura, int telaAltura) {
+        combatModeAtivo = false;
+        foco_indefinido = false;
+        focoTimer = 0;
+        letterboxAtivo = false;
+        shakeTimer = 0;
+        shakeOffsetX = 0;
+        shakeOffsetY = 0;
+        clearCombatTarget();
+        zoom = zoomBase;
+        zoomFocoAlvo = zoomBase;
+
+        double centroTelaX = telaLargura / 2.0;
+        double centroTelaY = telaAltura / 2.0;
+        double playerCentroX = playerX + playerWidth / 2.0;
+        double playerCentroY = playerY + playerHeight / 2.0;
+
+        this.x = playerCentroX - (centroTelaX / zoom);
+        this.y = playerCentroY - (centroTelaY / zoom);
     }
 
     // Útil para, por exemplo, travar o input do player enquanto a cutscene roda.

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 public class EnemyManager {
 
     private final ArrayList<Enemy> enemies = new ArrayList<>();
-private final GameCore gameCore;
+    private final GameCore gameCore;
     private final BulletManager bulmgr;
     private final LevelManager levelManager;
     private ItemManager itemManager;
@@ -94,7 +94,8 @@ private final GameCore gameCore;
                 this.morsaAtual = morsaInstancia;
 
                 BossMao maoEsq = new BossMao(x - 140, y + 64, lvlData, soundManager, morsaInstancia);
-                BossMao maoDir = new BossMao(x + (GameCore.tiles_size * 6) + 44, y + 64, lvlData, soundManager, morsaInstancia);
+                BossMao maoDir = new BossMao(x + (GameCore.tiles_size * 6) + 44, y + 64, lvlData, soundManager,
+                        morsaInstancia);
 
                 morsaInstancia.vincularMaos(maoEsq, maoDir);
 
@@ -112,13 +113,14 @@ private final GameCore gameCore;
 
     public void limparTudo() {
         enemies.clear();
+        morsaAtual = null;
     }
 
     public ArrayList<Enemy> getEnemies() {
         return enemies;
     }
 
-    public MorsaBoss getMorsaBoss(){
-      return morsaAtual;
+    public MorsaBoss getMorsaBoss() {
+        return morsaAtual;
     }
 }
