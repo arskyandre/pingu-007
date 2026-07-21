@@ -396,15 +396,25 @@ public class ArenaManager {
                 spawnHorda(arena);
 
 
-                MorsaBoss morsa = enemyManager.getMorsaBoss();
-                arena.concluida = true;
+                MorsaBoss morsa = null;
 
+                for(Enemy e: arena.inimigosVivos){
+                  if(e instanceof MorsaBoss){
+                    morsa = (MorsaBoss) e;
+                    break;
+                  }
+                }
+                arena.concluida = true;
+                
+                
 
                 if (morsa != null && camera != null && cutsceneManager != null) {
                     morsa.vincularCamera(camera);
                     cutsceneManager.setBossRef(morsa); 
                 }           
             }
+        
+        
             case 102 -> {
                 setWallState(102, false, player);
                 arena.concluida = true;

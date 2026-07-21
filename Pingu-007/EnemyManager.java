@@ -92,13 +92,7 @@ public class EnemyManager {
 
                 this.morsaAtual = morsaInstancia;
 
-                BossMao maoEsq = new BossMao(x - 140, y + 64, lvlData, soundManager, morsaInstancia);
-                BossMao maoDir = new BossMao(x + (GameCore.tiles_size * 6) + 44, y + 64, lvlData, soundManager, morsaInstancia);
 
-                morsaInstancia.vincularMaos(maoEsq, maoDir);
-
-                enemies.add(maoEsq);
-                enemies.add(maoDir);
 
                 novo = morsaInstancia;
             }
@@ -118,6 +112,7 @@ public class EnemyManager {
     }
 
     public MorsaBoss getMorsaBoss(){
-      return morsaAtual;
+     
+      return null;
     }
 }
