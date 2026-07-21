@@ -27,6 +27,7 @@ public class MorsaBoss extends Enemy {
     private boolean rugindo = false;
     private double timerRugido = 0;
     private double cooldownRugido = 30;
+
     private boolean podeRugir = false; // IMPORTANTE: NAO DEIXAR NADA NENHUM INIMIGO ATACAR ENQUANTO PODERUGIR FOR
                                        // FALSO, SE NAO VAI COMECAR A ATACAR NO MEIO DA CUTSCENE
 

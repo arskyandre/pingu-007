@@ -106,10 +106,9 @@ public class Hud {
         updateAndDrawParticles(g2, delta, offset);
         healthbar_inimigos(g2, telaLargura, telaAltura, camera, em);
         player_hearts(g2, p, offset);
-        if (!GameCore.isLevel2()) {
-            desenha_chaves(g2, p, telaLargura, telaAltura, offset, delta);
-            desenha_moedas_e_isca(g2, p, telaLargura, telaAltura, offset, delta);
-        }
+        desenha_chaves(g2, p, telaLargura, telaAltura, offset, delta);
+        desenha_moedas_e_isca(g2, p, telaLargura, telaAltura, offset, delta);
+
         ammobar(g2, telaLargura, telaAltura, p, offset);
     }
 
@@ -297,7 +296,7 @@ public class Hud {
         int chaves = p.getChaves();
         if (chaves > 0)
             jaPegouChave = true;
-        double chaveAlphaTarget = (jaPegouChave) ? 1.0 : 0.0;
+        double chaveAlphaTarget = (jaPegouChave && !GameCore.isLevel2()) ? 1.0 : 0.0;
         double chave_fade_duracao = 0.75;
         double chaveAlphaFadeSpeed = 1.0 / chave_fade_duracao;
         if (chaveAlpha < chaveAlphaTarget) {
@@ -343,7 +342,7 @@ public class Hud {
         int moedas = p.getMoedas();
         if (moedas > 0)
             jaPegouMoeda = true;
-        double moedaAlphaTarget = (jaPegouMoeda) ? 1.0 : 0.0;
+        double moedaAlphaTarget = (jaPegouMoeda && !GameCore.isLevel2()) ? 1.0 : 0.0;
         double moeda_fade_duracao = 0.75;
         double moedaAlphaFadeSpeed = 1.0 / moeda_fade_duracao;
         if (moedaAlpha < moedaAlphaTarget) {
@@ -356,7 +355,7 @@ public class Hud {
         int iscas = p.getIscas();
         if (iscas > 0)
             jaPegouIsca = true;
-        double iscaAlphaTarget = (jaPegouIsca) ? 1.0 : 0.0;
+        double iscaAlphaTarget = (jaPegouIsca && !GameCore.isLevel2()) ? 1.0 : 0.0;
         double isca_fade_duracao = 0.75;
         double iscaAlphaFadeSpeed = 1.0 / isca_fade_duracao;
         if (iscaAlpha < iscaAlphaTarget) {
