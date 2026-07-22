@@ -62,6 +62,7 @@ public class SoundManager {
         DIALOGUE_SOUND_1("sound/dialogue/dialogue_sound_1.wav", 9),
         DIALOGUE_SOUND_2("sound/dialogue/dialogue_sound_2.wav", 9),
         DIALOGUE_SOUND_3("sound/dialogue/dialogue_sound_3.wav", 9),
+        DIALOGUE_QUESTION("sound/dialogue/question.wav", 3),
         // para o dialogo animal crossing
         KATAKANA_A("sound/dialogue/kata_a.wav", 3),
         KATAKANA_BA("sound/dialogue/kata_ba.wav", 3),

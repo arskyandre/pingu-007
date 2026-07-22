@@ -62,7 +62,8 @@ public class PescadorNPC extends NPC {
                         "Comprar 5 Iscas: 10 moedas",
                         "Comprar 10 Iscas: 20 moedas",
                         "Não"
-                }, GameCore.pescador_portrait, index,
+                },
+                GameCore.pescador_portrait, index,
                 escolha -> {
                     switch (escolha) {
                         case 2 -> dialogueManager.iniciarDialogo(
@@ -99,7 +100,7 @@ public class PescadorNPC extends NPC {
 
     @Override
     public void update(Player player, InputManager input,
-            DialogueManager dialogueManager, ItemManager itemManager) {
+            DialogueManager dialogueManager, SoundManager soundManager, ItemManager itemManager) {
         if (Yfinal != y) {
             return;
         }
@@ -116,6 +117,7 @@ public class PescadorNPC extends NPC {
                                     new BufferedImage[] { GameCore.pescador_portrait }, true);
 
                         dialogueManager.setAoTerminarDialogo(() -> {
+                            soundManager.playSFX(SoundManager.SFX.DIALOGUE_QUESTION);
                             loopCompra(dialogueManager, player);
                         });
                         laEle = true;

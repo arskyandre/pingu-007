@@ -199,9 +199,9 @@ public class DialogueCatalogo {
         // das almas penadas
 
         // que encostarem nesse arquivo
-        
-        public static final SoundManager.SFX[][] PescadorFala1_part2 = new SoundManager.SFX[][]{
-                
+
+        public static final SoundManager.SFX[][] PescadorFala1_part2 = new SoundManager.SFX[][] {
+
                         new SoundManager.SFX[] {
                                         // Sabe
                                         SoundManager.SFX.KATAKANA_SA,
@@ -422,10 +422,6 @@ public class DialogueCatalogo {
                                         // TESOURO
                                         SoundManager.SFX.KATAKANA_TE, SoundManager.SFX.KATAKANA_ZO,
                                         SoundManager.SFX.KATAKANA_U, SoundManager.SFX.KATAKANA_RO,
-
-                                        // SECRETO
-                                        SoundManager.SFX.KATAKANA_SE, SoundManager.SFX.KATAKANA_KU,
-                                        SoundManager.SFX.KATAKANA_RE, SoundManager.SFX.KATAKANA_TO,
 
                                         null, null,
 
@@ -653,10 +649,6 @@ public class DialogueCatalogo {
                                         SoundManager.SFX.KATAKANA_TE, SoundManager.SFX.KATAKANA_ZO,
                                         SoundManager.SFX.KATAKANA_U, SoundManager.SFX.KATAKANA_RO,
 
-                                        // SECRETO
-                                        SoundManager.SFX.KATAKANA_SE, SoundManager.SFX.KATAKANA_KU,
-                                        SoundManager.SFX.KATAKANA_RE, SoundManager.SFX.KATAKANA_TO,
-
                                         null, null,
 
                                         // TENTEI
@@ -790,7 +782,8 @@ public class DialogueCatalogo {
                                         SoundManager.SFX.KATAKANA_KE,
 
                                         // ERA
-                                        SoundManager.SFX.KATAKANA_E, SoundManager.SFX.KATAKANA_RA
+                                        SoundManager.SFX.KATAKANA_E, SoundManager.SFX.KATAKANA_RA,
+                                        SoundManager.SFX.DIALOGUE_QUESTION
                         },
 
                         new SoundManager.SFX[] {
