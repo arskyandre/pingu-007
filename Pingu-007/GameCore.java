@@ -421,13 +421,22 @@ public class GameCore extends Canvas implements Runnable {
 
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_2) && mapLoadCooldown <= 0) {
             System.out.println("Indo para o Mapa 2 de Testes...");
-            // Substitua pelo nome exato do seu arquivo JSON de teste
             entrarNivelBoss();
+        }
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_3) && mapLoadCooldown <= 0) {
+            System.out.println("Indo para o Mapa 3 de Testes...");
+            entrarCasaVendedor();
         }
 
         if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_3)) {
             renderer.toggleAntiAliasing();
         }
+    }
+
+    public void entrarCasaVendedor() {
+        levelManager.carregarNivel(LoadSave.CASA_VENDEDOR);
+        mapLoadCooldown = 60;
+        camera.focarEm(20 * 16, 13.5 * 16); // numeros magicos
     }
 
     public void entrarNivelBoss() {

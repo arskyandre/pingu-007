@@ -12,10 +12,10 @@ public class LoadSave {
     public static final String LEVEL_ATLAS = "images/tile_set.png";
     public static final String LEVEL_1_DATA = "LEVEL_1_DATA.json";
     public static final String LEVEL_2_DATA = "LEVEL_2_DATA.tmj";
+    public static final String CASA_VENDEDOR = "CASA_VENDEDOR.tmj";
 
     public static BufferedImage GetSpriteAtlas(String filename) {
-        try (InputStream is
-                = LoadSave.class.getResourceAsStream("/" + filename)) {
+        try (InputStream is = LoadSave.class.getResourceAsStream("/" + filename)) {
             if (is == null) {
                 throw new RuntimeException("Arquivo não encontrado: " + filename);
             }
@@ -147,7 +147,7 @@ public class LoadSave {
 
                     // Extração dos novos interativos
                     tObj.colision = extractBoolProp(processStr, "colision", true);
-                    //tObj.key = extractIntProp(processStr, "key", 0);
+                    // tObj.key = extractIntProp(processStr, "key", 0);
                     tObj.id_button = extractIntProp(processStr, "id_button", -1);
                     tObj.isToggle = extractBoolProp(processStr, "isToggle", false);
 
@@ -179,8 +179,8 @@ public class LoadSave {
         int end = idx;
         while (end < text.length()
                 && (Character.isDigit(text.charAt(end))
-                || text.charAt(end) == '-'
-                || text.charAt(end) == '.')) {
+                        || text.charAt(end) == '-'
+                        || text.charAt(end) == '.')) {
             end++;
         }
         try {

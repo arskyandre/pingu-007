@@ -94,12 +94,15 @@ public class ArenaManager {
         setWallState(101, true, null);
         setWallState(102, true, null);
     }
-    public void setFezCutscene(boolean set){
+
+    public void setFezCutscene(boolean set) {
         fezCutscene = set;
     }
-    public boolean getFezCutscene(){
+
+    public boolean getFezCutscene() {
         return fezCutscene;
     }
+
     private Rectangle2D.Double getCombinedWallRect(int idArena) {
         Rectangle2D.Double combined = null;
         for (DoorObject door : doors) {
@@ -339,19 +342,24 @@ public class ArenaManager {
             SoundManager sound) {
         System.out.println("Ativou arena: " + id);
 
+        Arena arena = getOuCriarArena(id);
+        arena.ativa = true;
+
+        if (arena.trigger != null && arena.trigger.destino != null && !arena.trigger.destino.isEmpty()) {
+            iniciarTransicaoDeFase(arena.trigger.destino);
+            arena.concluida = true;
+            return;
+        }
+
         if (id == 0) {
             player.setTemporarySpriteOverride(7, 2);
         }
-        if (id != 999) {
-            if (id != 67) {
-                System.out.println("CUTSCENE setado em ArenaManager, id = " + id);
-                gameCore.setGameState(GameState.CUTSCENE);
-            }
-            sound.playSFX(SoundManager.SFX.ARENA_ENTER);
-            gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
+        if (id != 67) {
+            System.out.println("CUTSCENE setado em ArenaManager, id = " + id);
+            GameCore.setGameState(GameState.CUTSCENE);
         }
-        Arena arena = getOuCriarArena(id);
-        arena.ativa = true;
+        sound.playSFX(SoundManager.SFX.ARENA_ENTER);
+        gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
 
         if (arena.totalHordas > 0) {
             arena.hordaAtual = 1;
@@ -431,10 +439,6 @@ public class ArenaManager {
                 arena.concluida = true;
                 player.solicitarCheckpoint();
             }
-            case 999 -> {
-                iniciarTransicaoDeFase(arena.trigger.destino);
-                arena.concluida = true;
-            }
             default -> {
                 if (arena.totalHordas == 0) {
                     arena.concluida = true;
@@ -449,7 +453,7 @@ public class ArenaManager {
             if (isFirstArena) {
                 cutsceneManager.iniciarWallRevealComCamera(wallRect, camera, player);
                 if (id != 67)
-                    gameCore.setGameState(GameState.CUTSCENE);
+                    GameCore.setGameState(GameState.CUTSCENE);
                 isFirstArena = false;
             } else {
                 cutsceneManager.iniciarWallFade(wallRect);
@@ -467,7 +471,7 @@ public class ArenaManager {
             }
             case 2, 3 -> {
                 if (id == 2 && !la_ele) {
-                    if (!fezCutscene){
+                    if (!fezCutscene) {
                         camera.focarEm(20.5 * GameCore.tiles_size, 45.3 * GameCore.tiles_size, 60, false);
                         fezCutscene = true;
                     }

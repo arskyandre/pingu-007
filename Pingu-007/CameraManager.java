@@ -175,7 +175,7 @@ public class CameraManager {
         this.zoomFocoAlvo = zoomBase; // mantém o zoom normal
     }
 
-    /** overload, foca ate rodar desfocarCamera() */
+    /** overload, foca com tempo indefinido ate rodar desfocarCamera() */
     public void focarEm(double worldX, double worldY) {
         this.foco_indefinido = true;
         this.focoAlvoX = worldX;
