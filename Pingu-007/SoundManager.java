@@ -238,7 +238,7 @@ public class SoundManager {
     }
 
     public void BGMfadeOut(int duration) {
-        bgmPlayer.fadeOut(duration);
+        bgmPlayer.fadeOut(duration, () -> currentTrack = null);
     }
 
     private void loadSFX() {
@@ -316,8 +316,45 @@ public class SoundManager {
         bgmPlayer.setVolume(musicVolume);
     }
 
+    public void crossfadeBGM(BGM track) {
+        crossfadeBGM(track, 1000, true);
+    }
+
+    public void crossfadeBGM(BGM track, boolean fade_in) {
+        crossfadeBGM(track, 1000, fade_in);
+    }
+
+    public void crossfadeBGM(BGM track, long durationMs) {
+        currentTrack = track;
+        bgmPlayer.crossfadeTo(track.path, musicVolume, durationMs, true);
+    }
+
+    public void crossfadeBGM(BGM track, long durationMs, boolean fade_in) {
+        currentTrack = track;
+        bgmPlayer.crossfadeTo(track.path, musicVolume, durationMs, fade_in);
+    }
+
+    public void crossfadeBGM(BGM intro, BGM loop) {
+        crossfadeBGM(intro, loop, 1000, true);
+    }
+
+    public void crossfadeBGM(BGM intro, BGM loop, boolean fade_in) {
+        crossfadeBGM(intro, loop, 1000, fade_in);
+    }
+
+    public void crossfadeBGM(BGM intro, BGM loop, long durationMs) {
+        currentTrack = loop;
+        bgmPlayer.crossfadeToIntroThenLoop(intro.path, loop.path, musicVolume, durationMs, true);
+    }
+
+    public void crossfadeBGM(BGM intro, BGM loop, long durationMs, boolean fade_in) {
+        currentTrack = loop;
+        bgmPlayer.crossfadeToIntroThenLoop(intro.path, loop.path, musicVolume, durationMs, fade_in);
+    }
+
     public void stopMusic() {
         bgmPlayer.stop();
+        currentTrack = null;
     }
 
     public static void setVolume(Clip clip, float volume) {

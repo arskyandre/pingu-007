@@ -414,8 +414,11 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_1) && mapLoadCooldown <= 0) {
             System.out.println("Voltando para o Mapa 1...");
             levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
+            setCinematicBorderAnimation(Renderer.BorderState.OUT);
+            camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(), getWidth(),
+                    getHeight());
             if (soundManager.currentSong() != SoundManager.BGM.LEVEL_1_LOOP)
-                soundManager.playBGM(SoundManager.BGM.LEVEL_1_INTRO, SoundManager.BGM.LEVEL_1_LOOP);
+                soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_LOOP, 2000, true);
             mapLoadCooldown = 60;
         }
 
@@ -437,12 +440,16 @@ public class GameCore extends Canvas implements Runnable {
         levelManager.carregarNivel(LoadSave.CASA_VENDEDOR);
         mapLoadCooldown = 60;
         camera.focarEm(20 * 16, 13.5 * 16); // numeros magicos
+        soundManager.crossfadeBGM(SoundManager.BGM.INSIDE_INTRO, SoundManager.BGM.INSIDE_LOOP, 2000);
     }
 
     public void entrarNivelBoss() {
+
         levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
         arenaManager.setFirstArenaFlag(false);
         mapLoadCooldown = 60;
+        camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(), getWidth(),
+                getHeight());
     }
 
     public void toggleAntiAliasing() {
