@@ -16,6 +16,7 @@ public class Player extends Entity {
     };
 
     private GunType gunType = GunType.PISTOL;
+    private boolean hasShotgun = false;
     private double dirX = 0;
     private double dirY = 0;
 
@@ -42,6 +43,8 @@ public class Player extends Entity {
     private final int maxpente = 15;
     private int municao = 45;
     private int shootCooldownTimer = 0;
+    private final int changeGunCooldown = 30;
+    private int changeGunCooldownTimer = 0;
     private final int pistolShootCooldown = 20;
     private final int shotgunShootCooldown = 80;
     private int reloadCooldownTimer = 0;
@@ -247,6 +250,9 @@ public class Player extends Entity {
         if (shootCooldownTimer > 0) {
             shootCooldownTimer--;
         }
+        if (changeGunCooldownTimer > 0) {
+            changeGunCooldownTimer--;
+        }
 
         if (reloadOnZeroCooldownTimer > 0) {
             reloadOnZeroCooldownTimer--;
@@ -325,6 +331,33 @@ public class Player extends Entity {
                 }
             }
 
+            if (input.isKeyPressed(KeyEvent.VK_6) && input.isKeyJustPressed(KeyEvent.VK_7)) {
+                hasShotgun = true;
+                ToastNotifications.RequestNotification("DEBUG 67: habilitou shotgun", 2.0);
+            }
+            if (input.isKeyJustPressed(KeyEvent.VK_G) && hasShotgun && changeGunCooldownTimer == 0) {
+                if (getGunType() == Player.GunType.SHOTGUN) {
+                    setGunType(Player.GunType.PISTOL);
+                    if (ToastNotifications.getNotifAtual() != null
+                            && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
+                                    || ToastNotifications.getNotifAtual().equals("Mudou para Pistola")))
+                        ToastNotifications.skipNotification();
+                    if (ToastNotifications.getNotifAtual() == null
+                            || !ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))
+                        ToastNotifications.RequestNotification("Mudou para Pistola", 1.0);
+                } else {
+                    setGunType(Player.GunType.SHOTGUN);
+                    if (ToastNotifications.getNotifAtual() != null
+                            && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
+                                    || ToastNotifications.getNotifAtual().equals("Mudou para Pistola")))
+                        ToastNotifications.skipNotification();
+                    if (ToastNotifications.getNotifAtual() == null
+                            || !ToastNotifications.getNotifAtual().equals("Mudou para Shotgun"))
+                        ToastNotifications.RequestNotification("Mudou para Shotgun", 1.0);
+                }
+                shootCooldownTimer = pistolShootCooldown;
+                changeGunCooldownTimer = changeGunCooldown;
+            }
             if (input.isKeyPressed(KeyEvent.VK_R) && !reloading && pente < maxpente && municao > 0) {
                 reloading = true;
                 reloadCooldownTimer = reloadCooldown;
@@ -579,6 +612,8 @@ public class Player extends Entity {
     }
 
     public void resetarProgresso() {
+        gunType = GunType.PISTOL;
+        hasShotgun = false;
         this.chavesColetadasTotal = 0;
         this.chaves = 0;
         this.municao = 45;

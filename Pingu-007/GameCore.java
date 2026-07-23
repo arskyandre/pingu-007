@@ -339,12 +339,6 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyJustPressed(KeyEvent.VK_O)) {
             setCinematicBorderAnimation(Renderer.BorderState.OUT);
         }
-        if (input.isKeyJustPressed(KeyEvent.VK_G)) {
-            if (player.getGunType() == Player.GunType.SHOTGUN)
-                player.setGunType(Player.GunType.PISTOL);
-            else
-                player.setGunType(Player.GunType.SHOTGUN);
-        }
         if (input.isKeyJustPressed(KeyEvent.VK_N)) {
             player.setX(48.5 * GameCore.tiles_size);
             player.setY(47.0 * GameCore.tiles_size);

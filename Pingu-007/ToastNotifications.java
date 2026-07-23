@@ -56,7 +56,7 @@ public class ToastNotifications {
     public static void skipNotification() {
         if (notifAtual == null)
             return;
-        tempoNaNotifAtual = holdAtualDur();
+        tempoNaNotifAtual = FADE_IN_DUR + holdAtualDur();
     }
 
     public static void clearNotifQueue() {
