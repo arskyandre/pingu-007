@@ -102,5 +102,3 @@ Os arquivos de imagens, sons, mapas e demais recursos devem permanecer na pasta 
 | André Arsky Silva Araujo | RA |
 | Kauã Victor Menezes Ferraz | RA |
 | Leonardo Lima Silva | RA |
-
-Esse texto de README teve sua escrita auxiliada por IA.

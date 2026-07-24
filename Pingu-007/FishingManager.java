@@ -267,10 +267,7 @@ public class FishingManager {
         soundManager.playSFX(SoundManager.SFX.NOOT_NOOT);
         if (currentHoleType == HoleType.NORMAL || playerHasKey) {
             double rand = Math.random();
-            if (currentHoleType == HoleType.KEY) {
-                itemManager.spawn(new MoedaItem(targetWorldX, targetWorldY + 24, 15));
-                System.out.println("peixe pego, dropando moeda");
-            } else if (rand > 0.66) {
+            if (rand > 0.66) {
                 itemManager.spawn(new AmmoPackItem(targetWorldX, targetWorldY + 24));
                 System.out.println("peixe pego, dropando municao");
             } else if (rand < 0.05) {
