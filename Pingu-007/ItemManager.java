@@ -30,7 +30,7 @@ public class ItemManager {
 
         if (enemy instanceof Shooter) {
             spawn(new AmmoPackItem(dropX, dropY));
-            if (Math.random() < 0.66) {
+            if (Math.random() < 0.05) {
                 spawn(new MoedaItem(dropX, dropY, 10));
             }
         } else if (enemy instanceof Dasher || enemy instanceof Jumper
