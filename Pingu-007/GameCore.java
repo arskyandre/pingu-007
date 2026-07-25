@@ -433,7 +433,10 @@ public class GameCore extends Canvas implements Runnable {
     public void entrarCasaVendedor() {
         levelManager.carregarNivel(LoadSave.CASA_VENDEDOR);
         mapLoadCooldown = 60;
-        camera.focarEm(20 * 16, 13.5 * 16, 1.75); // numeros magicos
+        // Rectangle2D.Double rect = new Rectangle2D.Double(0, 0, 2 * tiles_size, 1 *
+        // tiles_size);
+        // camera.focarEmRect(rect, 67, getWidth(), getHeight(), true);
+        camera.focarEm(24 * 16, 13.5 * 16, 1.5); // numeros magicos
         soundManager.crossfadeBGM(SoundManager.BGM.INSIDE_INTRO, SoundManager.BGM.INSIDE_LOOP, 2000);
     }
 

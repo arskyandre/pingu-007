@@ -3,6 +3,7 @@ import java.awt.geom.Rectangle2D;
 public class CameraManager {
     private double x, y;
     private double zoom;
+    private final double zoomReferencia;
     public double pesoOffset = 0.25;
     // Margem da tela (em pixels) para o player não chegar perto da borda
     public double margemX = 180;
@@ -21,6 +22,13 @@ public class CameraManager {
     private double zoomBase; // zoom "normal" desejado pelo jogo
     private double zoomFocoAlvo; // zoom alvo enquanto o foco estiver ativo
 
+    private enum FocusZoomMode {
+        NORMAL, OVERRIDE, RECT
+    }
+
+    private FocusZoomMode focusZoomMode = FocusZoomMode.NORMAL;
+    private double zoomOverrideReferencia = 1.0; // valor bruto passado pelo chamador, na resolução de referência
+
     // para o boss
     private boolean combatModeAtivo = false;
     private double combatX, combatY, combatW, combatH;
@@ -36,6 +44,7 @@ public class CameraManager {
         this.zoom = zoom;
         this.zoomBase = zoom;
         this.zoomFocoAlvo = zoom;
+        this.zoomReferencia = zoom;
     }
 
     public void setModoCombate(boolean set) {
@@ -51,6 +60,16 @@ public class CameraManager {
         double velocidade;
 
         if (focoTimer > 0 || foco_indefinido) {
+            // Recalcula o zoom alvo do foco TODO frame, conforme o modo ativo,
+            // assim mudanças de resolução em tempo real são respeitadas mesmo
+            // com o foco já em andamento (ex: tempo_indefinido = true).
+            switch (focusZoomMode) {
+                case OVERRIDE -> zoomFocoAlvo = zoomOverrideReferencia * (zoomBase / zoomReferencia);
+                case NORMAL -> zoomFocoAlvo = zoomBase;
+                case RECT -> {
+                    /* zoomFocoAlvo já foi definido em focarEmRect() */ }
+            }
+
             // Cutscene em andamento: ignora player e mouse, mira direto no alvo do foco
             targetX = focoAlvoX - (centroTelaX / zoom);
             targetY = focoAlvoY - (centroTelaY / zoom);
@@ -172,6 +191,7 @@ public class CameraManager {
         this.focoAlvoX = worldX;
         this.focoAlvoY = worldY;
         this.focoTimer = duracaoFrames;
+        this.focusZoomMode = FocusZoomMode.NORMAL;
         this.zoomFocoAlvo = zoomBase; // mantém o zoom normal
     }
 
@@ -181,6 +201,7 @@ public class CameraManager {
         this.focoAlvoX = worldX;
         this.focoAlvoY = worldY;
         this.focoTimer = 67;
+        this.focusZoomMode = FocusZoomMode.NORMAL;
         this.zoomFocoAlvo = zoomBase; // mantém o zoom normal
     }
 
@@ -189,7 +210,10 @@ public class CameraManager {
         this.focoAlvoX = worldX;
         this.focoAlvoY = worldY;
         this.focoTimer = 67;
-        this.zoomFocoAlvo = zoomOverride; // mantém o zoom normal
+        this.focusZoomMode = FocusZoomMode.OVERRIDE;
+        this.zoomOverrideReferencia = zoomOverride;
+        this.zoomFocoAlvo = zoomOverride * (zoomBase / zoomReferencia); // valor inicial, recalculado todo frame em
+                                                                        // update()
     }
 
     public void focarEmRect(Rectangle2D.Double rect, int duracaoFrames, int telaLargura, int telaAltura,
@@ -201,6 +225,7 @@ public class CameraManager {
         this.focoAlvoX = centerX;
         this.focoAlvoY = centerY;
         this.focoTimer = duracaoFrames;
+        this.focusZoomMode = FocusZoomMode.RECT;
 
         double padding = GameCore.tiles_size * 2;
         double neededZoomW = telaLargura / (rect.width + padding * 2);
@@ -213,6 +238,7 @@ public class CameraManager {
     public void desfocarCamera() {
         foco_indefinido = false;
         focoTimer = 0;
+        focusZoomMode = FocusZoomMode.NORMAL;
     }
 
     public void resetCameraState(double playerX, double playerY, double playerWidth, double playerHeight,
@@ -224,6 +250,7 @@ public class CameraManager {
         shakeTimer = 0;
         shakeOffsetX = 0;
         shakeOffsetY = 0;
+        focusZoomMode = FocusZoomMode.NORMAL;
         clearCombatTarget();
         zoom = zoomBase;
         zoomFocoAlvo = zoomBase;
