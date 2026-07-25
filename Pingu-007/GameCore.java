@@ -433,7 +433,7 @@ public class GameCore extends Canvas implements Runnable {
     public void entrarCasaVendedor() {
         levelManager.carregarNivel(LoadSave.CASA_VENDEDOR);
         mapLoadCooldown = 60;
-        camera.focarEm(20 * 16, 13.5 * 16); // numeros magicos
+        camera.focarEm(20 * 16, 13.5 * 16, 1.75); // numeros magicos
         soundManager.crossfadeBGM(SoundManager.BGM.INSIDE_INTRO, SoundManager.BGM.INSIDE_LOOP, 2000);
     }
 
@@ -562,7 +562,13 @@ public class GameCore extends Canvas implements Runnable {
                     player.setX(obj.x);
                     player.setY(obj.y);
                 }
-
+                case "spawn_npc" -> {
+                    NPC npc = NPCRegistry.create(obj, camera, soundManager);
+                    if (npc != null) {
+                        npcManager.spawn(npc);
+                        System.out.println("Spawnou NPC '" + obj.npc_nome + "' em: " + obj.x + ", " + obj.y);
+                    }
+                }
                 case "spawner" -> {
                     if (obj.id_arena < 0) {
                         enemyManager.adicionarInimigo(

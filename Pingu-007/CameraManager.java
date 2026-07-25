@@ -184,6 +184,14 @@ public class CameraManager {
         this.zoomFocoAlvo = zoomBase; // mantém o zoom normal
     }
 
+    public void focarEm(double worldX, double worldY, double zoomOverride) {
+        this.foco_indefinido = true;
+        this.focoAlvoX = worldX;
+        this.focoAlvoY = worldY;
+        this.focoTimer = 67;
+        this.zoomFocoAlvo = zoomOverride; // mantém o zoom normal
+    }
+
     public void focarEmRect(Rectangle2D.Double rect, int duracaoFrames, int telaLargura, int telaAltura,
             boolean tempo_indefinido) {
         this.foco_indefinido = tempo_indefinido;

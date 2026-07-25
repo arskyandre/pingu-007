@@ -7,6 +7,7 @@ public class TiledObject {
     public String tipo = "";
     public String acao = "";
     public String inimigo = "";
+    public String npc_nome = "";
     public String destino = "";
 
     public int id_arena = -1;

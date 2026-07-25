@@ -6,7 +6,7 @@ public abstract class NPC {
     protected double largura, altura;
     protected boolean active = true;
 
-    private static final double INTERACT_RANGE = GameCore.tiles_size * 2;
+    protected static double INTERACT_RANGE = GameCore.tiles_size * 2;
 
     public NPC(double x, double y, double largura, double altura) {
         this.x = x;

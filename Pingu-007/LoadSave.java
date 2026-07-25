@@ -144,7 +144,7 @@ public class LoadSave {
                     tObj.ativa = extractBoolProp(processStr, "isActive", false);
                     tObj.totalHordas = extractIntProp(processStr, "totalHordas", 1);
                     tObj.destino = extractStringProp(processStr, "destino");
-
+                    tObj.npc_nome = extractStringProp(processStr, "npc_nome");
                     // Extração dos novos interativos
                     tObj.colision = extractBoolProp(processStr, "colision", true);
                     // tObj.key = extractIntProp(processStr, "key", 0);

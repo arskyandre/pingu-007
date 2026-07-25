@@ -124,6 +124,29 @@
                  "width":0,
                  "x":24,
                  "y":72
+                }, 
+                {
+                 "height":0,
+                 "id":19,
+                 "name":"NPCSpawner",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"npc_nome",
+                         "type":"string",
+                         "value":"vendedor"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"spawn_npc"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":185.75,
+                 "y":70.25
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -194,7 +217,7 @@
          "y":0
         }],
  "nextlayerid":12,
- "nextobjectid":19,
+ "nextobjectid":20,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
