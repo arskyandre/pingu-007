@@ -37,7 +37,11 @@ public class DialogueCatalogo {
                                                                 new BufferedImage[] { GameCore.cellphone_image }, true);
                                         }
                                 });
-        }
+        };
+
+        public static final SoundManager.SFX[] pingu_noot = new SoundManager.SFX[] {
+                        SoundManager.SFX.NOOT_NOOT
+        };
 
         public static final String[] TextoInicialRadio = new String[] {
                         "PINGU: Entrando na base de operações.",
