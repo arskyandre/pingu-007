@@ -73,7 +73,7 @@ public class FishingBobber {
         }
     }
 
-    public void update(ArrayList<Enemy> enemies, int[][] lvlData) {
+    public void update(ArrayList<Enemy> enemies, int[][] lvlData, Player player) {
         if (!ativo) {
             return;
         }
@@ -133,7 +133,7 @@ public class FishingBobber {
             // velocidade sobrando, evitando "atravessar" buracos muito próximos).
             int col = (int) (x / GameCore.tiles_size);
             int row = (int) (y / GameCore.tiles_size);
-            if (FishingManager.isFishingHoleAt(row, col, lvlData)) {
+            if (player.getIscas() > 0 && FishingManager.isFishingHoleAt(row, col, lvlData)) {
                 x = col * GameCore.tiles_size + GameCore.tiles_size / 2.0;
                 y = row * GameCore.tiles_size + GameCore.tiles_size / 2.0;
                 velX = 0;

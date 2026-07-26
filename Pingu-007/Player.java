@@ -463,7 +463,7 @@ public class Player extends Entity {
             }
             fishingCooldown = 20;
         }
-        fishingBobber.update(enemies, lvlData);
+        fishingBobber.update(enemies, lvlData, this);
     }
 
     public void setTemporarySpriteOverride(int spriteIndex, int durationFrames) {
