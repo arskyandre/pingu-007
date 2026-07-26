@@ -331,6 +331,12 @@ public class Player extends Entity {
                 }
             }
 
+            if (input.isKeyJustPressed(KeyEvent.VK_P)) {
+
+                camera.focarEm((double) (250.5 * GameCore.tiles_size), (double) (58.3 * GameCore.tiles_size),
+                        120, false);
+            }
+
             if (input.isKeyPressed(KeyEvent.VK_6) && input.isKeyJustPressed(KeyEvent.VK_7)) {
                 hasShotgun = true;
                 ToastNotifications.RequestNotification("DEBUG 67: habilitou shotgun", 2.0);

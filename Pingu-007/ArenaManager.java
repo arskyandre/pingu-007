@@ -14,6 +14,7 @@ public class ArenaManager {
     private final GameCore gameCore;
     // public boolean flagArena16Ativada = false;
     private boolean chave14_15_spawnada = false;
+    private boolean cutscene_vendedor = false;
     private boolean cutsceneBossSolicitada = false;
     private boolean fezCutscene = false;
     private boolean la_ele = false;
@@ -60,6 +61,7 @@ public class ArenaManager {
         allObjects.clear();
         // flagArena16Ativada = false;
         chave14_15_spawnada = false;
+        cutscene_vendedor = false;
         la_ele = false;
 
         for (TiledObject obj : objetos) {
@@ -494,6 +496,11 @@ public class ArenaManager {
                 if (isArenaConcluida(9) && isArenaConcluida(10)) {
                     setWallState(9, false, player);
                     setWallState(10, false, player);
+                    if (!cutscene_vendedor) {
+                        camera.focarEm((double) (250.5 * GameCore.tiles_size), (double) (58.3 * GameCore.tiles_size),
+                                120, false);
+                        cutscene_vendedor = true;
+                    }
                 }
             }
             case 14, 15 -> {
@@ -589,7 +596,9 @@ public class ArenaManager {
                         btn.setPressed(context, btn.getData().ativa);
                     }
                 }
-
+                if (arena.id == 10) {
+                    cutscene_vendedor = false;
+                }
                 if (arena.id == 14 || arena.id == 15) {
                     chave14_15_spawnada = false;
                 }
