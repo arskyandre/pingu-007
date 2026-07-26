@@ -22,7 +22,7 @@ public class FishingBobber {
     }
 
     public void cast(Player owner, SoundManager soundManager, double targetX, double targetY) {
-        if (!owner.hasFishingRod() || owner.getIscas() <= 0) {
+        if (!owner.hasFishingRod()) {
             return;
         }
         soundManager.playSFX(SoundManager.SFX.LINE_CAST);
