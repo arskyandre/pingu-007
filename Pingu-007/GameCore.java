@@ -3,10 +3,9 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
-import java.awt.image.BufferedImage;
-
 import javax.swing.*;
 
 public class GameCore extends Canvas implements Runnable {
@@ -310,11 +309,11 @@ public class GameCore extends Canvas implements Runnable {
     public void triggerDialogoInicial() {
         if (!dialogueManager.isAtivo()) {
             dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadio, DialogueCatalogo.FalaInicialRadio,
-                    new BufferedImage[] {
-                            pingu_portrait,
-                            cellphone_image,
-                            pingu_portrait,
-                            cellphone_image
+                    new BufferedImage[]{
+                        pingu_portrait,
+                        cellphone_image,
+                        pingu_portrait,
+                        cellphone_image
                     }, true);
             dialogueManager.setAoTerminarDialogo(() -> {
                 ToastNotifications.RequestNotification("Use as setas para selecionar a opção e ENTER para confirmar.",
@@ -411,9 +410,19 @@ public class GameCore extends Canvas implements Runnable {
             setCinematicBorderAnimation(Renderer.BorderState.OUT);
             camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(), getWidth(),
                     getHeight());
-            if (soundManager.currentSong() != SoundManager.BGM.LEVEL_1_LOOP)
+            if (soundManager.currentSong() != SoundManager.BGM.LEVEL_1_LOOP) {
                 soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_LOOP, 2000, true);
+            }
             mapLoadCooldown = 60;
+        }
+
+        if (input.isKeyJustPressed(KeyEvent.VK_N)) {
+            player.no_clip = !player.no_clip;
+            if (player.no_clip) {
+                System.out.println("DEBUG: NO-CLIP ATIVADO!");
+            } else {
+                System.out.println("DEBUG: NO-CLIP DESATIVADO!");
+            }
         }
 
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_2) && mapLoadCooldown <= 0) {
@@ -750,8 +759,9 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public static Rectangle2D getRetanguloComum(Rectangle2D[] rects) {
-        if (rects == null || rects.length == 0)
+        if (rects == null || rects.length == 0) {
             return null;
+        }
         double Ymin, Ymax;
         double Xmin, Xmax;
         Ymin = rects[0].getY();
@@ -761,21 +771,24 @@ public class GameCore extends Canvas implements Runnable {
         for (Rectangle2D rect : rects) {
             double x = rect.getX();
             double y = rect.getY();
-            if (x > Xmax)
+            if (x > Xmax) {
                 Xmax = x;
-            else if (x < Xmax)
+            } else if (x < Xmax) {
                 Xmax = x;
-            if (y > Ymax)
+            }
+            if (y > Ymax) {
                 Ymax = y;
-            else if (y < Ymin)
+            } else if (y < Ymin) {
                 Ymin = y;
+            }
         }
         return new Rectangle2D.Double(Xmin, Ymin, Xmax - Xmin, Ymax - Ymin);
     }
 
     public static Rectangle2D getRetanguloComum(Rectangle2D[] rects, double margin) {
-        if (rects == null || rects.length == 0)
+        if (rects == null || rects.length == 0) {
             return null;
+        }
         double Ymin, Ymax;
         double Xmin, Xmax;
         Ymin = rects[0].getY();
@@ -785,21 +798,24 @@ public class GameCore extends Canvas implements Runnable {
         for (Rectangle2D rect : rects) {
             double x = rect.getX();
             double y = rect.getY();
-            if (x > Xmax)
+            if (x > Xmax) {
                 Xmax = x;
-            else if (x < Xmax)
+            } else if (x < Xmax) {
                 Xmax = x;
-            if (y > Ymax)
+            }
+            if (y > Ymax) {
                 Ymax = y;
-            else if (y < Ymin)
+            } else if (y < Ymin) {
                 Ymin = y;
+            }
         }
         return new Rectangle2D.Double(Xmin - margin, Ymin - margin, Xmax - Xmin + 2 * margin, Ymax - Ymin + 2 * margin);
     }
 
     public static Rectangle2D getRetanguloComum(Rectangle2D[] rects, double marginX, double marginY) {
-        if (rects == null || rects.length == 0)
+        if (rects == null || rects.length == 0) {
             return null;
+        }
         double Ymin, Ymax;
         double Xmin, Xmax;
         Ymin = rects[0].getY();
@@ -809,14 +825,16 @@ public class GameCore extends Canvas implements Runnable {
         for (Rectangle2D rect : rects) {
             double x = rect.getX();
             double y = rect.getY();
-            if (x > Xmax)
+            if (x > Xmax) {
                 Xmax = x;
-            else if (x < Xmax)
+            } else if (x < Xmax) {
                 Xmax = x;
-            if (y > Ymax)
+            }
+            if (y > Ymax) {
                 Ymax = y;
-            else if (y < Ymin)
+            } else if (y < Ymin) {
                 Ymin = y;
+            }
         }
         return new Rectangle2D.Double(Xmin - marginX, Ymin - marginY, Xmax - Xmin + 2 * marginX,
                 Ymax - Ymin + 2 * marginY);

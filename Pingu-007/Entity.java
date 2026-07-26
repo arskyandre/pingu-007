@@ -32,6 +32,8 @@ public abstract class Entity {
     protected double ultimoXSeguro;
     protected double ultimoYSeguro;
 
+    public boolean no_clip = false;
+
     public SoundManager soundManager;
     protected int snowFootstepTimer = 0;
     protected int snowFootstepInterval = 22;
@@ -56,14 +58,16 @@ public abstract class Entity {
     }
 
     protected void updateFootsteps(SoundManager sound, int[][] lvlData) {
-        if (lvlData == null || bodyCollider == null)
+        if (lvlData == null || bodyCollider == null) {
             return;
+        }
 
         int centroCol = (int) ((x + bodyCollider.getOffsetX() + bodyCollider.getWidth() / 2.0) / GameCore.tiles_size);
         int centroRow = (int) ((y + bodyCollider.getOffsetY() + bodyCollider.getHeight() / 2.0) / GameCore.tiles_size);
 
-        if (centroRow < 0 || centroRow >= lvlData.length || centroCol < 0 || centroCol >= lvlData[0].length)
+        if (centroRow < 0 || centroRow >= lvlData.length || centroCol < 0 || centroCol >= lvlData[0].length) {
             return;
+        }
 
         int tile = lvlData[centroRow][centroCol];
 
@@ -86,20 +90,24 @@ public abstract class Entity {
 
     public void animate(Graphics2D g2, double delta) {
     }
-    public void dmgCheck(){
-        if(timerDano > 0){
+
+    public void dmgCheck() {
+        if (timerDano > 0) {
             timerDano--;
         }
     }
 
     protected void aplicarFisicaBasica() {
+
+        double mult = no_clip ? 4.0 : 1.0;
+
         if (!isAirborne && !isPuxado) {
-            velX = Math.max(-velocidadeAndar, Math.min(velX, velocidadeAndar));
-            velY = Math.max(-velocidadeAndar, Math.min(velY, velocidadeAndar));
+            velX = Math.max(-(velocidadeAndar * mult), Math.min(velX, (velocidadeAndar * mult)));
+            velY = Math.max(-(velocidadeAndar * mult), Math.min(velY, (velocidadeAndar * mult)));
         }
 
-        velX = Math.max(-velocidadeMax, Math.min(velX, velocidadeMax));
-        velY = Math.max(-velocidadeMax, Math.min(velY, velocidadeMax));
+        velX = Math.max(-(velocidadeMax * mult), Math.min(velX, (velocidadeMax * mult)));
+        velY = Math.max(-(velocidadeMax * mult), Math.min(velY, (velocidadeMax * mult)));
 
         velX *= atritoAtual;
         velY *= atritoAtual;
@@ -114,6 +122,12 @@ public abstract class Entity {
     }
 
     protected void moveAndCollideWithMap(int[][] lvlData) {
+        if (no_clip) {
+            this.x += velX;
+            this.y += velY;
+            return;
+        }
+
         if (this.isAirborne) {
             this.timerLedgeSnap = isSlippery ? 18 : 10;
         } else if (this.timerLedgeSnap > 0) {
@@ -349,7 +363,7 @@ public abstract class Entity {
             projX *= atritoAtual;
             projY *= atritoAtual;
         }
-        return new double[] { projX * frames * 0.35, projY * frames * 0.35 };
+        return new double[]{projX * frames * 0.35, projY * frames * 0.35};
     }
 
     protected void atualizarFisicaDoChao(int[][] lvlData) {

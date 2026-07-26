@@ -158,7 +158,7 @@ public class ArenaManager {
              */
 
             if (!arena.ativa && !arena.concluida && arena.trigger != null) {
-                if (ArenaTriggers.collides(arena.trigger, player)) {
+                if (!player.no_clip && ArenaTriggers.collides(arena.trigger, player)) {
                     ativarArena(arena.id, player, camera, cutsceneManager, sound);
                     return;
                 }
@@ -454,8 +454,9 @@ public class ArenaManager {
         if (wallRect != null) {
             if (isFirstArena) {
                 cutsceneManager.iniciarWallRevealComCamera(wallRect, camera, player);
-                if (id != 67)
+                if (id != 67) {
                     GameCore.setGameState(GameState.CUTSCENE);
+                }
                 isFirstArena = false;
             } else {
                 cutsceneManager.iniciarWallFade(wallRect);

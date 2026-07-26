@@ -141,6 +141,9 @@ public class Player extends Entity {
      */
     @Override
     public void receberDano(int dano) {
+        if (no_clip) {
+            return;
+        }
         if ((iFramesTimer == 0 && !emDash) || isCaindo) {
             soundManager.playSFX(SoundManager.SFX.PLAYER_DAMAGE);
             super.receberDano(dano);
@@ -184,6 +187,25 @@ public class Player extends Entity {
 
         int mapaLargura = lvlData[0].length * GameCore.tiles_size;
         int mapaAltura = lvlData.length * GameCore.tiles_size;
+
+        if (!no_clip) {
+            if (x < 0) {
+                x = 0;
+                velX = 0;
+            }
+            if (y < 0) {
+                y = 0;
+                velY = 0;
+            }
+            if (x + largura > mapaLargura) {
+                x = mapaLargura - largura;
+                velX = 0;
+            }
+            if (y + altura > mapaAltura) {
+                y = mapaAltura - altura;
+                velY = 0;
+            }
+        }
 
         if (x < 0) {
             x = 0;
@@ -246,6 +268,10 @@ public class Player extends Entity {
         }
         dmgCheck();
         double controleAtual = emDash ? controleDash : 1.0;
+
+        if (no_clip) {
+            controleAtual = 4.0;
+        }
 
         if (shootCooldownTimer > 0) {
             shootCooldownTimer--;
@@ -346,20 +372,24 @@ public class Player extends Entity {
                     setGunType(Player.GunType.PISTOL);
                     if (ToastNotifications.getNotifAtual() != null
                             && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                    || ToastNotifications.getNotifAtual().equals("Mudou para Pistola")))
+                            || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                         ToastNotifications.skipNotification();
+                    }
                     if (ToastNotifications.getNotifAtual() == null
-                            || !ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))
+                            || !ToastNotifications.getNotifAtual().equals("Mudou para Pistola")) {
                         ToastNotifications.RequestNotification("Mudou para Pistola", 1.0);
+                    }
                 } else {
                     setGunType(Player.GunType.SHOTGUN);
                     if (ToastNotifications.getNotifAtual() != null
                             && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                    || ToastNotifications.getNotifAtual().equals("Mudou para Pistola")))
+                            || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                         ToastNotifications.skipNotification();
+                    }
                     if (ToastNotifications.getNotifAtual() == null
-                            || !ToastNotifications.getNotifAtual().equals("Mudou para Shotgun"))
+                            || !ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")) {
                         ToastNotifications.RequestNotification("Mudou para Shotgun", 1.0);
+                    }
                 }
                 shootCooldownTimer = pistolShootCooldown;
                 changeGunCooldownTimer = changeGunCooldown;
@@ -580,8 +610,9 @@ public class Player extends Entity {
         if (qtd > 0) {
             chavesColetadasTotal += qtd;
         }
-        if (chaves == 1)
+        if (chaves == 1) {
             ToastNotifications.RequestNotification("Você encontrou a primeira chave para abrir o portão da Morsa!");
+        }
         System.out.println("coletou chave total: " + chaves);
     }
 
