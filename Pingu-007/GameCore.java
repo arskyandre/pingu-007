@@ -309,11 +309,11 @@ public class GameCore extends Canvas implements Runnable {
     public void triggerDialogoInicial() {
         if (!dialogueManager.isAtivo()) {
             dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadio, DialogueCatalogo.FalaInicialRadio,
-                    new BufferedImage[]{
-                        pingu_portrait,
-                        cellphone_image,
-                        pingu_portrait,
-                        cellphone_image
+                    new BufferedImage[] {
+                            pingu_portrait,
+                            cellphone_image,
+                            pingu_portrait,
+                            cellphone_image
                     }, true);
             dialogueManager.setAoTerminarDialogo(() -> {
                 ToastNotifications.RequestNotification("Use as setas para selecionar a opção e ENTER para confirmar.",
@@ -338,7 +338,7 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyJustPressed(KeyEvent.VK_O)) {
             setCinematicBorderAnimation(Renderer.BorderState.OUT);
         }
-        if (input.isKeyJustPressed(KeyEvent.VK_N)) {
+        if (input.isKeyJustPressed(KeyEvent.VK_T)) {
             player.setX(48.5 * GameCore.tiles_size);
             player.setY(47.0 * GameCore.tiles_size);
         }
