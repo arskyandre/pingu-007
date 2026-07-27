@@ -15,7 +15,6 @@ public class IconButton extends MenuButton {
 
     @Override
     protected void adjustHeight() {
-        // fixed square, no text wrapping
     }
 
     public void setIcon(IconIndex index) {

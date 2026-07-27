@@ -11,7 +11,7 @@ public class NPCRegistry {
             }
             case "vendedor" -> {
                 System.out.println("Spawnou npc VENDEDOR");
-                yield new VendedorNPC(obj.x, obj.y, camera);
+                yield new VendedorNPC(obj.x, obj.y, camera, soundManager);
             }
             default -> {
                 System.out.println("AVISO: npc_nome desconhecido no Tiled: " + obj.npc_nome);

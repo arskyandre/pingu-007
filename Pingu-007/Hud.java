@@ -107,7 +107,6 @@ public class Hud {
         healthbar_inimigos(g2, telaLargura, telaAltura, camera, em);
         player_hearts(g2, p, offset);
         desenha_chaves(g2, p, telaLargura, telaAltura, offset, delta);
-        desenha_moedas_e_isca(g2, p, telaLargura, telaAltura, offset, delta);
 
         ammobar(g2, telaLargura, telaAltura, p, offset);
     }
@@ -261,7 +260,7 @@ public class Hud {
         int vidaMax = p.getVidaMax();
 
         // Quantos pontos de vida cada coração representa
-        // Ex: vidaMax=100, HEARTS_MAX=5 → cada coração = 20 pontos
+        // Ex: vidaMax=100, HEARTS_MAX=5: cada coração = 20 pontos
         float vidaPorCoracao = (float) vidaMax / HEARTS_MAX;
 
         for (int i = 0; i < HEARTS_MAX; i++) {

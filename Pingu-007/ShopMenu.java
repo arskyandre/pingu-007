@@ -1,3 +1,313 @@
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
+
 public class ShopMenu {
 
+    private final List<ShopItem> itens = new ArrayList<>();
+    private final List<ShopItemButton> botoes = new ArrayList<>();
+    private final SoundManager soundManager;
+    private BufferedImage coinIcon;
+    private Runnable aoFechar = null;
+
+    private Player player;
+    private int selecionado = 0;
+    private boolean aberto = false;
+
+    private String mensagemFeedback = null;
+    private int feedbackTimer = 0;
+    private static final int FEEDBACK_DURATION = 90;
+
+    private static final int BUTTON_WIDTH = 360;
+    private static final int BUTTON_HEIGHT = 64;
+    private static final int BUTTON_GAP = 10;
+    private static final int LIST_MARGIN_LEFT = 70;
+    private static final int TOP_MARGIN = 70;
+    private static final int HEADER_GAP = 26;
+    private static final int PANEL_GAP = 60;
+
+    public ShopMenu(SoundManager soundManager) {
+        this.soundManager = soundManager;
+        try {
+            coinIcon = LoadSave.GetSpriteAtlas("images/hud/moedasprite.png").getSubimage(16, 0, 16, 16);
+        } catch (Exception e) {
+            System.err.println("ShopMenu: erro ao carregar moedasprite.png: " + e.getMessage());
+        }
+    }
+
+    public void addItem(String nome, String descricao, BufferedImage icone, int preco, Runnable aoComprar) {
+        ShopItem item = new ShopItem(nome, descricao, icone, preco, aoComprar);
+        itens.add(item);
+        botoes.add(new ShopItemButton(item, coinIcon, 0, 0, BUTTON_WIDTH, BUTTON_HEIGHT));
+    }
+
+    public void limparItens() {
+        itens.clear();
+        botoes.clear();
+        selecionado = 0;
+    }
+
+    public boolean isAberto() {
+        return aberto;
+    }
+
+    public void setAoFechar(Runnable callback) {
+        this.aoFechar = callback;
+    }
+
+    public void abrir(Player player) {
+        this.player = player;
+        this.selecionado = 0;
+        this.mensagemFeedback = null;
+        this.feedbackTimer = 0;
+        this.aberto = true;
+        GameCore.setGameState(GameState.SHOP);
+    }
+
+    public void fechar() {
+        aberto = false;
+        GameCore.setGameState(GameState.PLAYING);
+        if (aoFechar != null) {
+            Runnable callback = aoFechar;
+            aoFechar = null; // consome o callback, evita disparo repetido em usos futuros da loja
+            callback.run();
+        }
+    }
+
+    private void repositionButtons() {
+        int y = TOP_MARGIN + HEADER_GAP;
+        for (int i = 0; i < botoes.size(); i++) {
+            ShopItemButton botao = botoes.get(i);
+            botao.setPosition(LIST_MARGIN_LEFT, y);
+            y += botao.getRect().height + BUTTON_GAP;
+        }
+    }
+
+    public void update(InputManager input, int telaLargura, int telaAltura) {
+        if (!aberto) {
+            return;
+        }
+
+        repositionButtons();
+
+        if (feedbackTimer > 0) {
+            feedbackTimer--;
+        }
+
+        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE)) {
+            soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
+            fechar();
+            return;
+        }
+
+        if (botoes.isEmpty()) {
+            return;
+        }
+
+        for (int i = 0; i < botoes.size(); i++) {
+            int resultado = botoes.get(i).update(input);
+            if (botoes.get(i).isHovered()) {
+                selecionado = i;
+            }
+            if (resultado == MenuButton.CLICKED) {
+                comprarItem(i);
+            }
+        }
+    }
+
+    private void comprarItem(int index) {
+        ShopItem item = itens.get(index);
+
+        if (player.getMoedas() >= item.preco) {
+            player.addMoedas(-item.preco);
+            if (item.aoComprar != null) {
+                item.aoComprar.run();
+            }
+            soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
+            mensagemFeedback = "Comprou: " + item.nome + "!";
+        } else {
+            soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
+            mensagemFeedback = "Moedas insuficientes!";
+        }
+        feedbackTimer = FEEDBACK_DURATION;
+    }
+
+    public void render(Graphics2D g2, int telaLargura, int telaAltura) {
+        if (!aberto) {
+            return;
+        }
+
+        repositionButtons();
+
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+
+        // tela inteira escurecida, sem barra de titulo, sem caixa de painel
+        g2.setColor(new Color(0, 0, 0, 190));
+        g2.fillRect(0, 0, telaLargura, telaAltura);
+
+        drawListHeader(g2);
+        drawItemList(g2);
+        drawDetailPanel(g2, telaLargura, telaAltura);
+        drawFeedback(g2, telaLargura, telaAltura);
+        drawControlsHint(g2, telaLargura, telaAltura);
+
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT);
+    }
+
+    private void drawTextWithShadow(Graphics2D g2, String texto, int x, int y, Color cor) {
+        g2.setColor(new Color(0, 0, 0, 160));
+        g2.drawString(texto, x + 2, y + 2);
+        g2.setColor(cor);
+        g2.drawString(texto, x, y);
+    }
+
+    private void drawListHeader(Graphics2D g2) {
+        g2.setFont(MenuButton.pixelFont.deriveFont(11f));
+        String itensLabel = "ITENS";
+        String precoLabel = "PREÇO";
+        FontMetrics fm = g2.getFontMetrics();
+
+        int headerY = TOP_MARGIN;
+        drawTextWithShadow(g2, itensLabel, LIST_MARGIN_LEFT, headerY, new Color(220, 220, 220, 200));
+
+        int precoLabelX = LIST_MARGIN_LEFT + BUTTON_WIDTH - fm.stringWidth(precoLabel);
+        drawTextWithShadow(g2, precoLabel, precoLabelX, headerY, new Color(220, 220, 220, 200));
+
+        int lineY = headerY + 6;
+        int lineStartX = LIST_MARGIN_LEFT + fm.stringWidth(itensLabel) + 10;
+        int lineEndX = precoLabelX - 10;
+        g2.setColor(new Color(255, 255, 255, 90));
+        g2.drawLine(lineStartX, lineY, lineEndX, lineY);
+    }
+
+    private void drawItemList(Graphics2D g2) {
+        for (int i = 0; i < botoes.size(); i++) {
+            botoes.get(i).setSelecionado(i == selecionado);
+            botoes.get(i).draw(g2);
+        }
+    }
+
+    private void drawDetailPanel(Graphics2D g2, int telaLargura, int telaAltura) {
+        int listRightEdge = LIST_MARGIN_LEFT + BUTTON_WIDTH;
+        int panelX = listRightEdge + PANEL_GAP;
+        int panelWidth = Math.max(200, telaLargura - panelX - 60);
+
+        if (itens.isEmpty()) {
+            g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 14f));
+            String vazio = "Nenhum item disponível.";
+            drawTextWithShadow(g2, vazio, panelX, TOP_MARGIN + HEADER_GAP + BUTTON_HEIGHT / 2, Color.LIGHT_GRAY);
+            return;
+        }
+
+        ShopItem item = itens.get(selecionado);
+        int y = TOP_MARGIN + HEADER_GAP;
+
+        // ── Linha: [icone] preco ......... "Preço" ──
+        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 22f));
+        FontMetrics fmVal = g2.getFontMetrics();
+        int iconSize = 22;
+
+        if (coinIcon != null) {
+            g2.drawImage(coinIcon, panelX, y - iconSize + 4, iconSize, iconSize, null);
+        }
+        String precoTexto = String.valueOf(item.preco);
+        int textX = panelX + iconSize + 8;
+        drawTextWithShadow(g2, precoTexto, textX, y, Color.WHITE);
+
+        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 11f));
+        String labelPreco = "Preço";
+        FontMetrics fmLabel = g2.getFontMetrics();
+        int labelX = panelX + panelWidth - fmLabel.stringWidth(labelPreco);
+        drawTextWithShadow(g2, labelPreco, labelX, y, new Color(210, 210, 210, 170));
+
+        int dashStartX = textX + fmVal.stringWidth(precoTexto) + 14;
+        int dashEndX = labelX - 14;
+        if (dashEndX > dashStartX) {
+            drawDashedLine(g2, dashStartX, y - fmVal.getAscent() / 2, dashEndX);
+        }
+
+        y += 50;
+
+        // ── Nome grande ──
+        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 26f));
+        drawTextWithShadow(g2, item.nome, panelX, y, Color.WHITE);
+        y += 40;
+
+        // ── Descrição, com quebra de linha ──
+        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 12f));
+        FontMetrics fmDesc = g2.getFontMetrics();
+        List<String> linhas = wrapText(fmDesc, item.descricao, panelWidth);
+        int lineHeight = fmDesc.getHeight() + 6;
+        for (String linha : linhas) {
+            drawTextWithShadow(g2, linha, panelX, y, new Color(220, 220, 220));
+            y += lineHeight;
+        }
+
+        drawTotal(g2, telaLargura, telaAltura, item);
+    }
+
+    private void drawTotal(Graphics2D g2, int telaLargura, int telaAltura, ShopItem item) {
+        boolean podeComprar = player != null && player.getMoedas() >= item.preco;
+
+        String texto = "Total: " + item.preco;
+        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 15f));
+        FontMetrics fm = g2.getFontMetrics();
+        int x = telaLargura - 60 - fm.stringWidth(texto);
+        int y = telaAltura - 60;
+
+        drawTextWithShadow(g2, texto, x, y, podeComprar ? new Color(255, 215, 80) : new Color(220, 90, 90));
+    }
+
+    private void drawFeedback(Graphics2D g2, int telaLargura, int telaAltura) {
+        if (mensagemFeedback == null || feedbackTimer <= 0) {
+            return;
+        }
+        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 12f));
+        FontMetrics fm = g2.getFontMetrics();
+        int x = (telaLargura - fm.stringWidth(mensagemFeedback)) / 2;
+        int y = telaAltura - 90;
+
+        drawTextWithShadow(g2, mensagemFeedback, x, y, new Color(150, 230, 150));
+    }
+
+    private void drawControlsHint(Graphics2D g2, int telaLargura, int telaAltura) {
+        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 10f));
+        String texto = "[ESC] Sair";
+        FontMetrics fm = g2.getFontMetrics();
+        int x = (telaLargura - fm.stringWidth(texto)) / 2;
+        int y = telaAltura - 30;
+
+        drawTextWithShadow(g2, texto, x, y, new Color(200, 200, 200));
+    }
+
+    private void drawDashedLine(Graphics2D g2, int x1, int y, int x2) {
+        Stroke old = g2.getStroke();
+        g2.setStroke(new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] { 2, 4 }, 0));
+        g2.setColor(new Color(255, 255, 255, 90));
+        g2.drawLine(x1, y, x2, y);
+        g2.setStroke(old);
+    }
+
+    private List<String> wrapText(FontMetrics fm, String texto, int maxWidth) {
+        String[] palavras = texto.split(" ");
+        List<String> linhas = new ArrayList<>();
+        StringBuilder atual = new StringBuilder();
+        for (String palavra : palavras) {
+            String teste = atual.isEmpty() ? palavra : atual + " " + palavra;
+            if (fm.stringWidth(teste) <= maxWidth) {
+                atual = new StringBuilder(teste);
+            } else {
+                if (!atual.isEmpty())
+                    linhas.add(atual.toString());
+                atual = new StringBuilder(palavra);
+            }
+        }
+        if (!atual.isEmpty())
+            linhas.add(atual.toString());
+        return linhas;
+    }
 }

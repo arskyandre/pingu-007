@@ -111,6 +111,25 @@ public class Player extends Entity {
 
     }
 
+    private static boolean desbloqueouRecompensa = false;
+
+    // Recompensa em moedas do vendedor por eliminar inimigos
+    public static void setDesbloqueouRecompensa(boolean set) {
+        desbloqueouRecompensa = set;
+    }
+
+    public static boolean getDesbloqueouRecompensa() {
+        return desbloqueouRecompensa;
+    }
+
+    public void setHasShotgun(boolean set) {
+        hasShotgun = set;
+    }
+
+    public boolean getHasShotgun() {
+        return hasShotgun;
+    }
+
     public void setFishingManager(FishingManager fishingMgr) {
         fishingBobber.setFishingManager(fishingMgr);
     }
@@ -372,7 +391,7 @@ public class Player extends Entity {
                     setGunType(Player.GunType.PISTOL);
                     if (ToastNotifications.getNotifAtual() != null
                             && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                            || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                    || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                         ToastNotifications.skipNotification();
                     }
                     if (ToastNotifications.getNotifAtual() == null
@@ -383,7 +402,7 @@ public class Player extends Entity {
                     setGunType(Player.GunType.SHOTGUN);
                     if (ToastNotifications.getNotifAtual() != null
                             && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                            || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                    || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                         ToastNotifications.skipNotification();
                     }
                     if (ToastNotifications.getNotifAtual() == null
@@ -660,7 +679,7 @@ public class Player extends Entity {
         this.vida = this.vidaMaxima;
         this.isDead = false;
         this.hasFishingRod = false;
-
+        setDesbloqueouRecompensa(false);
         if (this.fishingBobber != null) {
             this.fishingBobber.reset();
         }

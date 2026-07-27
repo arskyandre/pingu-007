@@ -36,6 +36,7 @@ public class GameCore extends Canvas implements Runnable {
     private int introPreDelayTimer = 0;
     private static final int INTRO_PRE_DELAY_FRAMES = 60;
 
+    public static BufferedImage missing_image = LoadSave.GetSpriteAtlas("images/missing_image.png");
     public static BufferedImage cellphone_image = LoadSave.GetSpriteAtlas("images/portrait/cellphone.png");
     public static BufferedImage pingu_portrait = LoadSave.GetSpriteAtlas("images/portrait/pingu_portrait_close.jpg");
     public static BufferedImage pescador_portrait = LoadSave.GetSpriteAtlas("images/portrait/pescador_portrait.png");
@@ -242,8 +243,10 @@ public class GameCore extends Canvas implements Runnable {
                 }
             }
             case SHOP -> {
-                GameState next;
-                // atualizar logica da venda
+                ShopMenu shop = getShopMenu();
+                if (shop != null) {
+                    shop.update(input, getWidth(), getHeight());
+                }
             }
             case GAME_OVER -> {
                 GameState next = gameOverScreen.update(input, getWidth(), getHeight());
@@ -698,9 +701,12 @@ public class GameCore extends Canvas implements Runnable {
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
                                 cutsceneManager, delta,
                                 true, true);
+
+                        hud.desenha_moedas_e_isca(g2, player, getWidth(), getHeight(), renderer.getOffset(), delta);
                         if (showFpsCounter) {
                             drawFpsCounter(g2);
                         }
+
                     }
                     case SHOP -> {
                         renderer.renderizar(g2, camera, player, input,
@@ -710,6 +716,11 @@ public class GameCore extends Canvas implements Runnable {
                                 cutsceneManager, delta,
                                 false, false);
                         // renderizar os elementos de venda por cima
+                        ShopMenu shop = getShopMenu();
+                        if (shop != null) {
+                            shop.render(g2, getWidth(), getHeight());
+                        }
+                        hud.desenha_moedas_e_isca(g2, player, getWidth(), getHeight(), renderer.getOffset(), delta);
                     }
                     case GAME_OVER -> {
                         renderer.renderizar(g2, camera, player, input,
@@ -718,6 +729,8 @@ public class GameCore extends Canvas implements Runnable {
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
                                 cutsceneManager, delta,
                                 true, false);
+
+                        hud.desenha_moedas_e_isca(g2, player, getWidth(), getHeight(), renderer.getOffset(), delta);
                         gameOverScreen.render(g2, getWidth(), getHeight());
                     }
                     case PAUSED -> {
@@ -727,7 +740,10 @@ public class GameCore extends Canvas implements Runnable {
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
                                 cutsceneManager, delta,
                                 true, false);
+
+                        hud.desenha_moedas_e_isca(g2, player, getWidth(), getHeight(), renderer.getOffset(), delta);
                         pauseMenu.render(g2, getWidth(), getHeight());
+
                     }
                     case CUTSCENE -> {
                         {
@@ -738,6 +754,7 @@ public class GameCore extends Canvas implements Runnable {
                                     cutsceneManager, delta,
                                     true, false);
 
+                            hud.desenha_moedas_e_isca(g2, player, getWidth(), getHeight(), renderer.getOffset(), delta);
                             if (showFpsCounter) {
                                 drawFpsCounter(g2);
                             }

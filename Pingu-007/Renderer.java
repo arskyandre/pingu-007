@@ -30,6 +30,19 @@ public class Renderer {
         borderProgress = prog;
     }
 
+    public int getOffset() {
+        double eased;
+
+        if (borderState == BorderState.OUT) {
+            eased = borderProgress * borderProgress;
+        } else {
+            eased = 1.0 - (1.0 - borderProgress) * (1.0 - borderProgress);
+        }
+
+        int cinematicBorder = (int) (cinematicBorderHeight * eased);
+        return cinematicBorder;
+    }
+
     public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura,
             int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager,
             EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager,
@@ -160,15 +173,7 @@ public class Renderer {
                 }
             }
         }
-        double eased;
-
-        if (borderState == BorderState.OUT) {
-            eased = borderProgress * borderProgress;
-        } else {
-            eased = 1.0 - (1.0 - borderProgress) * (1.0 - borderProgress);
-        }
-
-        int cinematicBorder = (int) (cinematicBorderHeight * eased);
+        int cinematicBorder = getOffset();
 
         HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager, delta, (int) cinematicBorder);
         fishingManager.render(g2, camera, telaLargura, telaAltura, delta);

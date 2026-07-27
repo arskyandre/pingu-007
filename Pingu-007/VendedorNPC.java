@@ -6,69 +6,44 @@ import java.io.BufferedReader;
 public class VendedorNPC extends NPC {
 
     private enum State {
-        IDLE, TALKING, SHOP
+        IDLE, TALKING
     }
 
     private State state = State.IDLE;
-    private ShopMenu shopMenu;
+    private final ShopMenu shopMenu;
     private static final double WIDTH = GameCore.tiles_size;
     private static final double HEIGHT = GameCore.tiles_size;
     private boolean proximo = false;
     private BufferedImage Sprite;
     private CameraManager camera;
 
-    public VendedorNPC(double x, double y, CameraManager cameraMgr) {
+    public VendedorNPC(double x, double y, CameraManager cameraMgr, SoundManager soundManager) {
         super(x, y, WIDTH, HEIGHT);
         INTERACT_RANGE = GameCore.tiles_size * 4;
         camera = cameraMgr;
         Sprite = LoadSave.GetSpriteAtlas("images/npc/vendedor.png");
+
+        shopMenu = new ShopMenu(soundManager);
     }
 
-    private void loopCompra(DialogueManager dialogueManager, Player player) {
-        loopCompra(dialogueManager, player, "Deseja comprar mais iscas?", 2);
-    }
+    private void popularItens(Player player) {
+        shopMenu.limparItens();
 
-    private void loopCompra(DialogueManager dialogueManager, Player player, String pergunta, int index) {
-        dialogueManager.iniciarEscolha(
-                pergunta,
-                new String[] {
-                        "Comprar 5 Iscas: 10 moedas",
-                        "Comprar 10 Iscas: 20 moedas",
-                        "Não"
-                },
-                GameCore.pescador_portrait, index,
-                escolha -> {
-                    switch (escolha) {
-                        case 2 -> dialogueManager.iniciarDialogo(
-                                new String[] {
-                                        "Tudo bem, quando quiser comprar iscas, estarei aqui!"
-                                },
-                                new BufferedImage[] { GameCore.pescador_portrait },
-                                true);
-
-                        case 0 -> {
-                            if (player.getMoedas() >= 10) {
-                                player.addMoedas(-10);
-                                player.addIscas(5);
-                                loopCompra(dialogueManager, player, "Aqui estão 5 iscas. Mais alguma coisa?", 0);
-                            } else {
-                                loopCompra(dialogueManager, player,
-                                        "Você não tem moedas suficientes. Ainda deseja algo?", 0);
-                            }
-                        }
-
-                        case 1 -> {
-                            if (player.getMoedas() >= 20) {
-                                player.addMoedas(-20);
-                                player.addIscas(10);
-                                loopCompra(dialogueManager, player, "Aqui estão 10 iscas. Mais alguma coisa?", 1);
-                            } else {
-                                loopCompra(dialogueManager, player,
-                                        "Você não tem moedas suficientes. Ainda deseja algo?", 1);
-                            }
-                        }
-                    }
-                });
+        shopMenu.addItem("10 Balas", "Está sem munição? Você pode comprar balas para a sua jornada aqui!",
+                GameCore.missing_image, 10, () -> player.addMunicao(10));
+        shopMenu.addItem("Peixe", "Um delicioso peixe para curar um coração.", GameCore.missing_image, 15,
+                () -> player.curar(10));
+        shopMenu.addItem("Recarga Rápida",
+                "Reduz o tempo necessário para recarregar a arma.",
+                GameCore.missing_image, 50, () -> {
+                    /* reduz tempo de recarga */ });
+        shopMenu.addItem("Pente Estendido",
+                "Aumenta a capacidade do pente da sua arma.",
+                GameCore.missing_image, 75, () -> {
+                    /* aumenta pente máximo */ });
+        shopMenu.addItem("Espingarda (Shotgun)",
+                "Uma espingarda que dispara diversos projéteis de uma só vez, causando alto dano a curta distância. Sua eficiência diminui conforme a distância aumenta.",
+                GameCore.missing_image, 100, () -> player.setHasShotgun(true));
     }
 
     @Override
@@ -79,26 +54,38 @@ public class VendedorNPC extends NPC {
         switch (state) {
             case IDLE -> {
                 if (proximo && input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)) {
-                    dialogueManager.iniciarDialogo(new String[] {
-                            "VENDEDOR: eai pingu quer comprar oque"
+                    if (Player.getDesbloqueouRecompensa()) {
+                        dialogueManager.iniciarDialogo(new String[] {
+                                "VENDEDOR: E aí, Pingu? Deseja comprar algo?"
 
-                    }, new SoundManager.SFX[][] { DialogueCatalogo.pingu_noot, DialogueCatalogo.pingu_noot }, true);
-                    dialogueManager.setAoTerminarDialogo(() -> {
-
-                        iniciarVenda(player, input, dialogueManager, soundManager, itemManager);
-
-                    });
+                        }, new SoundManager.SFX[][] { DialogueCatalogo.pingu_noot, DialogueCatalogo.pingu_noot }, true);
+                        dialogueManager.setAoTerminarDialogo(() -> {
+                            popularItens(player);
+                            shopMenu.setAoFechar(() -> {
+                                dialogueManager.iniciarDialogo(new String[] {
+                                        "VENDEDOR: Estou aqui sempre que precisar!"
+                                }, active);
+                            });
+                            shopMenu.abrir(player);
+                            GameCore.setShopMenu(shopMenu);
+                            state = State.IDLE;
+                        });
+                    } else {
+                        dialogueManager.iniciarDialogo(new String[] {
+                                "VENDEDOR: E aí pingu, beleza?",
+                                "VENDEDOR: Obrigado por salvar o nosso bairro, os soldados da Morsa estavam aterrorizando a nossa região!",
+                                "VENDEDOR: Como agradecimento, quero lhe oferecer uma recompensa. A partir de agora, vou te pagar em moedas pelos inimigos que você eliminar!",
+                        }, active);
+                        dialogueManager.setAoTerminarDialogo(() -> {
+                            Player.setDesbloqueouRecompensa(true);
+                            state = State.IDLE;
+                        });
+                    }
                     state = State.TALKING;
                 }
             }
 
             case TALKING -> {
-                if (!dialogueManager.isAtivo()) {
-                    state = State.IDLE;
-                }
-            }
-            case SHOP -> {
-                return;
             }
         }
     }
@@ -119,9 +106,4 @@ public class VendedorNPC extends NPC {
         }
     }
 
-    private void iniciarVenda(Player player, InputManager input,
-            DialogueManager dialogueManager, SoundManager soundManager, ItemManager itemManager) {
-        dialogueManager.iniciarDialogo(new String[] { "TODO: Iniciar venda" }, true);
-        GameCore.setShopMenu(shopMenu);
-    }
 }
