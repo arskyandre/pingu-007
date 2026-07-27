@@ -71,7 +71,7 @@ public class ShopMenu {
         GameCore.setGameState(GameState.PLAYING);
         if (aoFechar != null) {
             Runnable callback = aoFechar;
-            aoFechar = null; // consome o callback, evita disparo repetido em usos futuros da loja
+            aoFechar = null;
             callback.run();
         }
     }
@@ -144,7 +144,6 @@ public class ShopMenu {
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 
-        // tela inteira escurecida, sem barra de titulo, sem caixa de painel
         g2.setColor(new Color(0, 0, 0, 190));
         g2.fillRect(0, 0, telaLargura, telaAltura);
 
@@ -206,7 +205,6 @@ public class ShopMenu {
         ShopItem item = itens.get(selecionado);
         int y = TOP_MARGIN + HEADER_GAP;
 
-        // ── Linha: [icone] preco ......... "Preço" ──
         g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 22f));
         FontMetrics fmVal = g2.getFontMetrics();
         int iconSize = 22;
@@ -232,12 +230,10 @@ public class ShopMenu {
 
         y += 50;
 
-        // ── Nome grande ──
         g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 26f));
         drawTextWithShadow(g2, item.nome, panelX, y, Color.WHITE);
         y += 40;
 
-        // ── Descrição, com quebra de linha ──
         g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 12f));
         FontMetrics fmDesc = g2.getFontMetrics();
         List<String> linhas = wrapText(fmDesc, item.descricao, panelWidth);
