@@ -83,6 +83,11 @@ public class VendedorNPC extends NPC {
                             "PINGU: Hehehe! Vou pega o lençol e bate punheta escondido!"
 
                     }, new SoundManager.SFX[][] { DialogueCatalogo.pingu_noot, DialogueCatalogo.pingu_noot }, true);
+                    dialogueManager.setAoTerminarDialogo(() -> {
+
+                        iniciarVenda(player, input, dialogueManager, soundManager, itemManager);
+
+                    });
                     state = State.TALKING;
                 }
             }
@@ -112,5 +117,10 @@ public class VendedorNPC extends NPC {
             int pw = g2.getFontMetrics().stringWidth(prompt);
             g2.drawString(prompt, (int) (x + largura / 2.0 - pw / 2.0), (int) (y - 8));
         }
+    }
+
+    private void iniciarVenda(Player player, InputManager input,
+            DialogueManager dialogueManager, SoundManager soundManager, ItemManager itemManager) {
+        dialogueManager.iniciarDialogo(new String[] { "TODO: Iniciar venda" }, true);
     }
 }
