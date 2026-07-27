@@ -14,6 +14,7 @@ public class GameCore extends Canvas implements Runnable {
     public int targetFps = 120;
 
     private static GameState gameState = GameState.MAIN_MENU;
+    private static ShopMenu currentShopMenu = null;
     private final MainMenu mainMenu;
     private final PauseMenu pauseMenu;
     private final OptionsMenu optionsMenu;
@@ -132,6 +133,14 @@ public class GameCore extends Canvas implements Runnable {
 
     public static GameState getGameState() {
         return gameState;
+    }
+
+    public static void setShopMenu(ShopMenu menu) {
+        currentShopMenu = menu;
+    }
+
+    public static ShopMenu getShopMenu() {
+        return currentShopMenu;
     }
 
     public static void setLevel2(boolean set) {

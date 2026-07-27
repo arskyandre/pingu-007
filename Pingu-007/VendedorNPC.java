@@ -10,6 +10,7 @@ public class VendedorNPC extends NPC {
     }
 
     private State state = State.IDLE;
+    private ShopMenu shopMenu;
     private static final double WIDTH = GameCore.tiles_size;
     private static final double HEIGHT = GameCore.tiles_size;
     private boolean proximo = false;
@@ -122,5 +123,6 @@ public class VendedorNPC extends NPC {
     private void iniciarVenda(Player player, InputManager input,
             DialogueManager dialogueManager, SoundManager soundManager, ItemManager itemManager) {
         dialogueManager.iniciarDialogo(new String[] { "TODO: Iniciar venda" }, true);
+        GameCore.setShopMenu(shopMenu);
     }
 }
