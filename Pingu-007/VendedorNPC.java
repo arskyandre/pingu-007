@@ -80,8 +80,7 @@ public class VendedorNPC extends NPC {
             case IDLE -> {
                 if (proximo && input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)) {
                     dialogueManager.iniciarDialogo(new String[] {
-                            "PINGU: É hoje que vou da a bunda!",
-                            "PINGU: Hehehe! Vou pega o lençol e bate punheta escondido!"
+                            "VENDEDOR: eai pingu quer comprar oque"
 
                     }, new SoundManager.SFX[][] { DialogueCatalogo.pingu_noot, DialogueCatalogo.pingu_noot }, true);
                     dialogueManager.setAoTerminarDialogo(() -> {
