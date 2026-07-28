@@ -446,9 +446,6 @@ public class GameCore extends Canvas implements Runnable {
             entrarCasaVendedor();
         }
 
-        if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_3)) {
-            renderer.toggleAntiAliasing();
-        }
     }
 
     public void entrarCasaVendedor() {
