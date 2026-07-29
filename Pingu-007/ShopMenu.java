@@ -131,7 +131,7 @@ public class ShopMenu {
             if (item.aoComprar != null) {
                 item.aoComprar.run();
             }
-            if (!item.compra_unica) {
+            if (item.compra_unica) {
                 item.disponivel = false;
             }
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
