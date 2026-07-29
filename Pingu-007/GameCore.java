@@ -212,35 +212,35 @@ public class GameCore extends Canvas implements Runnable {
                 gameState = next;
             }
             case PLAYING -> {
-                if (introPreDelay) {
-                    introPreDelayTimer--;
-                    if (introPreDelayTimer <= 0) {
-                        introPreDelay = false;
-                        introPendente = true;
-                        introTimer = INTRO_DELAY_FRAMES;
-                        player.setBlockInputs(true);
-                        soundManager.playSFX(SoundManager.SFX.CALL_RING);
-                        player.setTemporarySpriteOverride(0, introTimer);
-                    }
-                }
-                if (introPendente) {
-                    introTimer--;
-                    if (introTimer <= 0) {
-                        introPendente = false;
-                        introDialogoAtiva = true;
-                        triggerDialogoInicial();
-                    }
-                }
-                if (dialogueManager.isAtivo()) {
-                    dialogueManager.atualizar(input);
-                    camera.update(player, input, getWidth(), getHeight());
-                } else {
-                    if (introDialogoAtiva) {
-                        introDialogoAtiva = false;
-                        player.setBlockInputs(false);
-                    }
-                    updateGame();
-                }
+                // if (introPreDelay) {
+                // introPreDelayTimer--;
+                // if (introPreDelayTimer <= 0) {
+                // introPreDelay = false;
+                // introPendente = true;
+                // introTimer = INTRO_DELAY_FRAMES;
+                // player.setBlockInputs(true);
+                // soundManager.playSFX(SoundManager.SFX.CALL_RING);
+                // player.setTemporarySpriteOverride(0, introTimer);
+                // }
+                // }
+                // if (introPendente) {
+                // introTimer--;
+                // if (introTimer <= 0) {
+                // introPendente = false;
+                // introDialogoAtiva = true;
+                // triggerDialogoInicial();
+                // }
+                // }
+                // if (dialogueManager.isAtivo()) {
+                // dialogueManager.atualizar(input);
+                // camera.update(player, input, getWidth(), getHeight());
+                // } else {
+                // if (introDialogoAtiva) {
+                // introDialogoAtiva = false;
+                // player.setBlockInputs(false);
+                // }
+                updateGame();
+                // }
             }
             case SHOP -> {
                 ShopMenu shop = getShopMenu();
