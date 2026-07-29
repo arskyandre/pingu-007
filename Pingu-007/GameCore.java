@@ -241,6 +241,7 @@ public class GameCore extends Canvas implements Runnable {
                 // }
                 updateGame();
                 // }
+                // DESCOMENTAR BLOCO NO JOGO FINAL
             }
             case SHOP -> {
                 ShopMenu shop = getShopMenu();
