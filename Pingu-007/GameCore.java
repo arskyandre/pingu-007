@@ -386,8 +386,8 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_M) && debugSpawnCooldown <= 0) {
             double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
             double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-            itemManager.spawn(new MoedaItem(mouseXWorld, mouseYWorld));
-            System.out.println("DEBUG: Item moeda spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
+            itemManager.spawn(new MoedaItem(mouseXWorld, mouseYWorld, 100));
+            System.out.println("DEBUG: moeda milionaria spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
             debugSpawnCooldown = 15;
         }
         if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_B)) {
