@@ -37,8 +37,9 @@ public class ShopMenu {
         }
     }
 
-    public void addItem(String nome, String descricao, BufferedImage icone, int preco, Runnable aoComprar) {
-        ShopItem item = new ShopItem(nome, descricao, icone, preco, aoComprar);
+    public void addItem(String nome, String descricao, BufferedImage icone, int preco,
+            Runnable aoComprar, boolean disponivel, boolean compra_unica) {
+        ShopItem item = new ShopItem(nome, descricao, icone, preco, aoComprar, disponivel, compra_unica);
         itens.add(item);
         botoes.add(new ShopItemButton(item, coinIcon, 0, 0, BUTTON_WIDTH, BUTTON_HEIGHT));
     }
@@ -119,13 +120,22 @@ public class ShopMenu {
 
     private void comprarItem(int index) {
         ShopItem item = itens.get(index);
-
+        if (!item.disponivel) {
+            mensagemFeedback = "Item já adquirido!";
+            feedbackTimer = FEEDBACK_DURATION;
+            soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
+            return;
+        }
         if (player.getMoedas() >= item.preco) {
             player.addMoedas(-item.preco);
             if (item.aoComprar != null) {
                 item.aoComprar.run();
             }
+            if (!item.compra_unica) {
+                item.disponivel = false;
+            }
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
+            soundManager.playSFX(SoundManager.SFX.NOOT_NOOT);
             mensagemFeedback = "Comprou: " + item.nome + "!";
         } else {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
