@@ -240,7 +240,7 @@ public class GameCore extends Canvas implements Runnable {
                 player.setBlockInputs(false);
                 }
                 updateGame();
-                // }
+                }
                 // DESCOMENTAR BLOCO NO JOGO FINAL
             }
             case SHOP -> {
