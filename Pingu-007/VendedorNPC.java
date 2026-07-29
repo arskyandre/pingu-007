@@ -26,33 +26,43 @@ public class VendedorNPC extends NPC {
         shopMenu = new ShopMenu(soundManager);
     }
 
-    private void popularItens(Player player) {
+    private void popularItens(Player player, SoundManager soundManager) {
         shopMenu.limparItens();
 
         shopMenu.addItem("10 Balas", "Está sem munição? Você pode comprar balas para a sua jornada aqui!",
-                GameCore.missing_image, 10, () -> player.addMunicao(10));
+                GameCore.missing_image, 10, () -> {
+                    player.addMunicao(10);
+                    soundManager.playSFX(SoundManager.SFX.NOOT_NOOT);
+                });
         shopMenu.addItem("Peixe", "Um delicioso peixe para curar um coração.", GameCore.missing_image, 15,
-                () -> player.curar(10));
+                () -> {
+                    player.curar(10);
+                    soundManager.playSFX(SoundManager.SFX.NOOT_NOOT);
+                });
         shopMenu.addItem("Recarga Rápida",
                 "Reduz o tempo necessário para recarregar a arma. ENDL (0.5s -> 0.25s)",
                 GameCore.missing_image, 50, () -> {
+                    soundManager.playSFX(SoundManager.SFX.NOOT_NOOT);
                     player.setFasterReload(true);
                 });
         shopMenu.addItem("Pente Estendido",
                 "Aumenta a capacidade do pente da sua arma. ENDL (15 tiros -> 30 tiros)",
                 GameCore.missing_image, 75, () -> {
+                    soundManager.playSFX(SoundManager.SFX.NOOT_NOOT);
                     player.setExtendedMag(true);
                 });
         shopMenu.addItem("Espingarda (Shotgun)",
                 "Uma espingarda que dispara diversos projéteis de uma só vez, causando alto dano a curta distância. Sua eficiência diminui conforme a distância aumenta.",
-                GameCore.missing_image, 100, () -> player.setHasShotgun(true));
+                GameCore.missing_image, 100, () -> {
+                    player.setHasShotgun(true);
+                    soundManager.playSFX(SoundManager.SFX.NOOT_NOOT);
+                });
     }
 
     @Override
     public void update(Player player, InputManager input,
             DialogueManager dialogueManager, SoundManager soundManager, ItemManager itemManager) {
         proximo = playerNearby(player);
-        System.out.println(proximo);
         switch (state) {
             case IDLE -> {
                 if (proximo && input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)) {
@@ -62,7 +72,7 @@ public class VendedorNPC extends NPC {
 
                         }, new SoundManager.SFX[][] { DialogueCatalogo.pingu_noot, DialogueCatalogo.pingu_noot }, true);
                         dialogueManager.setAoTerminarDialogo(() -> {
-                            popularItens(player);
+                            popularItens(player, soundManager);
                             shopMenu.setAoFechar(() -> {
                                 dialogueManager.iniciarDialogo(new String[] {
                                         "VENDEDOR: Estou aqui sempre que precisar!"
@@ -79,7 +89,10 @@ public class VendedorNPC extends NPC {
                                 "VENDEDOR: Como agradecimento, quero lhe oferecer uma recompensa. A partir de agora, vou te pagar em moedas pelos inimigos que você eliminar!",
                         }, active);
                         dialogueManager.setAoTerminarDialogo(() -> {
+                            ToastNotifications.RequestNotification(
+                                    "Elimine inimigos e volte à loja do vendedor para receber recompensas!", 2.5);
                             Player.setDesbloqueouRecompensa(true);
+                            player.addMoedas(25);
                             state = State.IDLE;
                         });
                     }
