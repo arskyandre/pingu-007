@@ -35,12 +35,15 @@ public class Player extends Entity {
     private double dashDirY = 0;
 
     private final BulletManager bulletmanager;
+    private static boolean desbloqueouRecompensa = false;
+    private boolean extendedMag = false;
+    private boolean fasterReload = false;
     private int moedas = 0;
     private int iscas = 0;
     private int armas = 1;
     private int chaves = 0;
     private int pente = 15;
-    private final int maxpente = 15;
+    private int maxpente = 15;
     private int municao = 45;
     private int shootCooldownTimer = 0;
     private final int changeGunCooldown = 30;
@@ -48,7 +51,8 @@ public class Player extends Entity {
     private final int pistolShootCooldown = 20;
     private final int shotgunShootCooldown = 80;
     private int reloadCooldownTimer = 0;
-    private final int reloadCooldown = 30;
+    private final int defaultReloadCooldown = 30;
+    private final int fasterReloadCooldown = 15;
     private final int reloadOnZeroCooldown = 35;
     private int reloadOnZeroCooldownTimer = 0;
     private boolean danoRecebidoFlag = false;
@@ -111,9 +115,7 @@ public class Player extends Entity {
 
     }
 
-    private static boolean desbloqueouRecompensa = false;
-
-    // Recompensa em moedas do vendedor por eliminar inimigos
+    // TODO: Recompensa em moedas do vendedor por eliminar inimigos
     public static void setDesbloqueouRecompensa(boolean set) {
         desbloqueouRecompensa = set;
     }
@@ -124,6 +126,26 @@ public class Player extends Entity {
 
     public void setHasShotgun(boolean set) {
         hasShotgun = set;
+    }
+
+    public void setFasterReload(boolean set) {
+        fasterReload = set;
+    }
+
+    public boolean getFasterReload() {
+        return fasterReload;
+    }
+
+    public void setExtendedMag(boolean set) {
+        extendedMag = set;
+        if (extendedMag) {
+            maxpente = 30;
+        } else
+            maxpente = 15;
+    }
+
+    public boolean getExtendedMag() {
+        return extendedMag;
     }
 
     public boolean getHasShotgun() {
@@ -303,7 +325,7 @@ public class Player extends Entity {
             reloadOnZeroCooldownTimer--;
             if (reloadOnZeroCooldownTimer == 0 && penteZeroTimerActive && !reloading && municao > 0) {
                 reloading = true;
-                reloadCooldownTimer = reloadCooldown;
+                reloadCooldownTimer = (fasterReload) ? fasterReloadCooldown : defaultReloadCooldown;
                 penteZeroTimerActive = false;
             }
         }
@@ -415,7 +437,7 @@ public class Player extends Entity {
             }
             if (input.isKeyPressed(KeyEvent.VK_R) && !reloading && pente < maxpente && municao > 0) {
                 reloading = true;
-                reloadCooldownTimer = reloadCooldown;
+                reloadCooldownTimer = (fasterReload) ? fasterReloadCooldown : defaultReloadCooldown;
                 penteZeroTimerActive = false;
             }
             if (pente == 0 && !reloading && municao > 0 && !penteZeroTimerActive) {
@@ -680,6 +702,8 @@ public class Player extends Entity {
         this.isDead = false;
         this.hasFishingRod = false;
         setDesbloqueouRecompensa(false);
+        setExtendedMag(false);
+        setFasterReload(false);
         if (this.fishingBobber != null) {
             this.fishingBobber.reset();
         }

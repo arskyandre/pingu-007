@@ -236,7 +236,7 @@ public class ShopMenu {
 
         g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 12f));
         FontMetrics fmDesc = g2.getFontMetrics();
-        List<String> linhas = wrapText(fmDesc, item.descricao, panelWidth);
+        List<String> linhas = wrapTextComQuebras(fmDesc, item.descricao, panelWidth);
         int lineHeight = fmDesc.getHeight() + 6;
         for (String linha : linhas) {
             drawTextWithShadow(g2, linha, panelX, y, new Color(220, 220, 220));
@@ -244,6 +244,15 @@ public class ShopMenu {
         }
 
         drawTotal(g2, telaLargura, telaAltura, item);
+    }
+
+    private List<String> wrapTextComQuebras(FontMetrics fm, String texto, int maxWidth) {
+        List<String> linhas = new ArrayList<>();
+        String[] partes = texto.split("\\s*\\bENDL\\b\\s*");
+        for (String parte : partes) {
+            linhas.addAll(wrapText(fm, parte, maxWidth));
+        }
+        return linhas;
     }
 
     private void drawTotal(Graphics2D g2, int telaLargura, int telaAltura, ShopItem item) {

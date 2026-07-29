@@ -34,13 +34,15 @@ public class VendedorNPC extends NPC {
         shopMenu.addItem("Peixe", "Um delicioso peixe para curar um coração.", GameCore.missing_image, 15,
                 () -> player.curar(10));
         shopMenu.addItem("Recarga Rápida",
-                "Reduz o tempo necessário para recarregar a arma.",
+                "Reduz o tempo necessário para recarregar a arma. ENDL (0.5s -> 0.25s)",
                 GameCore.missing_image, 50, () -> {
-                    /* reduz tempo de recarga */ });
+                    player.setFasterReload(true);
+                });
         shopMenu.addItem("Pente Estendido",
-                "Aumenta a capacidade do pente da sua arma.",
+                "Aumenta a capacidade do pente da sua arma. ENDL (15 tiros -> 30 tiros)",
                 GameCore.missing_image, 75, () -> {
-                    /* aumenta pente máximo */ });
+                    player.setExtendedMag(true);
+                });
         shopMenu.addItem("Espingarda (Shotgun)",
                 "Uma espingarda que dispara diversos projéteis de uma só vez, causando alto dano a curta distância. Sua eficiência diminui conforme a distância aumenta.",
                 GameCore.missing_image, 100, () -> player.setHasShotgun(true));
