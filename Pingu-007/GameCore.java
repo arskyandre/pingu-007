@@ -231,14 +231,14 @@ public class GameCore extends Canvas implements Runnable {
                 // triggerDialogoInicial();
                 // }
                 // }
-                // if (dialogueManager.isAtivo()) {
-                // dialogueManager.atualizar(input);
-                // camera.update(player, input, getWidth(), getHeight());
-                // } else {
-                // if (introDialogoAtiva) {
-                // introDialogoAtiva = false;
-                // player.setBlockInputs(false);
-                // }
+                if (dialogueManager.isAtivo()) {
+                dialogueManager.atualizar(input);
+                camera.update(player, input, getWidth(), getHeight());
+                } else {
+                if (introDialogoAtiva) {
+                introDialogoAtiva = false;
+                player.setBlockInputs(false);
+                }
                 updateGame();
                 // }
                 // DESCOMENTAR BLOCO NO JOGO FINAL
