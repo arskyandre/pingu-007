@@ -108,7 +108,7 @@
          "name":"bInterativos",
          "objects":[
                 {
-                 "height":16.5454545454545,
+                 "height":28.8579545454545,
                  "id":23,
                  "name":"",
                  "properties":[
@@ -130,9 +130,9 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":14.5454545454545,
+                 "width":22.8579545454545,
                  "x":-7.7715611723761e-15,
-                 "y":63.4545454545455
+                 "y":57.3920454545455
                 }],
          "opacity":1,
          "type":"objectgroup",
