@@ -1228,6 +1228,7 @@
         {
          "draworder":"topdown",
          "id":19,
+         "locked":true,
          "name":"bInterativos",
          "objects":[
                 {
@@ -6413,7 +6414,6 @@
         {
          "draworder":"topdown",
          "id":17,
-         "locked":true,
          "name":"Triggers",
          "objects":[
                 {

@@ -152,11 +152,10 @@ public class ShopItemButton extends MenuButton {
         int iconY = rect.y + (rect.height - iconSize) / 2;
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g2.setColor(new Color(0, 0, 0, 72));
+        g2.fillRoundRect(iconX, iconY, iconSize, iconSize, 4, 4);
         if (item.icone != null) {
             g2.drawImage(item.icone, iconX, iconY, iconSize, iconSize, null);
-        } else {
-            g2.setColor(new Color(60, 60, 60));
-            g2.fillRect(iconX, iconY, iconSize, iconSize);
         }
 
         int nameX = iconX + iconSize + ICON_TEXT_GAP;

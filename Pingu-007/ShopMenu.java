@@ -30,6 +30,8 @@ public class ShopMenu {
     private static final int TOP_MARGIN = 70;
     private static final int HEADER_GAP = 26;
     private static final int PANEL_GAP = 60;
+    private static final int DETAIL_ITEM_ICON_SIZE = 56;
+    private static final int DETAIL_ITEM_ICON_GAP = 14;
     private static final int QUANTITY_BUTTON_SIZE = 36;
     private static final int QUANTITY_NUMBER_HALF_GAP = 34;
     private static final int QUANTITY_TOP_GAP = 8;
@@ -275,7 +277,26 @@ public class ShopMenu {
         y += 50;
 
         g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 26f));
-        drawTextWithShadow(g2, item.nome, panelX, y, Color.WHITE);
+        FontMetrics fmNome = g2.getFontMetrics();
+        int nameX = panelX;
+
+        if (item.icone != null && item.icone != GameCore.missing_image) {
+            int iconX = panelX;
+            int textCenterY = y - (fmNome.getAscent() - fmNome.getDescent()) / 2;
+            int iconY = textCenterY - DETAIL_ITEM_ICON_SIZE / 2;
+
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+            Color old = g2.getColor();
+            g2.setColor(new Color(0, 0, 0, 72));
+            g2.fillRoundRect(iconX, iconY, DETAIL_ITEM_ICON_SIZE, DETAIL_ITEM_ICON_SIZE, 6, 6);
+            g2.setColor(old);
+            g2.drawImage(item.icone, iconX, iconY,
+                    DETAIL_ITEM_ICON_SIZE, DETAIL_ITEM_ICON_SIZE, null);
+            nameX += DETAIL_ITEM_ICON_SIZE + DETAIL_ITEM_ICON_GAP;
+        }
+
+        drawTextWithShadow(g2, item.nome, nameX, y, Color.WHITE);
         y += 40;
 
         g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 12f));

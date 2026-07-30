@@ -27,6 +27,11 @@ public class GameCore extends Canvas implements Runnable {
     private ArrayList<Integer> checkArenas = new ArrayList<>();
     private boolean hasCheckpoint = false;
     private boolean checkVaraDePesca = false;
+    private ArenaManager.EstadoMapa estadoLevel1AntesDaLoja;
+    private ArrayList<Item> itensLevel1AntesDaLoja = new ArrayList<>();
+    private double retornoLojaX;
+    private double retornoLojaY;
+    private boolean temRetornoDaLoja = false;
 
     private boolean introPendente = false;
     private boolean introDialogoAtiva = false;
@@ -412,14 +417,18 @@ public class GameCore extends Canvas implements Runnable {
 
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_1) && mapLoadCooldown <= 0) {
             System.out.println("Voltando para o Mapa 1...");
-            levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
-            setCinematicBorderAnimation(Renderer.BorderState.OUT);
-            camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(), getWidth(),
-                    getHeight());
-            if (soundManager.currentSong() != SoundManager.BGM.LEVEL_1_LOOP) {
-                soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_LOOP, 2000, true);
+            if (LoadSave.CASA_VENDEDOR.equals(levelManager.getArquivoNivelAtual())) {
+                sairCasaVendedor();
+            } else {
+                levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
+                setCinematicBorderAnimation(Renderer.BorderState.OUT);
+                camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
+                        getWidth(), getHeight());
+                if (soundManager.currentSong() != SoundManager.BGM.LEVEL_1_LOOP) {
+                    soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_LOOP, 2000, true);
+                }
+                mapLoadCooldown = 60;
             }
-            mapLoadCooldown = 60;
         }
 
         if (input.isKeyJustPressed(KeyEvent.VK_N)) {
@@ -443,6 +452,18 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void entrarCasaVendedor() {
+        if (LoadSave.LEVEL_1_DATA.equals(levelManager.getArquivoNivelAtual())) {
+            estadoLevel1AntesDaLoja = arenaManager.capturarEstadoMapa();
+            itensLevel1AntesDaLoja = new ArrayList<>(itemManager.getItems());
+            retornoLojaX = player.getX();
+            retornoLojaY = player.getY();
+            temRetornoDaLoja = true;
+        } else {
+            estadoLevel1AntesDaLoja = null;
+            itensLevel1AntesDaLoja.clear();
+            temRetornoDaLoja = false;
+        }
+
         levelManager.carregarNivel(LoadSave.CASA_VENDEDOR);
         mapLoadCooldown = 60;
         // Rectangle2D.Double rect = new Rectangle2D.Double(0, 0, 2 * tiles_size, 1 *
@@ -450,6 +471,37 @@ public class GameCore extends Canvas implements Runnable {
         // camera.focarEmRect(rect, 67, getWidth(), getHeight(), true);
         camera.focarEm(24 * 16, 13.5 * 16, 1.5); // numeros magicos
         soundManager.crossfadeBGM(SoundManager.BGM.INSIDE_INTRO, SoundManager.BGM.INSIDE_LOOP, 2000);
+    }
+
+    public void sairCasaVendedor() {
+        levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
+
+        if (estadoLevel1AntesDaLoja != null) {
+            arenaManager.restaurarEstadoMapa(estadoLevel1AntesDaLoja, player, itemManager);
+        }
+
+        if (!itensLevel1AntesDaLoja.isEmpty()) {
+            itemManager.getItems().addAll(itensLevel1AntesDaLoja);
+        }
+
+        if (temRetornoDaLoja) {
+            player.setX(retornoLojaX);
+            player.setY(retornoLojaY);
+        }
+
+        camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
+                getWidth(), getHeight());
+        setCinematicBorderAnimation(Renderer.BorderState.OUT);
+        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_LOOP, 2000, true);
+        mapLoadCooldown = 60;
+
+        // carregarNivel salva um checkpoint antes da restauracao; substitui-o
+        // agora pelo estado efetivamente restaurado do LEVEL_1.
+        salvarCheckpoint();
+
+        estadoLevel1AntesDaLoja = null;
+        itensLevel1AntesDaLoja.clear();
+        temRetornoDaLoja = false;
     }
 
     public void entrarNivelBoss() {
@@ -635,6 +687,9 @@ public class GameCore extends Canvas implements Runnable {
     public void resetarJogoCompleto() {
         hasCheckpoint = false;
         checkArenas.clear();
+        estadoLevel1AntesDaLoja = null;
+        itensLevel1AntesDaLoja.clear();
+        temRetornoDaLoja = false;
         camera.setModoCombate(false);
         camera.desfocarCamera();
         arenaManager.setFirstArenaFlag(true);

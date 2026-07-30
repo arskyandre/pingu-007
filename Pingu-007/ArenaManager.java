@@ -32,6 +32,32 @@ public class ArenaManager {
         TiledObject trigger;
     }
 
+    public static final class EstadoMapa {
+        private final ArrayList<Integer> arenasConcluidas;
+        private final boolean chave14_15_spawnada;
+        private final boolean cutscene_vendedor;
+        private final boolean cutsceneBossSolicitada;
+        private final boolean fezCutscene;
+        private final boolean la_ele;
+        private final boolean isFirstArena;
+
+        private EstadoMapa(ArrayList<Integer> arenasConcluidas,
+                boolean chave14_15_spawnada,
+                boolean cutscene_vendedor,
+                boolean cutsceneBossSolicitada,
+                boolean fezCutscene,
+                boolean la_ele,
+                boolean isFirstArena) {
+            this.arenasConcluidas = new ArrayList<>(arenasConcluidas);
+            this.chave14_15_spawnada = chave14_15_spawnada;
+            this.cutscene_vendedor = cutscene_vendedor;
+            this.cutsceneBossSolicitada = cutsceneBossSolicitada;
+            this.fezCutscene = fezCutscene;
+            this.la_ele = la_ele;
+            this.isFirstArena = isFirstArena;
+        }
+    }
+
     private final ArrayList<Arena> arenas = new ArrayList<>();
     private final ArrayList<DoorObject> doors = new ArrayList<>();
     private final ArrayList<InteractiveObject> interactives = new ArrayList<>();
@@ -103,6 +129,34 @@ public class ArenaManager {
 
     public boolean getFezCutscene() {
         return fezCutscene;
+    }
+
+    public EstadoMapa capturarEstadoMapa() {
+        return new EstadoMapa(
+                getArenasConcluidas(),
+                chave14_15_spawnada,
+                cutscene_vendedor,
+                cutsceneBossSolicitada,
+                fezCutscene,
+                la_ele,
+                isFirstArena);
+    }
+
+    public void restaurarEstadoMapa(EstadoMapa estado, Player player, ItemManager itemManager) {
+        if (estado == null) {
+            return;
+        }
+
+        // Estas flags precisam ser restauradas antes das arenas para que
+        // verificarDesativacaoParedes nao repita cutscenes nem recompensas.
+        chave14_15_spawnada = estado.chave14_15_spawnada;
+        cutscene_vendedor = estado.cutscene_vendedor;
+        cutsceneBossSolicitada = estado.cutsceneBossSolicitada;
+        fezCutscene = estado.fezCutscene;
+        isFirstArena = estado.isFirstArena;
+
+        restaurarArenas(estado.arenasConcluidas, player, itemManager);
+        la_ele = estado.la_ele;
     }
 
     private Rectangle2D.Double getCombinedWallRect(int idArena) {
@@ -533,7 +587,14 @@ public class ArenaManager {
 
         if (mapaDestino != null && !mapaDestino.isEmpty()) {
             if (LoadSave.CASA_VENDEDOR.equals(mapaDestino)) {
-                gameCore.entrarCasaVendedor();
+                if (cutscene_vendedor) {
+                    gameCore.entrarCasaVendedor();
+                }
+                return;
+            }
+            if (LoadSave.LEVEL_1_DATA.equals(mapaDestino)
+                    && LoadSave.CASA_VENDEDOR.equals(levelManager.getArquivoNivelAtual())) {
+                gameCore.sairCasaVendedor();
                 return;
             }
             levelManager.carregarNivel(mapaDestino);

@@ -49,7 +49,7 @@ public class VendedorNPC extends NPC {
                 }, !player.getExtendedMag(), true);
         shopMenu.addItem("Espingarda (Shotgun)",
                 "Uma espingarda que dispara diversos projéteis de uma só vez, causando alto dano a curta distância. Sua eficiência diminui conforme a distância aumenta.",
-                GameCore.missing_image, 100, () -> {
+                LoadSave.GetSpriteAtlas("images/hud/shotgun_shopitem.png"), 100, () -> {
                     player.setHasShotgun(true);
                 }, !player.getHasShotgun(), true);
     }

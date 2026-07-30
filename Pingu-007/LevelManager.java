@@ -13,6 +13,7 @@ public class LevelManager {
     private MapDATA mapDataAtual;
     private ArrayList<JumpLink> jumpLinksDaFase;
     private SoundManager soundManager;
+    private String arquivoNivelAtual;
 
     public LevelManager(GameCore Game, SoundManager sound) {
         this.Game = Game;
@@ -38,6 +39,7 @@ public class LevelManager {
 
     private void carregarMapData(String filename) {
         mapDataAtual = LoadSave.GetMapData(filename);
+        arquivoNivelAtual = filename;
         level_1 = new Level(mapDataAtual.getMainLayer());
         jumpLinksDaFase = PathfindingPreCompiler.gerarJumpLinks(
                 mapDataAtual.getMainLayer(), 4);
@@ -165,6 +167,10 @@ public class LevelManager {
 
     public MapDATA getMapData() {
         return mapDataAtual;
+    }
+
+    public String getArquivoNivelAtual() {
+        return arquivoNivelAtual;
     }
 
     public void update() {
