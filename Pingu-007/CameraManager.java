@@ -28,6 +28,13 @@ public class CameraManager {
 
     private FocusZoomMode focusZoomMode = FocusZoomMode.NORMAL;
     private double zoomOverrideReferencia = 1.0; // valor bruto passado pelo chamador, na resolução de referência
+    private double focusRectWidth;
+    private double focusRectHeight;
+
+    // Último tamanho usado para posicionar a câmera. Permite corrigir a visão
+    // durante menus e diálogos sem executar um update completo.
+    private int viewportWidth = -1;
+    private int viewportHeight = -1;
 
     // para o boss
     private boolean combatModeAtivo = false;
@@ -60,15 +67,10 @@ public class CameraManager {
         double velocidade;
 
         if (focoTimer > 0 || foco_indefinido) {
-            // Recalcula o zoom alvo do foco TODO frame, conforme o modo ativo,
+            // Recalcula o zoom alvo do foco TODOS frames, conforme o modo ativo,
             // assim mudanças de resolução em tempo real são respeitadas mesmo
             // com o foco já em andamento (ex: tempo_indefinido = true).
-            switch (focusZoomMode) {
-                case OVERRIDE -> zoomFocoAlvo = zoomOverrideReferencia * (zoomBase / zoomReferencia);
-                case NORMAL -> zoomFocoAlvo = zoomBase;
-                case RECT -> {
-                    /* zoomFocoAlvo já foi definido em focarEmRect() */ }
-            }
+            recalcularZoomFocoAlvo(telaLargura, telaAltura);
 
             // Cutscene em andamento: ignora player e mouse, mira direto no alvo do foco
             targetX = focoAlvoX - (centroTelaX / zoom);
@@ -146,10 +148,56 @@ public class CameraManager {
         atualizarTremida();
     }
 
+    public void adjustForViewportResize(int telaLargura, int telaAltura, double novoZoomBase) {
+        if (telaLargura <= 0 || telaAltura <= 0 || novoZoomBase <= 0 || zoom <= 0) {
+            return;
+        }
+
+        if (viewportWidth <= 0 || viewportHeight <= 0) {
+            double proporcaoZoom = novoZoomBase / zoomBase;
+            zoomBase = novoZoomBase;
+            zoom *= proporcaoZoom;
+            recalcularZoomFocoAlvo(telaLargura, telaAltura);
+            viewportWidth = telaLargura;
+            viewportHeight = telaAltura;
+            return;
+        }
+
+        boolean tamanhoMudou = telaLargura != viewportWidth || telaAltura != viewportHeight;
+        boolean zoomBaseMudou = Math.abs(novoZoomBase - zoomBase) > 0.0000001;
+        if (!tamanhoMudou && !zoomBaseMudou) {
+            return;
+        }
+
+        double centroMundoX = x + viewportWidth / (2.0 * zoom);
+        double centroMundoY = y + viewportHeight / (2.0 * zoom);
+        double proporcaoZoom = novoZoomBase / zoomBase;
+
+        zoomBase = novoZoomBase;
+        zoom *= proporcaoZoom;
+        recalcularZoomFocoAlvo(telaLargura, telaAltura);
+
+        x = centroMundoX - telaLargura / (2.0 * zoom);
+        y = centroMundoY - telaAltura / (2.0 * zoom);
+        viewportWidth = telaLargura;
+        viewportHeight = telaAltura;
+    }
+
+    private void recalcularZoomFocoAlvo(int telaLargura, int telaAltura) {
+        switch (focusZoomMode) {
+            case OVERRIDE -> zoomFocoAlvo = zoomOverrideReferencia * (zoomBase / zoomReferencia);
+            case NORMAL -> zoomFocoAlvo = zoomBase;
+            case RECT -> {
+                double padding = GameCore.tiles_size * 2;
+                double neededZoomW = telaLargura / (focusRectWidth + padding * 2);
+                double neededZoomH = telaAltura / (focusRectHeight + padding * 2);
+                zoomFocoAlvo = Math.min(Math.min(neededZoomW, neededZoomH), zoomBase);
+            }
+        }
+    }
+
     private void atualizarTremida() {
         if (shakeTimer > 0) {
-            // A força da tremida decai conforme o tempo restante acaba, em vez de
-            // parar bruscamente
             double forcaAtual = shakeIntensidade * (shakeTimer / (double) shakeDuracaoTotal);
             shakeOffsetX = (Math.random() * 2 - 1) * forcaAtual;
             shakeOffsetY = (Math.random() * 2 - 1) * forcaAtual;
@@ -226,13 +274,9 @@ public class CameraManager {
         this.focoAlvoY = centerY;
         this.focoTimer = duracaoFrames;
         this.focusZoomMode = FocusZoomMode.RECT;
-
-        double padding = GameCore.tiles_size * 2;
-        double neededZoomW = telaLargura / (rect.width + padding * 2);
-        double neededZoomH = telaAltura / (rect.height + padding * 2);
-        double fitZoom = Math.min(neededZoomW, neededZoomH);
-
-        this.zoomFocoAlvo = Math.min(fitZoom, zoomBase);
+        this.focusRectWidth = rect.width;
+        this.focusRectHeight = rect.height;
+        recalcularZoomFocoAlvo(telaLargura, telaAltura);
     }
 
     public void desfocarCamera() {
@@ -262,6 +306,8 @@ public class CameraManager {
 
         this.x = playerCentroX - (centroTelaX / zoom);
         this.y = playerCentroY - (centroTelaY / zoom);
+        this.viewportWidth = telaLargura;
+        this.viewportHeight = telaAltura;
     }
 
     // Útil para, por exemplo, travar o input do player enquanto a cutscene roda.
@@ -333,9 +379,8 @@ public class CameraManager {
         this.zoom = zoom;
     }
 
-    // Chamado todo frame pelo GameCore com o zoom "desejado" (baseado na
-    // resolução da janela). Não força o zoom instantaneamente — apenas
-    // atualiza o alvo que update() persegue suavemente.
+    // Atualiza apenas o alvo de zoom. Para mudanças de resolução, use
+    // adjustForViewportResize() para também preservar o centro da câmera.
     public void setBaseZoom(double zoom) {
         this.zoomBase = zoom;
     }

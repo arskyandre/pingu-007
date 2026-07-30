@@ -198,6 +198,8 @@ public class GameCore extends Canvas implements Runnable {
             toggleFullscreen();
         }
 
+        camera.adjustForViewportResize(getWidth(), getHeight(), calculateBaseZoom(getHeight()));
+
         switch (gameState) {
             case MAIN_MENU -> {
                 GameState next = mainMenu.update(input, getWidth(), getHeight());
@@ -232,14 +234,13 @@ public class GameCore extends Canvas implements Runnable {
                 // }
                 // }
                 if (dialogueManager.isAtivo()) {
-                dialogueManager.atualizar(input);
-                camera.update(player, input, getWidth(), getHeight());
+                    dialogueManager.atualizar(input);
                 } else {
-                if (introDialogoAtiva) {
-                introDialogoAtiva = false;
-                player.setBlockInputs(false);
-                }
-                updateGame();
+                    if (introDialogoAtiva) {
+                        introDialogoAtiva = false;
+                        player.setBlockInputs(false);
+                    }
+                    updateGame();
                 }
                 // DESCOMENTAR BLOCO NO JOGO FINAL
             }
@@ -268,10 +269,6 @@ public class GameCore extends Canvas implements Runnable {
                 player.setEmDash(false);
                 if (dialogueManager.isAtivo()) {
                     dialogueManager.atualizar(input);
-                    camera.update(player, input, getWidth(), getHeight());
-                    // dar um jeito de fazer
-                    // a camera nao seguir o mouse no update, apenas para arrumar a posicao da
-                    // camera caso o tamanho da tela mude durante o dialogo
                 }
             }
             case PAUSED -> {
@@ -518,8 +515,6 @@ public class GameCore extends Canvas implements Runnable {
         } else {
             camera.clearCombatTarget();
         }
-        double dynamicZoom = BASE_ZOOM * (getHeight() / (double) BASE_HEIGHT);
-        camera.setBaseZoom(dynamicZoom);
         camera.update(player, input, getWidth(), getHeight());
         fishingManager.syncToCamera(camera, getWidth(), getHeight());
 
@@ -533,20 +528,24 @@ public class GameCore extends Canvas implements Runnable {
 
     public void updateCutscene() {
         cutsceneManager.update();
-        double dynamicZoom = BASE_ZOOM * (getHeight() / (double) BASE_HEIGHT);
-        camera.setBaseZoom(dynamicZoom);
         if (cutsceneManager.isBossIntroAtiva()) {
             MorsaBoss morsa = enemyManager.getMorsaBoss();
             if (morsa != null) {
                 morsa.atualizarCutsceneIntro(); // só cuida do rugido/tremida — sem alvo, sem ataque, sem BossMao
             }
         }
-        camera.update(player, input, getWidth(), getHeight());
+        if (!dialogueManager.isAtivo()) {
+            camera.update(player, input, getWidth(), getHeight());
+        }
         if (!cutsceneManager.isAtiva()) {
             player.setBlockInputs(false);
             gameState = GameState.PLAYING;
         }
 
+    }
+
+    private double calculateBaseZoom(int height) {
+        return BASE_ZOOM * (height / (double) BASE_HEIGHT);
     }
 
     public static void setGameState(GameState state) {
