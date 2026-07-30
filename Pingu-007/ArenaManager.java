@@ -220,6 +220,11 @@ public class ArenaManager {
     public void interagir(Player player, int chavesDoPlayer) {
         for (InteractiveObject interactive : interactives) {
             if (interactive.tryInteract(context, player, chavesDoPlayer)) {
+                TiledObject data = interactive.getData();
+
+                if ("trocar_mapa".equalsIgnoreCase(data.acao)) {
+                    iniciarTransicaoDeFase(data.destino);
+                }
                 return;
             }
         }
@@ -510,7 +515,6 @@ public class ArenaManager {
                     setWallState(15, false, player);
 
                     if (!chave14_15_spawnada) {
-                        // TODO: fazer a camera focar na chave
                         camera.focarEm(12839 + 16, 4870 + 16, 90, false);
                         itemManager.spawn(new KeyItem(12839, 4870));
                         chave14_15_spawnada = true;
@@ -526,7 +530,12 @@ public class ArenaManager {
 
     private void iniciarTransicaoDeFase(String mapaDestino) {
         System.out.println(">>> Carregando mapa: " + mapaDestino + " <<<");
+
         if (mapaDestino != null && !mapaDestino.isEmpty()) {
+            if (LoadSave.CASA_VENDEDOR.equals(mapaDestino)) {
+                gameCore.entrarCasaVendedor();
+                return;
+            }
             levelManager.carregarNivel(mapaDestino);
         }
     }

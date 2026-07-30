@@ -1228,7 +1228,6 @@
         {
          "draworder":"topdown",
          "id":19,
-         "locked":true,
          "name":"bInterativos",
          "objects":[
                 {
@@ -1468,6 +1467,33 @@
                  "width":16,
                  "x":2896,
                  "y":688
+                }, 
+                {
+                 "height":14.8125,
+                 "id":841,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"acao",
+                         "type":"string",
+                         "value":"trocar_mapa"
+                        }, 
+                        {
+                         "name":"destino",
+                         "type":"string",
+                         "value":"CASA_VENDEDOR.tmj"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"interativo"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":20.5625,
+                 "x":3997.5,
+                 "y":937.125
                 }],
          "opacity":1,
          "properties":[
@@ -15673,7 +15699,7 @@
          "y":0
         }],
  "nextlayerid":24,
- "nextobjectid":839,
+ "nextobjectid":842,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

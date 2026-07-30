@@ -407,10 +407,9 @@ public class Player extends Entity {
                 }
             }
 
-            if (input.isKeyJustPressed(KeyEvent.VK_P)) {
-
-                camera.focarEm((double) (250.5 * GameCore.tiles_size), (double) (58.3 * GameCore.tiles_size),
-                        120, false);
+            if (input.isKeyJustPressed(KeyEvent.VK_T)) {
+                setX((double) (250.5 * GameCore.tiles_size));
+                setY((double) (60 * GameCore.tiles_size));
             }
 
             if (input.isKeyPressed(KeyEvent.VK_6) && input.isKeyJustPressed(KeyEvent.VK_7)) {

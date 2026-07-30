@@ -348,10 +348,6 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyJustPressed(KeyEvent.VK_O)) {
             setCinematicBorderAnimation(Renderer.BorderState.OUT);
         }
-        if (input.isKeyJustPressed(KeyEvent.VK_T)) {
-            player.setX(48.5 * GameCore.tiles_size);
-            player.setY(47.0 * GameCore.tiles_size);
-        }
 
         if (debugSpawnCooldown > 0) {
             debugSpawnCooldown--;
@@ -518,8 +514,9 @@ public class GameCore extends Canvas implements Runnable {
         camera.update(player, input, getWidth(), getHeight());
         fishingManager.syncToCamera(camera, getWidth(), getHeight());
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_E) && debugSpawnCooldown <= 0) {
+        if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)) {
             arenaManager.interagir(player, player.getChaves());
+            System.out.println("Apertou E");
         }
 
         debugInputProcessing();
