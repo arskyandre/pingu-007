@@ -111,9 +111,9 @@ public class Bomber extends Enemy {
         if (isMoving()) {
             updateFootsteps(soundManager, lvlData);
         }
-        if (velX > 0) {
+        if (velY > 0) {
             dirS = 1;
-        } else if (velX < 0) {
+        } else if (velY < 0) {
             dirS = 0;
         }
     }
@@ -188,9 +188,9 @@ public class Bomber extends Enemy {
             if (animTick >= 4) {
                 animTick = 0;
                 animIndex++;
-                if (animIndex >= 7) {
-                    animIndex = 0;
-                }
+            }
+            if (animIndex >= 7) {
+                animIndex = 0;
             }
             if (dirS == 0) {
                 if(timerDano > 0)
