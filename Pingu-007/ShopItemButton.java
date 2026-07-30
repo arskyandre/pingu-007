@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -105,10 +106,35 @@ public class ShopItemButton extends MenuButton {
     }
 
     @Override
+    public int update(InputManager input) {
+        if (!item.disponivel) {
+            held = false;
+            hovered = false;
+            selecionado = false;
+            return IDLE;
+        }
+        hovered = rect.contains(input.getMouseX(), input.getMouseY());
+        if (hovered && input.isMouseButtonJustPressed(MouseEvent.BUTTON1))
+            return CLICKED;
+        else if (hovered && input.isMouseButtonPressed(MouseEvent.BUTTON1)) {
+            held = true;
+        }
+        held = false;
+        if (!hovered) {
+            return IDLE;
+        }
+        return HOVERED;
+    }
+
+    @Override
     public void draw(Graphics2D g2) {
         boolean destacado = selecionado || hovered;
-
-        if (destacado) {
+        if (!item.disponivel) {
+            g2.setColor(new Color(0, 0, 0, 128));
+            g2.fillRect(rect.x, rect.y, rect.width, rect.height);
+            g2.setColor(new Color(140, 140, 80));
+            g2.setStroke(new BasicStroke(2.5f));
+        } else if (destacado) {
             g2.setColor(new Color(255, 220, 130, 35));
             g2.fillRect(rect.x, rect.y, rect.width, rect.height);
             g2.setColor(new Color(255, 215, 80));

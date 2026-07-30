@@ -8,7 +8,9 @@ public enum IconIndex {
     FULLSCREEN(3, 0),
     FULLSCREEN_HELD(4, 0),
     GREEN_CHECK(5, 0),
-    RED_X(6, 0);
+    RED_X(6, 0),
+    LEFT_ARROW(7, 0),
+    RIGHT_ARROW(8, 0);
 
     private final int col, row;
     private static final int ICON_SIZE = 32;

@@ -198,6 +198,8 @@ public class GameCore extends Canvas implements Runnable {
             toggleFullscreen();
         }
 
+        camera.adjustForViewportResize(getWidth(), getHeight(), calculateBaseZoom(getHeight()));
+
         switch (gameState) {
             case MAIN_MENU -> {
                 GameState next = mainMenu.update(input, getWidth(), getHeight());
@@ -212,28 +214,27 @@ public class GameCore extends Canvas implements Runnable {
                 gameState = next;
             }
             case PLAYING -> {
-                if (introPreDelay) {
-                    introPreDelayTimer--;
-                    if (introPreDelayTimer <= 0) {
-                        introPreDelay = false;
-                        introPendente = true;
-                        introTimer = INTRO_DELAY_FRAMES;
-                        player.setBlockInputs(true);
-                        soundManager.playSFX(SoundManager.SFX.CALL_RING);
-                        player.setTemporarySpriteOverride(0, introTimer);
-                    }
-                }
-                if (introPendente) {
-                    introTimer--;
-                    if (introTimer <= 0) {
-                        introPendente = false;
-                        introDialogoAtiva = true;
-                        triggerDialogoInicial();
-                    }
-                }
+                // if (introPreDelay) {
+                // introPreDelayTimer--;
+                // if (introPreDelayTimer <= 0) {
+                // introPreDelay = false;
+                // introPendente = true;
+                // introTimer = INTRO_DELAY_FRAMES;
+                // player.setBlockInputs(true);
+                // soundManager.playSFX(SoundManager.SFX.CALL_RING);
+                // player.setTemporarySpriteOverride(0, introTimer);
+                // }
+                // }
+                // if (introPendente) {
+                // introTimer--;
+                // if (introTimer <= 0) {
+                // introPendente = false;
+                // introDialogoAtiva = true;
+                // triggerDialogoInicial();
+                // }
+                // }
                 if (dialogueManager.isAtivo()) {
                     dialogueManager.atualizar(input);
-                    camera.update(player, input, getWidth(), getHeight());
                 } else {
                     if (introDialogoAtiva) {
                         introDialogoAtiva = false;
@@ -241,6 +242,7 @@ public class GameCore extends Canvas implements Runnable {
                     }
                     updateGame();
                 }
+                // DESCOMENTAR BLOCO NO JOGO FINAL
             }
             case SHOP -> {
                 ShopMenu shop = getShopMenu();
@@ -267,10 +269,6 @@ public class GameCore extends Canvas implements Runnable {
                 player.setEmDash(false);
                 if (dialogueManager.isAtivo()) {
                     dialogueManager.atualizar(input);
-                    camera.update(player, input, getWidth(), getHeight());
-                    // dar um jeito de fazer
-                    // a camera nao seguir o mouse no update, apenas para arrumar a posicao da
-                    // camera caso o tamanho da tela mude durante o dialogo
                 }
             }
             case PAUSED -> {
@@ -385,8 +383,8 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_M) && debugSpawnCooldown <= 0) {
             double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
             double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-            itemManager.spawn(new MoedaItem(mouseXWorld, mouseYWorld));
-            System.out.println("DEBUG: Item moeda spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
+            itemManager.spawn(new MoedaItem(mouseXWorld, mouseYWorld, 100));
+            System.out.println("DEBUG: moeda milionaria spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
             debugSpawnCooldown = 15;
         }
         if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_B)) {
@@ -517,8 +515,6 @@ public class GameCore extends Canvas implements Runnable {
         } else {
             camera.clearCombatTarget();
         }
-        double dynamicZoom = BASE_ZOOM * (getHeight() / (double) BASE_HEIGHT);
-        camera.setBaseZoom(dynamicZoom);
         camera.update(player, input, getWidth(), getHeight());
         fishingManager.syncToCamera(camera, getWidth(), getHeight());
 
@@ -532,20 +528,24 @@ public class GameCore extends Canvas implements Runnable {
 
     public void updateCutscene() {
         cutsceneManager.update();
-        double dynamicZoom = BASE_ZOOM * (getHeight() / (double) BASE_HEIGHT);
-        camera.setBaseZoom(dynamicZoom);
         if (cutsceneManager.isBossIntroAtiva()) {
             MorsaBoss morsa = enemyManager.getMorsaBoss();
             if (morsa != null) {
                 morsa.atualizarCutsceneIntro(); // só cuida do rugido/tremida — sem alvo, sem ataque, sem BossMao
             }
         }
-        camera.update(player, input, getWidth(), getHeight());
+        if (!dialogueManager.isAtivo()) {
+            camera.update(player, input, getWidth(), getHeight());
+        }
         if (!cutsceneManager.isAtiva()) {
             player.setBlockInputs(false);
             gameState = GameState.PLAYING;
         }
 
+    }
+
+    private double calculateBaseZoom(int height) {
+        return BASE_ZOOM * (height / (double) BASE_HEIGHT);
     }
 
     public static void setGameState(GameState state) {

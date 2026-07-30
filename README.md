@@ -58,7 +58,7 @@ Ao final do mapa acontece a batalha contra a Morsa.
 
 ## Cenário
 
-O mapa é composto por diferentes tipos de terreno. Além da neve comum, existem áreas de gelo, que alteram a movimentação do personagem, e buracos que causam dano caso o jogador passe sobre eles.
+O mapa é composto por diferentes tipos de terreno. Além da neve comum, existem áreas de gelo que alteram a movimentação do personagem e buracos que causam dano caso o jogador passe sobre eles.
 
 <img src="screenshots/map.png" alt="Mapa" width="700">
 
