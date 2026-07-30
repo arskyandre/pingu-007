@@ -90,6 +90,11 @@ public class LoadSave {
                     TiledObject tObj = new TiledObject();
 
                     String processStr = objStr;
+                    String previousStr = rawObjects[i - 1];
+                    int objectStart = previousStr.lastIndexOf("{");
+                    String objectPrefix = objectStart >= 0
+                            ? previousStr.substring(objectStart)
+                            : "";
 
                     int polyIdx = processStr.indexOf("\"polygon\":[");
                     if (polyIdx == -1) {
@@ -123,7 +128,12 @@ public class LoadSave {
                     tObj.x = extractDouble(processStr, "\"x\"");
                     tObj.y = extractDouble(processStr, "\"y\"");
                     tObj.width = extractDouble(processStr, "\"width\"");
-                    tObj.height = extractDouble(processStr, "\"height\"");
+                    // O Tiled exporta "height" antes de "id". Como os objetos sao
+                    // separados acima por "id", a altura fica no trecho anterior.
+                    // Mantemos o fallback para arquivos que usem outra ordem.
+                    tObj.height = objectPrefix.contains("\"height\"")
+                            ? extractDouble(objectPrefix, "\"height\"")
+                            : extractDouble(processStr, "\"height\"");
 
                     if (processStr.contains("\"gid\"")) {
                         tObj.gid = (int) extractDouble(processStr, "\"gid\"");

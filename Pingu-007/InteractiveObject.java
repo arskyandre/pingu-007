@@ -70,6 +70,9 @@ public class InteractiveObject extends ArenaObject {
             return false;
         }
         String acaoSegura = data.acao != null ? data.acao.trim() : "";
+        if ("trocar_mapa".equalsIgnoreCase(acaoSegura)) {
+            return true;
+        }
         if ("pescar".equalsIgnoreCase(acaoSegura)) {
             System.out.println("Iniciando minigame de pesca no tile ID 10!");
             return true;
