@@ -104,6 +104,44 @@
         }, 
         {
          "draworder":"topdown",
+         "id":12,
+         "name":"bInterativos",
+         "objects":[
+                {
+                 "height":16.5454545454545,
+                 "id":23,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"acao",
+                         "type":"string",
+                         "value":"trocar_mapa"
+                        }, 
+                        {
+                         "name":"destino",
+                         "type":"string",
+                         "value":"LEVEL_1_DATA.json"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"interativo"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":14.5454545454545,
+                 "x":-7.7715611723761e-15,
+                 "y":63.4545454545455
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
          "id":4,
          "name":"Spawners",
          "objects":[
@@ -216,8 +254,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":12,
- "nextobjectid":20,
+ "nextlayerid":13,
+ "nextobjectid":24,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
