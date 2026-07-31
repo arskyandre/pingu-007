@@ -194,6 +194,9 @@ public class ArenaManager {
 
     // private int debugCooldown = 60;
     public void update(Player player, CameraManager camera, SoundManager sound) {
+        for (InteractiveObject interactive : interactives) {
+            interactive.update(context, player);
+        }
         atualizarBotoes(player);
         for (int i = 0; i < arenas.size(); i++) {
             Arena arena = arenas.get(i);

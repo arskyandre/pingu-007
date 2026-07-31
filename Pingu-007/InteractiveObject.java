@@ -1,10 +1,12 @@
-
+import java.awt.FontMetrics;
+import java.awt.Color;
 import java.awt.Graphics2D;
 
 public class InteractiveObject extends ArenaObject {
 
     private int[][] visualSnapshot;
     private boolean visible = true;
+    private boolean playerCanInteract = false;
 
     public InteractiveObject(TiledObject data) {
         super(data);
@@ -22,6 +24,14 @@ public class InteractiveObject extends ArenaObject {
             data.gid = ArenaAtlas.getStoolTileId();
         }
         setVisible(context, true);
+    }
+
+    @Override
+    public void update(ArenaContext context, Player player) {
+        String acaoSegura = data.acao != null ? data.acao.trim() : "";
+
+        playerCanInteract = "trocar_mapa".equalsIgnoreCase(acaoSegura)
+                && ArenaTriggers.collides(data, player);
     }
 
     public void setVisible(ArenaContext context, boolean state) {
@@ -84,6 +94,23 @@ public class InteractiveObject extends ArenaObject {
     public void drawOverlay(Graphics2D g2) {
         if (visible && data.gid > 0) {
             ArenaAtlas.drawTile(g2, data.gid, data.x, data.y, data.width, data.height);
+        }
+
+        if (playerCanInteract) {
+            String prompt = "[E]";
+
+            g2.setFont(MenuButton.pixelFont.deriveFont(7f));
+            FontMetrics fm = g2.getFontMetrics();
+
+            int x = (int) (data.x + data.width / 2.0
+                    - fm.stringWidth(prompt) / 2.0);
+            int y = (int) data.y - 8;
+
+            g2.setColor(new Color(0, 0, 0, 100));
+            g2.drawString(prompt, x + 1, y + 1);
+
+            g2.setColor(new Color(20, 77, 55));
+            g2.drawString(prompt, x, y);
         }
     }
 }

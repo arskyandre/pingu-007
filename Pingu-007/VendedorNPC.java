@@ -16,6 +16,7 @@ public class VendedorNPC extends NPC {
     private boolean proximo = false;
     private BufferedImage Sprite;
     private CameraManager camera;
+    private BufferedImage portrait = LoadSave.GetSpriteAtlas("images/portrait/vendedor_portrait.png");
 
     public VendedorNPC(double x, double y, CameraManager cameraMgr, SoundManager soundManager) {
         super(x, y, WIDTH, HEIGHT);
@@ -65,13 +66,13 @@ public class VendedorNPC extends NPC {
                         dialogueManager.iniciarDialogo(new String[] {
                                 "VENDEDOR: E aí, Pingu? Deseja comprar algo?"
 
-                        }, new SoundManager.SFX[][] { DialogueCatalogo.pingu_noot, DialogueCatalogo.pingu_noot }, true);
+                        }, new BufferedImage[] { portrait }, true);
                         dialogueManager.setAoTerminarDialogo(() -> {
                             popularItens(player, soundManager);
                             shopMenu.setAoFechar(() -> {
                                 dialogueManager.iniciarDialogo(new String[] {
                                         "VENDEDOR: Estou aqui sempre que precisar!"
-                                }, active);
+                                }, new BufferedImage[] { portrait }, true);
                             });
                             shopMenu.abrir(player);
                             GameCore.setShopMenu(shopMenu);
@@ -82,7 +83,7 @@ public class VendedorNPC extends NPC {
                                 "VENDEDOR: E aí pingu, beleza?",
                                 "VENDEDOR: Obrigado por salvar o nosso bairro, os soldados da Morsa estavam aterrorizando a nossa região!",
                                 "VENDEDOR: Como agradecimento, quero lhe oferecer uma recompensa. A partir de agora, vou te pagar em moedas pelos inimigos que você eliminar!",
-                        }, active);
+                        }, new BufferedImage[] { portrait }, true);
                         dialogueManager.setAoTerminarDialogo(() -> {
                             ToastNotifications.RequestNotification(
                                     "Elimine inimigos e volte à loja do vendedor para receber recompensas!", 2.5);
