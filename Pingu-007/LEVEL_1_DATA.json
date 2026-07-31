@@ -1229,7 +1229,6 @@
         {
          "draworder":"topdown",
          "id":19,
-         "locked":true,
          "name":"bInterativos",
          "objects":[
                 {
@@ -1471,7 +1470,7 @@
                  "y":688
                 }, 
                 {
-                 "height":14.8125,
+                 "height":16.0625,
                  "id":841,
                  "name":"",
                  "properties":[
@@ -1495,7 +1494,7 @@
                  "visible":true,
                  "width":20.5625,
                  "x":3997.5,
-                 "y":937.125
+                 "y":935.875
                 }],
          "opacity":1,
          "properties":[

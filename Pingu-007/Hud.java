@@ -24,6 +24,7 @@ public class Hud {
     private boolean jaPegouMoeda = false;
     private boolean jaPegouIsca = false;
     private BufferedImage heartSheet = null;
+    public static final BufferedImage balaSprite[];
     private BufferedImage moedaSprite[] = null;
     private BufferedImage iscaSprite[] = null;
     private BufferedImage chaveSprite[] = null;
@@ -48,6 +49,20 @@ public class Hud {
     }
 
     private final ArrayList<HeartParticle> particles = new ArrayList<>();
+    static {
+        BufferedImage[] temp;
+        try {
+            BufferedImage base = LoadSave.GetSpriteAtlas("images/hud/balasprite.png");
+            temp = new BufferedImage[2];
+            for (int i = 0; i < 2; i++) {
+                temp[i] = base.getSubimage(i * 16, 0, 16, 16);
+            }
+        } catch (Exception e) {
+            System.err.println("Erro ao carregar balasprite.png: " + e.getMessage());
+            temp = new BufferedImage[2];
+        }
+        balaSprite = temp;
+    }
 
     public Hud() {
         try {

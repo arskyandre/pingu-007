@@ -407,12 +407,12 @@ public class Player extends Entity {
                 }
             }
 
-            if (input.isKeyJustPressed(KeyEvent.VK_T)) {
+            if (GameCore.getDebug() && input.isKeyJustPressed(KeyEvent.VK_T)) {
                 setX((double) (250.5 * GameCore.tiles_size));
                 setY((double) (60 * GameCore.tiles_size));
             }
 
-            if (input.isKeyPressed(KeyEvent.VK_6) && input.isKeyJustPressed(KeyEvent.VK_7)) {
+            if (GameCore.getDebug() && input.isKeyPressed(KeyEvent.VK_6) && input.isKeyJustPressed(KeyEvent.VK_7)) {
                 hasShotgun = true;
                 ToastNotifications.RequestNotification("DEBUG 67: habilitou shotgun", 2.0);
             }
@@ -492,7 +492,7 @@ public class Player extends Entity {
                 penteZeroTimerActive = false;
             }
         }
-        if(tiroTimer > 0){
+        if (tiroTimer > 0) {
             tiroTimer--;
         }
 
@@ -505,7 +505,7 @@ public class Player extends Entity {
         double dx = mouseX - centerX;
         double dy = mouseY - centerY;
         double angle = Math.toDegrees(Math.atan2(dy, dx));
-        angulo = Math.atan2(dy,dx);
+        angulo = Math.atan2(dy, dx);
         if (angle < 0) {
             angle += 360;
         }
@@ -519,8 +519,8 @@ public class Player extends Entity {
         } else {
             direction = Direction.RIGHT;
         }
-        
-        //System.out.println(angulo);
+
+        // System.out.println(angulo);
     }
 
     public void updateFishing(InputManager input, CameraManager camera, ArrayList<Enemy> enemies) {
@@ -559,7 +559,6 @@ public class Player extends Entity {
     public void animate(Graphics2D g2, double delta) {
         int inv = 1;
         int xx = (int) x;
-        
 
         if (dashDuracaoTimer > 0) {
             if (dashDirX < 0) {
@@ -631,8 +630,8 @@ public class Player extends Entity {
                 && spriteOverrideIndex < Sprites.length;
         int spriteFinal = overrideAtivo ? spriteOverrideIndex : (animSp + animIndex);
 
-        int ginv = 1, xgun = (int)x;
-        
+        int ginv = 1, xgun = (int) x;
+
         double ang = angulo;
         if (angulo > Math.PI / 2 || angulo < -Math.PI / 2) {
             ginv = -1;
@@ -643,34 +642,41 @@ public class Player extends Entity {
             }
         }
         int indexArma = 0;
-        if(gunType == GunType.SHOTGUN){
+        if (gunType == GunType.SHOTGUN) {
             indexArma = 2;
         }
-        if(tiroTimer > 0){
-            indexArma = indexArma+1;
+        if (tiroTimer > 0) {
+            indexArma = indexArma + 1;
         }
         BufferedImage gun = HelpMethods.rotateImageByDegrees(arma[indexArma], ang);
         int gap = gun.getWidth() * 3 - 48, yy = (int) y;
         gap /= 2;
 
-        yy = yy-gap+6;
+        yy = yy - gap + 6;
 
-        if(ginv == -1){
-            xgun = (int)x + 48;
+        if (ginv == -1) {
+            xgun = (int) x + 48;
         }
-        
-        if(gunType == GunType.PISTOL){
-            g2.drawImage(gun, xgun - (gap-20)*ginv, yy, gun.getWidth() * 3 * ginv, gun.getHeight() * 3 ,null);//gun render under pingu
+
+        if (gunType == GunType.PISTOL) {
+            g2.drawImage(gun, xgun - (gap - 20) * ginv, yy, gun.getWidth() * 3 * ginv, gun.getHeight() * 3, null);// gun
+                                                                                                                  // render
+                                                                                                                  // under
+                                                                                                                  // pingu
         }
-        if(gunType != GunType.PISTOL && direction == Direction.UP){
-            g2.drawImage(gun, xgun - (gap-12)*ginv, yy, gun.getWidth() * 3 * ginv, gun.getHeight() * 3 ,null);//gun render under pingous
+        if (gunType != GunType.PISTOL && direction == Direction.UP) {
+            g2.drawImage(gun, xgun - (gap - 12) * ginv, yy, gun.getWidth() * 3 * ginv, gun.getHeight() * 3, null);// gun
+                                                                                                                  // render
+                                                                                                                  // under
+                                                                                                                  // pingous
         }
         g2.drawImage(Sprites[spriteFinal], xx, (int) y, 48 * inv, 48, null);
-        if(gunType != GunType.PISTOL && direction != Direction.UP){
-            g2.drawImage(gun, xgun - (gap-12)*ginv, yy, gun.getWidth() * 3 * ginv, gun.getHeight() * 3 ,null);//gun render above pingous
+        if (gunType != GunType.PISTOL && direction != Direction.UP) {
+            g2.drawImage(gun, xgun - (gap - 12) * ginv, yy, gun.getWidth() * 3 * ginv, gun.getHeight() * 3, null);// gun
+                                                                                                                  // render
+                                                                                                                  // above
+                                                                                                                  // pingous
         }
-
-        
 
         if (hasFishingRod && fishingBobber != null && fishingBobber.isAtivo()) {
             fishingBobber.draw(g2);

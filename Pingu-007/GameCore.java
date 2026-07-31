@@ -21,6 +21,9 @@ public class GameCore extends Canvas implements Runnable {
     private final GameOverScreen gameOverScreen;
     private final KeyBindingsMenu keyBindingsMenu;
 
+    // permite os botoes de teste(debuginputprocessing() e outros)
+    private static boolean debugInputs = true;
+
     private double checkX, checkY;
     private int checkVida, checkMunicao, checkPente, checkChaves;
     private int chavesColetadasCheckpoint = 0;
@@ -137,6 +140,10 @@ public class GameCore extends Canvas implements Runnable {
         }
     }
 
+    public static boolean getDebug() {
+        return debugInputs;
+    }
+
     public static GameState getGameState() {
         return gameState;
     }
@@ -219,25 +226,27 @@ public class GameCore extends Canvas implements Runnable {
                 gameState = next;
             }
             case PLAYING -> {
-                // if (introPreDelay) {
-                // introPreDelayTimer--;
-                // if (introPreDelayTimer <= 0) {
-                // introPreDelay = false;
-                // introPendente = true;
-                // introTimer = INTRO_DELAY_FRAMES;
-                // player.setBlockInputs(true);
-                // soundManager.playSFX(SoundManager.SFX.CALL_RING);
-                // player.setTemporarySpriteOverride(0, introTimer);
-                // }
-                // }
-                // if (introPendente) {
-                // introTimer--;
-                // if (introTimer <= 0) {
-                // introPendente = false;
-                // introDialogoAtiva = true;
-                // triggerDialogoInicial();
-                // }
-                // }
+                if (!getDebug()) {
+                    if (introPreDelay) {
+                        introPreDelayTimer--;
+                        if (introPreDelayTimer <= 0) {
+                            introPreDelay = false;
+                            introPendente = true;
+                            introTimer = INTRO_DELAY_FRAMES;
+                            player.setBlockInputs(true);
+                            soundManager.playSFX(SoundManager.SFX.CALL_RING);
+                            player.setTemporarySpriteOverride(0, introTimer);
+                        }
+                    }
+                    if (introPendente) {
+                        introTimer--;
+                        if (introTimer <= 0) {
+                            introPendente = false;
+                            introDialogoAtiva = true;
+                            triggerDialogoInicial();
+                        }
+                    }
+                }
                 if (dialogueManager.isAtivo()) {
                     dialogueManager.atualizar(input);
                 } else {
@@ -570,8 +579,8 @@ public class GameCore extends Canvas implements Runnable {
             arenaManager.interagir(player, player.getChaves());
             System.out.println("Apertou E");
         }
-
-        debugInputProcessing();
+        if (getDebug())
+            debugInputProcessing();
 
     }
 
