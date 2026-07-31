@@ -9,6 +9,11 @@ public class CameraManager {
     public double margemX = 180;
     public double margemY = 120;
 
+    // Ultimo deslocamento de enquadramento calculado a partir do mouse.
+    // Dialogos reutilizam esses valores sem ler novos movimentos do cursor.
+    private double ultimoOffsetMouseX = 0;
+    private double ultimoOffsetMouseY = 0;
+
     private double shakeIntensidade = 0;
     private int shakeTimer = 0;
     private int shakeDuracaoTotal = 0;
@@ -59,6 +64,15 @@ public class CameraManager {
     }
 
     public void update(Player player, InputManager input, int telaLargura, int telaAltura) {
+        updateInterno(player, input, telaLargura, telaAltura, true);
+    }
+
+    public void updateSemNovoInput(Player player, int telaLargura, int telaAltura) {
+        updateInterno(player, null, telaLargura, telaAltura, false);
+    }
+
+    private void updateInterno(Player player, InputManager input, int telaLargura, int telaAltura,
+            boolean lerNovoInputMouse) {
         double centroTelaX = telaLargura / 2.0;
         double centroTelaY = telaAltura / 2.0;
 
@@ -106,22 +120,26 @@ public class CameraManager {
             zoom += (targetZoom - zoom) * velocidade;
 
         } else {
-
-            // distancia do mouse para o centro da tela
-            double distMouseX = input.getMouseX() - centroTelaX;
-            double distMouseY = input.getMouseY() - centroTelaY;
-
-            // offset baseado no peso
-            double telaOffsetX = distMouseX * pesoOffset;
-            double telaOffsetY = distMouseY * pesoOffset;
-
             // limite maximo do offset baseado na margem
             double maxOffsetX = Math.max(0, centroTelaX - margemX);
             double maxOffsetY = Math.max(0, centroTelaY - margemY);
 
-            // clamp do offset
-            telaOffsetX = Math.max(-maxOffsetX, Math.min(telaOffsetX, maxOffsetX));
-            telaOffsetY = Math.max(-maxOffsetY, Math.min(telaOffsetY, maxOffsetY));
+            if (lerNovoInputMouse) {
+                // distancia do mouse para o centro da tela, convertida no offset usado
+                // para enquadrar o player
+                double distMouseX = input.getMouseX() - centroTelaX;
+                double distMouseY = input.getMouseY() - centroTelaY;
+                ultimoOffsetMouseX = distMouseX * pesoOffset;
+                ultimoOffsetMouseY = distMouseY * pesoOffset;
+
+                ultimoOffsetMouseX = Math.max(-maxOffsetX, Math.min(ultimoOffsetMouseX, maxOffsetX));
+                ultimoOffsetMouseY = Math.max(-maxOffsetY, Math.min(ultimoOffsetMouseY, maxOffsetY));
+            }
+
+            // Em dialogos, conserva o ultimo enquadramento mesmo que o cursor se mova.
+            // O clamp ainda e recalculado para respeitar mudancas de resolucao.
+            double telaOffsetX = Math.max(-maxOffsetX, Math.min(ultimoOffsetMouseX, maxOffsetX));
+            double telaOffsetY = Math.max(-maxOffsetY, Math.min(ultimoOffsetMouseY, maxOffsetY));
 
             // centro do player no mundo
             double playerCentroX = player.getX() + (player.getLargura() / 2.0);
@@ -294,6 +312,8 @@ public class CameraManager {
         shakeTimer = 0;
         shakeOffsetX = 0;
         shakeOffsetY = 0;
+        ultimoOffsetMouseX = 0;
+        ultimoOffsetMouseY = 0;
         focusZoomMode = FocusZoomMode.NORMAL;
         clearCombatTarget();
         zoom = zoomBase;

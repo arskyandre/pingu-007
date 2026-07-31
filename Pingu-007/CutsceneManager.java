@@ -164,7 +164,7 @@ public class CutsceneManager {
                     soundManager.playBGM(SoundManager.BGM.BOSS_INTRO, SoundManager.BGM.BOSS_LOOP);
                 }
 
-                if (timer >= DURATION - TRANSICAO_BORDA) {
+                if (timer >= DURATION) {
                     cameraManager.desfocarCamera();
                 }
 

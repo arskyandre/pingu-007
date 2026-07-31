@@ -249,6 +249,7 @@ public class GameCore extends Canvas implements Runnable {
                 }
                 if (dialogueManager.isAtivo()) {
                     dialogueManager.atualizar(input);
+                    atualizarCameraSemNovoInput();
                 } else {
                     if (introDialogoAtiva) {
                         introDialogoAtiva = false;
@@ -572,8 +573,11 @@ public class GameCore extends Canvas implements Runnable {
         } else {
             camera.clearCombatTarget();
         }
-        camera.update(player, input, getWidth(), getHeight());
-        fishingManager.syncToCamera(camera, getWidth(), getHeight());
+        if (dialogueManager.isAtivo()) {
+            atualizarCameraSemNovoInput();
+        } else {
+            atualizarCamera();
+        }
 
         if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)) {
             arenaManager.interagir(player, player.getChaves());
@@ -592,14 +596,26 @@ public class GameCore extends Canvas implements Runnable {
                 morsa.atualizarCutsceneIntro(); // só cuida do rugido/tremida — sem alvo, sem ataque, sem BossMao
             }
         }
-        if (!dialogueManager.isAtivo()) {
-            camera.update(player, input, getWidth(), getHeight());
+        if (dialogueManager.isAtivo()) {
+            atualizarCameraSemNovoInput();
+        } else {
+            atualizarCamera();
         }
         if (!cutsceneManager.isAtiva()) {
             player.setBlockInputs(false);
             gameState = GameState.PLAYING;
         }
 
+    }
+
+    private void atualizarCamera() {
+        camera.update(player, input, getWidth(), getHeight());
+        fishingManager.syncToCamera(camera, getWidth(), getHeight());
+    }
+
+    private void atualizarCameraSemNovoInput() {
+        camera.updateSemNovoInput(player, getWidth(), getHeight());
+        fishingManager.syncToCamera(camera, getWidth(), getHeight());
     }
 
     private double calculateBaseZoom(int height) {
