@@ -44,7 +44,20 @@ public class DialogueCatalogo {
         };
 
         public static final SoundManager.SFX[][] PescadorPergunta = new SoundManager.SFX[][] {
-                        new SoundManager.SFX[] { SoundManager.SFX.DIALOGUE_QUESTION }
+                        new SoundManager.SFX[] {
+                                        SoundManager.SFX.KATAKANA_DE,
+                                        SoundManager.SFX.KATAKANA_ZE,
+                                        SoundManager.SFX.KATAKANA_JA,
+                                        SoundManager.SFX.KATAKANA_KO,
+                                        SoundManager.SFX.KATAKANA_N,
+                                        SoundManager.SFX.KATAKANA_PU,
+                                        SoundManager.SFX.KATAKANA_RA,
+                                        SoundManager.SFX.KATAKANA_RU,
+                                        SoundManager.SFX.KATAKANA_A,
+                                        SoundManager.SFX.KATAKANA_RU,
+                                        SoundManager.SFX.KATAKANA_GO,
+                                        SoundManager.SFX.DIALOGUE_QUESTION
+                        }
         };
 
         public static final String[] TextoInicialRadio = new String[] {
