@@ -199,9 +199,6 @@ public class Renderer {
         } else
             camera.setLetterboxAtivo(false);
 
-        if (dialogueManager != null && dialogueManager.isAtivo()) {
-            dialogueManager.renderizar(g2, telaLargura, telaAltura);
-        }
         ToastNotifications.draw(g2, telaLargura, telaAltura);
     }
 

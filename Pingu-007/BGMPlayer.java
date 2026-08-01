@@ -10,11 +10,22 @@ public class BGMPlayer {
         Thread thread;
     }
 
+    private static class LoadedAudio {
+        final AudioFormat format;
+        final byte[] pcm;
+
+        LoadedAudio(AudioFormat format, byte[] pcm) {
+            this.format = format;
+            this.pcm = pcm;
+        }
+    }
+
     private Handle current; // handle "oficial"
     private Thread fadeThread;
     private String currentPath = null;
 
-    private static final int BUFFER_SIZE = 2048;
+    private static final int WRITE_CHUNK_SIZE = 2048;
+    private static final int LINE_BUFFER_SIZE = 64 * 1024;
 
     public void play(String path) {
         stop();
@@ -36,13 +47,20 @@ public class BGMPlayer {
 
     private Thread startLoopThread(String path, Handle handle) {
         Thread t = new Thread(() -> {
-            while (handle.running) {
-                try {
-                    playFileOnce(path, handle);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    handle.running = false;
+            SourceDataLine line = null;
+            try {
+                LoadedAudio loop = loadAudio(path);
+                if (!handle.running) {
+                    return;
                 }
+
+                line = openLine(loop.format, handle.volume);
+                playLoop(line, loop.pcm, handle);
+            } catch (Exception e) {
+                e.printStackTrace();
+                handle.running = false;
+            } finally {
+                closeLine(line);
             }
         }, "BGMPlayer");
         t.setDaemon(true);
@@ -54,40 +72,25 @@ public class BGMPlayer {
         Thread t = new Thread(() -> {
             SourceDataLine line = null;
             try {
-                AudioInputStream introAis = AudioSystem.getAudioInputStream(new File(introPath));
-                AudioFormat format = introAis.getFormat();
-                line = AudioSystem.getSourceDataLine(format);
-                line.open(format, BUFFER_SIZE);
-                line.start();
-                applyVolume(line, handle.volume);
-
-                byte[] buf = new byte[BUFFER_SIZE];
-                int bytesRead;
-
-                while (handle.running && (bytesRead = introAis.read(buf, 0, buf.length)) != -1) {
-                    applyVolume(line, handle.volume);
-                    line.write(buf, 0, bytesRead);
+                LoadedAudio intro = loadAudio(introPath);
+                LoadedAudio loop = loadAudio(loopPath);
+                if (!intro.format.matches(loop.format)) {
+                    throw new IllegalArgumentException("BGMPlayer: formato diferente entre intro e loop");
                 }
-                introAis.close();
-
-                while (handle.running) {
-                    AudioInputStream loopAis = AudioSystem.getAudioInputStream(new File(loopPath));
-                    if (!loopAis.getFormat().matches(format)) {
-                        System.err.println("BGMPlayer: formato diferente entre intro e loop");
-                    }
-                    while (handle.running && (bytesRead = loopAis.read(buf, 0, buf.length)) != -1) {
-                        applyVolume(line, handle.volume);
-                        line.write(buf, 0, bytesRead);
-                    }
-                    loopAis.close();
+                if (!handle.running) {
+                    return;
                 }
 
-                line.drain();
+                line = openLine(intro.format, handle.volume);
+                playOnce(line, intro.pcm, handle);
+                if (handle.running) {
+                    playLoop(line, loop.pcm, handle);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
+                handle.running = false;
             } finally {
-                if (line != null)
-                    line.close();
+                closeLine(line);
             }
         }, "BGMPlayer");
         t.setDaemon(true);
@@ -95,25 +98,63 @@ public class BGMPlayer {
         return t;
     }
 
-    private void playFileOnce(String path, Handle handle) throws Exception {
-        AudioInputStream ais = AudioSystem.getAudioInputStream(new File(path));
-        AudioFormat format = ais.getFormat();
-        SourceDataLine line = AudioSystem.getSourceDataLine(format);
-        line.open(format, BUFFER_SIZE);
-        line.start();
-
-        applyVolume(line, handle.volume);
-
-        byte[] buf = new byte[BUFFER_SIZE];
-        int bytesRead;
-        while (handle.running && (bytesRead = ais.read(buf, 0, buf.length)) != -1) {
-            applyVolume(line, handle.volume);
-            line.write(buf, 0, bytesRead);
+    private LoadedAudio loadAudio(String path) throws Exception {
+        try (AudioInputStream ais = AudioSystem.getAudioInputStream(new File(path))) {
+            byte[] pcm = ais.readAllBytes();
+            if (pcm.length == 0) {
+                throw new IllegalArgumentException("BGMPlayer: arquivo de audio vazio: " + path);
+            }
+            return new LoadedAudio(ais.getFormat(), pcm);
         }
+    }
 
-        line.drain();
+    private SourceDataLine openLine(AudioFormat format, float volume) throws LineUnavailableException {
+        SourceDataLine line = AudioSystem.getSourceDataLine(format);
+        line.open(format, LINE_BUFFER_SIZE);
+        applyVolume(line, volume);
+        line.start();
+        return line;
+    }
+
+    private void playOnce(SourceDataLine line, byte[] pcm, Handle handle) {
+        writePcm(line, pcm, handle, false);
+    }
+
+    private void playLoop(SourceDataLine line, byte[] pcm, Handle handle) {
+        writePcm(line, pcm, handle, true);
+    }
+
+    private void writePcm(SourceDataLine line, byte[] pcm, Handle handle, boolean loop) {
+        int offset = 0;
+        float volumeAplicado = Float.NaN;
+
+        while (handle.running) {
+            if (Float.compare(volumeAplicado, handle.volume) != 0) {
+                volumeAplicado = handle.volume;
+                applyVolume(line, volumeAplicado);
+            }
+
+            int bytesRestantes = pcm.length - offset;
+            int quantidade = Math.min(WRITE_CHUNK_SIZE, bytesRestantes);
+            int escritos = line.write(pcm, offset, quantidade);
+            offset += escritos;
+
+            if (offset >= pcm.length) {
+                if (!loop) {
+                    return;
+                }
+                offset = 0;
+            }
+        }
+    }
+
+    private void closeLine(SourceDataLine line) {
+        if (line == null) {
+            return;
+        }
+        line.stop();
+        line.flush();
         line.close();
-        ais.close();
     }
 
     public void stop() {

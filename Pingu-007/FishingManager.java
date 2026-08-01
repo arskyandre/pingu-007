@@ -44,11 +44,11 @@ public class FishingManager {
     private static final double NORMAL_PRESS_GAIN = 0.20;
     private static final double NORMAL_DECAY_PER_FRAME = 0.015;
 
-    private static final double HARD_PRESS_GAIN = 0.11;
-    private static final double HARD_DECAY_PER_FRAME = 0.016;
+    private static final double HARD_PRESS_GAIN = 0.10;
+    private static final double HARD_DECAY_PER_FRAME = 0.018;
 
     private static final double FASTER_FISHING_GAIN_MULTIPLIER = 1.5;
-    private static final double FASTER_FISHING_GAIN_MULTIPLIER_HARD = 1.8;
+    private static final double FASTER_FISHING_GAIN_MULTIPLIER_HARD = 2.0;
     private static final int WAIT_MIN = 180;
     private static final int WAIT_MAX = 600;
     private static final int BITE_WINDOW = 180;

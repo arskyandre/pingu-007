@@ -102,7 +102,23 @@ public class KeyBindingsMenu {
         g2.setFont(pixelFont);
 
         textY += 32;
-        title = "INTERAGIR/PESCAR: E";
+        title = "INTERAGIR/FORÇA(PESCA): E";
+        tw = g2.getFontMetrics().stringWidth(title);
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.drawString(title, (width - tw) / 2 + 2, textY + 2);
+        g2.setColor(Color.WHITE);
+        g2.drawString(title, (width - tw) / 2, textY);
+
+        textY += 32;
+        title = "LANÇAR LINHA DE PESCA: BOTÃO DIREITO DO MOUSE";
+        tw = g2.getFontMetrics().stringWidth(title);
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.drawString(title, (width - tw) / 2 + 2, textY + 2);
+        g2.setColor(Color.WHITE);
+        g2.drawString(title, (width - tw) / 2, textY);
+
+        textY += 32;
+        title = "ALTERNAR ARMAS: G";
         tw = g2.getFontMetrics().stringWidth(title);
         g2.setColor(new Color(0, 0, 0, 180));
         g2.drawString(title, (width - tw) / 2 + 2, textY + 2);

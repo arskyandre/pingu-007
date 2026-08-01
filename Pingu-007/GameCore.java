@@ -760,6 +760,10 @@ public class GameCore extends Canvas implements Runnable {
         hud.player_hearts(g2, player, renderer.getOffset());
         hud.ammobar(g2, getWidth(), getHeight(), player, renderer.getOffset());
         hud.desenha_chaves(g2, player, getWidth(), getHeight(), renderer.getOffset(), delta);
+
+        if (dialogueManager != null && dialogueManager.isAtivo()) {
+            dialogueManager.renderizar(g2, getWidth(), getHeight());
+        }
     }
 
     public void render(BufferStrategy bs, double delta) {
