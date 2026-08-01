@@ -43,6 +43,10 @@ public class DialogueCatalogo {
                         SoundManager.SFX.NOOT_NOOT
         };
 
+        public static final SoundManager.SFX[][] PescadorPergunta = new SoundManager.SFX[][] {
+                        new SoundManager.SFX[] { SoundManager.SFX.DIALOGUE_QUESTION }
+        };
+
         public static final String[] TextoInicialRadio = new String[] {
                         "PINGU: Entrando na base de operações.",
                         "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",

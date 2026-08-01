@@ -34,6 +34,8 @@ public class Player extends Entity {
     private double dashDirX = 0;
     private double dashDirY = 0;
 
+    private int totalEnemyCount = 0;
+    private int currentEnemyCount = 0;
     private final BulletManager bulletmanager;
     private static boolean desbloqueouRecompensa = false;
     private boolean extendedMag = false;
@@ -59,6 +61,7 @@ public class Player extends Entity {
     private boolean novaChaveFlag = false;
     private boolean reloading = false;
     private boolean hasFishingRod = false;
+    private boolean fasterFishing = false;
     private FishingBobber fishingBobber;
     private int fishingCooldown = 0;
 
@@ -92,6 +95,8 @@ public class Player extends Entity {
         this.x = startX;
         this.y = startY;
         this.aceleracao = 1.0;
+        this.totalEnemyCount = 0;
+        this.currentEnemyCount = 0;
         this.atritoAtual = 0.85;
         this.velocidadeMax = 30;
         this.largura = largura;
@@ -158,6 +163,27 @@ public class Player extends Entity {
 
     public boolean getHasShotgun() {
         return hasShotgun;
+    }
+
+    public int getTotalEnemyCount() {
+        return totalEnemyCount;
+    }
+
+    public int getCurrentEnemyCount() {
+        return currentEnemyCount;
+    }
+
+    public void setCurrentEnemyCount(int count) {
+        currentEnemyCount = count;
+    }
+
+    public void setEnemyCount(int count) {
+        totalEnemyCount = count;
+    }
+
+    public void addEnemyCount(int count) {
+        totalEnemyCount += count;
+        currentEnemyCount += count;
     }
 
     public void setFishingManager(FishingManager fishingMgr) {
@@ -407,6 +433,10 @@ public class Player extends Entity {
                 }
             }
 
+            if (GameCore.getDebug() && input.isKeyJustPressed(KeyEvent.VK_J)) {
+                setFasterFishing(true);
+                ToastNotifications.RequestNotification("FasterFishing = true");
+            }
             if (GameCore.getDebug() && input.isKeyJustPressed(KeyEvent.VK_T)) {
                 setX((double) (250.5 * GameCore.tiles_size));
                 setY((double) (60 * GameCore.tiles_size));
@@ -754,6 +784,9 @@ public class Player extends Entity {
         this.chavesColetadasTotal = 0;
         this.chaves = 0;
         this.municao = 45;
+        this.totalEnemyCount = 0;
+        this.currentEnemyCount = 0;
+        this.fasterFishing = false;
         this.pente = 15;
         iscas = 0;
         moedas = 0;
@@ -817,6 +850,14 @@ public class Player extends Entity {
 
     public void setFishingRod(boolean status) {
         this.hasFishingRod = status;
+    }
+
+    public boolean getFasterFishing() {
+        return this.fasterFishing;
+    }
+
+    public void setFasterFishing(boolean set) {
+        this.fasterFishing = set;
     }
 
     public double getLargura() {

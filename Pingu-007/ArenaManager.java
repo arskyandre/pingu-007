@@ -11,6 +11,7 @@ public class ArenaManager {
     private final NPCManager npcManager;
     private final CutsceneManager cutsceneManager;
     private CameraManager camera;
+    private final SoundManager soundManager;
     private final GameCore gameCore;
     // public boolean flagArena16Ativada = false;
     private boolean chave14_15_spawnada = false;
@@ -66,10 +67,11 @@ public class ArenaManager {
     private final ArrayList<ArenaObject> allObjects = new ArrayList<>();
 
     public ArenaManager(EnemyManager enemyManager, LevelManager levelManager, ItemManager itemManager,
-            NPCManager npcm, CutsceneManager CM, GameCore gc, CameraManager cameraMgr) {
+            NPCManager npcm, CutsceneManager CM, GameCore gc, CameraManager cameraMgr, SoundManager soundMgr) {
         this.cutsceneManager = CM;
         camera = cameraMgr;
         this.npcManager = npcm;
+        this.soundManager = soundMgr;
         this.enemyManager = enemyManager;
         this.levelManager = levelManager;
         this.itemManager = itemManager;
@@ -540,7 +542,8 @@ public class ArenaManager {
                         camera.focarEm(20.5 * GameCore.tiles_size, 45.3 * GameCore.tiles_size, 60, false);
                         fezCutscene = true;
                     }
-                    npcManager.spawn(new PescadorNPC(20.5 * GameCore.tiles_size, 45.3 * GameCore.tiles_size, camera));
+                    npcManager.spawn(new PescadorNPC(20.5 * GameCore.tiles_size, 45.3 * GameCore.tiles_size, camera,
+                            soundManager));
                     System.out.printf("Spawnou pescador em: %f, %f\n", 20.5 * GameCore.tiles_size,
                             45.7 * GameCore.tiles_size);
                     la_ele = true;

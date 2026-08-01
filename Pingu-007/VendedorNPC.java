@@ -13,6 +13,7 @@ public class VendedorNPC extends NPC {
     private final ShopMenu shopMenu;
     private static final double WIDTH = GameCore.tiles_size;
     private static final double HEIGHT = GameCore.tiles_size;
+    private final double inimigosPorMoeda = 25 /* inimigos */ / 10 /* moedas */;
     private boolean proximo = false;
     private BufferedImage Sprite;
     private CameraManager camera;
@@ -20,7 +21,7 @@ public class VendedorNPC extends NPC {
 
     public VendedorNPC(double x, double y, CameraManager cameraMgr, SoundManager soundManager) {
         super(x, y, WIDTH, HEIGHT);
-        INTERACT_RANGE = GameCore.tiles_size * 4;
+        INTERACT_RANGE = GameCore.tiles_size * 3.5;
         camera = cameraMgr;
         Sprite = LoadSave.GetSpriteAtlas("images/npc/vendedor.png");
 
@@ -55,6 +56,59 @@ public class VendedorNPC extends NPC {
                 }, !player.getHasShotgun(), true);
     }
 
+    private void loopInteracao(String pergunta, Player player, DialogueManager dialogueManager,
+            SoundManager soundManager) {
+
+        dialogueManager.iniciarEscolha(pergunta, new String[] {
+                "Quero comprar algo.",
+                "Me dê minha recompensa!",
+                "Deixa pra lá."
+        },
+                portrait,
+                0,
+                escolha -> {
+                    soundManager.playSFX(SoundManager.SFX.NOOT_NOOT);
+                    switch (escolha) {
+                        case 0 -> {
+                            popularItens(player, soundManager);
+                            shopMenu.setAoFechar(() -> {
+                                loopInteracao("VENDEDOR: Algo a mais, Pingu?", player, dialogueManager, soundManager);
+                            });
+                            shopMenu.abrir(player);
+                            GameCore.setShopMenu(shopMenu);
+                        }
+                        case 1 -> {
+                            int moedas = (int) (player.getCurrentEnemyCount()
+                                    * inimigosPorMoeda);
+                            if (moedas == 0) {
+                                dialogueManager.iniciarDialogo(new String[] {
+                                        "VENDEDOR: Elimine mais inimigos para resgatar sua recompensa."
+                                }, new BufferedImage[] { portrait }, true);
+                            } else {
+                                dialogueManager.iniciarDialogo(new String[] {
+                                        "Desde a última vez que veio aqui, você eliminou "
+                                                + Integer.toString(player.getCurrentEnemyCount())
+                                                + " inimigos. Isso dá um total de "
+                                                + Integer.toString(moedas)
+                                                + " moedas."
+                                }, new BufferedImage[] { portrait }, true);
+                            }
+                            dialogueManager.setAoTerminarDialogo(() -> {
+                                player.addMoedas(moedas);
+                                loopInteracao("VENDEDOR: Algo a mais, Pingu?", player, dialogueManager,
+                                        soundManager);
+                            });
+                        }
+                        case 2 -> {
+                            dialogueManager.iniciarDialogo(new String[] {
+                                    "VENDEDOR: Estou aqui sempre que precisar!"
+                            }, new BufferedImage[] { portrait }, true);
+                            state = State.IDLE;
+                        }
+                    }
+                });
+    }
+
     @Override
     public void update(Player player, InputManager input,
             DialogueManager dialogueManager, SoundManager soundManager, ItemManager itemManager) {
@@ -63,32 +117,27 @@ public class VendedorNPC extends NPC {
             case IDLE -> {
                 if (proximo && input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)) {
                     if (Player.getDesbloqueouRecompensa()) {
-                        dialogueManager.iniciarDialogo(new String[] {
-                                "VENDEDOR: E aí, Pingu? Deseja comprar algo?"
 
-                        }, new BufferedImage[] { portrait }, true);
-                        dialogueManager.setAoTerminarDialogo(() -> {
-                            popularItens(player, soundManager);
-                            shopMenu.setAoFechar(() -> {
-                                dialogueManager.iniciarDialogo(new String[] {
-                                        "VENDEDOR: Estou aqui sempre que precisar!"
-                                }, new BufferedImage[] { portrait }, true);
-                            });
-                            shopMenu.abrir(player);
-                            GameCore.setShopMenu(shopMenu);
-                            state = State.IDLE;
-                        });
+                        loopInteracao("VENDEDOR: E aí, Pingu? O que deseja?", player, dialogueManager, soundManager);
+
                     } else {
+                        int moedas = (int) (player.getCurrentEnemyCount() * inimigosPorMoeda);
                         dialogueManager.iniciarDialogo(new String[] {
                                 "VENDEDOR: E aí pingu, beleza?",
                                 "VENDEDOR: Obrigado por salvar o nosso bairro, os soldados da Morsa estavam aterrorizando a nossa região!",
                                 "VENDEDOR: Como agradecimento, quero lhe oferecer uma recompensa. A partir de agora, vou te pagar em moedas pelos inimigos que você eliminar!",
+                                "VENDEDOR: Até agora, voce eliminou "
+                                        + Integer.toString(player.getCurrentEnemyCount())
+                                        + " inimigos. Aqui estão "
+                                        + Integer.toString(moedas)
+                                        + " moedas."
                         }, new BufferedImage[] { portrait }, true);
                         dialogueManager.setAoTerminarDialogo(() -> {
                             ToastNotifications.RequestNotification(
                                     "Elimine inimigos e volte à loja do vendedor para receber recompensas!", 2.5);
                             Player.setDesbloqueouRecompensa(true);
-                            player.addMoedas(25);
+                            player.addMoedas(moedas);
+                            player.setCurrentEnemyCount(0);
                             state = State.IDLE;
                         });
                     }

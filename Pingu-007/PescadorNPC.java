@@ -10,6 +10,7 @@ public class PescadorNPC extends NPC {
         IDLE, TALKING
     }
 
+    private ShopMenu shopMenu;
     private State state = State.IDLE;
     private boolean laEle = false;
     private static final double WIDTH = GameCore.tiles_size;
@@ -21,10 +22,14 @@ public class PescadorNPC extends NPC {
     private String[] dialogo2_noKey;
     private String[] dialogo2_hasKey;
     private BufferedImage Sprite;
+    private BufferedImage isca_icone = LoadSave.GetSpriteAtlas("images/hud/iscasprite.png").getSubimage(16, 0, 16, 16);
+    private BufferedImage peixe_icone = LoadSave.GetSpriteAtlas("images/tile_set.png").getSubimage(144, 33, 16, 16);
+    private BufferedImage vara_icone = LoadSave.GetSpriteAtlas("images/hud/vara_premium_shopitem.png");
     private CameraManager camera;
 
-    public PescadorNPC(double x, double y, CameraManager cameraMgr) {
+    public PescadorNPC(double x, double y, CameraManager cameraMgr, SoundManager soundManager) {
         super(x, y, WIDTH, HEIGHT);
+        shopMenu = new ShopMenu(soundManager);
         camera = cameraMgr;
         dialogo1_part1 = new String[] {
                 "PESCADOR: Ei, Pingu! Vejo que você ainda não tem uma vara de pesca.",
@@ -51,51 +56,24 @@ public class PescadorNPC extends NPC {
         Sprite = LoadSave.GetSpriteAtlas("images/npc/pescador.png");
     }
 
-    private void loopCompra(DialogueManager dialogueManager, Player player) {
-        loopCompra(dialogueManager, player, "Deseja comprar mais iscas?", 2);
-    }
-
-    private void loopCompra(DialogueManager dialogueManager, Player player, String pergunta, int index) {
-        dialogueManager.iniciarEscolha(
-                pergunta,
-                new String[] {
-                        "Comprar 5 Iscas: 10 moedas",
-                        "Comprar 10 Iscas: 20 moedas",
-                        "Não"
-                },
-                GameCore.pescador_portrait, index,
-                escolha -> {
-                    switch (escolha) {
-                        case 2 -> dialogueManager.iniciarDialogo(
-                                new String[] {
-                                        "Tudo bem, quando quiser comprar iscas, estarei aqui!"
-                                },
-                                new BufferedImage[] { GameCore.pescador_portrait },
-                                true);
-
-                        case 0 -> {
-                            if (player.getMoedas() >= 10) {
-                                player.addMoedas(-10);
-                                player.addIscas(5);
-                                loopCompra(dialogueManager, player, "Aqui estão 5 iscas. Mais alguma coisa?", 0);
-                            } else {
-                                loopCompra(dialogueManager, player,
-                                        "Você não tem moedas suficientes. Ainda deseja algo?", 0);
-                            }
-                        }
-
-                        case 1 -> {
-                            if (player.getMoedas() >= 20) {
-                                player.addMoedas(-20);
-                                player.addIscas(10);
-                                loopCompra(dialogueManager, player, "Aqui estão 10 iscas. Mais alguma coisa?", 1);
-                            } else {
-                                loopCompra(dialogueManager, player,
-                                        "Você não tem moedas suficientes. Ainda deseja algo?", 1);
-                            }
-                        }
+    private void popularItens(Player player, SoundManager soundManager) {
+        shopMenu.limparItens();
+        shopMenu.addItem("5 Iscas", "Está sem iscas para pescar? Você pode comprar mais comigo!",
+                isca_icone, 10, () -> {
+                    player.addIscas(5);
+                }, true, false);
+        shopMenu.addItem("Peixe", "Um delicioso peixe para curar um coração.", peixe_icone, 15,
+                () -> {
+                    player.curar(10);
+                }, true, false);
+        shopMenu.addItem("Vara de pesca PREMIUM",
+                "Essa vara de pescar atrai mais recompensas e requer menos força para puxar a recompensa.",
+                vara_icone, 50, () -> {
+                    if (!player.hasFishingRod()) {
+                        player.setFishingRod(true);
                     }
-                });
+                    player.setFasterFishing(true);
+                }, !player.getFasterFishing(), true);
     }
 
     @Override
@@ -118,7 +96,27 @@ public class PescadorNPC extends NPC {
 
                         dialogueManager.setAoTerminarDialogo(() -> {
                             soundManager.playSFX(SoundManager.SFX.DIALOGUE_QUESTION);
-                            loopCompra(dialogueManager, player);
+
+                            dialogueManager.iniciarEscolha("PESCADOR: Deseja comprar algo?",
+                                    new String[] { "Sim", "Não" }, DialogueCatalogo.PescadorPergunta,
+                                    GameCore.pescador_portrait, 0, escolha -> {
+                                        switch (escolha) {
+                                            case 0 -> {
+                                                popularItens(player, soundManager);
+                                                shopMenu.setAoFechar(() -> {
+                                                    state = State.IDLE;
+                                                });
+                                                shopMenu.abrir(player);
+                                                GameCore.setShopMenu(shopMenu);
+                                            }
+                                            case 1 -> {
+                                                dialogueManager.iniciarDialogo(new String[] {
+                                                        "PESCADOR: Tudo bem, até a próxima!"
+                                                }, new BufferedImage[] { GameCore.pescador_portrait }, true);
+                                                state = State.IDLE;
+                                            }
+                                        }
+                                    });
                         });
                         laEle = true;
                     } else {
@@ -133,6 +131,7 @@ public class PescadorNPC extends NPC {
                             dialogueManager.setAoTerminarDialogo(() -> {
                                 laEle = true;
                                 player.addIscas(5);
+                                state = State.IDLE;
                             });
                         });
                     }
@@ -140,9 +139,6 @@ public class PescadorNPC extends NPC {
                 }
             }
             case TALKING -> {
-                if (!dialogueManager.isAtivo()) {
-                    state = State.IDLE;
-                }
             }
         }
     }

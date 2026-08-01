@@ -7,7 +7,7 @@ public class NPCRegistry {
         return switch (obj.npc_nome.toLowerCase().trim()) {
             case "pescador" -> {
                 System.out.println("Spawnou npc PESCADOR");
-                yield new PescadorNPC(obj.x, obj.y, camera);
+                yield new PescadorNPC(obj.x, obj.y, camera, soundManager);
             }
             case "vendedor" -> {
                 System.out.println("Spawnou npc VENDEDOR");

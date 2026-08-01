@@ -44,9 +44,11 @@ public class FishingManager {
     private static final double NORMAL_PRESS_GAIN = 0.20;
     private static final double NORMAL_DECAY_PER_FRAME = 0.015;
 
-    private static final double HARD_PRESS_GAIN = 0.15;
-    private static final double HARD_DECAY_PER_FRAME = 0.018;
+    private static final double HARD_PRESS_GAIN = 0.11;
+    private static final double HARD_DECAY_PER_FRAME = 0.016;
 
+    private static final double FASTER_FISHING_GAIN_MULTIPLIER = 1.5;
+    private static final double FASTER_FISHING_GAIN_MULTIPLIER_HARD = 1.8;
     private static final int WAIT_MIN = 180;
     private static final int WAIT_MAX = 600;
     private static final int BITE_WINDOW = 180;
@@ -164,6 +166,9 @@ public class FishingManager {
         soundManager.playSFX(SoundManager.SFX.SPLASH);
         state = State.WAITING;
         waitTimer = WAIT_MIN + (int) (Math.random() * (WAIT_MAX - WAIT_MIN));
+        if (player.getFasterFishing()) {
+            waitTimer /= 2;
+        }
         player.setBlockInputs(true);
         System.out.println("Started fishing, waiting for a bite...");
     }
@@ -215,6 +220,8 @@ public class FishingManager {
 
         boolean hard = isHardBite();
         double gain = hard ? HARD_PRESS_GAIN : NORMAL_PRESS_GAIN;
+        if (player.getFasterFishing())
+            gain *= (hard ? FASTER_FISHING_GAIN_MULTIPLIER_HARD : FASTER_FISHING_GAIN_MULTIPLIER);
         double decay = hard ? HARD_DECAY_PER_FRAME : NORMAL_DECAY_PER_FRAME;
 
         if (pressedNow) {

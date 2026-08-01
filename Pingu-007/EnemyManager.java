@@ -46,6 +46,7 @@ public class EnemyManager {
                 if (itemManager != null && !e1.isLootProcessado() && e1.podeDropar) {
                     itemManager.gerarDropDeInimigo(e1);
                 }
+                player.addEnemyCount(1);
                 enemies.remove(i);
                 continue;
             }
