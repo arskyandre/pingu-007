@@ -24,6 +24,7 @@ public class Hud {
     private static final int AMMO_BAR_MARGIN = 16;
     private static final float AMMO_BAR_OPACITY = 0.5f;
     private static final float AMMO_TEXT_SIZE = 16f;
+    private static final float AMMO_RELOADING_TEXT_SIZE = AMMO_TEXT_SIZE - 4f;
 
     private boolean animateChave = false;
     private boolean jaPegouChave = false;
@@ -177,12 +178,13 @@ public class Hud {
 
         String texto;
         if (p.isReloading()) {
-            texto = "RELOADING...";
+            texto = "RECARREGANDO...";
         } else {
             texto = pente + "/" + municaoTotal;
         }
 
-        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, AMMO_TEXT_SIZE));
+        float tamanhoFonte = p.isReloading() ? AMMO_RELOADING_TEXT_SIZE : AMMO_TEXT_SIZE;
+        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, tamanhoFonte));
         FontMetrics fm = g2.getFontMetrics();
         int iconX = barX - AMMO_ICON_SIZE;
         int textoTopo = barraPenteY - 6 - fm.getHeight();
