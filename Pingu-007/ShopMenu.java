@@ -35,6 +35,8 @@ public class ShopMenu {
     private static final int QUANTITY_BUTTON_SIZE = 36;
     private static final int QUANTITY_NUMBER_HALF_GAP = 34;
     private static final int QUANTITY_TOP_GAP = 8;
+    private static final int QUANTITY_LABEL_GAP = 12;
+    private static final int TOTAL_TOP_GAP = 10;
 
     public ShopMenu(SoundManager soundManager) {
         this.soundManager = soundManager;
@@ -308,13 +310,18 @@ public class ShopMenu {
             y += lineHeight;
         }
 
+        int totalY;
         if (!item.compra_unica) {
             ajustarQuantidadeAoLimite(item);
-            positionQuantityButtons(panelX, panelWidth, y + QUANTITY_TOP_GAP);
+            int selectorY = y + QUANTITY_TOP_GAP;
+            positionQuantityButtons(panelX, panelWidth, selectorY);
             drawQuantitySelector(g2, item);
+            totalY = selectorY + QUANTITY_BUTTON_SIZE + TOTAL_TOP_GAP;
+        } else {
+            totalY = y + QUANTITY_TOP_GAP;
         }
 
-        drawTotal(g2, telaLargura, telaAltura, item);
+        drawTotal(g2, item, panelX, panelWidth, totalY);
     }
 
     private void repositionQuantityButtons(int telaLargura, ShopItem item) {
@@ -345,6 +352,15 @@ public class ShopMenu {
     private void drawQuantitySelector(Graphics2D g2, ShopItem item) {
         setaQuantidadeEsquerda.draw(g2);
         setaQuantidadeDireita.draw(g2);
+
+        String label = "Quantidade:";
+        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 12f));
+        FontMetrics fmLabel = g2.getFontMetrics();
+        int labelX = setaQuantidadeEsquerda.getRect().x - QUANTITY_LABEL_GAP - fmLabel.stringWidth(label);
+        int labelY = setaQuantidadeEsquerda.getRect().y
+                + (setaQuantidadeEsquerda.getRect().height - fmLabel.getHeight()) / 2
+                + fmLabel.getAscent();
+        drawTextWithShadow(g2, label, labelX, labelY, new Color(220, 220, 220));
 
         String texto = String.valueOf(quantidadeSelecionada);
         g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 15f));
@@ -389,7 +405,10 @@ public class ShopMenu {
             return 1;
         }
         long moedas = Math.max(0, player.getMoedas());
-        return (int) Math.min(Integer.MAX_VALUE, moedas / item.preco + 1);
+        long quantidadeCompravel = moedas / item.preco;
+        long proximaDezena = ((quantidadeCompravel + 9) / 10) * 10;
+        proximaDezena = Math.max(10, proximaDezena);
+        return (int) Math.min(Integer.MAX_VALUE, proximaDezena);
     }
 
     private long getTotal(ShopItem item) {
@@ -410,12 +429,12 @@ public class ShopMenu {
         return linhas;
     }
 
-    private void drawTotal(Graphics2D g2, int telaLargura, int telaAltura, ShopItem item) {
+    private void drawTotal(Graphics2D g2, ShopItem item, int panelX, int panelWidth, int topY) {
         String texto = "Total: " + getTotal(item) + " moedas";
         g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 15f));
         FontMetrics fm = g2.getFontMetrics();
-        int x = telaLargura - 60 - fm.stringWidth(texto);
-        int y = telaAltura - 60;
+        int x = panelX + (panelWidth - fm.stringWidth(texto)) / 2;
+        int y = topY + fm.getAscent();
 
         drawTextWithShadow(g2, texto, x, y,
                 podeComprar(item) ? new Color(255, 215, 80) : new Color(220, 90, 90));

@@ -15,9 +15,15 @@ public class Hud {
     private static final int HEART_GAP = 2;
     private static final int HEARTS_MAX = 5;
 
-    private static final int AMMO_BAR_WIDTH = 160;
-    private static final int AMMO_BAR_HEIGHT = 14;
+    private static final int AMMO_BAR_WIDTH = 216;
+    private static final int AMMO_BAR_HEIGHT = 3;
+    private static final int AMMO_CURRENT_BAR_HEIGHT = 3;
+    private static final int AMMO_BAR_GAP = 1;
+    private static final int AMMO_MAX_BAR_OFFSET_X = 4;
+    private static final int AMMO_ICON_SIZE = 32;
     private static final int AMMO_BAR_MARGIN = 16;
+    private static final float AMMO_BAR_OPACITY = 0.5f;
+    private static final float AMMO_TEXT_SIZE = 16f;
 
     private boolean animateChave = false;
     private boolean jaPegouChave = false;
@@ -120,10 +126,7 @@ public class Hud {
 
         updateAndDrawParticles(g2, delta, offset);
         healthbar_inimigos(g2, telaLargura, telaAltura, camera, em);
-        player_hearts(g2, p, offset);
-        desenha_chaves(g2, p, telaLargura, telaAltura, offset, delta);
-
-        ammobar(g2, telaLargura, telaAltura, p, offset);
+        
     }
 
     public void resetJaPegou() {
@@ -145,44 +148,62 @@ public class Hud {
         }
 
         int barX = telaLargura - AMMO_BAR_WIDTH - AMMO_BAR_MARGIN;
-        int barY = telaAltura - AMMO_BAR_HEIGHT - AMMO_BAR_MARGIN - offset;
+        int barraPenteMaxY = telaAltura - AMMO_BAR_HEIGHT - AMMO_BAR_MARGIN - offset;
+        int barraPenteY = barraPenteMaxY - AMMO_BAR_GAP - AMMO_CURRENT_BAR_HEIGHT;
 
-        g2.setColor(new Color(20, 20, 20, 180));
-        g2.fill(new RoundRectangle2D.Double(barX, barY,
-                AMMO_BAR_WIDTH, AMMO_BAR_HEIGHT, 6, 6));
+        Composite compositeAnterior = g2.getComposite();
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, AMMO_BAR_OPACITY));
 
-        int fillW = (int) ((AMMO_BAR_WIDTH - 4) * (double) pente / penteMax);
-        if (fillW > 0) {
+        // A barra clara eh a referencia da capacidade total do pente.
+        g2.setColor(new Color(137, 137, 137));
+        g2.fillRect(barX + AMMO_MAX_BAR_OFFSET_X, barraPenteMaxY, AMMO_BAR_WIDTH, AMMO_BAR_HEIGHT);
 
-            GradientPaint grad = new GradientPaint(
-                    barX + 2, barY, new Color(200, 100, 10),
-                    barX + 2, barY + AMMO_BAR_HEIGHT, new Color(255, 165, 30));
-            Paint prev = g2.getPaint();
-            g2.setPaint(grad);
-            g2.fill(new RoundRectangle2D.Double(barX + 2, barY + 2,
-                    fillW, AMMO_BAR_HEIGHT - 4, 4, 4));
-            g2.setPaint(prev);
+        // A barra escura diminui conforme as balas do pente sao consumidas.
+        int larguraPente = (int) Math.round(AMMO_BAR_WIDTH * (double) pente / penteMax);
+        larguraPente = Math.max(0, Math.min(AMMO_BAR_WIDTH, larguraPente));
+        if (larguraPente > 0) {
+            g2.setColor(new Color(51, 51, 51));
+            g2.fillRect(barX + AMMO_MAX_BAR_OFFSET_X, barraPenteY, larguraPente - AMMO_MAX_BAR_OFFSET_X,
+                    AMMO_CURRENT_BAR_HEIGHT);
         }
+        g2.setComposite(compositeAnterior);
 
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING,
+                RenderingHints.VALUE_RENDER_SPEED);
 
         String texto;
         if (p.isReloading()) {
-            g2.setFont(pixelFont.deriveFont(9f));
             texto = "RELOADING...";
         } else {
-            g2.setFont(pixelFont.deriveFont(9f));
-            texto = pente + " / " + municaoTotal;
+            texto = pente + "/" + municaoTotal;
         }
+
+        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, AMMO_TEXT_SIZE));
         FontMetrics fm = g2.getFontMetrics();
-        int tx = barX + AMMO_BAR_WIDTH - fm.stringWidth(texto) - 4;
-        int ty = barY - 4;
+        int iconX = barX - AMMO_ICON_SIZE;
+        int textoTopo = barraPenteY - 6 - fm.getHeight();
+        int elementoBottom = barraPenteMaxY + AMMO_BAR_HEIGHT;
+        int elementoAltura = elementoBottom - textoTopo;
+        int iconY = textoTopo + (elementoAltura - AMMO_ICON_SIZE) / 2;
 
-        g2.setColor(Color.BLACK);
-        g2.drawString(texto, tx + 1, ty + 1);
+        if (balaSprite[0] != null && balaSprite[1] != null) {
+            g2.drawImage(balaSprite[0], iconX + 2, iconY + 2,
+                    AMMO_ICON_SIZE, AMMO_ICON_SIZE, null);
+            g2.drawImage(balaSprite[1], iconX, iconY,
+                    AMMO_ICON_SIZE, AMMO_ICON_SIZE, null);
+        }
 
-        g2.setColor(new Color(255, 200, 80));
+        int tx = barX + 4;
+        int ty = textoTopo + fm.getAscent();
+
+        g2.setColor(new Color(0, 0, 0, 160));
+        g2.drawString(texto, tx + 2, ty + 2);
+
+        g2.setColor(new Color(255, 170, 0));
         g2.drawString(texto, tx, ty);
     }
 

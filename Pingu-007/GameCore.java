@@ -755,6 +755,13 @@ public class GameCore extends Canvas implements Runnable {
         g2.drawString(text, textX, textY);
     }
 
+    private void drawLateHudElements(Graphics2D g2, double delta) {
+        hud.desenha_moedas_e_isca(g2, player, getWidth(), getHeight(), renderer.getOffset(), delta);
+        hud.player_hearts(g2, player, renderer.getOffset());
+        hud.ammobar(g2, getWidth(), getHeight(), player, renderer.getOffset());
+        hud.desenha_chaves(g2, player, getWidth(), getHeight(), renderer.getOffset(), delta);
+    }
+
     public void render(BufferStrategy bs, double delta) {
         do {
             do {
@@ -775,8 +782,7 @@ public class GameCore extends Canvas implements Runnable {
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
                                 cutsceneManager, delta,
                                 true, true);
-
-                        hud.desenha_moedas_e_isca(g2, player, getWidth(), getHeight(), renderer.getOffset(), delta);
+                        drawLateHudElements(g2, delta);
                         if (showFpsCounter) {
                             drawFpsCounter(g2);
                         }
@@ -794,7 +800,7 @@ public class GameCore extends Canvas implements Runnable {
                         if (shop != null) {
                             shop.render(g2, getWidth(), getHeight());
                         }
-                        hud.desenha_moedas_e_isca(g2, player, getWidth(), getHeight(), renderer.getOffset(), delta);
+                        drawLateHudElements(g2, delta);
                     }
                     case GAME_OVER -> {
                         renderer.renderizar(g2, camera, player, input,
@@ -804,8 +810,8 @@ public class GameCore extends Canvas implements Runnable {
                                 cutsceneManager, delta,
                                 true, false);
 
-                        hud.desenha_moedas_e_isca(g2, player, getWidth(), getHeight(), renderer.getOffset(), delta);
                         gameOverScreen.render(g2, getWidth(), getHeight());
+                        drawLateHudElements(g2, delta);
                     }
                     case PAUSED -> {
                         renderer.renderizar(g2, camera, player, input,
@@ -815,8 +821,9 @@ public class GameCore extends Canvas implements Runnable {
                                 cutsceneManager, delta,
                                 true, false);
 
-                        hud.desenha_moedas_e_isca(g2, player, getWidth(), getHeight(), renderer.getOffset(), delta);
                         pauseMenu.render(g2, getWidth(), getHeight());
+
+                        drawLateHudElements(g2, delta);
 
                     }
                     case CUTSCENE -> {
@@ -828,7 +835,7 @@ public class GameCore extends Canvas implements Runnable {
                                     cutsceneManager, delta,
                                     true, false);
 
-                            hud.desenha_moedas_e_isca(g2, player, getWidth(), getHeight(), renderer.getOffset(), delta);
+                            drawLateHudElements(g2, delta);
                             if (showFpsCounter) {
                                 drawFpsCounter(g2);
                             }
