@@ -54,7 +54,7 @@ public class DialogueCatalogo {
                                         SoundManager.SFX.KATAKANA_RA,
                                         SoundManager.SFX.KATAKANA_RU,
                                         SoundManager.SFX.KATAKANA_A,
-                                        SoundManager.SFX.KATAKANA_RU,
+                                        SoundManager.SFX.KATAKANA_U,
                                         SoundManager.SFX.KATAKANA_GO,
                                         SoundManager.SFX.DIALOGUE_QUESTION
                         }

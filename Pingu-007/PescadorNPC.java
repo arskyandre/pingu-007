@@ -95,7 +95,6 @@ public class PescadorNPC extends NPC {
                                     new BufferedImage[] { GameCore.pescador_portrait }, true);
 
                         dialogueManager.setAoTerminarDialogo(() -> {
-                            soundManager.playSFX(SoundManager.SFX.DIALOGUE_QUESTION);
 
                             dialogueManager.iniciarEscolha("PESCADOR: Deseja comprar algo?",
                                     new String[] { "Sim", "Não" }, DialogueCatalogo.PescadorPergunta,

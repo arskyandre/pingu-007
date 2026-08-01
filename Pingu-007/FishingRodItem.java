@@ -33,8 +33,6 @@ public class FishingRodItem extends Item {
     @Override
     protected void aplicarEfeito(Player player) {
         player.setFishingRod(true);
-        ToastNotifications.RequestNotification(
-                "DICA: Pressione o botão direito do mouse para fisgar inimigos.");
         System.out.println("Vara de pesca coletada e equipada!");
     }
 

@@ -564,10 +564,7 @@ public class Player extends Entity {
 
         if (input.isMouseButtonJustPressed(MouseEvent.BUTTON3) && fishingCooldown == 0) {
             System.out.println(">>> CLIQUE DIREITO PROCESSADO COM SUCESSO! <<<");
-            if (ToastNotifications.getNotifAtual() != null && ToastNotifications.getNotifAtual()
-                    .equals("DICA: Pressione o botão direito do mouse para fisgar inimigos.")) {
-                ToastNotifications.skipNotification();
-            }
+
             if (fishingBobber.isAtivo()) {
                 fishingBobber.pull();
             } else {
