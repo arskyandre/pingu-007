@@ -34,6 +34,7 @@ public class ArenaManager {
     }
 
     public static final class EstadoMapa {
+
         private final ArrayList<Integer> arenasConcluidas;
         private final boolean chave14_15_spawnada;
         private final boolean cutscene_vendedor;
@@ -153,7 +154,7 @@ public class ArenaManager {
         // verificarDesativacaoParedes nao repita cutscenes nem recompensas.
         chave14_15_spawnada = estado.chave14_15_spawnada;
         cutscene_vendedor = estado.cutscene_vendedor;
-        cutsceneBossSolicitada = estado.cutsceneBossSolicitada;
+        // cutsceneBossSolicitada = estado.cutsceneBossSolicitada;
         fezCutscene = estado.fezCutscene;
         isFirstArena = estado.isFirstArena;
 
@@ -482,20 +483,33 @@ public class ArenaManager {
                 player.solicitarCheckpoint();
             }
             case 67 -> {
-                // trigger do level 2(BOSS)
                 setWallState(67, true, player);
-                // arena.concluida = true;
-                // player.solicitarCheckpoint();
-                //
-                //
-                //
-                //
+
                 MorsaBoss morsa = enemyManager.getMorsaBoss();
                 if (morsa != null && camera != null && cutsceneManager != null) {
+
+                    morsa.setEnemyManager(enemyManager);
+                    Arena arenaAtiva = getOuCriarArena(67);
+                    for (TiledObject spawner : arenaAtiva.spawners) {
+                        morsa.adicionarPontoDeSpawn(spawner.x, spawner.y);
+                    }
+
+                    if (morsa.getMaoEsquerda() != null && !arenaAtiva.inimigosVivos.contains(morsa.getMaoEsquerda())) {
+                        arenaAtiva.inimigosVivos.add(morsa.getMaoEsquerda());
+                    }
+                    if (morsa.getMaoDireita() != null && !arenaAtiva.inimigosVivos.contains(morsa.getMaoDireita())) {
+                        arenaAtiva.inimigosVivos.add(morsa.getMaoDireita());
+                    }
+
                     morsa.vincularCamera(camera);
-                    cutsceneManager.iniciarBossIntro(camera, player, morsa.getCenterX(),
-                            morsa.getCenterY(), enemyManager);
-                    cutsceneBossSolicitada = true;
+
+                    if (!cutsceneBossSolicitada) {
+                        cutsceneManager.iniciarBossIntro(camera, player, morsa.getCenterX(), morsa.getCenterY(), enemyManager);
+                        cutsceneBossSolicitada = true;
+                    } else {
+                        morsa.setPodeRugir(true);
+                        player.setBlockInputs(false);
+                    }
                 } else {
                     System.out.println("ERRO: Morsa não encontrada na Arena 67!");
                 }
