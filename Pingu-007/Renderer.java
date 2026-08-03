@@ -3,11 +3,15 @@ import java.awt.*;
 import java.awt.geom.*;
 import java.util.ArrayList;
 
+import java.awt.image.BufferedImage;
+
 public class Renderer {
 
     public enum BorderState {
         IN, OUT, IDLE
     }
+
+    public static final BufferedImage crosshair = LoadSave.GetSpriteAtlas("images/hud/crosshair.png");
 
     public BorderState borderState = BorderState.IDLE;
     public boolean modoDebug = false;
@@ -187,7 +191,7 @@ public class Renderer {
         }
 
         if (mouseCircleAlpha > 0.0) {
-            renderMouse(g2, input, mouseCircleAlpha);
+            renderMouse(g2, input, mouseCircleAlpha, telaAltura);
         }
         if (GameCore.getGameState() == GameState.CUTSCENE)
             cutsceneManager.draw(g2, telaLargura, telaAltura, delta);
@@ -286,13 +290,49 @@ public class Renderer {
                 (int) mouseXWorld, (int) mouseYWorld);
     }
 
-    private void renderMouse(Graphics2D g2, InputManager input, double alpha) {
+    private void renderMouse(
+            Graphics2D g2,
+            InputManager input,
+            double alpha,
+            int telaAltura) {
         Composite originalComposite = g2.getComposite();
-        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) alpha));
-        g2.setColor(Color.RED);
-        mouseShape.x = input.getMouseX() - 10;
-        mouseShape.y = input.getMouseY() - 10;
-        g2.fill(mouseShape);
+        RenderingHints originalHints = (RenderingHints) g2.getRenderingHints().clone();
+
+        g2.setComposite(
+                AlphaComposite.getInstance(
+                        AlphaComposite.SRC_OVER,
+                        (float) alpha));
+
+        // Raw pixel scaling: no smoothing.
+        g2.setRenderingHint(
+                RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+
+        g2.setRenderingHint(
+                RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_OFF);
+
+        g2.setRenderingHint(
+                RenderingHints.KEY_RENDERING,
+                RenderingHints.VALUE_RENDER_SPEED);
+
+        double scale = telaAltura / 672.0;
+        double dampenedScale = 1.0 + (scale - 1.0) * 0.5;
+
+        int size = (int) Math.round(32 * dampenedScale);
+
+        int mouseX = input.getMouseX() - size / 2;
+        int mouseY = input.getMouseY() - size / 2;
+
+        g2.drawImage(
+                crosshair,
+                mouseX,
+                mouseY,
+                size,
+                size,
+                null);
+
+        g2.setRenderingHints(originalHints);
         g2.setComposite(originalComposite);
     }
 }
