@@ -123,10 +123,10 @@ public class VendedorNPC extends NPC {
                     } else {
                         int moedas = (int) (player.getCurrentEnemyCount() * inimigosPorMoeda);
                         dialogueManager.iniciarDialogo(new String[] {
-                                "VENDEDOR: E aí pingu, beleza?",
+                                "VENDEDOR: E aí Pingu, beleza?",
                                 "VENDEDOR: Obrigado por salvar o nosso bairro, os soldados da Morsa estavam aterrorizando a nossa região!",
                                 "VENDEDOR: Como agradecimento, quero lhe oferecer uma recompensa. A partir de agora, vou te pagar em moedas pelos inimigos que você eliminar!",
-                                "VENDEDOR: Até agora, voce eliminou "
+                                "VENDEDOR: Até agora, você eliminou "
                                         + Integer.toString(player.getCurrentEnemyCount())
                                         + " inimigos. Aqui estão "
                                         + Integer.toString(moedas)
