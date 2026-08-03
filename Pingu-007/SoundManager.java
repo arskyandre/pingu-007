@@ -1,8 +1,9 @@
-import javax.sound.sampled.*;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import javax.sound.sampled.*;
 
 public class SoundManager {
 
@@ -26,11 +27,10 @@ public class SoundManager {
     }
 
     /**
-     * @param path     caminho para o arquivo de som, WAV 16-bit PCM nao funciona
-     *                 mp3
+     * @param path caminho para o arquivo de som, WAV 16-bit PCM nao funciona
+     * mp3
      * @param poolSize quantidade maxima de copias simultaneas desse som(quantas
-     *                 explosoes podem tocar ao mesmo tempo, por
-     *                 exemplo)
+     * explosoes podem tocar ao mesmo tempo, por exemplo)
      */
     public enum SFX {
         CALL_RING("sound/sfx/call_ring.wav", 2),
@@ -56,9 +56,7 @@ public class SoundManager {
         SHOOTER_METRALHADA("sound/sfx/shooter_metralhada.wav", 8),
         WOLF_DEATH("sound/sfx/wolf_death.wav", 8),
         MORSA_ROAR("sound/sfx/morsa_roar.wav", 2),
-
         HUD_CLICK("sound/hud/click.wav", 4),
-
         DIALOGUE_SOUND_1("sound/dialogue/dialogue_sound_1.wav", 9),
         DIALOGUE_SOUND_2("sound/dialogue/dialogue_sound_2.wav", 9),
         DIALOGUE_SOUND_3("sound/dialogue/dialogue_sound_3.wav", 9),
@@ -258,15 +256,17 @@ public class SoundManager {
     public void playDialogue(SFX[] sons) {
         stopDialogue(); // corta a fala anterior antes de comecar a nova
 
-        if (sons == null)
+        if (sons == null) {
             return;
+        }
 
         dialogueAtiva = true;
         dialogueThread = new Thread(() -> {
             try {
                 for (SFX som : sons) {
-                    if (!dialogueAtiva)
+                    if (!dialogueAtiva) {
                         return;
+                    }
                     if (som != null) {
                         playSFX(som);
                     }
@@ -287,17 +287,17 @@ public class SoundManager {
     }
 
     public void playRandomSnowStep() {
-        SFX[] steps = { SFX.SNOW_STEP_1, SFX.SNOW_STEP_2, SFX.SNOW_STEP_3, SFX.SNOW_STEP_4 };
+        SFX[] steps = {SFX.SNOW_STEP_1, SFX.SNOW_STEP_2, SFX.SNOW_STEP_3, SFX.SNOW_STEP_4};
         playSFX(steps[random.nextInt(steps.length)]);
     }
 
     public void playRandomDialogueSound() {
-        SFX[] sounds = { SFX.DIALOGUE_SOUND_1, SFX.DIALOGUE_SOUND_2, SFX.DIALOGUE_SOUND_3 };
+        SFX[] sounds = {SFX.DIALOGUE_SOUND_1, SFX.DIALOGUE_SOUND_2, SFX.DIALOGUE_SOUND_3};
         playSFX(sounds[random.nextInt(sounds.length)]);
     }
 
     public void playRandomIceStep() {
-        SFX[] steps = { SFX.ICE_STEP_1, SFX.ICE_STEP_2 };
+        SFX[] steps = {SFX.ICE_STEP_1, SFX.ICE_STEP_2};
         playSFX(steps[random.nextInt(steps.length)]);
     }
 
