@@ -91,6 +91,7 @@ public class ArenaManager {
         // flagArena16Ativada = false;
         chave14_15_spawnada = false;
         cutscene_vendedor = false;
+        cutsceneBossSolicitada = false;
         la_ele = false;
 
         for (TiledObject obj : objetos) {
@@ -421,12 +422,14 @@ public class ArenaManager {
         if (id == 0) {
             player.setTemporarySpriteOverride(7, 2);
         }
-        if (id != 67) {
+        if (id != 67 && id != 102) {
             System.out.println("CUTSCENE setado em ArenaManager, id = " + id);
             GameCore.setGameState(GameState.CUTSCENE);
         }
-        sound.playSFX(SoundManager.SFX.ARENA_ENTER);
-        gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
+        if (id != 102) {
+            sound.playSFX(SoundManager.SFX.ARENA_ENTER);
+            gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
+        }
 
         if (arena.totalHordas > 0) {
             arena.hordaAtual = 1;
