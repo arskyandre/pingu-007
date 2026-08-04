@@ -92,6 +92,13 @@ public class GameCore extends Canvas implements Runnable {
     private static final double BASE_ZOOM = 1.25;
     private static final int BASE_HEIGHT = game_height;
 
+    BufferedImage cursorImage = new BufferedImage(
+            16, 16, BufferedImage.TYPE_INT_ARGB);
+    Cursor invisibleCursor = Toolkit.getDefaultToolkit().createCustomCursor(
+            cursorImage,
+            new Point(0, 0),
+            "invisibleCursor");
+
     public GameCore() {
         setPreferredSize(new Dimension(game_width, game_height));
         setBackground(Color.BLACK);
@@ -205,13 +212,21 @@ public class GameCore extends Canvas implements Runnable {
         return dialogueManager;
     }
 
+    private void updateCursorVisibility() {
+        if (gameState == GameState.PLAYING || gameState == GameState.CUTSCENE) {
+            setCursor(invisibleCursor);
+        } else {
+            setCursor(Cursor.getDefaultCursor());
+        }
+    }
+
     public void update() {
         if (input.isKeyJustPressed(KeyEvent.VK_F11)) {
             toggleFullscreen();
         }
 
         camera.adjustForViewportResize(getWidth(), getHeight(), calculateBaseZoom(getHeight()));
-
+        updateCursorVisibility();
         switch (gameState) {
             case MAIN_MENU -> {
                 GameState next = mainMenu.update(input, getWidth(), getHeight());
@@ -1020,6 +1035,7 @@ public class GameCore extends Canvas implements Runnable {
                         Image.SCALE_SMOOTH));
         game.frame.add(game);
         game.frame.pack();
+        game.frame.setMinimumSize(new Dimension(800, 500));
         game.frame.setLocationRelativeTo(null);
         game.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         game.frame.setResizable(true);
