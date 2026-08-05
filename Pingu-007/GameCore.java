@@ -60,8 +60,8 @@ public class GameCore extends Canvas implements Runnable {
     private int fpsFrameCount = 0;
     private long fpsUpdateTimer = 0;
 
-    // para o novo ciclo de dia e noite(cores)
-
+    // para o novo ciclo de dia e noite(cores/musica)
+    private boolean musicaDeDiaAtiva = true;
     private int lastProcessedDay = 1;
     private long updateDayNightAnteriorNanos = -1L;
 
@@ -201,7 +201,32 @@ public class GameCore extends Canvas implements Runnable {
         return dayProgress;
     }
 
+    private void atualizarMusicaDayNight() {
+
+        if (!LoadSave.LEVEL_1_DATA.equals(
+                levelManager.getArquivoNivelAtual())) {
+            return;
+        }
+
+        double horaAtual = dayProgress * 24.0;
+
+        boolean deveTocarMusicaDia = horaAtual >= 8.0 && horaAtual < 19.0;
+
+        if (deveTocarMusicaDia == musicaDeDiaAtiva) {
+            return;
+        }
+
+        musicaDeDiaAtiva = deveTocarMusicaDia;
+
+        if (deveTocarMusicaDia) {
+            alternarParaMusicaDia();
+        } else {
+            alternarParaMusicaNoite();
+        }
+    }
+
     private void atualizarCicloDayNight(boolean avancarRelogio) {
+
         long now = System.nanoTime();
 
         if (updateDayNightAnteriorNanos < 0L) {
@@ -230,6 +255,14 @@ public class GameCore extends Canvas implements Runnable {
             onNovoDia(currentDay);
         }
 
+    }
+
+    private void alternarParaMusicaDia() {
+        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP, 5.0, 0.0);
+    }
+
+    private void alternarParaMusicaNoite() {
+        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_NIGHT_INTRO, SoundManager.BGM.LEVEL_1_NIGHT_LOOP, 5.0, 0.0);
     }
 
     private void onNovoDia(int day) {
@@ -308,7 +341,7 @@ public class GameCore extends Canvas implements Runnable {
                     elapsedGameSeconds = STARTING_DAY_PROGRESS * fullDaySeconds;
                     dayProgress = STARTING_DAY_PROGRESS;
                     lastProcessedDay = 1;
-                    soundManager.playBGM(SoundManager.BGM.LEVEL_1_INTRO, SoundManager.BGM.LEVEL_1_LOOP);
+                    soundManager.playBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP);
                     player.setShootCooldownTimer(30);
                     iniciarSequenciaIntro();
                 }
@@ -523,8 +556,13 @@ public class GameCore extends Canvas implements Runnable {
                 setCinematicBorderAnimation(Renderer.BorderState.OUT);
                 camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
                         getWidth(), getHeight());
-                if (soundManager.currentSong() != SoundManager.BGM.LEVEL_1_LOOP) {
-                    soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_LOOP, 2000, true);
+                if (soundManager.currentSong() != SoundManager.BGM.LEVEL_1_DAY_LOOP
+                        && soundManager.currentSong() != SoundManager.BGM.LEVEL_1_NIGHT_LOOP
+                        && soundManager.currentSong() != SoundManager.BGM.LEVEL_1_DAY_INTRO
+                        && soundManager.currentSong() != SoundManager.BGM.LEVEL_1_NIGHT_INTRO) {
+                    soundManager.crossfadeBGM(
+                            getLevel1MusicaLoop(),
+                            2000, true);
                 }
                 mapLoadCooldown = 60;
             }
@@ -548,6 +586,16 @@ public class GameCore extends Canvas implements Runnable {
             entrarCasaVendedor();
         }
 
+    }
+
+    public SoundManager.BGM getLevel1MusicaIntro() {
+        return (dayProgress * 24 >= 8 && dayProgress * 24 <= 19) ? SoundManager.BGM.LEVEL_1_DAY_INTRO
+                : SoundManager.BGM.LEVEL_1_NIGHT_INTRO;
+    }
+
+    public SoundManager.BGM getLevel1MusicaLoop() {
+        return (dayProgress * 24 >= 8 && dayProgress * 24 <= 19) ? SoundManager.BGM.LEVEL_1_DAY_LOOP
+                : SoundManager.BGM.LEVEL_1_NIGHT_LOOP;
     }
 
     public void entrarCasaVendedor() {
@@ -592,7 +640,7 @@ public class GameCore extends Canvas implements Runnable {
         camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
                 getWidth(), getHeight());
         setCinematicBorderAnimation(Renderer.BorderState.OUT);
-        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_LOOP, 2000, true);
+        soundManager.crossfadeBGM(getLevel1MusicaLoop(), 2000, true);
         mapLoadCooldown = 60;
 
         salvarCheckpoint();

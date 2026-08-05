@@ -12,8 +12,10 @@ public class SoundManager {
      */
     public enum BGM {
         MAIN_MENU("sound/bgm/main_menu.wav"),
-        LEVEL_1_INTRO("sound/bgm/level_1_intro.wav"),
-        LEVEL_1_LOOP("sound/bgm/level_1_loop.wav"),
+        LEVEL_1_DAY_INTRO("sound/bgm/level_1_intro.wav"),
+        LEVEL_1_DAY_LOOP("sound/bgm/level_1_loop.wav"),
+        LEVEL_1_NIGHT_INTRO("sound/bgm/level_1_intro.wav"),
+        LEVEL_1_NIGHT_LOOP("sound/bgm/level_1_loop.wav"),
         INSIDE_INTRO("sound/bgm/inside_intro.wav"),
         INSIDE_LOOP("sound/bgm/inside_loop.wav"),
         BOSS_INTRO("sound/bgm/boss_intro.wav"),
@@ -27,10 +29,10 @@ public class SoundManager {
     }
 
     /**
-     * @param path caminho para o arquivo de som, WAV 16-bit PCM nao funciona
-     * mp3
+     * @param path     caminho para o arquivo de som, WAV 16-bit PCM nao funciona
+     *                 mp3
      * @param poolSize quantidade maxima de copias simultaneas desse som(quantas
-     * explosoes podem tocar ao mesmo tempo, por exemplo)
+     *                 explosoes podem tocar ao mesmo tempo, por exemplo)
      */
     public enum SFX {
         CALL_RING("sound/sfx/call_ring.wav", 2),
@@ -224,7 +226,7 @@ public class SoundManager {
 
     private Thread dialogueThread;
     private volatile boolean dialogueAtiva = false;
-    private static final long INTERVALO_SILABA_MS = 100; // ~2x delayLetrasMs do DialogueManager
+    private static final long INTERVALO_SILABA_MS = 100;
 
     public SoundManager() {
         loadSFX();
@@ -287,17 +289,17 @@ public class SoundManager {
     }
 
     public void playRandomSnowStep() {
-        SFX[] steps = {SFX.SNOW_STEP_1, SFX.SNOW_STEP_2, SFX.SNOW_STEP_3, SFX.SNOW_STEP_4};
+        SFX[] steps = { SFX.SNOW_STEP_1, SFX.SNOW_STEP_2, SFX.SNOW_STEP_3, SFX.SNOW_STEP_4 };
         playSFX(steps[random.nextInt(steps.length)]);
     }
 
     public void playRandomDialogueSound() {
-        SFX[] sounds = {SFX.DIALOGUE_SOUND_1, SFX.DIALOGUE_SOUND_2, SFX.DIALOGUE_SOUND_3};
+        SFX[] sounds = { SFX.DIALOGUE_SOUND_1, SFX.DIALOGUE_SOUND_2, SFX.DIALOGUE_SOUND_3 };
         playSFX(sounds[random.nextInt(sounds.length)]);
     }
 
     public void playRandomIceStep() {
-        SFX[] steps = {SFX.ICE_STEP_1, SFX.ICE_STEP_2};
+        SFX[] steps = { SFX.ICE_STEP_1, SFX.ICE_STEP_2 };
         playSFX(steps[random.nextInt(steps.length)]);
     }
 
@@ -335,6 +337,20 @@ public class SoundManager {
         bgmPlayer.crossfadeTo(track.path, musicVolume, durationMs, fade_in);
     }
 
+    public void crossfadeBGM(BGM track, double delay) {
+        crossfadeBGM(track, 1000, delay);
+    }
+
+    public void crossfadeBGM(BGM track, long durationMs, double delay, double timestampInicial) {
+        currentTrack = track;
+        bgmPlayer.crossfadeTo(track.path, musicVolume, durationMs, delay, timestampInicial);
+    }
+
+    public void crossfadeBGM(BGM track, long durationMs, double delay) {
+        currentTrack = track;
+        bgmPlayer.crossfadeTo(track.path, musicVolume, durationMs, delay, 0.0);
+    }
+
     public void crossfadeBGM(BGM intro, BGM loop) {
         crossfadeBGM(intro, loop, 1000, true);
     }
@@ -351,6 +367,20 @@ public class SoundManager {
     public void crossfadeBGM(BGM intro, BGM loop, long durationMs, boolean fade_in) {
         currentTrack = loop;
         bgmPlayer.crossfadeToIntroThenLoop(intro.path, loop.path, musicVolume, durationMs, fade_in);
+    }
+
+    public void crossfadeBGM(BGM intro, BGM loop, double delay, double timestampInicial) {
+        crossfadeBGM(intro, loop, 1000, delay, timestampInicial);
+    }
+
+    public void crossfadeBGM(BGM intro, BGM loop, long durationMs, double delay, double timestampInicial) {
+        currentTrack = loop;
+        bgmPlayer.crossfadeToIntroThenLoop(
+                intro.path,
+                loop.path,
+                musicVolume,
+                durationMs,
+                delay, timestampInicial);
     }
 
     public void stopMusic() {

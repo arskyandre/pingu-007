@@ -1,6 +1,7 @@
 import javax.sound.sampled.*;
 import java.io.File;
 import java.util.function.Supplier;
+import java.util.function.Consumer;
 
 public class BGMPlayer {
 
@@ -8,6 +9,20 @@ public class BGMPlayer {
         volatile boolean running = true;
         volatile float volume = 1.0f;
         Thread thread;
+
+        final Object seekLock = new Object();
+        volatile boolean seekRequested = false;
+        volatile double requestedTimestampSeconds = 0.0;
+
+        volatile SourceDataLine line;
+
+        volatile long anchorLineFrame = 0L;
+        volatile double anchorTimestampSeconds = 0.0;
+        volatile double lastTimestampSeconds = 0.0;
+
+        volatile boolean hasIntro = false;
+        volatile double introDurationSeconds = 0.0;
+        volatile double loopDurationSeconds = 0.0;
     }
 
     private static class LoadedAudio {
@@ -20,7 +35,7 @@ public class BGMPlayer {
         }
     }
 
-    private Handle current; // handle "oficial"
+    private Handle current;
     private Thread fadeThread;
     private String currentPath = null;
 
@@ -116,6 +131,117 @@ public class BGMPlayer {
         return line;
     }
 
+    public void seek(double timestamp) {
+        if (!Double.isFinite(timestamp) || timestamp < 0.0) {
+            throw new IllegalArgumentException(
+                    "BGMPlayer: timestamp deve ser finito e maior ou igual a 0");
+        }
+
+        Handle handle = current;
+
+        if (handle == null || !handle.running) {
+            return;
+        }
+
+        synchronized (handle.seekLock) {
+            handle.requestedTimestampSeconds = timestamp;
+            handle.seekRequested = true;
+            handle.lastTimestampSeconds = timestamp;
+        }
+    }
+
+    private double normalizeLoopTimestamp(
+            double timestampSeconds,
+            double loopDurationSeconds) {
+
+        if (loopDurationSeconds <= 0.0) {
+            return 0.0;
+        }
+
+        double resultado = timestampSeconds % loopDurationSeconds;
+
+        if (resultado < 0.0) {
+            resultado += loopDurationSeconds;
+        }
+
+        return resultado;
+    }
+
+    private double normalizeTimestamp(
+            Handle handle,
+            double timestampSeconds) {
+
+        double timestampSeguro = Math.max(0.0, timestampSeconds);
+
+        if (handle.loopDurationSeconds <= 0.0) {
+            return timestampSeguro;
+        }
+
+        if (!handle.hasIntro) {
+            return normalizeLoopTimestamp(
+                    timestampSeguro,
+                    handle.loopDurationSeconds);
+        }
+
+        if (timestampSeguro < handle.introDurationSeconds) {
+            return timestampSeguro;
+        }
+
+        return handle.introDurationSeconds
+                + normalizeLoopTimestamp(
+                        timestampSeguro - handle.introDurationSeconds,
+                        handle.loopDurationSeconds);
+    }
+
+    private double calculateTimestamp(Handle handle) {
+        SourceDataLine line = handle.line;
+
+        if (line == null) {
+            return normalizeTimestamp(
+                    handle,
+                    handle.lastTimestampSeconds);
+        }
+
+        float frameRate = line.getFormat().getFrameRate();
+
+        if (frameRate <= 0.0f) {
+            return normalizeTimestamp(
+                    handle,
+                    handle.lastTimestampSeconds);
+        }
+
+        long framesReproduzidos = Math.max(
+                0L,
+                line.getLongFramePosition() - handle.anchorLineFrame);
+
+        double segundosReproduzidos = framesReproduzidos / (double) frameRate;
+
+        return normalizeTimestamp(
+                handle,
+                handle.anchorTimestampSeconds + segundosReproduzidos);
+    }
+
+    public double getTimestamp() {
+        Handle handle = current;
+
+        if (handle == null || !handle.running) {
+            return 0.0;
+        }
+
+        synchronized (handle.seekLock) {
+            if (handle.seekRequested) {
+                return normalizeTimestamp(
+                        handle,
+                        handle.requestedTimestampSeconds);
+            }
+        }
+
+        double timestamp = calculateTimestamp(handle);
+        handle.lastTimestampSeconds = timestamp;
+
+        return timestamp;
+    }
+
     private void playOnce(SourceDataLine line, byte[] pcm, Handle handle) {
         writePcm(line, pcm, handle, false);
     }
@@ -199,7 +325,7 @@ public class BGMPlayer {
 
     public void fadeOut(long durationMs, Runnable onComplete) {
         if (current == null || (fadeThread != null && fadeThread.isAlive())) {
-            return; // ja tem um fade em andamento, ou nada tocando
+            return;
         }
         Handle target = current;
         float startVolume = target.volume;
@@ -240,6 +366,15 @@ public class BGMPlayer {
         }, targetVolume, durationMs, newPath, fadeIn);
     }
 
+    public void crossfadeTo(String newPath, float targetVolume, long durationMs, double delaySeconds, double timestampInicial) {
+        crossfadeDelayed(
+                h -> h.thread = startLoopThread(newPath, h),
+                targetVolume,
+                durationMs,
+                newPath,
+                delaySeconds);
+    }
+
     public void crossfadeToIntroThenLoop(String introPath, String loopPath, float targetVolume, long durationMs,
             boolean fadeIn) {
         crossfade(() -> {
@@ -250,13 +385,99 @@ public class BGMPlayer {
         }, targetVolume, durationMs, loopPath, fadeIn);
     }
 
+    public void crossfadeToIntroThenLoop(String introPath, String loopPath, float targetVolume, long durationMs,
+            double delaySeconds, double timestampIincial) {
+        crossfadeDelayed(
+                h -> h.thread = startIntroLoopThread(introPath, loopPath, h),
+                targetVolume,
+                durationMs,
+                loopPath,
+                delaySeconds);
+    }
+
+    private void crossfadeDelayed(Consumer<Handle> newHandleStarter, float targetVolume,
+            long durationMs, String newCurrentPath, double delaySeconds) {
+        if (!Double.isFinite(delaySeconds) || delaySeconds < 0.0) {
+            throw new IllegalArgumentException("BGMPlayer: delaySeconds deve ser finito e >= 0");
+        }
+
+        Handle oldHandle = current;
+        Handle newHandle = new Handle();
+        newHandle.volume = targetVolume;
+
+        currentPath = newCurrentPath;
+        current = newHandle;
+
+        if (fadeThread != null && fadeThread.isAlive()) {
+            fadeThread.interrupt();
+        }
+
+        float oldStartVolume = oldHandle != null ? oldHandle.volume : 0f;
+        long safeDurationMs = Math.max(0L, durationMs);
+        long delayMs = Math.round(delaySeconds * 1000.0);
+
+        fadeThread = new Thread(() -> {
+            boolean newMusicStarted = false;
+            boolean oldMusicStopped = false;
+
+            try {
+                long startTime = System.currentTimeMillis();
+
+                while (true) {
+                    if (!newHandle.running) {
+                        if (oldHandle != null && !oldMusicStopped) {
+                            stopHandle(oldHandle);
+                        }
+                        return;
+                    }
+
+                    long elapsed = System.currentTimeMillis() - startTime;
+
+                    if (!newMusicStarted && elapsed >= delayMs) {
+                        newHandleStarter.accept(newHandle);
+                        newMusicStarted = true;
+                    }
+
+                    boolean fadeFinished = safeDurationMs == 0L || elapsed >= safeDurationMs;
+
+                    if (oldHandle != null && !oldMusicStopped) {
+                        if (fadeFinished) {
+                            oldHandle.volume = 0f;
+                            stopHandle(oldHandle);
+                            oldMusicStopped = true;
+                        } else {
+                            float progress = elapsed / (float) safeDurationMs;
+                            oldHandle.volume = oldStartVolume * (1f - progress);
+                        }
+                    }
+
+                    if (fadeFinished && newMusicStarted) {
+                        break;
+                    }
+
+                    Thread.sleep(16);
+                }
+            } catch (InterruptedException ignored) {
+
+            }
+
+            if (oldHandle != null && !oldMusicStopped) {
+                stopHandle(oldHandle);
+            }
+        }, "BGMDelayedCrossfade");
+
+        fadeThread.setDaemon(true);
+        fadeThread.start();
+    }
+
     private void crossfade(Supplier<Handle> newHandleFactory, float targetVolume,
             long durationMs, String newCurrentPath, boolean fadeIn) {
-        Handle oldHandle = current; // pode ser null, se nada estava tocando
+        Handle oldHandle = current;
+
         Handle newHandle = newHandleFactory.get();
 
         currentPath = newCurrentPath;
-        current = newHandle; // a partir de agora, setVolume()/stop()/getVolume() controlam a nova musica
+        current = newHandle;
 
         if (fadeThread != null && fadeThread.isAlive()) {
             fadeThread.interrupt();
