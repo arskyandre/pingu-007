@@ -12,10 +12,10 @@ public class SoundManager {
      */
     public enum BGM {
         MAIN_MENU("sound/bgm/main_menu.wav"),
-        LEVEL_1_DAY_INTRO("sound/bgm/level_1_intro.wav"),
-        LEVEL_1_DAY_LOOP("sound/bgm/level_1_loop.wav"),
-        LEVEL_1_NIGHT_INTRO("sound/bgm/level_1_intro.wav"),
-        LEVEL_1_NIGHT_LOOP("sound/bgm/level_1_loop.wav"),
+        LEVEL_1_DAY_INTRO("sound/bgm/level_1_day_intro.wav"),
+        LEVEL_1_DAY_LOOP("sound/bgm/level_1_day_loop.wav"),
+        LEVEL_1_NIGHT_INTRO("sound/bgm/level_1_night_intro.wav"),
+        LEVEL_1_NIGHT_LOOP("sound/bgm/level_1_night_loop.wav"),
         INSIDE_INTRO("sound/bgm/inside_intro.wav"),
         INSIDE_LOOP("sound/bgm/inside_loop.wav"),
         BOSS_INTRO("sound/bgm/boss_intro.wav"),

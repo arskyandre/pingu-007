@@ -65,7 +65,7 @@ public class GameCore extends Canvas implements Runnable {
     private int lastProcessedDay = 1;
     private long updateDayNightAnteriorNanos = -1L;
 
-    private double fullDaySeconds = 300.0;
+    private double fullDaySeconds = 15.0;
     private static final double STARTING_DAY_PROGRESS = 8.0 / 24.0;
 
     private double dayProgress = STARTING_DAY_PROGRESS;
@@ -202,7 +202,6 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     private void atualizarMusicaDayNight() {
-
         if (!LoadSave.LEVEL_1_DATA.equals(
                 levelManager.getArquivoNivelAtual())) {
             return;
@@ -210,7 +209,7 @@ public class GameCore extends Canvas implements Runnable {
 
         double horaAtual = dayProgress * 24.0;
 
-        boolean deveTocarMusicaDia = horaAtual >= 8.0 && horaAtual < 19.0;
+        boolean deveTocarMusicaDia = (horaAtual >= 8.0 && horaAtual < 19.0);
 
         if (deveTocarMusicaDia == musicaDeDiaAtiva) {
             return;
@@ -254,14 +253,16 @@ public class GameCore extends Canvas implements Runnable {
             lastProcessedDay = currentDay;
             onNovoDia(currentDay);
         }
-
+      atualizarMusicaDayNight();
     }
 
     private void alternarParaMusicaDia() {
+        System.out.println("Mudou para musica de dia");
         soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP, 5.0, 0.0);
     }
 
     private void alternarParaMusicaNoite() {
+        System.out.println("Mudou para musica de noite");
         soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_NIGHT_INTRO, SoundManager.BGM.LEVEL_1_NIGHT_LOOP, 5.0, 0.0);
     }
 
