@@ -47,36 +47,36 @@ public class Renderer {
         return cinematicBorder;
     }
 
-    public static Color interpolateColor(
-            Color startColor,
-            Color endColor,
+    public static Color interpolateColor( // media ponderada
+            Color ColorA,
+            Color ColorB,
             double amount) {
         double t = Math.max(0.0, Math.min(1.0, amount));
 
         int red = (int) Math.round(
-                startColor.getRed()
-                        + (endColor.getRed() - startColor.getRed()) * t);
+                ColorA.getRed()
+                        + (ColorB.getRed() - ColorA.getRed()) * t);
 
         int green = (int) Math.round(
-                startColor.getGreen()
-                        + (endColor.getGreen() - startColor.getGreen()) * t);
+                ColorA.getGreen()
+                        + (ColorB.getGreen() - ColorA.getGreen()) * t);
 
         int blue = (int) Math.round(
-                startColor.getBlue()
-                        + (endColor.getBlue() - startColor.getBlue()) * t);
+                ColorA.getBlue()
+                        + (ColorB.getBlue() - ColorA.getBlue()) * t);
 
         int alpha = (int) Math.round(
-                startColor.getAlpha()
-                        + (endColor.getAlpha() - startColor.getAlpha()) * t);
+                ColorA.getAlpha()
+                        + (ColorB.getAlpha() - ColorA.getAlpha()) * t);
 
         return new Color(red, green, blue, alpha);
     }
 
+    private static final Color PRE_DAWN_OVERLAY = new Color(90, 48, 70, 105);
     private static final Color DAY_OVERLAY = new Color(255, 255, 255, 0);
     private static final Color AFTERNOON_OVERLAY = new Color(255, 205, 135, 18);
     private static final Color DUSK_OVERLAY = new Color(185, 75, 105, 80);
     private static final Color NIGHT_OVERLAY = new Color(20, 32, 78, 120);
-    private static final Color PRE_DAWN_OVERLAY = new Color(90, 48, 70, 105);
 
     private Color getDayNightOverlayColor(double dayProgress) {
         double hour = dayProgress * 24.0;
