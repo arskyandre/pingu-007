@@ -61,6 +61,8 @@ public class GameCore extends Canvas implements Runnable {
     private long fpsUpdateTimer = 0;
 
     // para o novo ciclo de dia e noite(cores)
+
+    private int lastProcessedDay = 1;
     private long updateDayNightAnteriorNanos = -1L;
 
     private double fullDaySeconds = 300.0;
@@ -191,6 +193,10 @@ public class GameCore extends Canvas implements Runnable {
         return estaDentroLoja;
     }
 
+    public int getCurrentDay() {
+        return (int) Math.floor(elapsedGameSeconds / fullDaySeconds) + 1;
+    }
+
     public double getInGameTime() {
         return dayProgress;
     }
@@ -217,6 +223,17 @@ public class GameCore extends Canvas implements Runnable {
         dayProgress = (elapsedGameSeconds % fullDaySeconds)
                 / fullDaySeconds;
 
+        int currentDay = getCurrentDay();
+
+        if (currentDay > lastProcessedDay) {
+            lastProcessedDay = currentDay;
+            onNovoDia(currentDay);
+        }
+
+    }
+
+    private void onNovoDia(int day) {
+        System.out.println("Novo dia: " + day);
     }
 
     public void toggleFullscreen() {
@@ -290,6 +307,7 @@ public class GameCore extends Canvas implements Runnable {
                     updateDayNightAnteriorNanos = -1L;
                     elapsedGameSeconds = STARTING_DAY_PROGRESS * fullDaySeconds;
                     dayProgress = STARTING_DAY_PROGRESS;
+                    lastProcessedDay = 1;
                     soundManager.playBGM(SoundManager.BGM.LEVEL_1_INTRO, SoundManager.BGM.LEVEL_1_LOOP);
                     player.setShootCooldownTimer(30);
                     iniciarSequenciaIntro();
@@ -782,6 +800,10 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void resetarJogoCompleto() {
+
+        updateDayNightAnteriorNanos = -1L;
+        elapsedGameSeconds = STARTING_DAY_PROGRESS * fullDaySeconds;
+        dayProgress = STARTING_DAY_PROGRESS;
         hasCheckpoint = false;
         checkArenas.clear();
         estadoLevel1AntesDaLoja = null;
