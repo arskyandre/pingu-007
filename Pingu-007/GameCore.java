@@ -60,6 +60,17 @@ public class GameCore extends Canvas implements Runnable {
     private int fpsFrameCount = 0;
     private long fpsUpdateTimer = 0;
 
+    // para o novo ciclo de dia e noite(cores)
+    private long updateDayNightAnteriorNanos = -1L;
+
+    private double fullDaySeconds = 300.0;
+    private static final double STARTING_DAY_PROGRESS = 8.0 / 24.0;
+
+    private double dayProgress = STARTING_DAY_PROGRESS;
+    private double elapsedGameSeconds = STARTING_DAY_PROGRESS * fullDaySeconds;
+
+    private boolean dayNightClockRunning = true;
+
     private final CameraManager camera;
     private CutsceneManager cutsceneManager;
     private EnemyManager enemyManager;
@@ -88,6 +99,7 @@ public class GameCore extends Canvas implements Runnable {
     // public final static int game_width = tiles_size * tiles_in_width;
     // public final static int game_height = tiles_size * tiles_in_height;
     public static boolean estaLevel2 = false;
+    public static boolean estaDentroLoja = false;
 
     private static final double BASE_ZOOM = 1.25;
     private static final int BASE_HEIGHT = game_height;
@@ -171,6 +183,42 @@ public class GameCore extends Canvas implements Runnable {
         return estaLevel2;
     }
 
+    public static void setDentroLoja(boolean set) {
+        estaDentroLoja = set;
+    }
+
+    public static boolean getEstaDentroLoja() {
+        return estaDentroLoja;
+    }
+
+    public double getInGameTime() {
+        return dayProgress;
+    }
+
+    private void atualizarCicloDayNight(boolean avancarRelogio) {
+        long now = System.nanoTime();
+
+        if (updateDayNightAnteriorNanos < 0L) {
+            updateDayNightAnteriorNanos = now;
+            return;
+        }
+
+        double deltaSeconds = (now - updateDayNightAnteriorNanos)
+                / 1_000_000_000.0;
+
+        updateDayNightAnteriorNanos = now;
+
+        if (!dayNightClockRunning || !avancarRelogio) {
+            return;
+        }
+
+        elapsedGameSeconds += deltaSeconds;
+
+        dayProgress = (elapsedGameSeconds % fullDaySeconds)
+                / fullDaySeconds;
+
+    }
+
     public void toggleFullscreen() {
         if (!isFullscreen) {
             System.out.println("Alternando para Fullscreen");
@@ -224,9 +272,14 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyJustPressed(KeyEvent.VK_F11)) {
             toggleFullscreen();
         }
-
         camera.adjustForViewportResize(getWidth(), getHeight(), calculateBaseZoom(getHeight()));
         updateCursorVisibility();
+
+        boolean avancarRelogio = (gameState == GameState.PLAYING
+                || gameState == GameState.CUTSCENE) && !getEstaDentroLoja();
+
+        atualizarCicloDayNight(avancarRelogio);
+
         switch (gameState) {
             case MAIN_MENU -> {
                 GameState next = mainMenu.update(input, getWidth(), getHeight());
@@ -234,6 +287,9 @@ public class GameCore extends Canvas implements Runnable {
                     optionsMenu.setReturnState(GameState.MAIN_MENU);
                 }
                 if (next == GameState.PLAYING) {
+                    updateDayNightAnteriorNanos = -1L;
+                    elapsedGameSeconds = STARTING_DAY_PROGRESS * fullDaySeconds;
+                    dayProgress = STARTING_DAY_PROGRESS;
                     soundManager.playBGM(SoundManager.BGM.LEVEL_1_INTRO, SoundManager.BGM.LEVEL_1_LOOP);
                     player.setShootCooldownTimer(30);
                     iniciarSequenciaIntro();
@@ -349,11 +405,11 @@ public class GameCore extends Canvas implements Runnable {
     public void triggerDialogoInicial() {
         if (!dialogueManager.isAtivo()) {
             dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadio, DialogueCatalogo.FalaInicialRadio,
-                    new BufferedImage[]{
-                        pingu_portrait,
-                        cellphone_image,
-                        pingu_portrait,
-                        cellphone_image
+                    new BufferedImage[] {
+                            pingu_portrait,
+                            cellphone_image,
+                            pingu_portrait,
+                            cellphone_image
                     }, true);
             dialogueManager.setAoTerminarDialogo(() -> {
                 ToastNotifications.RequestNotification("Use as setas para selecionar a opção e ENTER para confirmar.",
@@ -496,6 +552,7 @@ public class GameCore extends Canvas implements Runnable {
         // camera.focarEmRect(rect, 67, getWidth(), getHeight(), true);
         camera.focarEm(24 * 16, 13.5 * 16, 1.5); // numeros magicos
         soundManager.crossfadeBGM(SoundManager.BGM.INSIDE_INTRO, SoundManager.BGM.INSIDE_LOOP, 2000);
+        setDentroLoja(true);
     }
 
     public void sairCasaVendedor() {
@@ -520,13 +577,12 @@ public class GameCore extends Canvas implements Runnable {
         soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_LOOP, 2000, true);
         mapLoadCooldown = 60;
 
-        // carregarNivel salva um checkpoint antes da restauracao; substitui-o
-        // agora pelo estado efetivamente restaurado do LEVEL_1.
         salvarCheckpoint();
 
         estadoLevel1AntesDaLoja = null;
         itensLevel1AntesDaLoja.clear();
         temRetornoDaLoja = false;
+        setDentroLoja(false);
     }
 
     public void entrarNivelBoss() {
@@ -800,7 +856,7 @@ public class GameCore extends Canvas implements Runnable {
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
-                                cutsceneManager, delta,
+                                cutsceneManager, dayProgress, delta,
                                 true, true);
                         drawLateHudElements(g2, delta);
                         if (showFpsCounter) {
@@ -813,7 +869,7 @@ public class GameCore extends Canvas implements Runnable {
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
-                                cutsceneManager, delta,
+                                cutsceneManager, dayProgress, delta,
                                 false, false);
                         // renderizar os elementos de venda por cima
                         ShopMenu shop = getShopMenu();
@@ -827,7 +883,7 @@ public class GameCore extends Canvas implements Runnable {
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
-                                cutsceneManager, delta,
+                                cutsceneManager, dayProgress, delta,
                                 true, false);
 
                         gameOverScreen.render(g2, getWidth(), getHeight());
@@ -838,7 +894,7 @@ public class GameCore extends Canvas implements Runnable {
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
-                                cutsceneManager, delta,
+                                cutsceneManager, dayProgress, delta,
                                 true, false);
 
                         pauseMenu.render(g2, getWidth(), getHeight());
@@ -852,7 +908,7 @@ public class GameCore extends Canvas implements Runnable {
                                     getWidth(), getHeight(),
                                     levelManager, bulletmanager, itemManager,
                                     enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
-                                    cutsceneManager, delta,
+                                    cutsceneManager, dayProgress, delta,
                                     true, false);
 
                             drawLateHudElements(g2, delta);

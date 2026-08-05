@@ -47,10 +47,140 @@ public class Renderer {
         return cinematicBorder;
     }
 
+    public static Color interpolateColor(
+            Color startColor,
+            Color endColor,
+            double amount) {
+        double t = Math.max(0.0, Math.min(1.0, amount));
+
+        int red = (int) Math.round(
+                startColor.getRed()
+                        + (endColor.getRed() - startColor.getRed()) * t);
+
+        int green = (int) Math.round(
+                startColor.getGreen()
+                        + (endColor.getGreen() - startColor.getGreen()) * t);
+
+        int blue = (int) Math.round(
+                startColor.getBlue()
+                        + (endColor.getBlue() - startColor.getBlue()) * t);
+
+        int alpha = (int) Math.round(
+                startColor.getAlpha()
+                        + (endColor.getAlpha() - startColor.getAlpha()) * t);
+
+        return new Color(red, green, blue, alpha);
+    }
+
+    private static final Color DAY_OVERLAY = new Color(255, 255, 255, 0);
+    private static final Color AFTERNOON_OVERLAY = new Color(255, 205, 135, 18);
+    private static final Color DUSK_OVERLAY = new Color(185, 75, 105, 80);
+    private static final Color NIGHT_OVERLAY = new Color(20, 32, 78, 120);
+    private static final Color PRE_DAWN_OVERLAY = new Color(90, 48, 70, 105);
+
+    private Color getDayNightOverlayColor(double dayProgress) {
+        double hour = dayProgress * 24.0;
+
+        if (hour < 4.0) {
+            return NIGHT_OVERLAY;
+        }
+        if (hour < 5.5) {
+            double localProgress = (hour - 4.0) / (5.5 - 4.0);
+
+            return interpolateColor(
+                    NIGHT_OVERLAY,
+                    PRE_DAWN_OVERLAY,
+                    localProgress);
+        }
+
+        if (hour < 9.0) {
+            double localProgress = (hour - 5.5) / (9.0 - 5.5);
+
+            return interpolateColor(
+                    PRE_DAWN_OVERLAY,
+                    DAY_OVERLAY,
+                    localProgress);
+        }
+
+        if (hour < 16.0) {
+            double localProgress = (hour - 9.0) / (16.0 - 6.5);
+
+            return interpolateColor(
+                    DAY_OVERLAY,
+                    AFTERNOON_OVERLAY,
+                    localProgress);
+        }
+
+        if (hour < 19.0) {
+            double localProgress = (hour - 16.0) / (19.0 - 16.0);
+
+            return interpolateColor(
+                    AFTERNOON_OVERLAY,
+                    DUSK_OVERLAY,
+                    localProgress);
+        }
+
+        if (hour < 21.5) {
+            double localProgress = (hour - 19.0) / (21.5 - 19.0);
+
+            return interpolateColor(
+                    DUSK_OVERLAY,
+                    NIGHT_OVERLAY,
+                    localProgress);
+        }
+
+        return NIGHT_OVERLAY;
+    }
+
+    private void drawDayNightOverlay(Graphics2D g2, double dayProgress, int telaLargura, int telaAltura) {
+
+        if (modoDebug) {
+            int totalMinutes = (int) (dayProgress * 24.0 * 60.0) % 1440;
+
+            int hour = totalMinutes / 60;
+            int minute = totalMinutes % 60;
+            debugDrawHorario(g2, hour, minute, telaLargura, telaAltura);
+        }
+        Color overlayColor = getDayNightOverlayColor(dayProgress);
+
+        if (overlayColor.getAlpha() <= 0) {
+            return;
+        }
+
+        Composite originalComposite = g2.getComposite();
+
+        Color originalColor = g2.getColor();
+        g2.setComposite(AlphaComposite.SrcOver);
+        g2.setColor(overlayColor);
+
+        g2.fillRect(
+                0,
+                0,
+                telaLargura,
+                telaAltura);
+
+        g2.setComposite(originalComposite);
+        g2.setColor(originalColor);
+    }
+
+    public void debugDrawHorario(Graphics2D g2, int hour, int minute, int telaLargura, int telaAltura) {
+
+        Color originalColor = g2.getColor();
+        g2.setColor(Color.BLACK);
+        Font old = g2.getFont();
+        g2.setFont(GameCore.pixelFont.deriveFont(Font.BOLD, 16f));
+        String time = "DEBUG: Horário: " + Integer.toString(hour) + ":" + Integer.toString(minute);
+        g2.drawString(time, (int) ((telaLargura - g2.getFontMetrics().getStringBounds(time, g2).getWidth()) / 2),
+                (int) (24 + g2.getFontMetrics().getStringBounds(time, g2).getHeight()));
+        g2.setFont(old);
+        g2.setColor(originalColor);
+    }
+
     public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura,
             int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager,
             EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager,
-            FishingManager fishingManager, NPCManager npcManager, CutsceneManager cutsceneManager, double delta,
+            FishingManager fishingManager, NPCManager npcManager, CutsceneManager cutsceneManager, double dayProgress,
+            double delta,
             boolean animateBorder, boolean mouseCircle) {
 
         // Mantem o tamanho da borda proporcional a altura da tela
@@ -153,6 +283,7 @@ public class Renderer {
                     }
                 }
             }
+
         }
 
         g2.setTransform(originalTransform);
@@ -178,7 +309,7 @@ public class Renderer {
             }
         }
         int cinematicBorder = getOffset();
-
+        drawDayNightOverlay(g2, dayProgress, telaLargura, telaAltura);
         HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager, delta, (int) cinematicBorder);
         fishingManager.render(g2, camera, telaLargura, telaAltura, delta);
         double mouseCircleTarget = mouseCircle ? 1.0 : 0.0;

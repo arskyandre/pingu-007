@@ -32,6 +32,7 @@ public class LevelManager {
             GameCore.setLevel2(true);
         } else
             GameCore.setLevel2(false);
+        
         System.out.println(filename + " loaded");
         carregarMapData(filename);
         Game.processarNovoMapa(mapDataAtual.objects);
