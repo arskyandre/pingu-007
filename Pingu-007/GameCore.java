@@ -238,13 +238,13 @@ public class GameCore extends Canvas implements Runnable {
 
         boolean deveTocarMusicaFight = (horaAtual >= 8.0 && horaAtual < 19.0);
 
-        if (deveTocarMusicaDia == musicaDeDiaAtiva) {
+        if (deveTocarMusicaFight == musicaDeDiaAtiva) {
             return;
         }
 
-        musicaDeDiaAtiva = deveTocarMusicaDia;
+        musicaDeDiaAtiva = deveTocarMusicaFight;
 
-        if (deveTocarMusicaDia) {
+        if (deveTocarMusicaFight) {
             alternarParaMusicaDia();
         } else {
             alternarParaMusicaNoite();
@@ -1181,6 +1181,7 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public static void main(String[] args) {
+        System.out.println("pinto");
         GameCore game = new GameCore();
         Toolkit.getDefaultToolkit().setDynamicLayout(false);
         game.frame = new JFrame("Pingu 007");
