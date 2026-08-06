@@ -66,7 +66,7 @@ public class GameCore extends Canvas implements Runnable {
     private int lastProcessedDay = 1;
     private long updateDayNightAnteriorNanos = -1L;
 
-    private double fullDaySeconds = 15.0;
+    private double fullDaySeconds = 300.0;
     private static final double STARTING_DAY_PROGRESS = 8.0 / 24.0;
 
     private double dayProgress = STARTING_DAY_PROGRESS;

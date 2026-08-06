@@ -503,7 +503,9 @@ public class ArenaManager {
                     morsa.setEnemyManager(enemyManager);
                     Arena arenaAtiva = getOuCriarArena(67);
                     for (TiledObject spawner : arenaAtiva.spawners) {
-                        morsa.adicionarPontoDeSpawn(spawner.x, spawner.y);
+                        if (spawner.inimigo != null && !spawner.inimigo.toLowerCase().contains("morsa")) {
+                            morsa.adicionarPontoDeSpawn(spawner.x, spawner.y);
+                        }
                     }
 
                     if (morsa.getMaoEsquerda() != null && !arenaAtiva.inimigosVivos.contains(morsa.getMaoEsquerda())) {
@@ -666,7 +668,9 @@ public class ArenaManager {
         if (npcManager != null) {
             npcManager.getNpcs().removeIf(npc -> npc instanceof PescadorNPC);
         }
-        itemManager.getItems().removeIf(item -> item instanceof FishingRodItem);
+        // mudado para apagar todos os itens EXCETO KeyItem, mudar caso dê problema dps
+        //itemManager.getItems().removeIf(item -> item instanceof FishingRodItem);
+        itemManager.getItems().removeIf(item -> !(item instanceof KeyItem));
 
         for (Arena arena : arenas) {
             for (Enemy e : arena.inimigosVivos) {
