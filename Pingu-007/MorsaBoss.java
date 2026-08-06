@@ -48,7 +48,7 @@ public class MorsaBoss extends Enemy {
         super(startX, startY, GameCore.tiles_size * 6, GameCore.tiles_size * 6, lvlData, sound);
         gameCore = GC;
         this.bulletManager = bulmgr;
-        this.vidaMaxima = 700;
+        this.vidaMaxima = 1100;
         this.vida = this.vidaMaxima;
         this.cor = Color.BLUE;
         this.aggroPermanente = true;
@@ -82,9 +82,29 @@ public class MorsaBoss extends Enemy {
             return;
         }
 
-        String[] tipos = {"lobo", "shooter", "bomber"};
+        int limiteShooters = 3;
+        int shootersGerados = 0;
+
         for (Point2D.Double p : pontosDeSpawn) {
-            String tipoSorteado = tipos[(int) (Math.random() * tipos.length)];
+            String tipoSorteado;
+
+            double chance = Math.random();
+            if (chance < 0.50) {
+                tipoSorteado = "lobo";
+            } else if (chance < 0.80) {
+                tipoSorteado = "bomber";
+            } else {
+                tipoSorteado = "shooter";
+            }
+
+            if (tipoSorteado.equals("shooter")) {
+                if (shootersGerados < limiteShooters) {
+                    shootersGerados++;
+                } else {
+                    tipoSorteado = "lobo";
+                }
+            }
+
             Enemy novo = enemyManager.adicionarE_RetornarInimigo(tipoSorteado, p.x, p.y, 0, 67);
             if (novo != null) {
                 minionsSpawnados.add(novo);
@@ -196,6 +216,7 @@ public class MorsaBoss extends Enemy {
         if (this.isDead || this.vida <= 0) {
             for (Enemy minion : minionsSpawnados) {
                 if (minion != null && !minion.isDead()) {
+                    minion.marcarLootProcessado();
                     minion.receberDano(99999);
                 }
             }
@@ -636,7 +657,7 @@ class BossMao extends Enemy {
                 double dyHome = yHome - this.y;
                 double distHome = Math.hypot(dxHome, dyHome);
 
-                double retSpeed = corpoPrincipal.isFase2() ? 8.0 : 5.0;
+                double retSpeed = corpoPrincipal.isFase2() ? 11.0 : 8.0;
 
                 if (distHome > 5) {
                     this.x += (dxHome / distHome) * retSpeed;
