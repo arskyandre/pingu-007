@@ -61,6 +61,7 @@ public class GameCore extends Canvas implements Runnable {
     private long fpsUpdateTimer = 0;
 
     // para o novo ciclo de dia e noite(cores/musica)
+
     private boolean musicaDeDiaAtiva = true;
     private int lastProcessedDay = 1;
     private long updateDayNightAnteriorNanos = -1L;
@@ -102,6 +103,10 @@ public class GameCore extends Canvas implements Runnable {
     // public final static int game_height = tiles_size * tiles_in_height;
     public static boolean estaLevel2 = false;
     public static boolean estaDentroLoja = false;
+
+    public boolean estaEmArena() {
+        return arenaManager.existeArenaRealAtiva();
+    }
 
     private static final double BASE_ZOOM = 1.25;
     private static final int BASE_HEIGHT = game_height;
@@ -223,6 +228,28 @@ public class GameCore extends Canvas implements Runnable {
             alternarParaMusicaNoite();
         }
     }
+    private void atualizarMusicaArena() {
+        if (!LoadSave.LEVEL_1_DATA.equals(
+                levelManager.getArquivoNivelAtual())) {
+            return;
+        }
+
+        double horaAtual = dayProgress * 24.0;
+
+        boolean deveTocarMusicaFight = (horaAtual >= 8.0 && horaAtual < 19.0);
+
+        if (deveTocarMusicaDia == musicaDeDiaAtiva) {
+            return;
+        }
+
+        musicaDeDiaAtiva = deveTocarMusicaDia;
+
+        if (deveTocarMusicaDia) {
+            alternarParaMusicaDia();
+        } else {
+            alternarParaMusicaNoite();
+        }
+    }
 
     private void atualizarCicloDayNight(boolean avancarRelogio) {
 
@@ -253,7 +280,7 @@ public class GameCore extends Canvas implements Runnable {
             lastProcessedDay = currentDay;
             onNovoDia(currentDay);
         }
-      atualizarMusicaDayNight();
+        atualizarMusicaDayNight();
     }
 
     private void alternarParaMusicaDia() {

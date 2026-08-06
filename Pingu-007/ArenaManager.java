@@ -278,6 +278,15 @@ public class ArenaManager {
         return false;
     }
 
+    public boolean existeArenaRealAtiva() {
+        for (Arena arena : arenas) {
+            if (arena.ativa && !arena.concluida && arena.id != 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void interagir(Player player, int chavesDoPlayer) {
         for (InteractiveObject interactive : interactives) {
             if (interactive.tryInteract(context, player, chavesDoPlayer)) {
@@ -507,7 +516,8 @@ public class ArenaManager {
                     morsa.vincularCamera(camera);
 
                     if (!cutsceneBossSolicitada) {
-                        cutsceneManager.iniciarBossIntro(camera, player, morsa.getCenterX(), morsa.getCenterY(), enemyManager);
+                        cutsceneManager.iniciarBossIntro(camera, player, morsa.getCenterX(), morsa.getCenterY(),
+                                enemyManager);
                         cutsceneBossSolicitada = true;
                     } else {
                         morsa.setPodeRugir(true);
@@ -533,7 +543,7 @@ public class ArenaManager {
         Rectangle2D.Double wallRect = getCombinedWallRect(id);
 
         if (wallRect != null) {
-            if (isFirstArena) {
+            if (isFirstArena || id == 0) {
                 cutsceneManager.iniciarWallRevealComCamera(wallRect, camera, player);
                 if (id != 67) {
                     GameCore.setGameState(GameState.CUTSCENE);
