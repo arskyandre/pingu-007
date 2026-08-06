@@ -81,7 +81,7 @@ public class CutsceneManager {
         bossIntroState = BossIntroState.DIALOGUE;
         enemyManager = EM;
         dialogueManager.iniciarDialogo(falasBossIntro,
-                new BufferedImage[] { morsaFalaSprite }, true);
+                new BufferedImage[] { morsaFalaSprite });
         dialogueManager.setAoTerminarDialogo(() -> {
             bossIntroState = BossIntroState.CAMERA_PAN;
             enemyManager.getMorsaBoss().setPodeRugir(true);

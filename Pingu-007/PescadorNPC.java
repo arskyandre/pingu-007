@@ -89,10 +89,10 @@ public class PescadorNPC extends NPC {
                     if (laEle || player.hasFishingRod()) {
                         if (FishingManager.isPlayerHasKey())
                             dialogueManager.iniciarDialogo(dialogo2_hasKey, DialogueCatalogo.PescadorFala2_hasKey,
-                                    new BufferedImage[] { GameCore.pescador_portrait }, true);
+                                    new BufferedImage[] { GameCore.pescador_portrait });
                         else
                             dialogueManager.iniciarDialogo(dialogo2_noKey, DialogueCatalogo.PescadorFala2_noKey,
-                                    new BufferedImage[] { GameCore.pescador_portrait }, true);
+                                    new BufferedImage[] { GameCore.pescador_portrait });
 
                         dialogueManager.setAoTerminarDialogo(() -> {
 
@@ -111,7 +111,7 @@ public class PescadorNPC extends NPC {
                                             case 1 -> {
                                                 dialogueManager.iniciarDialogo(new String[] {
                                                         "PESCADOR: Tudo bem, até a próxima!"
-                                                }, new BufferedImage[] { GameCore.pescador_portrait }, true);
+                                                }, new BufferedImage[] { GameCore.pescador_portrait });
                                                 state = State.IDLE;
                                             }
                                         }
@@ -121,12 +121,12 @@ public class PescadorNPC extends NPC {
                     } else {
 
                         dialogueManager.iniciarDialogo(dialogo1_part1, DialogueCatalogo.PescadorFala1_part1,
-                                new BufferedImage[] { GameCore.pescador_portrait }, true);
+                                new BufferedImage[] { GameCore.pescador_portrait });
                         dialogueManager.setAoTerminarDialogo(() -> {
                             camera.focarEm(x + (largura / 2.0), y + altura + 40, 60, false);
                             itemManager.spawn(new FishingRodItem(x + (largura / 2.0), y + altura + 40));
                             dialogueManager.iniciarDialogo(dialogo1_part2, DialogueCatalogo.PescadorFala1_part2,
-                                    new BufferedImage[] { GameCore.pescador_portrait }, true);
+                                    new BufferedImage[] { GameCore.pescador_portrait });
                             dialogueManager.setAoTerminarDialogo(() -> {
                                 laEle = true;
                                 player.addIscas(5);

@@ -84,7 +84,7 @@ public class VendedorNPC extends NPC {
                             if (moedas == 0) {
                                 dialogueManager.iniciarDialogo(new String[] {
                                         "VENDEDOR: Elimine mais inimigos para resgatar sua recompensa."
-                                }, new BufferedImage[] { portrait }, true);
+                                }, new BufferedImage[] { portrait });
                             } else {
                                 dialogueManager.iniciarDialogo(new String[] {
                                         "Desde a última vez que veio aqui, você eliminou "
@@ -92,7 +92,7 @@ public class VendedorNPC extends NPC {
                                                 + " inimigos. Isso dá um total de "
                                                 + Integer.toString(moedas)
                                                 + " moedas."
-                                }, new BufferedImage[] { portrait }, true);
+                                }, new BufferedImage[] { portrait });
                             }
                             dialogueManager.setAoTerminarDialogo(() -> {
                                 player.addMoedas(moedas);
@@ -103,7 +103,7 @@ public class VendedorNPC extends NPC {
                         case 2 -> {
                             dialogueManager.iniciarDialogo(new String[] {
                                     "VENDEDOR: Estou aqui sempre que precisar!"
-                            }, new BufferedImage[] { portrait2 }, true);
+                            }, new BufferedImage[] { portrait2 });
                             state = State.IDLE;
                         }
                     }
@@ -132,7 +132,7 @@ public class VendedorNPC extends NPC {
                                         + " inimigos. Aqui estão "
                                         + Integer.toString(moedas)
                                         + " moedas."
-                        }, new BufferedImage[] { portrait }, true);
+                        }, new BufferedImage[] { portrait });
                         dialogueManager.setAoTerminarDialogo(() -> {
                             ToastNotifications.RequestNotification(
                                     "Elimine inimigos e volte à loja do vendedor para receber recompensas!", 2.5);

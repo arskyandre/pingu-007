@@ -26,7 +26,7 @@ public class DialogueCatalogo {
 
                                                 dialogueManager.iniciarDialogo(
                                                                 DialogueCatalogo.TextoInicialRadioRepetido,
-                                                                new BufferedImage[] { GameCore.cellphone_image }, true);
+                                                                new BufferedImage[] { GameCore.cellphone_image });
 
                                                 dialogueManager.setAoTerminarDialogo(() -> {
                                                         loopDialogoInicial(dialogueManager, soundManager);
@@ -34,7 +34,7 @@ public class DialogueCatalogo {
                                         } else {
 
                                                 dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadioFinal,
-                                                                new BufferedImage[] { GameCore.cellphone_image }, true);
+                                                                new BufferedImage[] { GameCore.cellphone_image });
                                         }
                                 });
         };

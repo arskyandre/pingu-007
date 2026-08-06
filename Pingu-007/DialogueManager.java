@@ -24,7 +24,6 @@ public class DialogueManager {
   private int shakeY = 0;
   private final Random random = new Random();
 
-  private boolean tocarSomDeEscrita = true;
   private BufferedImage rostoFechado;
   private BufferedImage rostoAberto;
   private BufferedImage[] retratosAtual;
@@ -62,7 +61,7 @@ public class DialogueManager {
     rostoAberto = GameCore.pingu_portrait;
   }
 
-  public void iniciarDialogo(String[] texto, boolean tocarSomDeEscrita) {
+  public void iniciarDialogo(String[] texto) {
     this.falas = texto;
     this.falaAtualIndex = 0;
     this.caractereIndex = 0;
@@ -78,7 +77,7 @@ public class DialogueManager {
     aplicarPrefixoInstantaneo();
   }
 
-  public void iniciarDialogo(String[] texto, BufferedImage[] imgs, boolean tocarSomDeEscrita) {
+  public void iniciarDialogo(String[] texto, BufferedImage[] imgs ) {
     this.falas = texto;
     retratosAtual = imgs;
     this.falaAtualIndex = 0;
@@ -94,7 +93,7 @@ public class DialogueManager {
     aplicarPrefixoInstantaneo();
   }
 
-  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons, boolean tocarSomDeEscrita) {
+  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons ) {
     this.falas = texto;
     this.falaAtualIndex = 0;
     this.caractereIndex = 0;
@@ -110,8 +109,7 @@ public class DialogueManager {
     aplicarPrefixoInstantaneo();
   }
 
-  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons, BufferedImage[] imgs,
-      boolean tocarSomDeEscrita) {
+  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons, BufferedImage[] imgs) {
     this.falas = texto;
     retratosAtual = imgs;
     this.falaAtualIndex = 0;

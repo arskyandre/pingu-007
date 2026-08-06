@@ -85,8 +85,7 @@ public class CollisionBlock extends ArenaObject {
             setActive(context, false, null);
             GateReplacer.applyUnlockVisuals(context.getMapData());
             dialogueManager.iniciarDialogo(new String[] {
-                    "RADIO: Você conseguiu! O portão abriu." }, new BufferedImage[] { GameCore.cellphone_image },
-                    true);
+                    "RADIO: Você conseguiu! O portão abriu." }, new BufferedImage[] { GameCore.cellphone_image });
             return true;
         }
         String qtdChaves;
@@ -99,8 +98,7 @@ public class CollisionBlock extends ArenaObject {
         }
         dialogueManager.iniciarDialogo(new String[] {
                 "RADIO: De acordo com as nossas informações, você precisará de 3 chaves para abrir esse portão.",
-                qtdChaves }, new BufferedImage[] { GameCore.cellphone_image },
-                true);
+                qtdChaves }, new BufferedImage[] { GameCore.cellphone_image });
         System.out.println("Você precisa de 3 chaves para abrir isso!");
 
         return true;

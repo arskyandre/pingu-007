@@ -66,7 +66,7 @@ public class GameCore extends Canvas implements Runnable {
     private int lastProcessedDay = 1;
     private long updateDayNightAnteriorNanos = -1L;
 
-    private double fullDaySeconds = 300.0;
+    private double fullDaySeconds = 240.0;
     private static final double STARTING_DAY_PROGRESS = 8.0 / 24.0;
 
     private double dayProgress = STARTING_DAY_PROGRESS;
@@ -228,6 +228,7 @@ public class GameCore extends Canvas implements Runnable {
             alternarParaMusicaNoite();
         }
     }
+
     private void atualizarMusicaArena() {
         if (!LoadSave.LEVEL_1_DATA.equals(
                 levelManager.getArquivoNivelAtual())) {
@@ -489,7 +490,7 @@ public class GameCore extends Canvas implements Runnable {
                             cellphone_image,
                             pingu_portrait,
                             cellphone_image
-                    }, true);
+                    });
             dialogueManager.setAoTerminarDialogo(() -> {
                 ToastNotifications.RequestNotification("Use as setas para selecionar a opção e ENTER para confirmar.",
                         10.0);
