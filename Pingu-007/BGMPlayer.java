@@ -2,6 +2,8 @@ import javax.sound.sampled.*;
 import java.io.File;
 import java.util.function.Supplier;
 import java.util.function.Consumer;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class BGMPlayer {
 
@@ -39,8 +41,12 @@ public class BGMPlayer {
     private Thread fadeThread;
     private String currentPath = null;
 
-    private static final int WRITE_CHUNK_SIZE = 2048;
-    private static final int LINE_BUFFER_SIZE = 64 * 1024;
+    private static final int WRITE_CHUNK_SIZE = 8 * 1024;
+    private static final int LINE_BUFFER_SIZE = 128 * 1024;
+    private static final int AUDIO_THREAD_PRIORITY = Math.min(
+            Thread.MAX_PRIORITY, Thread.NORM_PRIORITY + 2);
+
+    private static final Map<String, LoadedAudio> AUDIO_CACHE = new ConcurrentHashMap<>();
 
     public void play(String path) {
         stop();
@@ -69,16 +75,22 @@ public class BGMPlayer {
                     return;
                 }
 
+                handle.hasIntro = false;
+                handle.loopDurationSeconds = getDurationSeconds(loop);
+
                 line = openLine(loop.format, handle.volume);
+                handle.line = line;
                 playLoop(line, loop.pcm, handle);
             } catch (Exception e) {
                 e.printStackTrace();
                 handle.running = false;
             } finally {
                 closeLine(line);
+                handle.line = null;
             }
         }, "BGMPlayer");
         t.setDaemon(true);
+        t.setPriority(AUDIO_THREAD_PRIORITY);
         t.start();
         return t;
     }
@@ -96,7 +108,12 @@ public class BGMPlayer {
                     return;
                 }
 
+                handle.hasIntro = true;
+                handle.introDurationSeconds = getDurationSeconds(intro);
+                handle.loopDurationSeconds = getDurationSeconds(loop);
+
                 line = openLine(intro.format, handle.volume);
+                handle.line = line;
                 playOnce(line, intro.pcm, handle);
                 if (handle.running) {
                     playLoop(line, loop.pcm, handle);
@@ -106,21 +123,54 @@ public class BGMPlayer {
                 handle.running = false;
             } finally {
                 closeLine(line);
+                handle.line = null;
             }
         }, "BGMPlayer");
         t.setDaemon(true);
+        t.setPriority(AUDIO_THREAD_PRIORITY);
         t.start();
         return t;
     }
 
     private LoadedAudio loadAudio(String path) throws Exception {
+        LoadedAudio cached = AUDIO_CACHE.get(path);
+        if (cached != null) {
+            return cached;
+        }
+
+        LoadedAudio loaded;
         try (AudioInputStream ais = AudioSystem.getAudioInputStream(new File(path))) {
             byte[] pcm = ais.readAllBytes();
             if (pcm.length == 0) {
                 throw new IllegalArgumentException("BGMPlayer: arquivo de audio vazio: " + path);
             }
-            return new LoadedAudio(ais.getFormat(), pcm);
+            loaded = new LoadedAudio(ais.getFormat(), pcm);
         }
+
+        LoadedAudio previous = AUDIO_CACHE.putIfAbsent(path, loaded);
+        return previous != null ? previous : loaded;
+    }
+
+    public void preload(String... paths) throws Exception {
+        for (String path : paths) {
+            loadAudio(path);
+        }
+    }
+
+    public static void clearAudioCache() {
+        AUDIO_CACHE.clear();
+    }
+
+    private double getDurationSeconds(LoadedAudio audio) {
+        int frameSize = audio.format.getFrameSize();
+        float frameRate = audio.format.getFrameRate();
+
+        if (frameSize <= 0 || frameRate <= 0.0f) {
+            return 0.0;
+        }
+
+        long frameCount = audio.pcm.length / frameSize;
+        return frameCount / (double) frameRate;
     }
 
     private SourceDataLine openLine(AudioFormat format, float volume) throws LineUnavailableException {
@@ -292,6 +342,13 @@ public class BGMPlayer {
 
     private void stopHandle(Handle handle) {
         handle.running = false;
+
+        SourceDataLine line = handle.line;
+        if (line != null) {
+            line.stop();
+            line.flush();
+        }
+
         if (handle.thread != null) {
             try {
                 handle.thread.join(500);
@@ -366,7 +423,8 @@ public class BGMPlayer {
         }, targetVolume, durationMs, newPath, fadeIn);
     }
 
-    public void crossfadeTo(String newPath, float targetVolume, long durationMs, double delaySeconds, double timestampInicial) {
+    public void crossfadeTo(String newPath, float targetVolume, long durationMs, double delaySeconds,
+            double timestampInicial) {
         crossfadeDelayed(
                 h -> h.thread = startLoopThread(newPath, h),
                 targetVolume,
