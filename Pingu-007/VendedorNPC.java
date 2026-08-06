@@ -18,12 +18,13 @@ public class VendedorNPC extends NPC {
     private BufferedImage Sprite;
     private CameraManager camera;
     private BufferedImage portrait = LoadSave.GetSpriteAtlas("images/portrait/vendedor_portrait.png");
+    private BufferedImage portrait2 = LoadSave.GetSpriteAtlas("images/portrait/vendedor_portrait2.png");
 
     public VendedorNPC(double x, double y, CameraManager cameraMgr, SoundManager soundManager) {
         super(x, y, WIDTH, HEIGHT);
         INTERACT_RANGE = GameCore.tiles_size * 3.5;
         camera = cameraMgr;
-        Sprite = LoadSave.GetSpriteAtlas("images/npc/vendedor.png");
+        Sprite = LoadSave.GetSpriteAtlas("images/npc/vendedorFoca.png");
 
         shopMenu = new ShopMenu(soundManager);
     }
@@ -102,7 +103,7 @@ public class VendedorNPC extends NPC {
                         case 2 -> {
                             dialogueManager.iniciarDialogo(new String[] {
                                     "VENDEDOR: Estou aqui sempre que precisar!"
-                            }, new BufferedImage[] { portrait }, true);
+                            }, new BufferedImage[] { portrait2 }, true);
                             state = State.IDLE;
                         }
                     }
