@@ -1,9 +1,6 @@
 # Compiled class file
 *.class
 
-# .bat compilador
-*.bat
-
 # Log file
 *.log
 

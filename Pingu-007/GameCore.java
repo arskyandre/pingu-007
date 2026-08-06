@@ -60,13 +60,15 @@ public class GameCore extends Canvas implements Runnable {
     private int fpsFrameCount = 0;
     private long fpsUpdateTimer = 0;
 
-    // para o novo ciclo de dia e noite(cores/musica)
+    private boolean musicaDeFightAtiva = true;
+
+    // pro novo ciclo de dia e noite(cores/musica)
 
     private boolean musicaDeDiaAtiva = true;
     private int lastProcessedDay = 1;
     private long updateDayNightAnteriorNanos = -1L;
 
-    private double fullDaySeconds = 240.0;
+    private double fullDaySeconds = 24.0;
     private static final double STARTING_DAY_PROGRESS = 8.0 / 24.0;
 
     private double dayProgress = STARTING_DAY_PROGRESS;
@@ -208,7 +210,7 @@ public class GameCore extends Canvas implements Runnable {
 
     private void atualizarMusicaDayNight() {
         if (!LoadSave.LEVEL_1_DATA.equals(
-                levelManager.getArquivoNivelAtual())) {
+                levelManager.getArquivoNivelAtual()) || arenaManager.existeArenaRealAtiva()) {
             return;
         }
 
@@ -239,16 +241,22 @@ public class GameCore extends Canvas implements Runnable {
 
         boolean deveTocarMusicaFight = (horaAtual >= 8.0 && horaAtual < 19.0);
 
-        if (deveTocarMusicaFight == musicaDeDiaAtiva) {
+        if (deveTocarMusicaFight == musicaDeFightAtiva) {
             return;
         }
 
         musicaDeDiaAtiva = deveTocarMusicaFight;
 
         if (deveTocarMusicaFight) {
-            alternarParaMusicaDia();
+            alternarParaMusicaFight();
         } else {
-            alternarParaMusicaNoite();
+            if (isDia()) {
+                alternarParaMusicaDia();
+                musicaDeDiaAtiva = true;
+            } else {
+                alternarParaMusicaNoite();
+                musicaDeDiaAtiva = false;
+            }
         }
     }
 
@@ -282,16 +290,30 @@ public class GameCore extends Canvas implements Runnable {
             onNovoDia(currentDay);
         }
         atualizarMusicaDayNight();
+        atualizarMusicaArena();
     }
 
     private void alternarParaMusicaDia() {
+        if (soundManager.currentSong() == SoundManager.BGM.LEVEL_1_DAY_INTRO
+                || soundManager.currentSong() == SoundManager.BGM.LEVEL_1_DAY_LOOP)
+            return;
         System.out.println("Mudou para musica de dia");
-        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP, 5.0, 0.0);
+        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP, 5000, 5.0,
+                0.0);
     }
 
     private void alternarParaMusicaNoite() {
+        if (soundManager.currentSong() == SoundManager.BGM.LEVEL_1_NIGHT_INTRO
+                || soundManager.currentSong() == SoundManager.BGM.LEVEL_1_NIGHT_LOOP)
+            return;
         System.out.println("Mudou para musica de noite");
-        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_NIGHT_INTRO, SoundManager.BGM.LEVEL_1_NIGHT_LOOP, 5.0, 0.0);
+        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_NIGHT_INTRO, SoundManager.BGM.LEVEL_1_NIGHT_LOOP, 5000, 5.0,
+                0.0);
+    }
+
+    private void alternarParaMusicaFight() {
+        System.out.println("Mudou para musica de fight");
+        soundManager.crossfadeBGM(SoundManager.BGM.ARENA_INTRO, SoundManager.BGM.ARENA_LOOP, 2500, false);
     }
 
     private void onNovoDia(int day) {
@@ -618,13 +640,17 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public SoundManager.BGM getLevel1MusicaIntro() {
-        return (dayProgress * 24 >= 8 && dayProgress * 24 <= 19) ? SoundManager.BGM.LEVEL_1_DAY_INTRO
+        return isDia() ? SoundManager.BGM.LEVEL_1_DAY_INTRO
                 : SoundManager.BGM.LEVEL_1_NIGHT_INTRO;
     }
 
     public SoundManager.BGM getLevel1MusicaLoop() {
-        return (dayProgress * 24 >= 8 && dayProgress * 24 <= 19) ? SoundManager.BGM.LEVEL_1_DAY_LOOP
+        return isDia() ? SoundManager.BGM.LEVEL_1_DAY_LOOP
                 : SoundManager.BGM.LEVEL_1_NIGHT_LOOP;
+    }
+
+    public boolean isDia() {
+        return (dayProgress * 24 >= 8 && dayProgress * 24 <= 19);
     }
 
     public void entrarCasaVendedor() {
