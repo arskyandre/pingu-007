@@ -225,9 +225,9 @@ public class GameCore extends Canvas implements Runnable {
         musicaDeDiaAtiva = deveTocarMusicaDia;
 
         if (deveTocarMusicaDia) {
-            alternarParaMusicaDia();
+            alternarParaMusicaDia(2.5);
         } else {
-            alternarParaMusicaNoite();
+            alternarParaMusicaNoite(1.0);
         }
     }
 
@@ -249,10 +249,10 @@ public class GameCore extends Canvas implements Runnable {
             alternarParaMusicaFight();
         } else {
             if (isDia()) {
-                alternarParaMusicaDia();
+                alternarParaMusicaDia(2.5);
                 musicaDeDiaAtiva = true;
             } else {
-                alternarParaMusicaNoite();
+                alternarParaMusicaNoite(1.0);
                 musicaDeDiaAtiva = false;
             }
         }
@@ -291,27 +291,28 @@ public class GameCore extends Canvas implements Runnable {
         atualizarMusicaArena();
     }
 
-    private void alternarParaMusicaDia() {
+    private void alternarParaMusicaDia(double delay) {
         if (soundManager.currentSong() == SoundManager.BGM.LEVEL_1_DAY_INTRO
                 || soundManager.currentSong() == SoundManager.BGM.LEVEL_1_DAY_LOOP)
             return;
         System.out.println("Mudou para musica de dia");
-        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP, 5000, 2.5,
+        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP, 5000, delay,
                 true);
     }
 
-    private void alternarParaMusicaNoite() {
+    private void alternarParaMusicaNoite(double delay) {
         if (soundManager.currentSong() == SoundManager.BGM.LEVEL_1_NIGHT_INTRO
                 || soundManager.currentSong() == SoundManager.BGM.LEVEL_1_NIGHT_LOOP)
             return;
         System.out.println("Mudou para musica de noite");
-        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_NIGHT_INTRO, SoundManager.BGM.LEVEL_1_NIGHT_LOOP, 5000, 0.0,
+        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_NIGHT_INTRO, SoundManager.BGM.LEVEL_1_NIGHT_LOOP, 5000,
+                delay,
                 true);
     }
 
     private void alternarParaMusicaFight() {
         System.out.println("Mudou para musica de fight");
-        soundManager.crossfadeBGM(SoundManager.BGM.ARENA_INTRO, SoundManager.BGM.ARENA_LOOP, 2500, 1.5, false);
+        soundManager.crossfadeBGM(SoundManager.BGM.ARENA_INTRO, SoundManager.BGM.ARENA_LOOP, 2000, 0.5, true);
     }
 
     private void onNovoDia(int day) {
@@ -393,6 +394,9 @@ public class GameCore extends Canvas implements Runnable {
                     soundManager.playBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP);
                     player.setShootCooldownTimer(30);
                     iniciarSequenciaIntro();
+
+                    camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
+                            getWidth(), getHeight());
                 }
                 gameState = next;
             }
@@ -550,6 +554,7 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_K) && debugSpawnCooldown <= 0) {
             double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
             double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+            soundManager.playSFX(SoundManager.SFX.KEY_SPAWN);
             itemManager.spawn(new KeyItem(mouseXWorld, mouseYWorld));
             System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
             debugSpawnCooldown = 15;
@@ -618,13 +623,13 @@ public class GameCore extends Canvas implements Runnable {
         }
 
         if (input.isKeyJustPressed(KeyEvent.VK_6)) {
-            elapsedGameSeconds = (fullDaySeconds / 24.0) * 18.5;
-            dayProgress = 18.5 / 24.0;
+            elapsedGameSeconds = (fullDaySeconds / 24.0) * 18.65;
+            dayProgress = 18.65 / 24.0;
         }
 
         if (input.isKeyJustPressed(KeyEvent.VK_5)) {
-            elapsedGameSeconds = (fullDaySeconds / 24.0) * 7.5;
-            dayProgress = 7.5 / 24.0;
+            elapsedGameSeconds = (fullDaySeconds / 24.0) * 7.65;
+            dayProgress = 7.65 / 24.0;
         }
 
         if (input.isKeyJustPressed(KeyEvent.VK_N)) {
@@ -680,7 +685,7 @@ public class GameCore extends Canvas implements Runnable {
         // tiles_size);
         // camera.focarEmRect(rect, 67, getWidth(), getHeight(), true);
         camera.focarEm(24 * 16, 13.5 * 16, 1.5); // numeros magicos
-        soundManager.crossfadeBGM(SoundManager.BGM.INSIDE_INTRO, SoundManager.BGM.INSIDE_LOOP, 2000);
+        soundManager.crossfadeBGM(SoundManager.BGM.INSIDE_INTRO, SoundManager.BGM.INSIDE_LOOP, 2000, 1.25, false);
         setDentroLoja(true);
     }
 
@@ -704,9 +709,9 @@ public class GameCore extends Canvas implements Runnable {
                 getWidth(), getHeight());
         setCinematicBorderAnimation(Renderer.BorderState.OUT);
         if (isDia()) {
-            alternarParaMusicaDia();
+            alternarParaMusicaDia(2.5);
         } else
-            alternarParaMusicaNoite();
+            alternarParaMusicaNoite(1.0);
         mapLoadCooldown = 60;
 
         salvarCheckpoint();

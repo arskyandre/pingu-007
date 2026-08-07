@@ -288,6 +288,7 @@ public class FishingManager {
             System.out.printf("encontrou a chave! spawnando em %f, %f\n", 114.3 * GameCore.tiles_size,
                     57.7 * GameCore.tiles_size);
             itemManager.spawn(new MoedaItem(targetWorldX, targetWorldY + 24, 30));
+            soundManager.playSFX(SoundManager.SFX.KEY_SPAWN);
             itemManager.spawn(new KeyItem(targetWorldX, targetWorldY + 32));
             setPlayerHasKey(true);
         }

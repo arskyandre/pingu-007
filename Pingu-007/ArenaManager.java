@@ -401,8 +401,8 @@ public class ArenaManager {
             System.out.println("=== PUZZLE LIGHTS OUT DA ARENA " + idArena + " CONCLUÍDO! ===");
             arena.concluida = true;
             setWallState(idArena, false, player);
-            // TODO: fazer a camera focar na chave
             camera.focarEm(5029 + 16, 4200 + 16, 90, false);
+            soundManager.playSFX(SoundManager.SFX.KEY_SPAWN);
             itemManager.spawn(new KeyItem(5029, 4200));
         }
     }
@@ -605,6 +605,7 @@ public class ArenaManager {
 
                     if (!chave14_15_spawnada) {
                         camera.focarEm(12839 + 16, 4870 + 16, 90, false);
+                        soundManager.playSFX(SoundManager.SFX.KEY_SPAWN);
                         itemManager.spawn(new KeyItem(12839, 4870));
                         chave14_15_spawnada = true;
                     }

@@ -16,8 +16,8 @@ public class SoundManager {
         LEVEL_1_DAY_LOOP("sound/bgm/level_1_day_loop.wav"),
         LEVEL_1_NIGHT_INTRO("sound/bgm/level_1_night_intro.wav"),
         LEVEL_1_NIGHT_LOOP("sound/bgm/level_1_night_loop.wav"),
-        ARENA_INTRO("sound/bgm/level_1_day_intro.wav"),
-        ARENA_LOOP("sound/bgm/level_1_day_loop.wav"),
+        ARENA_INTRO("sound/bgm/arena_intro.wav"),
+        ARENA_LOOP("sound/bgm/arena_loop.wav"),
         INSIDE_INTRO("sound/bgm/inside_intro.wav"),
         INSIDE_LOOP("sound/bgm/inside_loop.wav"),
         BOSS_INTRO("sound/bgm/boss_intro.wav"),
@@ -48,6 +48,7 @@ public class SoundManager {
         ARENA_ENTER("sound/sfx/arena_enter.wav", 2),
         PLAYER_DAMAGE("sound/sfx/player_damage.wav", 8),
         PLAYER_HEAL("sound/sfx/player_heal.wav", 4),
+        KEY_SPAWN("sound/sfx/key_spawn.wav",1),
         // GET_AMMO("sound/sfx/get_ammo.wav", 4),
         LINE_CAST("sound/sfx/line_cast.wav", 3),
         SPLASH("sound/sfx/splash.wav", 3),
@@ -223,7 +224,7 @@ public class SoundManager {
     private final BGMPlayer bgmPlayer = new BGMPlayer();
     private BGM currentTrack = null;
     // private float musicVolume = 0f;
-    private float musicVolume = 0.35f;
+    private float musicVolume = 0.45f;
     private float sfxVolume = 0.5f;
 
     private Thread dialogueThread;
