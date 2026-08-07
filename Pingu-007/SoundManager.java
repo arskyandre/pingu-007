@@ -330,27 +330,74 @@ public class SoundManager {
     }
 
     public void crossfadeBGM(BGM track, long durationMs) {
-        currentTrack = track;
-        bgmPlayer.crossfadeTo(track.path, musicVolume, durationMs, true);
+        crossfadeBGM(track, durationMs, true);
     }
 
     public void crossfadeBGM(BGM track, long durationMs, boolean fade_in) {
         currentTrack = track;
-        bgmPlayer.crossfadeTo(track.path, musicVolume, durationMs, fade_in);
+        bgmPlayer.crossfadeTo(
+                track.path,
+                musicVolume,
+                durationMs,
+                fade_in);
     }
 
     public void crossfadeBGM(BGM track, double delay) {
-        crossfadeBGM(track, 1000, delay);
+        crossfadeBGM(track, 1000, delay, false);
     }
 
-    public void crossfadeBGM(BGM track, long durationMs, double delay, double timestampInicial) {
-        currentTrack = track;
-        bgmPlayer.crossfadeTo(track.path, musicVolume, durationMs, delay, timestampInicial);
+    public void crossfadeBGM(BGM track, double delay, boolean fade_in) {
+        crossfadeBGM(track, 1000, delay, fade_in);
     }
 
     public void crossfadeBGM(BGM track, long durationMs, double delay) {
+        crossfadeBGM(track, durationMs, delay, false);
+    }
+
+    public void crossfadeBGM(
+            BGM track,
+            long durationMs,
+            double delay,
+            boolean fade_in) {
+
         currentTrack = track;
-        bgmPlayer.crossfadeTo(track.path, musicVolume, durationMs, delay, 0.0);
+        bgmPlayer.crossfadeTo(
+                track.path,
+                musicVolume,
+                durationMs,
+                delay,
+                fade_in);
+    }
+
+    public void crossfadeBGM(
+            BGM track,
+            long durationMs,
+            double delay,
+            double timestampInicial) {
+
+        crossfadeBGM(
+                track,
+                durationMs,
+                delay,
+                false,
+                timestampInicial);
+    }
+
+    public void crossfadeBGM(
+            BGM track,
+            long durationMs,
+            double delay,
+            boolean fade_in,
+            double timestampInicial) {
+
+        currentTrack = track;
+        bgmPlayer.crossfadeTo(
+                track.path,
+                musicVolume,
+                durationMs,
+                delay,
+                fade_in,
+                timestampInicial);
     }
 
     public void crossfadeBGM(BGM intro, BGM loop) {
@@ -362,27 +409,112 @@ public class SoundManager {
     }
 
     public void crossfadeBGM(BGM intro, BGM loop, long durationMs) {
-        currentTrack = loop;
-        bgmPlayer.crossfadeToIntroThenLoop(intro.path, loop.path, musicVolume, durationMs, true);
+        crossfadeBGM(intro, loop, durationMs, true);
     }
 
-    public void crossfadeBGM(BGM intro, BGM loop, long durationMs, boolean fade_in) {
-        currentTrack = loop;
-        bgmPlayer.crossfadeToIntroThenLoop(intro.path, loop.path, musicVolume, durationMs, fade_in);
-    }
+    public void crossfadeBGM(
+            BGM intro,
+            BGM loop,
+            long durationMs,
+            boolean fade_in) {
 
-    public void crossfadeBGM(BGM intro, BGM loop, double delay, double timestampInicial) {
-        crossfadeBGM(intro, loop, 1000, delay, timestampInicial);
-    }
-
-    public void crossfadeBGM(BGM intro, BGM loop, long durationMs, double delay, double timestampInicial) {
         currentTrack = loop;
         bgmPlayer.crossfadeToIntroThenLoop(
                 intro.path,
                 loop.path,
                 musicVolume,
                 durationMs,
-                delay, timestampInicial);
+                fade_in);
+    }
+
+    public void crossfadeBGM(BGM intro, BGM loop, double delay) {
+        crossfadeBGM(intro, loop, 1000, delay, false);
+    }
+
+    public void crossfadeBGM(
+            BGM intro,
+            BGM loop,
+            double delay,
+            boolean fade_in) {
+
+        crossfadeBGM(intro, loop, 1000, delay, fade_in);
+    }
+
+    public void crossfadeBGM(
+            BGM intro,
+            BGM loop,
+            long durationMs,
+            double delay) {
+
+        crossfadeBGM(intro, loop, durationMs, delay, false);
+    }
+
+    public void crossfadeBGM(
+            BGM intro,
+            BGM loop,
+            long durationMs,
+            double delay,
+            boolean fade_in) {
+
+        currentTrack = loop;
+        bgmPlayer.crossfadeToIntroThenLoop(
+                intro.path,
+                loop.path,
+                musicVolume,
+                durationMs,
+                delay,
+                fade_in);
+    }
+
+    public void crossfadeBGM(
+            BGM intro,
+            BGM loop,
+            double delay,
+            double timestampInicial) {
+
+        crossfadeBGM(
+                intro,
+                loop,
+                1000,
+                delay,
+                false,
+                timestampInicial);
+    }
+
+    public void crossfadeBGM(
+            BGM intro,
+            BGM loop,
+            long durationMs,
+            double delay,
+            double timestampInicial) {
+
+        crossfadeBGM(
+                intro,
+                loop,
+                durationMs,
+                delay,
+                false,
+                timestampInicial);
+    }
+
+    public void crossfadeBGM(
+            BGM intro,
+            BGM loop,
+            long durationMs,
+            double delay,
+            boolean fade_in,
+            double timestampInicial) {
+
+        bgmPlayer.crossfadeToIntroThenLoop(
+                intro.path,
+                loop.path,
+                musicVolume,
+                durationMs,
+                delay,
+                fade_in,
+                timestampInicial);
+
+        currentTrack = bgmPlayer.isPlaying() ? loop : null;
     }
 
     public void stopMusic() {

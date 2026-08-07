@@ -60,7 +60,7 @@ public class GameCore extends Canvas implements Runnable {
     private int fpsFrameCount = 0;
     private long fpsUpdateTimer = 0;
 
-    private boolean musicaDeFightAtiva = true;
+    private boolean musicaDeFightAtiva = false;
 
     // pro novo ciclo de dia e noite(cores/musica)
 
@@ -68,7 +68,7 @@ public class GameCore extends Canvas implements Runnable {
     private int lastProcessedDay = 1;
     private long updateDayNightAnteriorNanos = -1L;
 
-    private double fullDaySeconds = 24.0;
+    private double fullDaySeconds = 240.0;
     private static final double STARTING_DAY_PROGRESS = 8.0 / 24.0;
 
     private double dayProgress = STARTING_DAY_PROGRESS;
@@ -237,15 +237,13 @@ public class GameCore extends Canvas implements Runnable {
             return;
         }
 
-        double horaAtual = dayProgress * 24.0;
-
-        boolean deveTocarMusicaFight = (horaAtual >= 8.0 && horaAtual < 19.0);
+        boolean deveTocarMusicaFight = arenaManager.existeArenaRealAtiva();
 
         if (deveTocarMusicaFight == musicaDeFightAtiva) {
             return;
         }
 
-        musicaDeDiaAtiva = deveTocarMusicaFight;
+        musicaDeFightAtiva = deveTocarMusicaFight;
 
         if (deveTocarMusicaFight) {
             alternarParaMusicaFight();
@@ -298,8 +296,8 @@ public class GameCore extends Canvas implements Runnable {
                 || soundManager.currentSong() == SoundManager.BGM.LEVEL_1_DAY_LOOP)
             return;
         System.out.println("Mudou para musica de dia");
-        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP, 5000, 5.0,
-                0.0);
+        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP, 5000, 0.0,
+                true);
     }
 
     private void alternarParaMusicaNoite() {
@@ -307,13 +305,13 @@ public class GameCore extends Canvas implements Runnable {
                 || soundManager.currentSong() == SoundManager.BGM.LEVEL_1_NIGHT_LOOP)
             return;
         System.out.println("Mudou para musica de noite");
-        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_NIGHT_INTRO, SoundManager.BGM.LEVEL_1_NIGHT_LOOP, 5000, 5.0,
-                0.0);
+        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_NIGHT_INTRO, SoundManager.BGM.LEVEL_1_NIGHT_LOOP, 5000, 0.0,
+                true);
     }
 
     private void alternarParaMusicaFight() {
         System.out.println("Mudou para musica de fight");
-        soundManager.crossfadeBGM(SoundManager.BGM.ARENA_INTRO, SoundManager.BGM.ARENA_LOOP, 2500, false);
+        soundManager.crossfadeBGM(SoundManager.BGM.ARENA_INTRO, SoundManager.BGM.ARENA_LOOP, 2500, 1.5, false);
     }
 
     private void onNovoDia(int day) {
@@ -650,7 +648,7 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public boolean isDia() {
-        return (dayProgress * 24 >= 8 && dayProgress * 24 <= 19);
+        return (dayProgress * 24.0 >= 8.0 && dayProgress * 24.0 <= 19.0);
     }
 
     public void entrarCasaVendedor() {
@@ -695,7 +693,10 @@ public class GameCore extends Canvas implements Runnable {
         camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
                 getWidth(), getHeight());
         setCinematicBorderAnimation(Renderer.BorderState.OUT);
-        soundManager.crossfadeBGM(getLevel1MusicaLoop(), 2000, true);
+        if (isDia()) {
+            alternarParaMusicaDia();
+        } else
+            alternarParaMusicaNoite();
         mapLoadCooldown = 60;
 
         salvarCheckpoint();
@@ -903,7 +904,8 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void resetarJogoCompleto() {
-
+        musicaDeDiaAtiva = true;
+        musicaDeFightAtiva = false;
         updateDayNightAnteriorNanos = -1L;
         elapsedGameSeconds = STARTING_DAY_PROGRESS * fullDaySeconds;
         dayProgress = STARTING_DAY_PROGRESS;
