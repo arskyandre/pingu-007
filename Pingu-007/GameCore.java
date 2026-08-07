@@ -68,7 +68,7 @@ public class GameCore extends Canvas implements Runnable {
     private int lastProcessedDay = 1;
     private long updateDayNightAnteriorNanos = -1L;
 
-    private double fullDaySeconds = 240.0;
+    private double fullDaySeconds = 360.0;
     private static final double STARTING_DAY_PROGRESS = 8.0 / 24.0;
 
     private double dayProgress = STARTING_DAY_PROGRESS;
@@ -296,7 +296,7 @@ public class GameCore extends Canvas implements Runnable {
                 || soundManager.currentSong() == SoundManager.BGM.LEVEL_1_DAY_LOOP)
             return;
         System.out.println("Mudou para musica de dia");
-        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP, 5000, 0.0,
+        soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP, 5000, 2.5,
                 true);
     }
 
@@ -617,10 +617,16 @@ public class GameCore extends Canvas implements Runnable {
             }
         }
 
-        if (input.isKeyJustPressed(KeyEvent.VK_5)) {
-            elapsedGameSeconds = (fullDaySeconds / 24.0) * 18.75;
-            dayProgress = 18.75 / 24.0;
+        if (input.isKeyJustPressed(KeyEvent.VK_6)) {
+            elapsedGameSeconds = (fullDaySeconds / 24.0) * 18.5;
+            dayProgress = 18.5 / 24.0;
         }
+
+        if (input.isKeyJustPressed(KeyEvent.VK_5)) {
+            elapsedGameSeconds = (fullDaySeconds / 24.0) * 7.5;
+            dayProgress = 7.5 / 24.0;
+        }
+
         if (input.isKeyJustPressed(KeyEvent.VK_N)) {
             player.no_clip = !player.no_clip;
             if (player.no_clip) {
@@ -983,11 +989,12 @@ public class GameCore extends Canvas implements Runnable {
                         mainMenu.render(g2, getWidth(), getHeight());
                     }
                     case PLAYING -> {
+
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
-                                cutsceneManager, dayProgress, delta,
+                                cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                 true, true);
                         drawLateHudElements(g2, delta);
                         if (showFpsCounter) {
@@ -1000,7 +1007,7 @@ public class GameCore extends Canvas implements Runnable {
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
-                                cutsceneManager, dayProgress, delta,
+                                cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                 false, false);
                         // renderizar os elementos de venda por cima
                         ShopMenu shop = getShopMenu();
@@ -1014,7 +1021,7 @@ public class GameCore extends Canvas implements Runnable {
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
-                                cutsceneManager, dayProgress, delta,
+                                cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                 true, false);
 
                         gameOverScreen.render(g2, getWidth(), getHeight());
@@ -1025,7 +1032,7 @@ public class GameCore extends Canvas implements Runnable {
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
-                                cutsceneManager, dayProgress, delta,
+                                cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                 true, false);
 
                         pauseMenu.render(g2, getWidth(), getHeight());
@@ -1039,7 +1046,7 @@ public class GameCore extends Canvas implements Runnable {
                                     getWidth(), getHeight(),
                                     levelManager, bulletmanager, itemManager,
                                     enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
-                                    cutsceneManager, dayProgress, delta,
+                                    cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                     true, false);
 
                             drawLateHudElements(g2, delta);

@@ -134,13 +134,6 @@ public class Renderer {
 
     private void drawDayNightOverlay(Graphics2D g2, double dayProgress, int telaLargura, int telaAltura) {
 
-        if (modoDebug) {
-            int totalMinutes = (int) (dayProgress * 24.0 * 60.0) % 1440;
-
-            int hour = totalMinutes / 60;
-            int minute = totalMinutes % 60;
-            debugDrawHorario(g2, hour, minute, telaLargura, telaAltura);
-        }
         Color overlayColor = getDayNightOverlayColor(dayProgress);
 
         if (overlayColor.getAlpha() <= 0) {
@@ -179,7 +172,8 @@ public class Renderer {
     public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura,
             int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager,
             EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager,
-            FishingManager fishingManager, NPCManager npcManager, CutsceneManager cutsceneManager, double dayProgress,
+            FishingManager fishingManager, NPCManager npcManager, CutsceneManager cutsceneManager,
+            boolean renderizarDayNightOverlay, double dayProgress,
             double delta,
             boolean animateBorder, boolean mouseCircle) {
 
@@ -309,7 +303,8 @@ public class Renderer {
             }
         }
         int cinematicBorder = getOffset();
-        drawDayNightOverlay(g2, dayProgress, telaLargura, telaAltura);
+        if (renderizarDayNightOverlay)
+            drawDayNightOverlay(g2, dayProgress, telaLargura, telaAltura);
         HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager, delta, (int) cinematicBorder);
         fishingManager.render(g2, camera, telaLargura, telaAltura, delta);
         double mouseCircleTarget = mouseCircle ? 1.0 : 0.0;
@@ -335,6 +330,14 @@ public class Renderer {
             camera.setLetterboxAtivo(false);
 
         ToastNotifications.draw(g2, telaLargura, telaAltura);
+
+        // if (modoDebug) {
+
+        int totalMinutes = (int) (dayProgress * 24.0 * 60.0) % 1440;
+        int hour = totalMinutes / 60;
+        int minute = totalMinutes % 60;
+        debugDrawHorario(g2, hour, minute, telaLargura, telaAltura);
+        // }
     }
 
     public void setCinematicBorderAnimation(BorderState state) {
