@@ -617,6 +617,10 @@ public class GameCore extends Canvas implements Runnable {
             }
         }
 
+        if (input.isKeyJustPressed(KeyEvent.VK_5)) {
+            elapsedGameSeconds = (fullDaySeconds / 24.0) * 18.75;
+            dayProgress = 18.75 / 24.0;
+        }
         if (input.isKeyJustPressed(KeyEvent.VK_N)) {
             player.no_clip = !player.no_clip;
             if (player.no_clip) {
