@@ -97,7 +97,7 @@ public class FishingManager {
 
         repositionButton(camera, screenWidth, screenHeight);
         boolean triggered = fishingButton.update(input) == MenuButton.CLICKED
-                || input.isKeyJustPressed(KeyEvent.VK_E);
+                || isPullLinePressed(input);
 
         switch (state) {
             case WAITING ->
@@ -189,15 +189,15 @@ public class FishingManager {
     }
 
     private void updateWaiting(InputManager input) {
-        if (input.isMouseButtonJustPressed(MouseEvent.BUTTON3) || input.isKeyJustPressed(KeyEvent.VK_E)) {
+        if (input.isMouseButtonJustPressed(MouseEvent.BUTTON3) || isPullLinePressed(input)) {
             cancelFishing();
             return;
         }
         waitTimer--;
         if (waitTimer <= 0) {
             if (firstFlag) {
-                ToastNotifications
-                        .RequestNotification("Aperte E repetidamente para ajudar o Pingu a puxar o peixe!");
+                ToastNotifications.RequestNotification(
+                        "Aperte E ou Y no controle repetidamente para ajudar o Pingu a puxar o peixe!");
             }
             state = State.BITING;
             biteTimer = BITE_WINDOW;
@@ -237,6 +237,11 @@ public class FishingManager {
         if (biteTimer <= 0) {
             fishEscaped();
         }
+    }
+
+    private boolean isPullLinePressed(InputManager input) {
+        return input.isKeyJustPressed(KeyEvent.VK_E)
+                || input.isButtonJustPressed(InputManager.GamepadButton.Y);
     }
 
     private void fishCaught() {
@@ -372,7 +377,7 @@ public class FishingManager {
         // Texto indicativo
         g2.setFont(MenuButton.pixelFont.deriveFont(hard ? 10f : 12f));
         FontMetrics fm = g2.getFontMetrics();
-        String texto = "[E]";
+        String texto = "[E] / [Y]";
         int tx = centerX - fm.stringWidth(texto) / 2;
         int ty = barY - 6;
 
