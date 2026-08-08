@@ -39,7 +39,8 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
     private ControllerState estadoControle;
     private ControllerState estadoControlePrev;
 
-    private double deadzone = 0.15;
+    private double deadzoneEsquerda = 0.2;
+    private double deadzoneDireita = 0.4;
     private int mouseX = 0;
     private int mouseY = 0;
 
@@ -91,17 +92,14 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
         controllerManager.update();
         estadoControle = controllerManager.getState(GAMEPAD_INDEX);
 
-        if (isButtonJustPressed(GamepadButton.X))
-            System.out.println("TESTE: Apertou X");
-
         boolean estaConectado = estadoControle != null && estadoControle.isConnected;
 
         if (!estavaConectado && estaConectado) {
-            System.out.println("Controle conectado.");
+            ToastNotifications.RequestNotification("Controle conectado.");
         }
 
         if (estavaConectado && !estaConectado) {
-            System.out.println("Controle desconectado.");
+            ToastNotifications.RequestNotification("Controle desconectado.", 2.0);
         }
     }
 
@@ -231,7 +229,7 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
             return new Vetor2D(0, 0);
         }
 
-        return aplicarDeadzoneRadial(estadoControle.leftStickX, -estadoControle.leftStickY);
+        return aplicarDeadzoneRadialEsquerda(estadoControle.leftStickX, -estadoControle.leftStickY);
     }
 
     public Vetor2D getRightStick() {
@@ -239,33 +237,59 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
             return new Vetor2D(0, 0);
         }
 
-        return aplicarDeadzoneRadial(estadoControle.rightStickX, -estadoControle.rightStickY);
+        return aplicarDeadzoneRadialDireita(estadoControle.rightStickX, -estadoControle.rightStickY);
     }
 
-    private Vetor2D aplicarDeadzoneRadial(double x, double y) {
+    private Vetor2D aplicarDeadzoneRadialEsquerda(double x, double y) {
         double magnitude = Math.sqrt(x * x + y * y);
 
-        if (magnitude <= deadzone) {
+        if (magnitude <= deadzoneEsquerda) {
             return new Vetor2D(0, 0);
         }
 
         double magnitudeLimitada = Math.min(magnitude, 1.0);
-        double magnitudeRemapeada = (magnitudeLimitada - deadzone) / (1.0 - deadzone);
+        double magnitudeRemapeada = (magnitudeLimitada - deadzoneEsquerda) / (1.0 - deadzoneEsquerda);
         double escala = magnitudeRemapeada / magnitude;
 
         return new Vetor2D(x * escala, y * escala);
     }
 
-    public void setDeadzone(double deadzone) {
+    private Vetor2D aplicarDeadzoneRadialDireita(double x, double y) {
+        double magnitude = Math.sqrt(x * x + y * y);
+
+        if (magnitude <= deadzoneDireita) {
+            return new Vetor2D(0, 0);
+        }
+
+        double magnitudeLimitada = Math.min(magnitude, 1.0);
+        double magnitudeRemapeada = (magnitudeLimitada - deadzoneDireita) / (1.0 - deadzoneDireita);
+        double escala = magnitudeRemapeada / magnitude;
+
+        return new Vetor2D(x * escala, y * escala);
+    }
+
+    public void setDeadzoneEsquerda(double deadzone) {
         if (deadzone < 0.0 || deadzone >= 1.0) {
             throw new IllegalArgumentException("A deadzone deve estar no intervalo [0.0, 1.0).");
         }
 
-        this.deadzone = deadzone;
+        this.deadzoneEsquerda = deadzone;
     }
 
-    public double getDeadzone() {
-        return deadzone;
+    public void setDeadzoneDireita(double deadzone) {
+        if (deadzone < 0.0 || deadzone >= 1.0) {
+            throw new IllegalArgumentException("A deadzone deve estar no intervalo [0.0, 1.0).");
+        }
+
+        this.deadzoneDireita = deadzone;
+    }
+
+    public double getDeadzoneEsquerda() {
+        return deadzoneEsquerda;
+    }
+
+    public double getDeadzoneDireita() {
+        return deadzoneDireita;
     }
 
     public boolean isControllerConnected() {

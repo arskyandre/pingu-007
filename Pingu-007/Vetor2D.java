@@ -17,8 +17,12 @@ public class Vetor2D {
         y /= magnitude;
     }
 
+    public double magnitude() {
+        return Math.sqrt(x * x + y * y);
+    }
+
     public Vetor2D normalized() {
-        double magnitude = Math.sqrt(x * x + y * y);
+        double magnitude = magnitude();
 
         if (magnitude == 0) {
             return new Vetor2D(0, 0);
@@ -27,5 +31,19 @@ public class Vetor2D {
         double normalized_x = x / magnitude;
         double normalized_y = y / magnitude;
         return new Vetor2D(normalized_x, normalized_y);
+    }
+
+    public Vetor2D partiallyNormalized() {
+        double magnitude = magnitude();
+
+        if (magnitude == 0) {
+            return new Vetor2D(0, 0);
+        }
+
+        if (magnitude > 1.0) {
+            return normalized();
+        }
+
+        return new Vetor2D(x, y);
     }
 }

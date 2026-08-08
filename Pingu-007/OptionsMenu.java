@@ -171,7 +171,7 @@ public class OptionsMenu {
             showFpsButton.setIcon(IconIndex.RED_X);
         }
 
-        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE)) {
+        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE) || input.isButtonJustPressed(InputManager.GamepadButton.B)) {
             return returnTo;
         }
 

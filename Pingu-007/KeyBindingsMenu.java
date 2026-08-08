@@ -45,7 +45,7 @@ public class KeyBindingsMenu {
     public GameState update(InputManager input, int width, int height) {
         repositionElements(width, height);
 
-        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE))
+        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE) || input.isButtonJustPressed(InputManager.GamepadButton.B))
             return returnTo;
 
         if (backBtn.update(input) == MenuButton.CLICKED) {

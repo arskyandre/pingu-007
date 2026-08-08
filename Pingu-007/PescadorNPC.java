@@ -85,7 +85,8 @@ public class PescadorNPC extends NPC {
         proximo = playerNearby(player);
         switch (state) {
             case IDLE -> {
-                if (proximo && input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)) {
+                if (proximo && (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)
+                        || input.isButtonJustPressed(InputManager.GamepadButton.Y))) {
                     if (laEle || player.hasFishingRod()) {
                         if (FishingManager.isPlayerHasKey())
                             dialogueManager.iniciarDialogo(dialogo2_hasKey, DialogueCatalogo.PescadorFala2_hasKey,

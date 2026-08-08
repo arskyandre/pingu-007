@@ -33,6 +33,8 @@ public class Player extends Entity {
     private final double controleDash = 0.50;
     private double dashDirX = 0;
     private double dashDirY = 0;
+    private double ultimaDirecaoMovimentoX = 0;
+    private double ultimaDirecaoMovimentoY = 0;
 
     private int totalEnemyCount = 0;
     private int currentEnemyCount = 0;
@@ -363,16 +365,18 @@ public class Player extends Entity {
                 penteZeroTimerActive = false;
             }
         }
-        
+
         if (!blockInputs) {
             Vetor2D analogicoEsquerdo = input.getLeftStick();
             Vetor2D analogicoDireito = input.getRightStick();
             boolean controleAtivo = input.isControllerActive();
+            boolean mouseMiraAtiva = camera.isMouseMiraAtiva();
 
             if (controleAtivo) {
-
-                velX += aceleracao * controleAtual * analogicoEsquerdo.x;
-                velY += aceleracao * controleAtual * analogicoEsquerdo.y;
+                Vetor2D movimento = analogicoEsquerdo.partiallyNormalized();
+                registrarUltimaDirecaoMovimento(movimento);
+                velX += aceleracao * controleAtual * movimento.x;
+                velY += aceleracao * controleAtual * movimento.y;
 
                 if (analogicoEsquerdo.x > 0) {
                     dirX = 1;
@@ -433,7 +437,8 @@ public class Player extends Entity {
                     }
                 }
 
-                if (input.isButtonJustPressed(InputManager.GamepadButton.Y) && hasShotgun && changeGunCooldownTimer == 0) {
+                if (input.isButtonJustPressed(InputManager.GamepadButton.Y) && hasShotgun
+                        && changeGunCooldownTimer == 0) {
                     if (getGunType() == Player.GunType.SHOTGUN) {
                         setGunType(Player.GunType.PISTOL);
                         if (ToastNotifications.getNotifAtual() != null
@@ -461,7 +466,8 @@ public class Player extends Entity {
                     changeGunCooldownTimer = changeGunCooldown;
                 }
 
-                if (input.isButtonPressed(InputManager.GamepadButton.X) && !reloading && pente < maxpente && municao > 0) {
+                if (input.isButtonPressed(InputManager.GamepadButton.X) && !reloading && pente < maxpente
+                        && municao > 0) {
                     reloading = true;
                     reloadCooldownTimer = (fasterReload) ? fasterReloadCooldown : defaultReloadCooldown;
                     penteZeroTimerActive = false;
@@ -474,20 +480,7 @@ public class Player extends Entity {
 
                 if (input.isButtonPressed(InputManager.GamepadButton.A) && podeDash && !emDash) {
                     if (analogicoEsquerdo.x != 0 || analogicoEsquerdo.y != 0) {
-                        Vetor2D direcaoDash = analogicoEsquerdo.normalized();
-
-                        velX += direcaoDash.x * dashForca;
-                        velY += direcaoDash.y * dashForca;
-
-                        dashDirX = direcaoDash.x;
-                        dashDirY = direcaoDash.y;
-
-                        podeDash = false;
-                        emDash = true;
-                        this.isAirborne = true;
-
-                        dashCooldownTimer = dashCooldown;
-                        dashDuracaoTimer = dashDuracao;
+                        aplicarDashDirecional(analogicoEsquerdo.partiallyNormalized());
                     }
                 }
 
@@ -495,14 +488,15 @@ public class Player extends Entity {
             } else {
                 boolean andaX = false;
                 boolean andaY = false;
+                Vetor2D movimento = new Vetor2D(0, 0);
 
                 if (input.isKeyPressed(KeyEvent.VK_D)) {
-                    velX += aceleracao * controleAtual;
+                    movimento.x += 1;
                     dirX = 1;
                     andaX = true;
                 }
                 if (input.isKeyPressed(KeyEvent.VK_A)) {
-                    velX -= aceleracao * controleAtual;
+                    movimento.x -= 1;
                     dirX = -1;
                     andaX = true;
                 }
@@ -511,12 +505,12 @@ public class Player extends Entity {
                 }
 
                 if (input.isKeyPressed(KeyEvent.VK_S)) {
-                    velY += aceleracao * controleAtual;
+                    movimento.y += 1;
                     dirY = 1;
                     andaY = true;
                 }
                 if (input.isKeyPressed(KeyEvent.VK_W)) {
-                    velY -= aceleracao * controleAtual;
+                    movimento.y -= 1;
                     dirY = -1;
                     andaY = true;
                 }
@@ -524,42 +518,49 @@ public class Player extends Entity {
                     dirY = 0;
                 }
 
-                double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-                double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+                Vetor2D movimentoNormalizado = movimento.partiallyNormalized();
+                registrarUltimaDirecaoMovimento(movimentoNormalizado);
+                velX += aceleracao * controleAtual * movimentoNormalizado.x;
+                velY += aceleracao * controleAtual * movimentoNormalizado.y;
 
-                if (input.isMouseButtonPressed(MouseEvent.BUTTON1)) {
-                    if (shootCooldownTimer == 0 && pente > 0) {
-                        double centerX = x + largura / 2.0;
-                        double centerY = y + altura / 2.0;
-                        double dirToMouseX = mouseXWorld - centerX;
-                        double dirToMouseY = mouseYWorld - centerY;
-                        tiroTimer = tiroTimerTime;
+                if (mouseMiraAtiva) {
+                    double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+                    double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
 
-                        switch (gunType) {
-                            case PISTOL -> {
-                                bulletmanager.shoot(centerX, centerY, dirToMouseX, dirToMouseY, BulletOwner.PLAYER);
-                                soundManager.playGunshot();
-                                shootCooldownTimer = pistolShootCooldown;
+                    if (input.isMouseButtonPressed(MouseEvent.BUTTON1)) {
+                        if (shootCooldownTimer == 0 && pente > 0) {
+                            double centerX = x + largura / 2.0;
+                            double centerY = y + altura / 2.0;
+                            double dirToMouseX = mouseXWorld - centerX;
+                            double dirToMouseY = mouseYWorld - centerY;
+                            tiroTimer = tiroTimerTime;
+
+                            switch (gunType) {
+                                case PISTOL -> {
+                                    bulletmanager.shoot(centerX, centerY, dirToMouseX, dirToMouseY, BulletOwner.PLAYER);
+                                    soundManager.playGunshot();
+                                    shootCooldownTimer = pistolShootCooldown;
+                                }
+                                case SHOTGUN -> {
+                                    double anguloBase = Math.atan2(dirToMouseY, dirToMouseX);
+                                    double angulo1 = anguloBase;
+                                    double angulo2 = anguloBase - Math.toRadians(15);
+                                    double angulo3 = anguloBase + Math.toRadians(15);
+
+                                    bulletmanager.shoot(centerX, centerY, Math.cos(angulo1), Math.sin(angulo1),
+                                            BulletOwner.PLAYER, true);
+                                    bulletmanager.shoot(centerX, centerY, Math.cos(angulo2), Math.sin(angulo2),
+                                            BulletOwner.PLAYER, true);
+                                    bulletmanager.shoot(centerX, centerY, Math.cos(angulo3), Math.sin(angulo3),
+                                            BulletOwner.PLAYER, true);
+
+                                    soundManager.playSFX(SoundManager.SFX.EXPLOSION);
+                                    shootCooldownTimer = shotgunShootCooldown;
+                                }
                             }
-                            case SHOTGUN -> {
-                                double anguloBase = Math.atan2(dirToMouseY, dirToMouseX);
-                                double angulo1 = anguloBase;
-                                double angulo2 = anguloBase - Math.toRadians(15);
-                                double angulo3 = anguloBase + Math.toRadians(15);
 
-                                bulletmanager.shoot(centerX, centerY, Math.cos(angulo1), Math.sin(angulo1),
-                                        BulletOwner.PLAYER, true);
-                                bulletmanager.shoot(centerX, centerY, Math.cos(angulo2), Math.sin(angulo2),
-                                        BulletOwner.PLAYER, true);
-                                bulletmanager.shoot(centerX, centerY, Math.cos(angulo3), Math.sin(angulo3),
-                                        BulletOwner.PLAYER, true);
-
-                                soundManager.playSFX(SoundManager.SFX.EXPLOSION);
-                                shootCooldownTimer = shotgunShootCooldown;
-                            }
+                            pente--;
                         }
-
-                        pente--;
                     }
                 }
 
@@ -615,26 +616,16 @@ public class Player extends Entity {
 
                 if (input.isKeyPressed(KeyEvent.VK_SPACE) && podeDash && !emDash) {
                     if (dirX != 0 || dirY != 0) {
-                        double tamanho = Math.sqrt(dirX * dirX + dirY * dirY);
-                        dirX /= tamanho;
-                        dirY /= tamanho;
-
-                        velX += dirX * dashForca;
-                        velY += dirY * dashForca;
-
-                        dashDirX = dirX;
-                        dashDirY = dirY;
-
-                        podeDash = false;
-                        emDash = true;
-                        this.isAirborne = true;
-
-                        dashCooldownTimer = dashCooldown;
-                        dashDuracaoTimer = dashDuracao;
+                        Vetor2D direcaoMovimento = movimento.partiallyNormalized();
+                        aplicarDashDirecional(direcaoMovimento);
                     }
                 }
 
-                updatePlayerDirection(mouseXWorld, mouseYWorld);
+                if (mouseMiraAtiva) {
+                    double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
+                    double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+                    updatePlayerDirection(mouseXWorld, mouseYWorld);
+                }
                 updateFishing(input, camera, enemies);
             }
         }
@@ -696,6 +687,7 @@ public class Player extends Entity {
         Vetor2D analogicoEsquerdo = input.getLeftStick();
         Vetor2D analogicoDireito = input.getRightStick();
         boolean controleAtivo = input.isControllerActive();
+        boolean mouseMiraAtiva = camera.isMouseMiraAtiva();
         boolean pescar = controleAtivo
                 ? input.isButtonJustPressed(InputManager.GamepadButton.LT)
                 : input.isMouseButtonJustPressed(MouseEvent.BUTTON3);
@@ -718,7 +710,7 @@ public class Player extends Entity {
                 double alvoX = x + largura / 2.0 + direcaoX * distanciaMira;
                 double alvoY = y + altura / 2.0 + direcaoY * distanciaMira;
                 fishingBobber.cast(this, soundManager, alvoX, alvoY);
-            } else {
+            } else if (mouseMiraAtiva) {
                 double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
                 double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
                 fishingBobber.cast(this, soundManager, mouseXWorld, mouseYWorld);
@@ -1045,7 +1037,58 @@ public class Player extends Entity {
     }
 
     public Boolean isMoving() {
-        return (velX > 0.2 || velX < -0.2) || (velY > 0.2 || velY < -0.2);
+        return Math.hypot(velX, velY) > 0.2;
+    }
+
+    private void aplicarDashDirecional(Vetor2D direcaoMovimento) {
+        double absX = Math.abs(direcaoMovimento.x);
+        double absY = Math.abs(direcaoMovimento.y);
+
+        if (absX == 0.0 && absY == 0.0) {
+            return;
+        }
+
+        double referenciaX = ultimaDirecaoMovimentoX;
+        double referenciaY = ultimaDirecaoMovimentoY;
+
+        if (Math.abs(absX - absY) < 0.0001) {
+            if (Math.abs(referenciaX) >= Math.abs(referenciaY)) {
+                dashDirX = Math.signum(referenciaX != 0.0 ? referenciaX : direcaoMovimento.x);
+                dashDirY = 0;
+                velX += dashDirX * dashForca;
+            } else {
+                dashDirX = 0;
+                dashDirY = Math.signum(referenciaY != 0.0 ? referenciaY : direcaoMovimento.y);
+                velY += dashDirY * dashForca;
+            }
+        } else if (absX > absY) {
+            dashDirX = Math.signum(direcaoMovimento.x);
+            dashDirY = 0;
+            velX += dashDirX * dashForca;
+        } else {
+            dashDirX = 0;
+            dashDirY = Math.signum(direcaoMovimento.y);
+            velY += dashDirY * dashForca;
+        }
+
+        podeDash = false;
+        emDash = true;
+        this.isAirborne = true;
+
+        dashCooldownTimer = dashCooldown;
+        dashDuracaoTimer = dashDuracao;
+    }
+
+    private void registrarUltimaDirecaoMovimento(Vetor2D direcaoMovimento) {
+        if (direcaoMovimento == null) {
+            return;
+        }
+
+        if (direcaoMovimento.x != 0.0 || direcaoMovimento.y != 0.0) {
+            Vetor2D normalizada = direcaoMovimento.normalized();
+            ultimaDirecaoMovimentoX = normalizada.x;
+            ultimaDirecaoMovimentoY = normalizada.y;
+        }
     }
 
     public boolean isCheckpointSolicitado() {

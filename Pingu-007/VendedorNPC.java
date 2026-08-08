@@ -116,7 +116,8 @@ public class VendedorNPC extends NPC {
         proximo = playerNearby(player);
         switch (state) {
             case IDLE -> {
-                if (proximo && input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)) {
+                if (proximo && (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)
+                        || input.isButtonJustPressed(InputManager.GamepadButton.Y))) {
                     if (Player.getDesbloqueouRecompensa()) {
 
                         loopInteracao("VENDEDOR: E aí, Pingu? O que deseja?", player, dialogueManager, soundManager);

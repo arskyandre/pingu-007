@@ -12,9 +12,9 @@ public class GameCore extends Canvas implements Runnable {
 
     // VARIÁVEL DO FPS CAP (0 para ilimitado)
     public int targetFps = 120;
-    //TODO: consertar o checkpoint para que a arena ative e desative corretamente
-    //TODO: Converter os objetos do cenario de tiles para objetos
-    //TODO: nerfar o jumper
+    // TODO: consertar o checkpoint para que a arena ative e desative corretamente
+    // TODO: Converter os objetos do cenario de tiles para objetos
+    // TODO: nerfar o jumper
     private static GameState gameState = GameState.MAIN_MENU;
     private static ShopMenu currentShopMenu = null;
     private final MainMenu mainMenu;
@@ -228,7 +228,7 @@ public class GameCore extends Canvas implements Runnable {
         if (deveTocarMusicaDia) {
             alternarParaMusicaDia(2.5);
         } else {
-            alternarParaMusicaNoite(1.0);
+            alternarParaMusicaNoite(2.5);
         }
     }
 
@@ -250,10 +250,10 @@ public class GameCore extends Canvas implements Runnable {
             alternarParaMusicaFight();
         } else {
             if (isDia()) {
-                alternarParaMusicaDia(2.5);
+                alternarParaMusicaDia(3);
                 musicaDeDiaAtiva = true;
             } else {
-                alternarParaMusicaNoite(1.0);
+                alternarParaMusicaNoite(2.25);
                 musicaDeDiaAtiva = false;
             }
         }
@@ -310,7 +310,7 @@ public class GameCore extends Canvas implements Runnable {
         System.out.println("Mudou para musica de noite");
         soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_NIGHT_INTRO, SoundManager.BGM.LEVEL_1_NIGHT_LOOP, 5000,
                 delay,
-                true);
+                false);
     }
 
     private void alternarParaMusicaFight() {
@@ -514,11 +514,11 @@ public class GameCore extends Canvas implements Runnable {
     public void triggerDialogoInicial() {
         if (!dialogueManager.isAtivo()) {
             dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadio, DialogueCatalogo.FalaInicialRadio,
-                    new BufferedImage[]{
-                        pingu_portrait,
-                        cellphone_image,
-                        pingu_portrait,
-                        cellphone_image
+                    new BufferedImage[] {
+                            pingu_portrait,
+                            cellphone_image,
+                            pingu_portrait,
+                            cellphone_image
                     });
             dialogueManager.setAoTerminarDialogo(() -> {
                 ToastNotifications.RequestNotification("Use as setas para selecionar a opção e ENTER para confirmar.",
@@ -716,7 +716,7 @@ public class GameCore extends Canvas implements Runnable {
         if (isDia()) {
             alternarParaMusicaDia(2.5);
         } else {
-            alternarParaMusicaNoite(1.0);
+            alternarParaMusicaNoite(2.0);
         }
         mapLoadCooldown = 60;
 
@@ -746,7 +746,7 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void updateGame() {
-        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE)) {
+        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE) || input.isButtonJustPressed(InputManager.GamepadButton.START)) {
             gameState = GameState.PAUSED;
             return;
         }
@@ -793,7 +793,8 @@ public class GameCore extends Canvas implements Runnable {
             atualizarCamera();
         }
 
-        if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)) {
+        if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)
+                || input.isButtonJustPressed(InputManager.GamepadButton.Y)) {
             arenaManager.interagir(player, player.getChaves());
             System.out.println("Apertou E");
         }
@@ -1233,6 +1234,7 @@ public class GameCore extends Canvas implements Runnable {
 
     public static void main(String[] args) {
         System.out.println("pinto");
+        System.out.println("se aparecer algum erro de libusb.dll ignore ");
         GameCore game = new GameCore();
         Toolkit.getDefaultToolkit().setDynamicLayout(false);
         game.frame = new JFrame("Pingu 007");

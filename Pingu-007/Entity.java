@@ -100,14 +100,14 @@ public abstract class Entity {
     protected void aplicarFisicaBasica() {
 
         double mult = no_clip ? 4.0 : 1.0;
+        double limiteAndar = velocidadeAndar * mult;
+        double limiteMaximo = velocidadeMax * mult;
 
         if (!isAirborne && !isPuxado) {
-            velX = Math.max(-(velocidadeAndar * mult), Math.min(velX, (velocidadeAndar * mult)));
-            velY = Math.max(-(velocidadeAndar * mult), Math.min(velY, (velocidadeAndar * mult)));
+            limitarMagnitudeVelocidade(limiteAndar);
         }
 
-        velX = Math.max(-(velocidadeMax * mult), Math.min(velX, (velocidadeMax * mult)));
-        velY = Math.max(-(velocidadeMax * mult), Math.min(velY, (velocidadeMax * mult)));
+        limitarMagnitudeVelocidade(limiteMaximo);
 
         velX *= atritoAtual;
         velY *= atritoAtual;
@@ -118,6 +118,21 @@ public abstract class Entity {
         }
         if (Math.abs(velY) < threshold) {
             velY = 0;
+        }
+    }
+
+    protected void limitarMagnitudeVelocidade(double limite) {
+        if (limite <= 0) {
+            velX = 0;
+            velY = 0;
+            return;
+        }
+
+        double magnitude = Math.hypot(velX, velY);
+        if (magnitude > limite) {
+            double escala = limite / magnitude;
+            velX *= escala;
+            velY *= escala;
         }
     }
 
@@ -134,12 +149,11 @@ public abstract class Entity {
             this.timerLedgeSnap--;
         }
 
-        velX = Math.max(-velocidadeMax, Math.min(velX, velocidadeMax));
-        velY = Math.max(-velocidadeMax, Math.min(velY, velocidadeMax));
+        limitarMagnitudeVelocidade(velocidadeMax);
 
         double cbW = bodyCollider.getWidth();
         double cbH = bodyCollider.getHeight();
-        double maxVel = Math.max(Math.abs(velX), Math.abs(velY));
+        double maxVel = Math.hypot(velX, velY);
 
         int steps = (int) Math.ceil(maxVel / (GameCore.tiles_size / 2.0));
         if (steps < 1) {

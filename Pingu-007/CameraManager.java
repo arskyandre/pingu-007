@@ -127,7 +127,7 @@ public class CameraManager {
 
             if (lerNovoInputMouse) {
                 boolean controleAtivo = input != null && input.isControllerActive();
-                Vetor2D analogicoDireito = controleAtivo ? input.getRightStick() : new Vetor2D(0, 0);
+                Vetor2D analogicoDireito = controleAtivo ? input.getRightStick().partiallyNormalized() : new Vetor2D(0, 0);
 
                 if (controleAtivo && (analogicoDireito.x != 0.0 || analogicoDireito.y != 0.0)) {
                     miraComControleAtiva = true;
@@ -364,6 +364,14 @@ public class CameraManager {
 
     public boolean emFoco() {
         return focoTimer > 0;
+    }
+
+    public boolean estaAguardandoMouseAposControle() {
+        return aguardandoMouseAposControle;
+    }
+
+    public boolean isMouseMiraAtiva() {
+        return !miraComControleAtiva && !aguardandoMouseAposControle;
     }
 
     public void setCombatTarget(double bossX, double bossY, double bossWidth, double bossHeight) {

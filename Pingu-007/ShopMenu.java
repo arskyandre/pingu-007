@@ -111,7 +111,8 @@ public class ShopMenu {
             feedbackTimer--;
         }
 
-        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE)) {
+        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE) || input.isButtonJustPressed(InputManager.GamepadButton.B)
+                || input.isButtonJustPressed(InputManager.GamepadButton.START)) {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             fechar();
             return;

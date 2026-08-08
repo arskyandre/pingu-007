@@ -4,6 +4,7 @@ import java.util.Random;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -77,7 +78,7 @@ public class DialogueManager {
     aplicarPrefixoInstantaneo();
   }
 
-  public void iniciarDialogo(String[] texto, BufferedImage[] imgs ) {
+  public void iniciarDialogo(String[] texto, BufferedImage[] imgs) {
     this.falas = texto;
     retratosAtual = imgs;
     this.falaAtualIndex = 0;
@@ -93,7 +94,7 @@ public class DialogueManager {
     aplicarPrefixoInstantaneo();
   }
 
-  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons ) {
+  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons) {
     this.falas = texto;
     this.falaAtualIndex = 0;
     this.caractereIndex = 0;
@@ -182,16 +183,19 @@ public class DialogueManager {
       return;
     }
 
-    if (input.isKeyJustPressed(KeyEvent.VK_UP) || input.isKeyJustPressed(KeyEvent.VK_W)) {
+    if (input.isKeyJustPressed(KeyEvent.VK_UP) || input.isKeyJustPressed(KeyEvent.VK_W)
+        || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP)) {
       if (escolhaSelecionada > 0)
         escolhaSelecionada--;
     }
-    if (input.isKeyJustPressed(KeyEvent.VK_DOWN) || input.isKeyJustPressed(KeyEvent.VK_S)) {
+    if (input.isKeyJustPressed(KeyEvent.VK_DOWN) || input.isKeyJustPressed(KeyEvent.VK_S)
+        || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN)) {
       if (escolhaSelecionada < opcoesEscolha.length - 1)
         escolhaSelecionada++;
     }
 
-    boolean confirmar = input.isKeyJustPressed(KeyEvent.VK_SPACE) || input.isKeyJustPressed(KeyEvent.VK_ENTER);
+    boolean confirmar = input.isKeyJustPressed(KeyEvent.VK_SPACE) || input.isKeyJustPressed(KeyEvent.VK_ENTER)
+        || input.isButtonJustPressed(InputManager.GamepadButton.A);
     if (confirmar) {
       soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
       int escolhido = escolhaSelecionada;
@@ -253,7 +257,8 @@ public class DialogueManager {
       }
     }
 
-    boolean teclaApertada = input.isKeyJustPressed(KeyEvent.VK_SPACE) || input.isKeyJustPressed(KeyEvent.VK_ENTER);
+    boolean teclaApertada = input.isKeyJustPressed(KeyEvent.VK_SPACE) || input.isKeyJustPressed(KeyEvent.VK_ENTER)
+        || input.isButtonJustPressed(InputManager.GamepadButton.A);
 
     if (teclaApertada) {
       avancarFala();

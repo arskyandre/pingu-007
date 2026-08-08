@@ -41,7 +41,9 @@ public class PauseMenu {
     public GameState update(InputManager input, int width, int height) {
         repositionButtons(width, height);
 
-        if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_ESCAPE))
+        if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_ESCAPE)
+                || input.isButtonJustPressed(InputManager.GamepadButton.B)
+                || input.isButtonJustPressed(InputManager.GamepadButton.START))
             return GameState.PLAYING;
 
         if (resumeBtn.update(input) == MenuButton.CLICKED) {
