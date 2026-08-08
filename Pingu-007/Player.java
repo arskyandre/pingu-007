@@ -363,36 +363,69 @@ public class Player extends Entity {
                 penteZeroTimerActive = false;
             }
         }
-
+        
         if (!blockInputs) {
-            boolean andaX = false, andaY = false;
-            if (input.isKeyPressed(KeyEvent.VK_D)) {
-                velX += aceleracao * controleAtual;
-                dirX = 1;
-                andaX = true;
+            Vetor2D analogico = input.getLeftStick();
+        
+            boolean usandoAnalogico = analogico.x != 0 || analogico.y != 0;
+        
+            if (usandoAnalogico) {
+                velX += aceleracao * controleAtual * analogico.x;
+                velY += aceleracao * controleAtual * analogico.y;
+        
+                if (analogico.x > 0) {
+                    dirX = 1;
+                } else if (analogico.x < 0) {
+                    dirX = -1;
+                } else {
+                    dirX = 0;
+                }
+        
+                if (analogico.y > 0) {
+                    dirY = 1;
+                } else if (analogico.y < 0) {
+                    dirY = -1;
+                } else {
+                    dirY = 0;
+                }
+        
+            } else {
+                boolean andaX = false;
+                boolean andaY = false;
+        
+                if (input.isKeyPressed(KeyEvent.VK_D)) {
+                    velX += aceleracao * controleAtual;
+                    dirX = 1;
+                    andaX = true;
+                }
+        
+                if (input.isKeyPressed(KeyEvent.VK_A)) {
+                    velX -= aceleracao * controleAtual;
+                    dirX = -1;
+                    andaX = true;
+                }
+        
+                if (!andaX || (input.isKeyPressed(KeyEvent.VK_D) && input.isKeyPressed(KeyEvent.VK_A))) {
+                    dirX = 0;
+                }
+        
+                if (input.isKeyPressed(KeyEvent.VK_S)) {
+                    velY += aceleracao * controleAtual;
+                    dirY = 1;
+                    andaY = true;
+                }
+        
+                if (input.isKeyPressed(KeyEvent.VK_W)) {
+                    velY -= aceleracao * controleAtual;
+                    dirY = -1;
+                    andaY = true;
+                }
+        
+                if (!andaY || (input.isKeyPressed(KeyEvent.VK_W) && input.isKeyPressed(KeyEvent.VK_S))) {
+                    dirY = 0;
+                }
             }
-            if (input.isKeyPressed(KeyEvent.VK_A)) {
-                velX -= aceleracao * controleAtual;
-                dirX = -1;
-                andaX = true;
-            }
-            if (!andaX || (input.isKeyPressed(KeyEvent.VK_D) && input.isKeyPressed(KeyEvent.VK_A))) {
-                dirX = 0;
-            }
-
-            if (input.isKeyPressed(KeyEvent.VK_S)) {
-                velY += aceleracao * controleAtual;
-                dirY = 1;
-                andaY = true;
-            }
-            if (input.isKeyPressed(KeyEvent.VK_W)) {
-                velY -= aceleracao * controleAtual;
-                dirY = -1;
-                andaY = true;
-            }
-            if (!andaY || (input.isKeyPressed(KeyEvent.VK_W) && input.isKeyPressed(KeyEvent.VK_S))) {
-                dirY = 0;
-            }
+        
 
             double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
             double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();

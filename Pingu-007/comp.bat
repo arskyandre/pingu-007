@@ -1,5 +1,5 @@
 cls
 @echo off
-javac *.java
-java GameCore
+javac -cp ".;*" *.java
+java -cp ".;*" GameCore
 del "*.class"

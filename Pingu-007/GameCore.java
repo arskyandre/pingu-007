@@ -479,8 +479,10 @@ public class GameCore extends Canvas implements Runnable {
                 gameState = optionsMenu.update(input, getWidth(), getHeight(), this);
             case KEYBINDINGS ->
                 gameState = keyBindingsMenu.update(input, getWidth(), getHeight());
-            case QUIT ->
+            case QUIT -> {
+                input.shutdown();
                 System.exit(0);
+            }
         }
         input.update();
     }
