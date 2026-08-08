@@ -272,6 +272,28 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
         return estadoControle != null && estadoControle.isConnected;
     }
 
+    public boolean isControllerActive() {
+        if (!isControllerConnected()) {
+            return false;
+        }
+
+        Vetor2D leftStick = getLeftStick();
+        Vetor2D rightStick = getRightStick();
+
+        if (leftStick.x != 0.0 || leftStick.y != 0.0
+                || rightStick.x != 0.0 || rightStick.y != 0.0) {
+            return true;
+        }
+
+        for (GamepadButton button : GamepadButton.values()) {
+            if (isButtonPressed(button)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public int getMouseX() {
         return mouseX;
     }
