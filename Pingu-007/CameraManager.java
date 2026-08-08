@@ -5,14 +5,19 @@ public class CameraManager {
     private double zoom;
     private final double zoomReferencia;
     public double pesoOffset = 0.25;
+    public double pesoOffsetControle = 0.2;
+    public double mouseThresholdAtivacao = 24.0;
+
     // Margem da tela (em pixels) para o player não chegar perto da borda
     public double margemX = 180;
     public double margemY = 120;
 
-    // Ultimo deslocamento de enquadramento calculado a partir do mouse.
-    // Dialogos reutilizam esses valores sem ler novos movimentos do cursor.
     private double ultimoOffsetMouseX = 0;
     private double ultimoOffsetMouseY = 0;
+    private boolean miraComControleAtiva = false;
+    private boolean aguardandoMouseAposControle = false;
+    private double mouseReferenciaX = 0;
+    private double mouseReferenciaY = 0;
 
     private double shakeIntensidade = 0;
     private int shakeTimer = 0;
@@ -24,20 +29,19 @@ public class CameraManager {
     private double focoVelocidade = 0.18;
     private boolean foco_indefinido = false;
 
-    private double zoomBase; // zoom "normal" desejado pelo jogo
-    private double zoomFocoAlvo; // zoom alvo enquanto o foco estiver ativo
+    private double zoomBase;
+    private double zoomFocoAlvo;
 
     private enum FocusZoomMode {
         NORMAL, OVERRIDE, RECT
     }
 
     private FocusZoomMode focusZoomMode = FocusZoomMode.NORMAL;
-    private double zoomOverrideReferencia = 1.0; // valor bruto passado pelo chamador, na resolução de referência
+    private double zoomOverrideReferencia = 1.0;
     private double focusRectWidth;
     private double focusRectHeight;
 
-    // Último tamanho usado para posicionar a câmera. Permite corrigir a visão
-    // durante menus e diálogos sem executar um update completo.
+    
     private int viewportWidth = -1;
     private int viewportHeight = -1;
 
@@ -81,12 +85,9 @@ public class CameraManager {
         double velocidade;
 
         if (focoTimer > 0 || foco_indefinido) {
-            // Recalcula o zoom alvo do foco TODOS frames, conforme o modo ativo,
-            // assim mudanças de resolução em tempo real são respeitadas mesmo
-            // com o foco já em andamento (ex: tempo_indefinido = true).
+            
             recalcularZoomFocoAlvo(telaLargura, telaAltura);
-
-            // Cutscene em andamento: ignora player e mouse, mira direto no alvo do foco
+            
             targetX = focoAlvoX - (centroTelaX / zoom);
             targetY = focoAlvoY - (centroTelaY / zoom);
             velocidade = focoVelocidade;
@@ -120,28 +121,58 @@ public class CameraManager {
             zoom += (targetZoom - zoom) * velocidade;
 
         } else {
-            // limite maximo do offset baseado na margem
+            
             double maxOffsetX = Math.max(0, centroTelaX - margemX);
             double maxOffsetY = Math.max(0, centroTelaY - margemY);
 
             if (lerNovoInputMouse) {
-                // distancia do mouse para o centro da tela, convertida no offset usado
-                // para enquadrar o player
-                double distMouseX = input.getMouseX() - centroTelaX;
-                double distMouseY = input.getMouseY() - centroTelaY;
-                ultimoOffsetMouseX = distMouseX * pesoOffset;
-                ultimoOffsetMouseY = distMouseY * pesoOffset;
+                boolean controleAtivo = input != null && input.isControllerActive();
+                Vetor2D analogicoDireito = controleAtivo ? input.getRightStick() : new Vetor2D(0, 0);
+
+                if (controleAtivo && (analogicoDireito.x != 0.0 || analogicoDireito.y != 0.0)) {
+                    miraComControleAtiva = true;
+                    aguardandoMouseAposControle = false;
+                    
+                    ultimoOffsetMouseX = analogicoDireito.x * maxOffsetX * pesoOffsetControle;
+                    ultimoOffsetMouseY = analogicoDireito.y * maxOffsetY * pesoOffsetControle;
+                } else if (miraComControleAtiva) {
+                    
+                    miraComControleAtiva = false;
+                    aguardandoMouseAposControle = true;
+                    mouseReferenciaX = input.getMouseX();
+                    mouseReferenciaY = input.getMouseY();
+                    ultimoOffsetMouseX = 0;
+                    ultimoOffsetMouseY = 0;
+                } else if (aguardandoMouseAposControle) {
+                    double deltaMouseX = input.getMouseX() - mouseReferenciaX;
+                    double deltaMouseY = input.getMouseY() - mouseReferenciaY;
+                    double distMouse = Math.sqrt(deltaMouseX * deltaMouseX + deltaMouseY * deltaMouseY);
+
+                    if (distMouse >= mouseThresholdAtivacao) {
+                        aguardandoMouseAposControle = false;
+                        double distMouseX = input.getMouseX() - centroTelaX;
+                        double distMouseY = input.getMouseY() - centroTelaY;
+                        ultimoOffsetMouseX = distMouseX * pesoOffset;
+                        ultimoOffsetMouseY = distMouseY * pesoOffset;
+                    } else {
+                        ultimoOffsetMouseX = 0;
+                        ultimoOffsetMouseY = 0;
+                    }
+                } else {
+                    
+                    double distMouseX = input.getMouseX() - centroTelaX;
+                    double distMouseY = input.getMouseY() - centroTelaY;
+                    ultimoOffsetMouseX = distMouseX * pesoOffset;
+                    ultimoOffsetMouseY = distMouseY * pesoOffset;
+                }
 
                 ultimoOffsetMouseX = Math.max(-maxOffsetX, Math.min(ultimoOffsetMouseX, maxOffsetX));
                 ultimoOffsetMouseY = Math.max(-maxOffsetY, Math.min(ultimoOffsetMouseY, maxOffsetY));
             }
 
-            // Em dialogos, conserva o ultimo enquadramento mesmo que o cursor se mova.
-            // O clamp ainda e recalculado para respeitar mudancas de resolucao.
             double telaOffsetX = Math.max(-maxOffsetX, Math.min(ultimoOffsetMouseX, maxOffsetX));
             double telaOffsetY = Math.max(-maxOffsetY, Math.min(ultimoOffsetMouseY, maxOffsetY));
 
-            // centro do player no mundo
             double playerCentroX = player.getX() + (player.getLargura() / 2.0);
             double playerCentroY = player.getY() + (player.getAltura() / 2.0);
 
@@ -159,7 +190,7 @@ public class CameraManager {
         if (focoTimer == Integer.MIN_VALUE) {
             focoTimer = -1;
         }
-        // suavização
+        
         x += (targetX - x) * velocidade;
         y += (targetY - y) * velocidade;
 
@@ -258,7 +289,7 @@ public class CameraManager {
         this.focoAlvoY = worldY;
         this.focoTimer = duracaoFrames;
         this.focusZoomMode = FocusZoomMode.NORMAL;
-        this.zoomFocoAlvo = zoomBase; // mantém o zoom normal
+        this.zoomFocoAlvo = zoomBase;
     }
 
     /** overload, foca com tempo indefinido ate rodar desfocarCamera() */
@@ -268,7 +299,7 @@ public class CameraManager {
         this.focoAlvoY = worldY;
         this.focoTimer = 67;
         this.focusZoomMode = FocusZoomMode.NORMAL;
-        this.zoomFocoAlvo = zoomBase; // mantém o zoom normal
+        this.zoomFocoAlvo = zoomBase;
     }
 
     public void focarEm(double worldX, double worldY, double zoomOverride) {
@@ -278,8 +309,7 @@ public class CameraManager {
         this.focoTimer = 67;
         this.focusZoomMode = FocusZoomMode.OVERRIDE;
         this.zoomOverrideReferencia = zoomOverride;
-        this.zoomFocoAlvo = zoomOverride * (zoomBase / zoomReferencia); // valor inicial, recalculado todo frame em
-                                                                        // update()
+        this.zoomFocoAlvo = zoomOverride * (zoomBase / zoomReferencia); 
     }
 
     public void focarEmRect(Rectangle2D.Double rect, int duracaoFrames, int telaLargura, int telaAltura,
@@ -314,6 +344,8 @@ public class CameraManager {
         shakeOffsetY = 0;
         ultimoOffsetMouseX = 0;
         ultimoOffsetMouseY = 0;
+        miraComControleAtiva = false;
+        aguardandoMouseAposControle = false;
         focusZoomMode = FocusZoomMode.NORMAL;
         clearCombatTarget();
         zoom = zoomBase;
@@ -330,7 +362,6 @@ public class CameraManager {
         this.viewportHeight = telaAltura;
     }
 
-    // Útil para, por exemplo, travar o input do player enquanto a cutscene roda.
     public boolean emFoco() {
         return focoTimer > 0;
     }

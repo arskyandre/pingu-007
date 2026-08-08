@@ -307,7 +307,8 @@ public class Renderer {
             drawDayNightOverlay(g2, dayProgress, telaLargura, telaAltura);
         HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager, delta, (int) cinematicBorder);
         fishingManager.render(g2, camera, telaLargura, telaAltura, delta);
-        double mouseCircleTarget = mouseCircle ? 1.0 : 0.0;
+        boolean controleAtivo = input != null && input.isControllerActive();
+        double mouseCircleTarget = (mouseCircle && !controleAtivo) ? 1.0 : 0.0;
         double mouseCircleFadeSpeed = 1.0 / MOUSE_CIRCLE_FADE_DURATION;
 
         if (mouseCircleAlpha < mouseCircleTarget) {
