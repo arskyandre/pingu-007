@@ -1,5 +1,6 @@
-import java.awt.FontMetrics;
+
 import java.awt.Color;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 
 public class InteractiveObject extends ArenaObject {

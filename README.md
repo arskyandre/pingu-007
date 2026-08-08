@@ -46,6 +46,12 @@ O jogo possui diversos tipos de inimigos:
 
 <img src="screenshots/inimigos.png" alt="Inimigos" width="600">
 
+## *NPCs*
+
+Além de inimigos, o jogo possui diversos *NPCs* com os quais o jogador pode interagir para comprar itens, descobrir segredos e receber recompensas.
+
+<img src="screenshots/inimigos.png" alt="Mapa" width="700">
+
 Cada inimigo possui um comportamento diferente, exigindo estratégias distintas durante a fase.
 
 

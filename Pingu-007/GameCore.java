@@ -12,7 +12,9 @@ public class GameCore extends Canvas implements Runnable {
 
     // VARIÁVEL DO FPS CAP (0 para ilimitado)
     public int targetFps = 120;
-
+    //TODO: consertar o checkpoint para que a arena ative e desative corretamente
+    //TODO: Converter os objetos do cenario de tiles para objetos
+    //TODO: nerfar o jumper
     private static GameState gameState = GameState.MAIN_MENU;
     private static ShopMenu currentShopMenu = null;
     private final MainMenu mainMenu;
@@ -63,7 +65,6 @@ public class GameCore extends Canvas implements Runnable {
     private boolean musicaDeFightAtiva = false;
 
     // pro novo ciclo de dia e noite(cores/musica)
-
     private boolean musicaDeDiaAtiva = true;
     private int lastProcessedDay = 1;
     private long updateDayNightAnteriorNanos = -1L;
@@ -293,8 +294,9 @@ public class GameCore extends Canvas implements Runnable {
 
     private void alternarParaMusicaDia(double delay) {
         if (soundManager.currentSong() == SoundManager.BGM.LEVEL_1_DAY_INTRO
-                || soundManager.currentSong() == SoundManager.BGM.LEVEL_1_DAY_LOOP)
+                || soundManager.currentSong() == SoundManager.BGM.LEVEL_1_DAY_LOOP) {
             return;
+        }
         System.out.println("Mudou para musica de dia");
         soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP, 5000, delay,
                 true);
@@ -302,8 +304,9 @@ public class GameCore extends Canvas implements Runnable {
 
     private void alternarParaMusicaNoite(double delay) {
         if (soundManager.currentSong() == SoundManager.BGM.LEVEL_1_NIGHT_INTRO
-                || soundManager.currentSong() == SoundManager.BGM.LEVEL_1_NIGHT_LOOP)
+                || soundManager.currentSong() == SoundManager.BGM.LEVEL_1_NIGHT_LOOP) {
             return;
+        }
         System.out.println("Mudou para musica de noite");
         soundManager.crossfadeBGM(SoundManager.BGM.LEVEL_1_NIGHT_INTRO, SoundManager.BGM.LEVEL_1_NIGHT_LOOP, 5000,
                 delay,
@@ -511,11 +514,11 @@ public class GameCore extends Canvas implements Runnable {
     public void triggerDialogoInicial() {
         if (!dialogueManager.isAtivo()) {
             dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadio, DialogueCatalogo.FalaInicialRadio,
-                    new BufferedImage[] {
-                            pingu_portrait,
-                            cellphone_image,
-                            pingu_portrait,
-                            cellphone_image
+                    new BufferedImage[]{
+                        pingu_portrait,
+                        cellphone_image,
+                        pingu_portrait,
+                        cellphone_image
                     });
             dialogueManager.setAoTerminarDialogo(() -> {
                 ToastNotifications.RequestNotification("Use as setas para selecionar a opção e ENTER para confirmar.",
@@ -712,8 +715,9 @@ public class GameCore extends Canvas implements Runnable {
         setCinematicBorderAnimation(Renderer.BorderState.OUT);
         if (isDia()) {
             alternarParaMusicaDia(2.5);
-        } else
+        } else {
             alternarParaMusicaNoite(1.0);
+        }
         mapLoadCooldown = 60;
 
         salvarCheckpoint();
