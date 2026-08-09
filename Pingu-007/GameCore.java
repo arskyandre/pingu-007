@@ -120,6 +120,7 @@ public class GameCore extends Canvas implements Runnable {
             cursorImage,
             new Point(0, 0),
             "invisibleCursor");
+    private Boolean cursorInvisivelAplicado = null;
 
     public GameCore() {
         setPreferredSize(new Dimension(game_width, game_height));
@@ -364,11 +365,13 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     private void updateCursorVisibility() {
-        if (gameState == GameState.PLAYING || gameState == GameState.CUTSCENE) {
-            setCursor(invisibleCursor);
-        } else {
-            setCursor(Cursor.getDefaultCursor());
+        boolean deveSerInvisivel = gameState == GameState.PLAYING || gameState == GameState.CUTSCENE;
+        if (cursorInvisivelAplicado != null && cursorInvisivelAplicado == deveSerInvisivel) {
+            return;
         }
+
+        setCursor(deveSerInvisivel ? invisibleCursor : Cursor.getDefaultCursor());
+        cursorInvisivelAplicado = deveSerInvisivel;
     }
 
     public void update() {

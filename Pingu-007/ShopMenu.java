@@ -106,6 +106,7 @@ public class ShopMenu {
         }
 
         repositionButtons();
+        garantirSelecaoDisponivel(1);
 
         if (feedbackTimer > 0) {
             feedbackTimer--;
@@ -122,6 +123,12 @@ public class ShopMenu {
             return;
         }
 
+        if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP)) {
+            moverSelecao(-1);
+        } else if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN)) {
+            moverSelecao(1);
+        }
+
         for (int i = 0; i < botoes.size(); i++) {
             int resultado = botoes.get(i).update(input);
             if (botoes.get(i).isHovered()) {
@@ -136,10 +143,20 @@ public class ShopMenu {
         }
 
         ShopItem itemSelecionado = itens.get(selecionado);
+        garantirSelecaoDisponivel(1);
+        itemSelecionado = itens.get(selecionado);
         ajustarQuantidadeAoLimite(itemSelecionado);
         if (!itemSelecionado.compra_unica) {
             repositionQuantityButtons(telaLargura, itemSelecionado);
 
+            if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_LEFT)) {
+                alterarQuantidade(-1, itemSelecionado);
+                soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
+            }
+            if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_RIGHT)) {
+                alterarQuantidade(1, itemSelecionado);
+                soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
+            }
             if (setaQuantidadeEsquerda.update(input) == MenuButton.CLICKED) {
                 alterarQuantidade(-1, itemSelecionado);
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
@@ -148,6 +165,10 @@ public class ShopMenu {
                 alterarQuantidade(1, itemSelecionado);
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             }
+        }
+
+        if (input.isButtonJustPressed(InputManager.GamepadButton.A)) {
+            comprarItem(selecionado);
         }
     }
 
@@ -175,6 +196,7 @@ public class ShopMenu {
             soundManager.playSFX(SoundManager.SFX.NOOT_NOOT);
             mensagemFeedback = "Comprou: " + item.nome
                     + (quantidade > 1 ? " x" + quantidade : "") + "!";
+            garantirSelecaoDisponivel(1);
             ajustarQuantidadeAoLimite(item);
         } else {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
@@ -455,7 +477,7 @@ public class ShopMenu {
 
     private void drawControlsHint(Graphics2D g2, int telaLargura, int telaAltura) {
         g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 10f));
-        String texto = "[ESC] Sair";
+        String texto = "[DPAD] Navegar  [A] Comprar  [ESC/B/START] Sair";
         FontMetrics fm = g2.getFontMetrics();
         int x = (telaLargura - fm.stringWidth(texto)) / 2;
         int y = telaAltura - 30;
@@ -488,5 +510,56 @@ public class ShopMenu {
         if (!atual.isEmpty())
             linhas.add(atual.toString());
         return linhas;
+    }
+
+    private void moverSelecao(int direcao) {
+        if (itens.isEmpty()) {
+            return;
+        }
+
+        int proximo = buscarProximoSelecionavel(selecionado, direcao);
+        if (proximo == -1 || proximo == selecionado) {
+            return;
+        }
+
+        selecionado = proximo;
+        quantidadeSelecionada = 1;
+    }
+
+    private void garantirSelecaoDisponivel(int direcaoPreferida) {
+        if (itens.isEmpty()) {
+            selecionado = 0;
+            quantidadeSelecionada = 1;
+            return;
+        }
+
+        if (selecionado >= 0 && selecionado < itens.size() && itens.get(selecionado).disponivel) {
+            return;
+        }
+
+        int novoIndice = buscarProximoSelecionavel(selecionado, direcaoPreferida);
+        if (novoIndice != -1) {
+            selecionado = novoIndice;
+            quantidadeSelecionada = 1;
+        }
+    }
+
+    private int buscarProximoSelecionavel(int indiceInicial, int direcao) {
+        if (itens.isEmpty()) {
+            return -1;
+        }
+
+        int tamanho = itens.size();
+        int passo = direcao >= 0 ? 1 : -1;
+        int indice = indiceInicial;
+
+        for (int i = 0; i < tamanho; i++) {
+            indice = (indice + passo + tamanho) % tamanho;
+            if (itens.get(indice).disponivel) {
+                return indice;
+            }
+        }
+
+        return -1;
     }
 }
