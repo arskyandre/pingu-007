@@ -437,7 +437,7 @@ public class Player extends Entity {
                     }
                 }
 
-                if (input.isButtonJustPressed(InputManager.GamepadButton.Y) && hasShotgun
+                if (input.isButtonJustPressed(InputManager.GamepadButton.RB) && hasShotgun
                         && changeGunCooldownTimer == 0) {
                     if (getGunType() == Player.GunType.SHOTGUN) {
                         setGunType(Player.GunType.PISTOL);

@@ -454,6 +454,8 @@ public class GameCore extends Canvas implements Runnable {
                 }
                 if (next == GameState.PLAYING) {
                     carregarCheckpoint();
+                    if (!arenaManager.existeArenaRealAtiva())
+                        setCinematicBorderAnimation(Renderer.BorderState.OUT);
 
                     player.setShootCooldownTimer(30);
                 }
