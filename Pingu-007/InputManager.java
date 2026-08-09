@@ -28,6 +28,7 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
 
     private static final int GAMEPAD_INDEX = 0;
     private static final double TRIGGER_THRESHOLD = 0.5;
+    private static final double MOUSE_THRESHOLD = 24.0;
 
     private final boolean[] teclas = new boolean[256];
     private final boolean[] teclasPrev = new boolean[256];
@@ -43,6 +44,9 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
     private double deadzoneDireita = 0.4;
     private int mouseX = 0;
     private int mouseY = 0;
+    private boolean mouseBloqueado = false;
+    private double mouseBloqueioReferenciaX = 0;
+    private double mouseBloqueioReferenciaY = 0;
 
     public InputManager() {
         controllerManager = new ControllerManager();
@@ -101,6 +105,8 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
         if (estavaConectado && !estaConectado) {
             ToastNotifications.RequestNotification("Controle desconectado.", 2.0);
         }
+
+        atualizarBloqueioMouse();
     }
 
     public boolean isKeyPressed(int keyCode) {
@@ -324,6 +330,43 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
 
     public int getMouseY() {
         return mouseY;
+    }
+
+    public void iniciarBloqueioMouse() {
+        if (mouseBloqueado) {
+            return;
+        }
+
+        mouseBloqueado = true;
+        mouseBloqueioReferenciaX = mouseX;
+        mouseBloqueioReferenciaY = mouseY;
+    }
+
+    public boolean atualizarBloqueioMouse() {
+        if (!mouseBloqueado) {
+            return false;
+        }
+
+        double deltaMouseX = mouseX - mouseBloqueioReferenciaX;
+        double deltaMouseY = mouseY - mouseBloqueioReferenciaY;
+        double distMouse = Math.hypot(deltaMouseX, deltaMouseY);
+        if (distMouse >= MOUSE_THRESHOLD) {
+            mouseBloqueado = false;
+        }
+
+        return mouseBloqueado;
+    }
+
+    public boolean isMouseBloqueado() {
+        return mouseBloqueado;
+    }
+
+    public double getMouseBloqueioThreshold() {
+        return MOUSE_THRESHOLD;
+    }
+
+    public void resetMouseBloqueio() {
+        mouseBloqueado = false;
     }
 
     public void shutdown() {

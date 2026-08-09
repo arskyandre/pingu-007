@@ -12,8 +12,12 @@ public class PauseMenu {
     private static final int BTN_W = 220;
     private static final int BTN_H = 46;
     private static final int BTN_GAP = 18;
+    private static final int RESUME_INDEX = 0;
+    private static final int OPTIONS_INDEX = 1;
+    private static final int MAIN_MENU_INDEX = 2;
 
     private Font pixelFont;
+    private int selectedButton = RESUME_INDEX;
 
     public PauseMenu(SoundManager sound) {
         soundManager = sound;
@@ -46,15 +50,66 @@ public class PauseMenu {
                 || input.isButtonJustPressed(InputManager.GamepadButton.START))
             return GameState.PLAYING;
 
-        if (resumeBtn.update(input) == MenuButton.CLICKED) {
+        boolean controleAtivo = input.isControllerActive();
+
+        if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP)) {
+            moverSelecao(-1);
+            input.iniciarBloqueioMouse();
+        } else if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN)) {
+            moverSelecao(1);
+            input.iniciarBloqueioMouse();
+        }
+
+        boolean mouseAceito = !input.isMouseBloqueado();
+
+        int resumeState;
+        int optionsState;
+        int mainMenuState;
+
+        if (mouseAceito) {
+            resumeState = resumeBtn.update(input);
+            optionsState = optionsBtn.update(input);
+            mainMenuState = mainMenuBtn.update(input);
+        } else {
+            resumeBtn.hovered = false;
+            optionsBtn.hovered = false;
+            mainMenuBtn.hovered = false;
+            resumeState = MenuButton.IDLE;
+            optionsState = MenuButton.IDLE;
+            mainMenuState = MenuButton.IDLE;
+        }
+
+        boolean mouseEstaSobreBotao = false;
+        if (mouseAceito) {
+            if (resumeBtn.isHovered()) {
+                selectedButton = RESUME_INDEX;
+                mouseEstaSobreBotao = true;
+            } else if (optionsBtn.isHovered()) {
+                selectedButton = OPTIONS_INDEX;
+                mouseEstaSobreBotao = true;
+            } else if (mainMenuBtn.isHovered()) {
+                selectedButton = MAIN_MENU_INDEX;
+                mouseEstaSobreBotao = true;
+            }
+        }
+
+        if ((controleAtivo || input.isMouseBloqueado()) && !mouseEstaSobreBotao) {
+            aplicarSelecaoVisual();
+        }
+
+        if (input.isButtonJustPressed(InputManager.GamepadButton.A)) {
+            return ativarSelecionado();
+        }
+
+        if (resumeState == MenuButton.CLICKED) {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             return GameState.PLAYING;
         }
-        if (optionsBtn.update(input) == MenuButton.CLICKED) {
+        if (optionsState == MenuButton.CLICKED) {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             return GameState.OPTIONS;
         }
-        if (mainMenuBtn.update(input) == MenuButton.CLICKED) {
+        if (mainMenuState == MenuButton.CLICKED) {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             return GameState.MAIN_MENU;
         }
@@ -96,5 +151,30 @@ public class PauseMenu {
 
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT);
+    }
+
+    private void moverSelecao(int direcao) {
+        selectedButton += direcao;
+        if (selectedButton < RESUME_INDEX) {
+            selectedButton = MAIN_MENU_INDEX;
+        } else if (selectedButton > MAIN_MENU_INDEX) {
+            selectedButton = RESUME_INDEX;
+        }
+    }
+
+    private void aplicarSelecaoVisual() {
+        resumeBtn.hovered = selectedButton == RESUME_INDEX;
+        optionsBtn.hovered = selectedButton == OPTIONS_INDEX;
+        mainMenuBtn.hovered = selectedButton == MAIN_MENU_INDEX;
+    }
+
+    private GameState ativarSelecionado() {
+        soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
+        return switch (selectedButton) {
+            case RESUME_INDEX -> GameState.PLAYING;
+            case OPTIONS_INDEX -> GameState.OPTIONS;
+            case MAIN_MENU_INDEX -> GameState.MAIN_MENU;
+            default -> GameState.PAUSED;
+        };
     }
 }

@@ -11,8 +11,11 @@ public class GameOverScreen {
     private static final int BTN_W = 220;
     private static final int BTN_H = 46;
     private static final int BTN_GAP = 18;
+    private static final int RESPAWN_INDEX = 0;
+    private static final int MAIN_MENU_INDEX = 1;
 
     private Font pixelFont;
+    private int selectedButton = RESPAWN_INDEX;
 
     public GameOverScreen(SoundManager sound) {
         soundManager = sound;
@@ -38,11 +41,55 @@ public class GameOverScreen {
     public GameState update(InputManager input, int width, int height) {
         repositionButtons(width, height);
 
-        if (respawnBtn.update(input) == MenuButton.CLICKED) {
+        boolean controleAtivo = input.isControllerActive();
+
+        if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP)) {
+            moverSelecao(-1);
+            input.iniciarBloqueioMouse();
+        } else if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN)) {
+            moverSelecao(1);
+            input.iniciarBloqueioMouse();
+        }
+
+        boolean mouseAceito = !input.isMouseBloqueado();
+
+        int respawnState;
+        int mainMenuState;
+
+        if (mouseAceito) {
+            respawnState = respawnBtn.update(input);
+            mainMenuState = mainMenuBtn.update(input);
+        } else {
+            respawnBtn.hovered = false;
+            mainMenuBtn.hovered = false;
+            respawnState = MenuButton.IDLE;
+            mainMenuState = MenuButton.IDLE;
+        }
+
+        boolean mouseEstaSobreBotao = false;
+        if (mouseAceito) {
+            if (respawnBtn.isHovered()) {
+                selectedButton = RESPAWN_INDEX;
+                mouseEstaSobreBotao = true;
+            } else if (mainMenuBtn.isHovered()) {
+                selectedButton = MAIN_MENU_INDEX;
+                mouseEstaSobreBotao = true;
+            }
+        }
+
+        if ((controleAtivo || input.isMouseBloqueado()) && !mouseEstaSobreBotao) {
+            aplicarSelecaoVisual();
+        }
+
+        if (input.isButtonJustPressed(InputManager.GamepadButton.A)) {
+            return ativarSelecionado();
+        }
+
+        if (respawnState == MenuButton.CLICKED) {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             return GameState.PLAYING;
         }
-        if (mainMenuBtn.update(input) == MenuButton.CLICKED) {
+        if (mainMenuState == MenuButton.CLICKED) {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             return GameState.MAIN_MENU;
         }
@@ -83,5 +130,28 @@ public class GameOverScreen {
 
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT);
+    }
+
+    private void moverSelecao(int direcao) {
+        selectedButton += direcao;
+        if (selectedButton < RESPAWN_INDEX) {
+            selectedButton = MAIN_MENU_INDEX;
+        } else if (selectedButton > MAIN_MENU_INDEX) {
+            selectedButton = RESPAWN_INDEX;
+        }
+    }
+
+    private void aplicarSelecaoVisual() {
+        respawnBtn.hovered = selectedButton == RESPAWN_INDEX;
+        mainMenuBtn.hovered = selectedButton == MAIN_MENU_INDEX;
+    }
+
+    private GameState ativarSelecionado() {
+        soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
+        return switch (selectedButton) {
+            case RESPAWN_INDEX -> GameState.PLAYING;
+            case MAIN_MENU_INDEX -> GameState.MAIN_MENU;
+            default -> GameState.GAME_OVER;
+        };
     }
 }

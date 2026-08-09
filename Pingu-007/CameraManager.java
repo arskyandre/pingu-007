@@ -6,7 +6,6 @@ public class CameraManager {
     private final double zoomReferencia;
     public double pesoOffset = 0.25;
     public double pesoOffsetControle = 0.2;
-    public double mouseThresholdAtivacao = 24.0;
 
     // Margem da tela (em pixels) para o player não chegar perto da borda
     public double margemX = 180;
@@ -15,9 +14,7 @@ public class CameraManager {
     private double ultimoOffsetMouseX = 0;
     private double ultimoOffsetMouseY = 0;
     private boolean miraComControleAtiva = false;
-    private boolean aguardandoMouseAposControle = false;
-    private double mouseReferenciaX = 0;
-    private double mouseReferenciaY = 0;
+    private boolean mouseMiraAtiva = true;
 
     private double shakeIntensidade = 0;
     private int shakeTimer = 0;
@@ -131,33 +128,21 @@ public class CameraManager {
 
                 if (controleAtivo && (analogicoDireito.x != 0.0 || analogicoDireito.y != 0.0)) {
                     miraComControleAtiva = true;
-                    aguardandoMouseAposControle = false;
+                    input.iniciarBloqueioMouse();
                     
                     ultimoOffsetMouseX = analogicoDireito.x * maxOffsetX * pesoOffsetControle;
                     ultimoOffsetMouseY = analogicoDireito.y * maxOffsetY * pesoOffsetControle;
                 } else if (miraComControleAtiva) {
                     
                     miraComControleAtiva = false;
-                    aguardandoMouseAposControle = true;
-                    mouseReferenciaX = input.getMouseX();
-                    mouseReferenciaY = input.getMouseY();
+                    if (input != null) {
+                        input.iniciarBloqueioMouse();
+                    }
                     ultimoOffsetMouseX = 0;
                     ultimoOffsetMouseY = 0;
-                } else if (aguardandoMouseAposControle) {
-                    double deltaMouseX = input.getMouseX() - mouseReferenciaX;
-                    double deltaMouseY = input.getMouseY() - mouseReferenciaY;
-                    double distMouse = Math.sqrt(deltaMouseX * deltaMouseX + deltaMouseY * deltaMouseY);
-
-                    if (distMouse >= mouseThresholdAtivacao) {
-                        aguardandoMouseAposControle = false;
-                        double distMouseX = input.getMouseX() - centroTelaX;
-                        double distMouseY = input.getMouseY() - centroTelaY;
-                        ultimoOffsetMouseX = distMouseX * pesoOffset;
-                        ultimoOffsetMouseY = distMouseY * pesoOffset;
-                    } else {
-                        ultimoOffsetMouseX = 0;
-                        ultimoOffsetMouseY = 0;
-                    }
+                } else if (input != null && input.isMouseBloqueado()) {
+                    ultimoOffsetMouseX = 0;
+                    ultimoOffsetMouseY = 0;
                 } else {
                     
                     double distMouseX = input.getMouseX() - centroTelaX;
@@ -168,6 +153,10 @@ public class CameraManager {
 
                 ultimoOffsetMouseX = Math.max(-maxOffsetX, Math.min(ultimoOffsetMouseX, maxOffsetX));
                 ultimoOffsetMouseY = Math.max(-maxOffsetY, Math.min(ultimoOffsetMouseY, maxOffsetY));
+            }
+
+            if (input != null) {
+                mouseMiraAtiva = !miraComControleAtiva && !input.isMouseBloqueado();
             }
 
             double telaOffsetX = Math.max(-maxOffsetX, Math.min(ultimoOffsetMouseX, maxOffsetX));
@@ -345,7 +334,7 @@ public class CameraManager {
         ultimoOffsetMouseX = 0;
         ultimoOffsetMouseY = 0;
         miraComControleAtiva = false;
-        aguardandoMouseAposControle = false;
+        mouseMiraAtiva = true;
         focusZoomMode = FocusZoomMode.NORMAL;
         clearCombatTarget();
         zoom = zoomBase;
@@ -367,11 +356,11 @@ public class CameraManager {
     }
 
     public boolean estaAguardandoMouseAposControle() {
-        return aguardandoMouseAposControle;
+        return !mouseMiraAtiva;
     }
 
     public boolean isMouseMiraAtiva() {
-        return !miraComControleAtiva && !aguardandoMouseAposControle;
+        return mouseMiraAtiva;
     }
 
     public void setCombatTarget(double bossX, double bossY, double bossWidth, double bossHeight) {

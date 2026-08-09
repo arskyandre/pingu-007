@@ -18,9 +18,15 @@ public class MainMenu {
     private static final int BTN_H = 46;
     private static final int BTN_GAP = 18;
 
+    private static final int PLAY_INDEX = 0;
+    private static final int OPTIONS_INDEX = 1;
+    private static final int QUIT_INDEX = 2;
+
     private double bobTime = 0;
     private static final double BOB_SPEED = 0.125;
     private static final double BOB_AMP = 4.0;
+
+    private int selectedButton = PLAY_INDEX;
 
     public MainMenu(SoundManager sound) {
         soundManager = sound;
@@ -55,15 +61,66 @@ public class MainMenu {
     public GameState update(InputManager input, int width, int height) {
         repositionButtons(width, height);
         bobTime += BOB_SPEED;
-        if (playBtn.update(input) == MenuButton.CLICKED) {
+        boolean controleAtivo = input.isControllerActive();
+
+        if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP)) {
+            moverSelecao(-1);
+            input.iniciarBloqueioMouse();
+        } else if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN)) {
+            moverSelecao(1);
+            input.iniciarBloqueioMouse();
+        }
+
+        boolean mouseAceito = !input.isMouseBloqueado();
+
+        int playState;
+        int optionsState;
+        int quitState;
+
+        if (mouseAceito) {
+            playState = playBtn.update(input);
+            optionsState = optionsBtn.update(input);
+            quitState = quitBtn.update(input);
+        } else {
+            playBtn.hovered = false;
+            optionsBtn.hovered = false;
+            quitBtn.hovered = false;
+            playState = MenuButton.IDLE;
+            optionsState = MenuButton.IDLE;
+            quitState = MenuButton.IDLE;
+        }
+
+        boolean mouseEstaSobreBotao = false;
+        if (mouseAceito) {
+            if (playBtn.isHovered()) {
+                selectedButton = PLAY_INDEX;
+                mouseEstaSobreBotao = true;
+            } else if (optionsBtn.isHovered()) {
+                selectedButton = OPTIONS_INDEX;
+                mouseEstaSobreBotao = true;
+            } else if (quitBtn.isHovered()) {
+                selectedButton = QUIT_INDEX;
+                mouseEstaSobreBotao = true;
+            }
+        }
+
+        if ((controleAtivo || input.isMouseBloqueado()) && !mouseEstaSobreBotao) {
+            aplicarSelecaoVisual();
+        }
+
+        if (input.isButtonJustPressed(InputManager.GamepadButton.A)) {
+            return ativarSelecionado();
+        }
+
+        if (playState == MenuButton.CLICKED) {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             return GameState.PLAYING;
         }
-        if (optionsBtn.update(input) == MenuButton.CLICKED) {
+        if (optionsState == MenuButton.CLICKED) {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             return GameState.OPTIONS;
         }
-        if (quitBtn.update(input) == MenuButton.CLICKED) {
+        if (quitState == MenuButton.CLICKED) {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             return GameState.QUIT;
         }
@@ -110,5 +167,29 @@ public class MainMenu {
 
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT);
+    }
+
+    private void moverSelecao(int direcao) {
+        selectedButton += direcao;
+        if (selectedButton < PLAY_INDEX) {
+            selectedButton = QUIT_INDEX;
+        } else if (selectedButton > QUIT_INDEX) {
+            selectedButton = PLAY_INDEX;
+        }
+    }
+
+    private void aplicarSelecaoVisual() {
+        playBtn.hovered = selectedButton == PLAY_INDEX;
+        optionsBtn.hovered = selectedButton == OPTIONS_INDEX;
+        quitBtn.hovered = selectedButton == QUIT_INDEX;
+    }
+    private GameState ativarSelecionado() {
+        soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
+        return switch (selectedButton) {
+            case PLAY_INDEX -> GameState.PLAYING;
+            case OPTIONS_INDEX -> GameState.OPTIONS;
+            case QUIT_INDEX -> GameState.QUIT;
+            default -> GameState.MAIN_MENU;
+        };
     }
 }

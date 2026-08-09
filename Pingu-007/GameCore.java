@@ -365,7 +365,8 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     private void updateCursorVisibility() {
-        boolean deveSerInvisivel = gameState == GameState.PLAYING || gameState == GameState.CUTSCENE;
+        boolean deveSerInvisivel = gameState == GameState.PLAYING || gameState == GameState.CUTSCENE
+                || input.isMouseBloqueado();
         if (cursorInvisivelAplicado != null && cursorInvisivelAplicado == deveSerInvisivel) {
             return;
         }
@@ -378,6 +379,7 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyJustPressed(KeyEvent.VK_F11)) {
             toggleFullscreen();
         }
+        input.atualizarBloqueioMouse();
         camera.adjustForViewportResize(getWidth(), getHeight(), calculateBaseZoom(getHeight()));
         updateCursorVisibility();
 
@@ -492,7 +494,9 @@ public class GameCore extends Canvas implements Runnable {
                 System.exit(0);
             }
         }
+        updateCursorVisibility();
         input.update();
+        updateCursorVisibility();
     }
 
     private void iniciarSequenciaIntro() {
