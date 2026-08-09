@@ -478,7 +478,8 @@ public class Player extends Entity {
                     reloadOnZeroCooldownTimer = reloadOnZeroCooldown;
                 }
 
-                if (input.isButtonPressed(InputManager.GamepadButton.A) && podeDash && !emDash) {
+                if ((input.isButtonPressed(InputManager.GamepadButton.A)
+                        || input.isButtonPressed(InputManager.GamepadButton.LB)) && podeDash && !emDash) {
                     if (analogicoEsquerdo.x != 0 || analogicoEsquerdo.y != 0) {
                         aplicarDashDirecional(analogicoEsquerdo.partiallyNormalized());
                     }
