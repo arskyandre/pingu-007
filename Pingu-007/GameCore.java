@@ -23,7 +23,7 @@ public class GameCore extends Canvas implements Runnable {
     private final GameOverScreen gameOverScreen;
     private final KeyBindingsMenu keyBindingsMenu;
 
-    // permite os botoes de teste(debuginputprocessing() e outros)
+    // permite os botoes de teste(debuginputprocessing() e outros). se colocar false o jogo se comporta como versao de "usuario"
     private static boolean debugInputs = true;
 
     private double checkX, checkY;
