@@ -234,8 +234,12 @@ public class CutsceneManager {
         AffineTransform transformOriginal = g2.getTransform();
         g2.setTransform(new AffineTransform());
 
+        Rectangle2D clipBounds = g2.getClipBounds();
+        int drawWidth = clipBounds != null ? (int) clipBounds.getWidth() : telaLargura;
+        int drawHeight = clipBounds != null ? (int) clipBounds.getHeight() : telaAltura;
+
         if (nomeBoss != null && !nomeBoss.isEmpty()) {
-            desenharBarraPreta(g2, telaLargura, telaAltura, delta);
+            desenharBarraPreta(g2, drawWidth, drawHeight, delta);
         }
 
         g2.setTransform(transformOriginal);
