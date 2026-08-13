@@ -269,6 +269,35 @@ public class ArenaManager {
         return false;
     }
 
+    public ArrayList<Enemy> getCombatCameraEnemies() {
+        ArrayList<Enemy> inimigos = new ArrayList<>();
+
+        for (Arena arena : arenas) {
+            if (!arena.ativa || arena.concluida) {
+                continue;
+            }
+
+            for (Enemy enemy : arena.inimigosVivos) {
+                if (enemy != null && !enemy.isDead() && !enemy.isCaindo && enemy.includedInCombatCamera()) {
+                    inimigos.add(enemy);
+                }
+            }
+        }
+
+        return inimigos;
+    }
+
+    public void registrarInimigoNaArena(int idArena, Enemy enemy) {
+        if (enemy == null) {
+            return;
+        }
+
+        Arena arena = getOuCriarArena(idArena);
+        if (!arena.inimigosVivos.contains(enemy)) {
+            arena.inimigosVivos.add(enemy);
+        }
+    }
+
     public boolean existeArenaAtiva() {
         for (Arena arena : arenas) {
             if (arena.ativa && !arena.concluida) {
@@ -670,7 +699,7 @@ public class ArenaManager {
             npcManager.getNpcs().removeIf(npc -> npc instanceof PescadorNPC);
         }
         // mudado para apagar todos os itens EXCETO KeyItem, mudar caso dê problema dps
-        //itemManager.getItems().removeIf(item -> item instanceof FishingRodItem);
+        // itemManager.getItems().removeIf(item -> item instanceof FishingRodItem);
         itemManager.getItems().removeIf(item -> !(item instanceof KeyItem));
 
         for (Arena arena : arenas) {

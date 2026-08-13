@@ -62,6 +62,10 @@ public abstract class Enemy extends Entity {
         return aggroPermanente;
     }
 
+    public boolean includedInCombatCamera() {
+        return temAggro();
+    }
+
     public boolean isLootProcessado() {
         return lootProcessado;
     }
@@ -147,8 +151,12 @@ public abstract class Enemy extends Entity {
 
         this.isAirborne = true;
 
-        double meuCX = this.x + (this.bodyCollider != null ? this.bodyCollider.getOffsetX() + (this.bodyCollider.getWidth() / 2.0) : this.width / 2.0);
-        double meuCY = this.y + (this.bodyCollider != null ? this.bodyCollider.getOffsetY() + (this.bodyCollider.getHeight() / 2.0) : this.height / 2.0);
+        double meuCX = this.x
+                + (this.bodyCollider != null ? this.bodyCollider.getOffsetX() + (this.bodyCollider.getWidth() / 2.0)
+                        : this.width / 2.0);
+        double meuCY = this.y
+                + (this.bodyCollider != null ? this.bodyCollider.getOffsetY() + (this.bodyCollider.getHeight() / 2.0)
+                        : this.height / 2.0);
 
         double dx = originX - meuCX;
         double dy = originY - meuCY;

@@ -38,7 +38,6 @@ public class CameraManager {
     private double focusRectWidth;
     private double focusRectHeight;
 
-    
     private int viewportWidth = -1;
     private int viewportHeight = -1;
 
@@ -46,7 +45,7 @@ public class CameraManager {
     private boolean combatModeAtivo = false;
     private double combatX, combatY, combatW, combatH;
     private double combatVelocidade = 0.08;
-    private double combatPadding = GameCore.tiles_size * 0.75;
+    private double combatPadding = GameCore.tiles_size * 2.5;
     private double zoomMinimoCombate = 0.4;
     private boolean letterboxAtivo = false;
     private double letterboxAspect = 21.0 / 9.0;
@@ -82,9 +81,9 @@ public class CameraManager {
         double velocidade;
 
         if (focoTimer > 0 || foco_indefinido) {
-            
+
             recalcularZoomFocoAlvo(telaLargura, telaAltura);
-            
+
             targetX = focoAlvoX - (centroTelaX / zoom);
             targetY = focoAlvoY - (centroTelaY / zoom);
             velocidade = focoVelocidade;
@@ -118,22 +117,23 @@ public class CameraManager {
             zoom += (targetZoom - zoom) * velocidade;
 
         } else {
-            
+
             double maxOffsetX = Math.max(0, centroTelaX - margemX);
             double maxOffsetY = Math.max(0, centroTelaY - margemY);
 
             if (lerNovoInputMouse) {
                 boolean controleAtivo = input != null && input.isControllerActive();
-                Vetor2D analogicoDireito = controleAtivo ? input.getRightStick().partiallyNormalized() : new Vetor2D(0, 0);
+                Vetor2D analogicoDireito = controleAtivo ? input.getRightStick().partiallyNormalized()
+                        : new Vetor2D(0, 0);
 
                 if (controleAtivo && (analogicoDireito.x != 0.0 || analogicoDireito.y != 0.0)) {
                     miraComControleAtiva = true;
                     input.iniciarBloqueioMouse();
-                    
+
                     ultimoOffsetMouseX = analogicoDireito.x * maxOffsetX * pesoOffsetControle;
                     ultimoOffsetMouseY = analogicoDireito.y * maxOffsetY * pesoOffsetControle;
                 } else if (miraComControleAtiva) {
-                    
+
                     miraComControleAtiva = false;
                     if (input != null) {
                         input.iniciarBloqueioMouse();
@@ -144,7 +144,7 @@ public class CameraManager {
                     ultimoOffsetMouseX = 0;
                     ultimoOffsetMouseY = 0;
                 } else {
-                    
+
                     double distMouseX = input.getMouseX() - centroTelaX;
                     double distMouseY = input.getMouseY() - centroTelaY;
                     ultimoOffsetMouseX = distMouseX * pesoOffset;
@@ -179,7 +179,7 @@ public class CameraManager {
         if (focoTimer == Integer.MIN_VALUE) {
             focoTimer = -1;
         }
-        
+
         x += (targetX - x) * velocidade;
         y += (targetY - y) * velocidade;
 
@@ -298,7 +298,7 @@ public class CameraManager {
         this.focoTimer = 67;
         this.focusZoomMode = FocusZoomMode.OVERRIDE;
         this.zoomOverrideReferencia = zoomOverride;
-        this.zoomFocoAlvo = zoomOverride * (zoomBase / zoomReferencia); 
+        this.zoomFocoAlvo = zoomOverride * (zoomBase / zoomReferencia);
     }
 
     public void focarEmRect(Rectangle2D.Double rect, int duracaoFrames, int telaLargura, int telaAltura,
@@ -363,12 +363,17 @@ public class CameraManager {
         return mouseMiraAtiva;
     }
 
-    public void setCombatTarget(double bossX, double bossY, double bossWidth, double bossHeight) {
+    public void setCombatTargetBounds(Rectangle2D.Double bounds) {
+        if (bounds == null) {
+            clearCombatTarget();
+            return;
+        }
+
         this.combatModeAtivo = true;
-        this.combatX = bossX;
-        this.combatY = bossY;
-        this.combatW = bossWidth;
-        this.combatH = bossHeight;
+        this.combatX = bounds.x;
+        this.combatY = bounds.y;
+        this.combatW = bounds.width;
+        this.combatH = bounds.height;
     }
 
     public void clearCombatTarget() {

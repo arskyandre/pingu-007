@@ -15,8 +15,8 @@ public class MorsaBoss extends Enemy {
     private BufferedImage[] Sprites;
     private int Direita = 1;
     private int dirS = 1;
-    private int[] idle = {0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 4, 5};
-    private int[] rugidoSprites = {8, 9};
+    private int[] idle = { 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 4, 5 };
+    private int[] rugidoSprites = { 8, 9 };
     private double animT = 0;
     private double timerVirar = 0;
 
@@ -31,7 +31,7 @@ public class MorsaBoss extends Enemy {
     private double cooldownRugido = 30;
     private boolean podeRugir = false;
 
-    // Lógica de Spawn (Mobs) 
+    // Lógica de Spawn (Mobs)
     private int contadorRugidos = 0;
     private int rugidosParaSpawn = 3;
     private ArrayList<Enemy> minionsSpawnados = new ArrayList<>();
@@ -108,6 +108,10 @@ public class MorsaBoss extends Enemy {
             Enemy novo = enemyManager.adicionarE_RetornarInimigo(tipoSorteado, p.x, p.y, 0, 67);
             if (novo != null) {
                 minionsSpawnados.add(novo);
+
+                if (gameCore != null && gameCore.getArenaManager() != null) {
+                    gameCore.getArenaManager().registrarInimigoNaArena(67, novo);
+                }
             }
         }
         System.out.println("BOSS: Spawnou " + pontosDeSpawn.size() + " minions para ajuda do player!");
@@ -153,11 +157,14 @@ public class MorsaBoss extends Enemy {
         this.x = xHome;
         this.y = yHome;
 
-        /*if (!isDead && this.bodyCollider != null && player.getHurtbox() != null) {
-            if (this.bodyCollider.intersects(this.x, this.y, player.getHurtbox(), player.getX(), player.getY())) {
-                player.receberDano(this.danoContato); // Herda os 10 de dano do Enemy
-            }
-        }*/
+        /*
+         * if (!isDead && this.bodyCollider != null && player.getHurtbox() != null) {
+         * if (this.bodyCollider.intersects(this.x, this.y, player.getHurtbox(),
+         * player.getX(), player.getY())) {
+         * player.receberDano(this.danoContato); // Herda os 10 de dano do Enemy
+         * }
+         * }
+         */
         if (timerVirar > 0) {
             timerVirar -= 1.0;
         }
@@ -348,8 +355,7 @@ public class MorsaBoss extends Enemy {
                         centroBocaX, centroBocaY,
                         Math.cos((angleStep * i) + offsetAngle),
                         Math.sin((angleStep * i) + offsetAngle),
-                        BulletOwner.ENEMY
-                );
+                        BulletOwner.ENEMY);
             }
         }
     }
@@ -496,6 +502,11 @@ class BossMao extends Enemy {
         return this.status == MaoState.IDLE;
     }
 
+    @Override
+    public boolean includedInCombatCamera() {
+        return true;
+    }
+
     public void iniciarBote(boolean duplo, boolean segundaMao) {
         if (status == MaoState.IDLE) {
             status = MaoState.BOTE_WINDUP;
@@ -536,8 +547,10 @@ class BossMao extends Enemy {
             return false;
         }
 
-        Rectangle2D.Double r1 = new Rectangle2D.Double(this.x + meu.getOffsetX(), this.y + meu.getOffsetY(), meu.getWidth(), meu.getHeight());
-        Rectangle2D.Double r2 = new Rectangle2D.Double(e.getX() + dele.getOffsetX(), e.getY() + dele.getOffsetY(), dele.getWidth(), dele.getHeight());
+        Rectangle2D.Double r1 = new Rectangle2D.Double(this.x + meu.getOffsetX(), this.y + meu.getOffsetY(),
+                meu.getWidth(), meu.getHeight());
+        Rectangle2D.Double r2 = new Rectangle2D.Double(e.getX() + dele.getOffsetX(), e.getY() + dele.getOffsetY(),
+                dele.getWidth(), dele.getHeight());
         return r1.intersects(r2);
     }
 
@@ -560,7 +573,8 @@ class BossMao extends Enemy {
 
             if (!isDead && !isCaindo && cooldownDano <= 0) {
                 if (this.bodyCollider != null && player.getHurtbox() != null) {
-                    if (this.bodyCollider.intersects(this.x, this.y, player.getHurtbox(), player.getX(), player.getY())) {
+                    if (this.bodyCollider.intersects(this.x, this.y, player.getHurtbox(), player.getX(),
+                            player.getY())) {
                         player.receberDano(danoContato);
                         cooldownDano = 45;
                     }
@@ -748,8 +762,7 @@ class BossMao extends Enemy {
                             corpoPrincipal.getBulletManager().shoot(
                                     centroMaoX, centroMaoY,
                                     Math.cos(angleStep * i), Math.sin(angleStep * i),
-                                    BulletOwner.ENEMY
-                            );
+                                    BulletOwner.ENEMY);
                         }
                     }
                 }
@@ -834,7 +847,7 @@ class BossMao extends Enemy {
 
                     if (soundManager != null) {
                         // TODO: adicionar um som para isso, se puder
-                        //soundManager.playSFX(SoundManager.SFX.SWOOSH);
+                        // soundManager.playSFX(SoundManager.SFX.SWOOSH);
                     }
                 }
                 break;
@@ -906,7 +919,8 @@ class BossMao extends Enemy {
             double currentW = maxShadowWidth * sombraScale;
             double currentH = maxShadowHeight * sombraScale;
             g.setColor(new Color(0, 0, 0, 120));
-            g.fillOval((int) (sombraX - currentW / 2.0), (int) (sombraY - currentH / 2.0), (int) currentW, (int) currentH);
+            g.fillOval((int) (sombraX - currentW / 2.0), (int) (sombraY - currentH / 2.0), (int) currentW,
+                    (int) currentH);
         }
 
         g.setColor(this.cor);

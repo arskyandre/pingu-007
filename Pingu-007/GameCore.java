@@ -23,7 +23,8 @@ public class GameCore extends Canvas implements Runnable {
     private final GameOverScreen gameOverScreen;
     private final KeyBindingsMenu keyBindingsMenu;
 
-    // permite os botoes de teste(debuginputprocessing() e outros). se colocar false o jogo se comporta como versao de "usuario"
+    // permite os botoes de teste(debuginputprocessing() e outros). se colocar false
+    // o jogo se comporta como versao de "usuario"
     private static boolean debugInputs = true;
 
     private double checkX, checkY;
@@ -432,7 +433,7 @@ public class GameCore extends Canvas implements Runnable {
                 }
                 if (dialogueManager.isAtivo()) {
                     dialogueManager.atualizar(input);
-                    atualizarCameraSemNovoInput();
+                    atualizarCameraSemInput();
                 } else {
                     if (introDialogoAtiva) {
                         introDialogoAtiva = false;
@@ -790,14 +791,9 @@ public class GameCore extends Canvas implements Runnable {
 
         levelManager.update();
 
-        MorsaBoss morsa = enemyManager.getMorsaBoss();
-        if (morsa != null && !morsa.isDead() && morsa.isPodeRugir()) {
-            camera.setCombatTarget(morsa.getX(), morsa.getY(), morsa.getLargura(), morsa.getAltura());
-        } else {
-            camera.clearCombatTarget();
-        }
+        updateCombatTarget();
         if (dialogueManager.isAtivo()) {
-            atualizarCameraSemNovoInput();
+            atualizarCameraSemInput();
         } else {
             atualizarCamera();
         }
@@ -822,7 +818,7 @@ public class GameCore extends Canvas implements Runnable {
             }
         }
         if (dialogueManager.isAtivo()) {
-            atualizarCameraSemNovoInput();
+            atualizarCameraSemInput();
         } else {
             atualizarCamera();
         }
@@ -838,9 +834,41 @@ public class GameCore extends Canvas implements Runnable {
         fishingManager.syncToCamera(camera, getWidth(), getHeight());
     }
 
-    private void atualizarCameraSemNovoInput() {
+    private void atualizarCameraSemInput() {
         camera.updateSemNovoInput(player, getWidth(), getHeight());
         fishingManager.syncToCamera(camera, getWidth(), getHeight());
+    }
+
+    private void updateCombatTarget() {
+        MorsaBoss morsa = enemyManager.getMorsaBoss();
+
+        if (morsa == null || morsa.isDead() || !morsa.isPodeRugir()) {
+            camera.clearCombatTarget();
+            return;
+        }
+
+        Rectangle2D.Double limites = new Rectangle2D.Double(
+                morsa.getX(),
+                morsa.getY(),
+                morsa.getLargura(),
+                morsa.getAltura());
+
+        for (Enemy enemy : arenaManager.getCombatCameraEnemies()) {
+            Rectangle2D.Double retangulo = new Rectangle2D.Double(
+                    enemy.getX(),
+                    enemy.getY(),
+                    enemy.getLargura(),
+                    enemy.getAltura());
+
+            double minX = Math.min(limites.x, retangulo.x);
+            double minY = Math.min(limites.y, retangulo.y);
+            double maxX = Math.max(limites.x + limites.width, retangulo.x + retangulo.width);
+            double maxY = Math.max(limites.y + limites.height, retangulo.y + retangulo.height);
+
+            limites = new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
+        }
+
+        camera.setCombatTargetBounds(limites);
     }
 
     private double calculateBaseZoom(int height) {
