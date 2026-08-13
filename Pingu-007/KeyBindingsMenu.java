@@ -49,6 +49,16 @@ public class KeyBindingsMenu {
                 || input.isButtonJustPressed(InputManager.GamepadButton.B))
             return returnTo;
 
+        boolean controleAcionado = input.isButtonJustPressed(InputManager.GamepadButton.A)
+                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP)
+                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN)
+                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_LEFT)
+                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_RIGHT);
+
+        if (controleAcionado) {
+            input.iniciarBloqueioMouse();
+        }
+
         boolean mouseAceito = !input.isMouseBloqueado();
         boolean controleAtivo = input.isControllerActive();
 
@@ -61,7 +71,8 @@ public class KeyBindingsMenu {
             backBtn.hovered = false;
         }
 
-        if (controleAtivo || input.isMouseBloqueado()) {
+        if ((controleAtivo || input.isMouseBloqueado())
+                && (!mouseAceito || !backBtn.isHovered())) {
             backBtn.hovered = true;
 
             if (input.isButtonJustPressed(InputManager.GamepadButton.A)) {
