@@ -10,7 +10,10 @@ public enum IconIndex {
     GREEN_CHECK(5, 0),
     RED_X(6, 0),
     LEFT_ARROW(7, 0),
-    RIGHT_ARROW(8, 0);
+    RIGHT_ARROW(8, 0),
+    PAUSE_ICON(9, 0),
+    UNLIM_FPS_OFF(10, 0),
+    UNLIM_FPS_ON(11, 0);
 
     private final int col, row;
     private static final int ICON_SIZE = 32;

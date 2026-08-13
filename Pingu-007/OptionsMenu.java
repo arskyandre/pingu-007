@@ -25,31 +25,35 @@ public class OptionsMenu {
     private static final int MIN_FPS = 30;
     private static final int MAX_FPS = 240;
 
-    private enum TipoFoco {
-        DESLIZADOR, BOTAO
-    }
-
     private static class ItemFoco {
-        final Object controle;
-        final TipoFoco tipo;
+        final MenuSlider deslizador;
+        final MenuButton botao;
         final Function<GameCore, GameState> acao;
 
-        ItemFoco(Object controle, TipoFoco tipo, Function<GameCore, GameState> acao) {
-            this.controle = controle;
-            this.tipo = tipo;
+        ItemFoco(MenuSlider deslizador, MenuButton botao, Function<GameCore, GameState> acao) {
+            this.deslizador = deslizador;
+            this.botao = botao;
             this.acao = acao;
         }
 
+        ItemFoco(MenuButton botao, Function<GameCore, GameState> acao) {
+            this(null, botao, acao);
+        }
+
+        ItemFoco(MenuSlider deslizador, Function<GameCore, GameState> acao) {
+            this(deslizador, null, acao);
+        }
+
         Rectangle limites() {
-            if (controle instanceof MenuSlider slider) {
-                return slider.getRect();
+            if (deslizador != null && botao != null) {
+                return deslizador.getRect().union(botao.getRect());
             }
-            return ((MenuButton) controle).getRect();
+            return deslizador != null ? deslizador.getRect() : botao.getRect();
         }
 
         void aplicarFoco(boolean focado) {
-            if (controle instanceof MenuButton button) {
-                button.hovered = focado;
+            if (botao != null) {
+                botao.hovered = focado;
             }
         }
     }
@@ -57,6 +61,8 @@ public class OptionsMenu {
     private final List<ItemFoco> itensFoco = new ArrayList<>();
     private ItemFoco itemFocado;
     private boolean fpsSliderInitialized = false;
+    private int previousFpsLimit = 120;
+    private boolean fpsUnlimited = false;
 
     private float previousMusicVolume;
     private float previousSfxVolume;
@@ -68,6 +74,7 @@ public class OptionsMenu {
     private final MenuSlider fpsCapSlider;
     private final IconButton toggleMuteBGM;
     private final IconButton toggleMuteSFX;
+    private final IconButton toggleUnlimitedFps;
     private final MenuButton backBtn;
     private final MenuButton keyBindBtn;
     private final IconButton fullScreenButton;
@@ -89,6 +96,7 @@ public class OptionsMenu {
 
         toggleMuteBGM = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED, false);
         toggleMuteSFX = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED, false);
+        toggleUnlimitedFps = new IconButton(0, 0, BTN_SIZE, IconIndex.UNLIM_FPS_OFF, false);
         fullScreenButton = new IconButton(0, 0, BTN_SIZE, IconIndex.FULLSCREEN, false);
         showFpsButton = new IconButton(0, 0, BTN_SIZE, IconIndex.RED_X, false);
         enableAAButton = new IconButton(0, 0, BTN_SIZE, IconIndex.GREEN_CHECK, false);
@@ -96,28 +104,29 @@ public class OptionsMenu {
         backBtn = new MenuButton("VOLTAR", 0, 0, 160, 46);
         keyBindBtn = new MenuButton("CONSULTAR TECLAS", 0, 0, 200, 46);
 
-        itensFoco.add(new ItemFoco(musicSlider, TipoFoco.DESLIZADOR, gc -> GameState.OPTIONS));
-        itensFoco.add(new ItemFoco(toggleMuteBGM, TipoFoco.BOTAO, gc -> {
+        itensFoco.add(new ItemFoco(musicSlider, toggleMuteBGM, gc -> {
             toggleMusicMute();
             return GameState.OPTIONS;
         }));
-        itensFoco.add(new ItemFoco(sfxSlider, TipoFoco.DESLIZADOR, gc -> GameState.OPTIONS));
-        itensFoco.add(new ItemFoco(toggleMuteSFX, TipoFoco.BOTAO, gc -> {
+        itensFoco.add(new ItemFoco(sfxSlider, toggleMuteSFX, gc -> {
             toggleSfxMute();
             return GameState.OPTIONS;
         }));
-        itensFoco.add(new ItemFoco(fpsCapSlider, TipoFoco.DESLIZADOR, gc -> GameState.OPTIONS));
-        itensFoco.add(new ItemFoco(showFpsButton, TipoFoco.BOTAO, gc -> {
+        itensFoco.add(new ItemFoco(fpsCapSlider, toggleUnlimitedFps, gc -> {
+            alternarFpsIlimitado(gc);
+            return GameState.OPTIONS;
+        }));
+        itensFoco.add(new ItemFoco(showFpsButton, gc -> {
             gc.toggleFpsCounter();
             return GameState.OPTIONS;
         }));
-        itensFoco.add(new ItemFoco(enableAAButton, TipoFoco.BOTAO, gc -> {
+        itensFoco.add(new ItemFoco(enableAAButton, gc -> {
             gc.toggleAntiAliasing();
             return GameState.OPTIONS;
         }));
-        itensFoco.add(new ItemFoco(keyBindBtn, TipoFoco.BOTAO, gc -> GameState.KEYBINDINGS));
-        itensFoco.add(new ItemFoco(backBtn, TipoFoco.BOTAO, gc -> returnTo));
-        itensFoco.add(new ItemFoco(fullScreenButton, TipoFoco.BOTAO, gc -> {
+        itensFoco.add(new ItemFoco(keyBindBtn, gc -> GameState.KEYBINDINGS));
+        itensFoco.add(new ItemFoco(backBtn, gc -> returnTo));
+        itensFoco.add(new ItemFoco(fullScreenButton, gc -> {
             gc.toggleFullscreen();
             return GameState.OPTIONS;
         }));
@@ -169,7 +178,7 @@ public class OptionsMenu {
         positionSliderRow(sfxSlider, toggleMuteSFX, centerX, sfxY);
 
         int fpsCapY = cursor.nextRow(sliderRowHeight);
-        positionSliderRow(fpsCapSlider, null, centerX, fpsCapY);
+        positionSliderRow(fpsCapSlider, toggleUnlimitedFps, centerX, fpsCapY);
 
         int fpsToggleY = cursor.nextRow(BTN_SIZE);
         showFpsButton.setPosition(centerX + SLIDER_W / 2 - BTN_SIZE, fpsToggleY);
@@ -210,9 +219,16 @@ public class OptionsMenu {
         repositionElements(width, height, GC);
 
         if (!fpsSliderInitialized) {
-            fpsCapSlider.setValue(sliderValueFromFps(GC.getTargetFps()));
+            int limiteFps = GC.getTargetFps();
+            fpsUnlimited = limiteFps == 0;
+            if (!fpsUnlimited) {
+                previousFpsLimit = Math.clamp(limiteFps, MIN_FPS, MAX_FPS);
+            }
+            fpsCapSlider.setValue(sliderValueFromFps(previousFpsLimit));
             fpsSliderInitialized = true;
         }
+
+        atualizarIconesFps(GC);
 
         if (GC.isAntiAliasingEnabled()) {
             enableAAButton.setIcon(IconIndex.GREEN_CHECK);
@@ -258,11 +274,10 @@ public class OptionsMenu {
 
     private GameState atualizarBotoesMouse(InputManager input, GameCore GC) {
         for (ItemFoco item : itensFoco) {
-            if (item.tipo != TipoFoco.BOTAO) {
+            if (item.botao == null) {
                 continue;
             }
-            MenuButton button = (MenuButton) item.controle;
-            if (button.update(input) == MenuButton.CLICKED) {
+            if (item.botao.update(input) == MenuButton.CLICKED) {
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
                 return item.acao.apply(GC);
             }
@@ -272,10 +287,7 @@ public class OptionsMenu {
 
     private void atualizarFocoPeloMouse(InputManager input) {
         for (ItemFoco item : itensFoco) {
-            if (item.tipo == TipoFoco.DESLIZADOR) {
-                continue;
-            }
-            if (((MenuButton) item.controle).isHovered()) {
+            if (item.botao != null && item.botao.isHovered()) {
                 itemFocado = item;
             }
         }
@@ -335,7 +347,7 @@ public class OptionsMenu {
             itemFocado = encontrarItemFoco(fpsCapSlider);
             if (state == MenuSlider.CLICKED)
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
-            GC.setTargetFps(fpsFromSliderValue(fpsCapSlider.getValue()));
+            definirLimiteFps(fpsFromSliderValue(fpsCapSlider.getValue()), GC);
         }
     }
 
@@ -361,7 +373,7 @@ public class OptionsMenu {
             moverVerticalmente(up ? -1 : 1);
             input.iniciarBloqueioMouse();
         } else if (left || right) {
-            if (itemFocado.tipo == TipoFoco.DESLIZADOR) {
+            if (itemFocado.deslizador != null) {
                 ajustarDeslizadorFocado(left ? -0.05f : 0.05f, GC);
             } else {
                 moverHorizontalmente(right ? 1 : -1);
@@ -419,7 +431,12 @@ public class OptionsMenu {
     }
 
     private void ajustarDeslizadorFocado(float variacao, GameCore GC) {
-        MenuSlider slider = (MenuSlider) itemFocado.controle;
+        MenuSlider slider = itemFocado.deslizador;
+        if (slider == fpsCapSlider) {
+            ajustarLimiteFps(variacao, GC);
+            return;
+        }
+
         float valorAnterior = slider.getValue();
         float valor = Math.clamp(valorAnterior + variacao, 0f, 1f);
         if (valor == valorAnterior && moverParaIrmaoHorizontal(variacao > 0 ? 1 : -1)) {
@@ -433,6 +450,40 @@ public class OptionsMenu {
         } else {
             GC.setTargetFps(fpsFromSliderValue(valor));
         }
+    }
+
+    private void ajustarLimiteFps(float variacao, GameCore GC) {
+        int fpsAtual = fpsFromSliderValue(fpsCapSlider.getValue());
+        int passo = variacao > 0f ? 5 : -5;
+        int novoFps = Math.clamp(fpsAtual + passo, MIN_FPS, MAX_FPS);
+        fpsCapSlider.setValue(sliderValueFromFps(novoFps));
+        definirLimiteFps(novoFps, GC);
+    }
+
+    private void definirLimiteFps(int limite, GameCore GC) {
+        previousFpsLimit = limite;
+        fpsUnlimited = false;
+        GC.setTargetFps(limite);
+        toggleUnlimitedFps.setIcon(IconIndex.UNLIM_FPS_OFF);
+    }
+
+    private void alternarFpsIlimitado(GameCore GC) {
+        if (!fpsUnlimited) {
+            previousFpsLimit = Math.clamp(fpsFromSliderValue(fpsCapSlider.getValue()), MIN_FPS, MAX_FPS);
+            fpsUnlimited = true;
+            GC.setTargetFps(0);
+            toggleUnlimitedFps.setIcon(IconIndex.UNLIM_FPS_ON);
+        } else {
+            fpsUnlimited = false;
+            fpsCapSlider.setValue(sliderValueFromFps(previousFpsLimit));
+            GC.setTargetFps(previousFpsLimit);
+            toggleUnlimitedFps.setIcon(IconIndex.UNLIM_FPS_OFF);
+        }
+    }
+
+    private void atualizarIconesFps(GameCore GC) {
+        fpsUnlimited = GC.getTargetFps() == 0;
+        toggleUnlimitedFps.setIcon(fpsUnlimited ? IconIndex.UNLIM_FPS_ON : IconIndex.UNLIM_FPS_OFF);
     }
 
     private boolean moverParaIrmaoHorizontal(int direcao) {
@@ -471,7 +522,7 @@ public class OptionsMenu {
 
     private ItemFoco encontrarItemFoco(Object controle) {
         for (ItemFoco item : itensFoco) {
-            if (item.controle == controle) {
+            if (item.deslizador == controle || item.botao == controle) {
                 return item;
             }
         }
@@ -479,7 +530,8 @@ public class OptionsMenu {
     }
 
     private boolean estaFocado(Object controle) {
-        return itemFocado != null && itemFocado.controle == controle;
+        return itemFocado != null
+                && (itemFocado.deslizador == controle || itemFocado.botao == controle);
     }
 
     private void toggleMusicMute() {
@@ -528,14 +580,15 @@ public class OptionsMenu {
 
         drawSliderRow(g2, "VOLUME DA MÚSICA", musicSlider, estaFocado(musicSlider), width, true, true);
         drawSliderRow(g2, "VOLUME DOS EFEITOS", sfxSlider, estaFocado(sfxSlider), width, true, true);
-        drawSliderRow(g2, "LIMITE DE FPS: " + fpsFromSliderValue(fpsCapSlider.getValue()),
-                fpsCapSlider, estaFocado(fpsCapSlider), width, false, false);
+        drawSliderRow(g2, rotuloLimiteFps(),
+                fpsCapSlider, estaFocado(fpsCapSlider), width, true, false);
 
         drawLabelLeftOf(g2, "MOSTRAR FPS", showFpsButton.getRect());
         drawLabelLeftOf(g2, "Habilitar Anti-Aliasing", enableAAButton.getRect());
         enableAAButton.draw(g2);
         toggleMuteBGM.draw(g2);
         toggleMuteSFX.draw(g2);
+        toggleUnlimitedFps.draw(g2);
         showFpsButton.draw(g2);
         keyBindBtn.draw(g2);
         backBtn.draw(g2);
@@ -561,6 +614,12 @@ public class OptionsMenu {
             int pctX = r.x + r.width + SLIDER_TO_BTN_GAP + (hasButton ? BTN_SIZE + BTN_TO_PCT_GAP : BTN_TO_PCT_GAP);
             g2.drawString(pct, pctX, r.y + r.height);
         }
+    }
+
+    private String rotuloLimiteFps() {
+        return fpsUnlimited
+                ? "LIMITE DE FPS: ILIMITADO"
+                : "LIMITE DE FPS: " + fpsFromSliderValue(fpsCapSlider.getValue());
     }
 
     private void drawLabelLeftOf(Graphics2D g2, String text, Rectangle anchorRect) {
