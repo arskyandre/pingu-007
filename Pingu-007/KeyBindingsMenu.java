@@ -45,12 +45,29 @@ public class KeyBindingsMenu {
     public GameState update(InputManager input, int width, int height) {
         repositionElements(width, height);
 
-        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE) || input.isButtonJustPressed(InputManager.GamepadButton.B))
+        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE)
+                || input.isButtonJustPressed(InputManager.GamepadButton.B))
             return returnTo;
 
-        if (backBtn.update(input) == MenuButton.CLICKED) {
+        boolean mouseAceito = !input.isMouseBloqueado();
+        boolean controleAtivo = input.isControllerActive();
+
+        if (mouseAceito && backBtn.update(input) == MenuButton.CLICKED) {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             return returnTo;
+        }
+
+        if (!mouseAceito) {
+            backBtn.hovered = false;
+        }
+
+        if (controleAtivo || input.isMouseBloqueado()) {
+            backBtn.hovered = true;
+
+            if (input.isButtonJustPressed(InputManager.GamepadButton.A)) {
+                soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
+                return returnTo;
+            }
         }
 
         return GameState.KEYBINDINGS;
