@@ -15,8 +15,8 @@ public class MorsaBoss extends Enemy {
     private BufferedImage[] Sprites;
     private int Direita = 1;
     private int dirS = 1;
-    private int[] idle = { 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 4, 5 };
-    private int[] rugidoSprites = { 8, 9 };
+    private int[] idle = {0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 4, 5};
+    private int[] rugidoSprites = {8, 9};
     private double animT = 0;
     private double timerVirar = 0;
 
@@ -177,24 +177,43 @@ public class MorsaBoss extends Enemy {
                     if (!maoEsmagandoAtiva.isEsmagando()) {
                         maoEsmagandoAtiva = null;
                     } else if (maoEsmagandoAtiva.isPreparandoEsmagamento()) {
-                        double playerCenterX = player.getX() + player.getLargura() / 2.0;
-                        double bossCenterX = x + (getLargura() / 2.0);
-                        boolean playerNaEsquerda = playerCenterX < bossCenterX;
+                        if (maoEsmagandoAtiva.getTimerEstado() < 35) {
+                            double playerCenterX = player.getX() + player.getLargura() / 2.0;
+                            double bossCenterX = x + (getLargura() / 2.0);
 
-                        if (playerNaEsquerda && maoEsmagandoAtiva == maoDireita && maoEsquerda != null) {
-                            maoDireita.cancelarAtaque();
-                            maoEsquerda.iniciarHoverSlam();
-                            maoEsmagandoAtiva = maoEsquerda;
-                        } else if (!playerNaEsquerda && maoEsmagandoAtiva == maoEsquerda && maoDireita != null) {
-                            maoEsquerda.cancelarAtaque();
-                            maoDireita.iniciarHoverSlam();
-                            maoEsmagandoAtiva = maoDireita;
+                            boolean playerNaEsquerda = playerCenterX < bossCenterX - 30;
+                            boolean playerNaDireita = playerCenterX > bossCenterX + 30;
+
+                            if (playerNaEsquerda && maoEsmagandoAtiva == maoDireita && maoEsquerda != null) {
+                                double tempoSalvo = maoDireita.getTimerEstado();
+                                double tempoComDesconto = Math.max(0, tempoSalvo - 20);
+
+                                maoDireita.cancelarAtaque();
+                                maoEsquerda.iniciarHoverSlam(tempoComDesconto);
+                                maoEsmagandoAtiva = maoEsquerda;
+
+                            } else if (playerNaDireita && maoEsmagandoAtiva == maoEsquerda && maoDireita != null) {
+                                double tempoSalvo = maoEsquerda.getTimerEstado();
+                                double tempoComDesconto = Math.max(0, tempoSalvo - 20);
+
+                                maoEsquerda.cancelarAtaque();
+                                maoDireita.iniciarHoverSlam(tempoComDesconto);
+                                maoEsmagandoAtiva = maoDireita;
+                            }
                         }
                     }
-                } else {
+                }
+
+                boolean maoEsqIdle = (maoEsquerda == null || maoEsquerda.isIdle());
+                boolean maoDirIdle = (maoDireita == null || maoDireita.isIdle());
+
+                if (maoEsqIdle && maoDirIdle) {
+                    maoEsmagandoAtiva = null;
+
                     timerAtaque -= 1.0;
                     if (timerAtaque <= 0) {
                         escolherAtaque(player);
+
                         double baseTimer = 150 + (Math.random() * 100);
                         if (ataqueSorteio == 0 && (contadorBote % 3 == 0)) {
                             baseTimer += 60;
@@ -516,10 +535,18 @@ class BossMao extends Enemy {
         }
     }
 
+    public double getTimerEstado() {
+        return this.timerEstado;
+    }
+
     public void iniciarHoverSlam() {
+        iniciarHoverSlam(0);
+    }
+
+    public void iniciarHoverSlam(double tempoHerdado) {
         if (status == MaoState.IDLE || status == MaoState.RETURNING) {
             status = MaoState.HOVER_CHASE;
-            timerEstado = 0;
+            timerEstado = tempoHerdado;
         }
     }
 
