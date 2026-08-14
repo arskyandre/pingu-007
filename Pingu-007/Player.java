@@ -1052,24 +1052,23 @@ public class Player extends Entity {
         double referenciaX = ultimaDirecaoMovimentoX;
         double referenciaY = ultimaDirecaoMovimentoY;
 
+        velX += direcaoMovimento.x * dashForca;
+        velY += direcaoMovimento.y * dashForca;
+
         if (Math.abs(absX - absY) < 0.0001) {
             if (Math.abs(referenciaX) >= Math.abs(referenciaY)) {
                 dashDirX = Math.signum(referenciaX != 0.0 ? referenciaX : direcaoMovimento.x);
                 dashDirY = 0;
-                velX += dashDirX * dashForca;
             } else {
                 dashDirX = 0;
                 dashDirY = Math.signum(referenciaY != 0.0 ? referenciaY : direcaoMovimento.y);
-                velY += dashDirY * dashForca;
             }
         } else if (absX > absY) {
             dashDirX = Math.signum(direcaoMovimento.x);
             dashDirY = 0;
-            velX += dashDirX * dashForca;
         } else {
             dashDirX = 0;
             dashDirY = Math.signum(direcaoMovimento.y);
-            velY += dashDirY * dashForca;
         }
 
         podeDash = false;
