@@ -31,6 +31,7 @@ public class Bomber extends Enemy {
     public boolean soltaBalas = true;
     public boolean danoAosInimigos = true;
     private boolean jaExplodiu = false;
+    private boolean jaAvisou = false;
 
     public Bomber(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr,
             ArrayList<Enemy> inimigos, SoundManager sound) {
@@ -93,8 +94,13 @@ public class Bomber extends Enemy {
                 }
             }
             case ACIONADO -> {
-                if (timer == tempoPavio) {
+                if (!jaAvisou) {
+                    // if (timer == tempoPavio) {
                     soundManager.playSFX(SoundManager.SFX.BOMBER_AVISO);
+                    // } else{
+                    // soundManager.playSFX(SoundManager.SFX.AAAHHHH);
+                    // }
+                    jaAvisou = true;
                 }
                 velX *= 0.8;
                 velY *= 0.8;
@@ -193,11 +199,11 @@ public class Bomber extends Enemy {
                 animIndex = 0;
             }
             if (dirS == 0) {
-                if(timerDano > 0)
+                if (timerDano > 0)
                     animIndex = 15;
                 g2.drawImage(Sprites[animIndex + 7], (int) x, (int) y, (int) width, (int) height, null);
             } else {
-                if(timerDano > 0)
+                if (timerDano > 0)
                     animIndex = 21;
                 g2.drawImage(Sprites[animIndex], (int) x, (int) y, (int) width, (int) height, null);
             }
