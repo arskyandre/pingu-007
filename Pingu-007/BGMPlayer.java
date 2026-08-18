@@ -184,12 +184,40 @@ public class BGMPlayer {
         }
 
         LoadedAudio loaded;
-        try (AudioInputStream ais = AudioSystem.getAudioInputStream(new File(path))) {
-            byte[] pcm = ais.readAllBytes();
-            if (pcm.length == 0) {
-                throw new IllegalArgumentException("BGMPlayer: arquivo de audio vazio: " + path);
+        try (AudioInputStream original = AudioSystem.getAudioInputStream(new File(path))) {
+            AudioFormat sourceFormat = original.getFormat();
+
+            int channels = Math.max(1, sourceFormat.getChannels());
+            AudioFormat targetFormat = new AudioFormat(
+                    AudioFormat.Encoding.PCM_SIGNED,
+                    44100.0f,
+                    16,
+                    channels,
+                    channels * 2,
+                    44100.0f,
+                    false);
+
+            AudioInputStream pcmStream = original;
+
+            if (!sourceFormat.matches(targetFormat)) {
+                if (!AudioSystem.isConversionSupported(targetFormat, sourceFormat)) {
+                    throw new IllegalArgumentException(
+                            "BGMPlayer: conversao de audio nao suportada: "
+                                    + sourceFormat + " -> " + targetFormat);
+                }
+
+                pcmStream = AudioSystem.getAudioInputStream(targetFormat, original);
             }
-            loaded = new LoadedAudio(ais.getFormat(), pcm);
+
+            try (AudioInputStream converted = pcmStream) {
+                byte[] pcm = converted.readAllBytes();
+
+                if (pcm.length == 0) {
+                    throw new IllegalArgumentException("BGMPlayer: arquivo de audio vazio: " + path);
+                }
+
+                loaded = new LoadedAudio(converted.getFormat(), pcm);
+            }
         }
 
         LoadedAudio previous = AUDIO_CACHE.putIfAbsent(path, loaded);

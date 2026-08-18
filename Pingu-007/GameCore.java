@@ -523,7 +523,9 @@ public class GameCore extends Canvas implements Runnable {
 
     public void triggerDialogoInicial() {
         if (!dialogueManager.isAtivo()) {
-            dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadio, DialogueCatalogo.FalaInicialRadio,
+            // ALTERADO (Katakana/Linux): removido apenas o array antigo de áudio.
+            // A sequência original de retratos foi mantida.
+            dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadio,
                     new BufferedImage[] {
                             pingu_portrait,
                             cellphone_image,

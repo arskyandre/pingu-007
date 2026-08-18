@@ -65,150 +65,8 @@ public class SoundManager {
         DIALOGUE_SOUND_1("sound/dialogue/dialogue_sound_1.wav", 9),
         DIALOGUE_SOUND_2("sound/dialogue/dialogue_sound_2.wav", 9),
         DIALOGUE_SOUND_3("sound/dialogue/dialogue_sound_3.wav", 9),
-        DIALOGUE_QUESTION("sound/dialogue/question.wav", 3),
+        DIALOGUE_QUESTION("sound/dialogue/question.wav", 3);
         // para o dialogo animal crossing
-        KATAKANA_A("sound/dialogue/kata_a.wav", 3),
-        KATAKANA_BA("sound/dialogue/kata_ba.wav", 3),
-        KATAKANA_BE("sound/dialogue/kata_be.wav", 3),
-        KATAKANA_BI("sound/dialogue/kata_bi.wav", 3),
-        KATAKANA_BO("sound/dialogue/kata_bo.wav", 3),
-        KATAKANA_BU("sound/dialogue/kata_bu.wav", 3),
-        KATAKANA_BYA("sound/dialogue/kata_bya.wav", 3),
-        KATAKANA_BYE("sound/dialogue/kata_bye.wav", 3),
-        KATAKANA_BYO("sound/dialogue/kata_byo.wav", 3),
-        KATAKANA_BYU("sound/dialogue/kata_byu.wav", 3),
-        KATAKANA_CHA("sound/dialogue/kata_cha.wav", 3),
-        KATAKANA_CHE("sound/dialogue/kata_che.wav", 3),
-        KATAKANA_CHI("sound/dialogue/kata_chi.wav", 3),
-        KATAKANA_CHO("sound/dialogue/kata_cho.wav", 3),
-        KATAKANA_CHU("sound/dialogue/kata_chu.wav", 3),
-        KATAKANA_DA("sound/dialogue/kata_da.wav", 3),
-        KATAKANA_DE("sound/dialogue/kata_de.wav", 3),
-        KATAKANA_DI("sound/dialogue/kata_di.wav", 3),
-        KATAKANA_DO("sound/dialogue/kata_do.wav", 3),
-        KATAKANA_DU("sound/dialogue/kata_du.wav", 3),
-        KATAKANA_DYU("sound/dialogue/kata_dyu.wav", 3),
-        KATAKANA_E("sound/dialogue/kata_e.wav", 3),
-        KATAKANA_FA("sound/dialogue/kata_fa.wav", 3),
-        KATAKANA_FE("sound/dialogue/kata_fe.wav", 3),
-        KATAKANA_FI("sound/dialogue/kata_fi.wav", 3),
-        KATAKANA_FO("sound/dialogue/kata_fo.wav", 3),
-        KATAKANA_FYO("sound/dialogue/kata_fyo.wav", 3),
-        KATAKANA_FYU("sound/dialogue/kata_fyu.wav", 3),
-        KATAKANA_GA("sound/dialogue/kata_ga.wav", 3),
-        KATAKANA_GE("sound/dialogue/kata_ge.wav", 3),
-        KATAKANA_GI("sound/dialogue/kata_gi.wav", 3),
-        KATAKANA_GO("sound/dialogue/kata_go.wav", 3),
-        KATAKANA_GU("sound/dialogue/kata_gu.wav", 3),
-        KATAKANA_GWA("sound/dialogue/kata_gwa.wav", 3),
-        KATAKANA_GWE("sound/dialogue/kata_gwe.wav", 3),
-        KATAKANA_GWI("sound/dialogue/kata_gwi.wav", 3),
-        KATAKANA_GWO("sound/dialogue/kata_gwo.wav", 3),
-        KATAKANA_GYA("sound/dialogue/kata_gya.wav", 3),
-        KATAKANA_GYE("sound/dialogue/kata_gye.wav", 3),
-        KATAKANA_GYO("sound/dialogue/kata_gyo.wav", 3),
-        KATAKANA_GYU("sound/dialogue/kata_gyu.wav", 3),
-        KATAKANA_HA("sound/dialogue/kata_ha.wav", 3),
-        KATAKANA_HE("sound/dialogue/kata_he.wav", 3),
-        KATAKANA_HI("sound/dialogue/kata_hi.wav", 3),
-        KATAKANA_HO("sound/dialogue/kata_ho.wav", 3),
-        KATAKANA_HU("sound/dialogue/kata_hu.wav", 3),
-        KATAKANA_HYA("sound/dialogue/kata_hya.wav", 3),
-        KATAKANA_HYE("sound/dialogue/kata_hye.wav", 3),
-        KATAKANA_HYO("sound/dialogue/kata_hyo.wav", 3),
-        KATAKANA_HYU("sound/dialogue/kata_hyu.wav", 3),
-        KATAKANA_I("sound/dialogue/kata_i.wav", 3),
-        KATAKANA_JA("sound/dialogue/kata_ja.wav", 3),
-        KATAKANA_JE("sound/dialogue/kata_je.wav", 3),
-        KATAKANA_JO("sound/dialogue/kata_jo.wav", 3),
-        KATAKANA_JU("sound/dialogue/kata_ju.wav", 3),
-        KATAKANA_KA("sound/dialogue/kata_ka.wav", 3),
-        KATAKANA_KE("sound/dialogue/kata_ke.wav", 3),
-        KATAKANA_KI("sound/dialogue/kata_ki.wav", 3),
-        KATAKANA_KO("sound/dialogue/kata_ko.wav", 3),
-        KATAKANA_KU("sound/dialogue/kata_ku.wav", 3),
-        KATAKANA_KWA("sound/dialogue/kata_kwa.wav", 3),
-        KATAKANA_KWE("sound/dialogue/kata_kwe.wav", 3),
-        KATAKANA_KWI("sound/dialogue/kata_kwi.wav", 3),
-        KATAKANA_KWO("sound/dialogue/kata_kwo.wav", 3),
-        KATAKANA_KYA("sound/dialogue/kata_kya.wav", 3),
-        KATAKANA_KYE("sound/dialogue/kata_kye.wav", 3),
-        KATAKANA_KYO("sound/dialogue/kata_kyo.wav", 3),
-        KATAKANA_KYU("sound/dialogue/kata_kyu.wav", 3),
-        KATAKANA_MA("sound/dialogue/kata_ma.wav", 3),
-        KATAKANA_ME("sound/dialogue/kata_me.wav", 3),
-        KATAKANA_MI("sound/dialogue/kata_mi.wav", 3),
-        KATAKANA_MO("sound/dialogue/kata_mo.wav", 3),
-        KATAKANA_MU("sound/dialogue/kata_mu.wav", 3),
-        KATAKANA_MYA("sound/dialogue/kata_mya.wav", 3),
-        KATAKANA_MYE("sound/dialogue/kata_mye.wav", 3),
-        KATAKANA_MYO("sound/dialogue/kata_myo.wav", 3),
-        KATAKANA_MYU("sound/dialogue/kata_myu.wav", 3),
-        KATAKANA_N("sound/dialogue/kata_n.wav", 3),
-        KATAKANA_NA("sound/dialogue/kata_na.wav", 3),
-        KATAKANA_NE("sound/dialogue/kata_ne.wav", 3),
-        KATAKANA_NI("sound/dialogue/kata_ni.wav", 3),
-        KATAKANA_NO("sound/dialogue/kata_no.wav", 3),
-        KATAKANA_NU("sound/dialogue/kata_nu.wav", 3),
-        KATAKANA_NYA("sound/dialogue/kata_nya.wav", 3),
-        KATAKANA_NYE("sound/dialogue/kata_nye.wav", 3),
-        KATAKANA_NYO("sound/dialogue/kata_nyo.wav", 3),
-        KATAKANA_NYU("sound/dialogue/kata_nyu.wav", 3),
-        KATAKANA_O("sound/dialogue/kata_o.wav", 3),
-        KATAKANA_PA("sound/dialogue/kata_pa.wav", 3),
-        KATAKANA_PE("sound/dialogue/kata_pe.wav", 3),
-        KATAKANA_PI("sound/dialogue/kata_pi.wav", 3),
-        KATAKANA_PO("sound/dialogue/kata_po.wav", 3),
-        KATAKANA_PU("sound/dialogue/kata_pu.wav", 3),
-        KATAKANA_PYA("sound/dialogue/kata_pya.wav", 3),
-        KATAKANA_PYE("sound/dialogue/kata_pye.wav", 3),
-        KATAKANA_PYO("sound/dialogue/kata_pyo.wav", 3),
-        KATAKANA_PYU("sound/dialogue/kata_pyu.wav", 3),
-        KATAKANA_RA("sound/dialogue/kata_ra.wav", 3),
-        KATAKANA_RE("sound/dialogue/kata_re.wav", 3),
-        KATAKANA_RI("sound/dialogue/kata_ri.wav", 3),
-        KATAKANA_RO("sound/dialogue/kata_ro.wav", 3),
-        KATAKANA_RU("sound/dialogue/kata_ru.wav", 3),
-        KATAKANA_RYA("sound/dialogue/kata_rya.wav", 3),
-        KATAKANA_RYE("sound/dialogue/kata_rye.wav", 3),
-        KATAKANA_RYO("sound/dialogue/kata_ryo.wav", 3),
-        KATAKANA_RYU("sound/dialogue/kata_ryu.wav", 3),
-        KATAKANA_SA("sound/dialogue/kata_sa.wav", 3),
-        KATAKANA_SE("sound/dialogue/kata_se.wav", 3),
-        KATAKANA_SHA("sound/dialogue/kata_sha.wav", 3),
-        KATAKANA_SHO("sound/dialogue/kata_sho.wav", 3),
-        KATAKANA_SHU("sound/dialogue/kata_shu.wav", 3),
-        KATAKANA_SI("sound/dialogue/kata_si.wav", 3),
-        KATAKANA_SO("sound/dialogue/kata_so.wav", 3),
-        KATAKANA_SU("sound/dialogue/kata_su.wav", 3),
-        KATAKANA_SWI("sound/dialogue/kata_swi.wav", 3),
-        KATAKANA_SYE("sound/dialogue/kata_sye.wav", 3),
-        KATAKANA_TA("sound/dialogue/kata_ta.wav", 3),
-        KATAKANA_TE("sound/dialogue/kata_te.wav", 3),
-        KATAKANA_TI("sound/dialogue/kata_ti.wav", 3),
-        KATAKANA_TO("sound/dialogue/kata_to.wav", 3),
-        KATAKANA_TSA("sound/dialogue/kata_tsa.wav", 3),
-        KATAKANA_TSE("sound/dialogue/kata_tse.wav", 3),
-        KATAKANA_TSO("sound/dialogue/kata_tso.wav", 3),
-        KATAKANA_TSU("sound/dialogue/kata_tsu.wav", 3),
-        KATAKANA_TSWI("sound/dialogue/kata_tswi.wav", 3),
-        KATAKANA_TU("sound/dialogue/kata_tu.wav", 3),
-        KATAKANA_TYU("sound/dialogue/kata_tyu.wav", 3),
-        KATAKANA_U("sound/dialogue/kata_u.wav", 3),
-        KATAKANA_WA("sound/dialogue/kata_wa.wav", 3),
-        KATAKANA_WE("sound/dialogue/kata_we.wav", 3),
-        KATAKANA_WI("sound/dialogue/kata_wi.wav", 3),
-        KATAKANA_WO("sound/dialogue/kata_wo.wav", 3),
-        KATAKANA_YA("sound/dialogue/kata_ya.wav", 3),
-        KATAKANA_YE("sound/dialogue/kata_ye.wav", 3),
-        KATAKANA_YO("sound/dialogue/kata_yo.wav", 3),
-        KATAKANA_YU("sound/dialogue/kata_yu.wav", 3),
-        KATAKANA_ZA("sound/dialogue/kata_za.wav", 3),
-        KATAKANA_ZE("sound/dialogue/kata_ze.wav", 3),
-        KATAKANA_ZI("sound/dialogue/kata_zi.wav", 3),
-        KATAKANA_ZO("sound/dialogue/kata_zo.wav", 3),
-        KATAKANA_ZU("sound/dialogue/kata_zu.wav", 3),
-        KATAKANA_ZWI("sound/dialogue/kata_zwi.wav", 3);
 
         public final String path;
         public final int poolSize;
@@ -232,7 +90,9 @@ public class SoundManager {
     private static final long INTERVALO_SILABA_MS = 100;
 
     public SoundManager() {
-        loadSFX();
+        // ALTERADO (Lazy Loading):
+        // Não abre dezenas de Clips durante a construção do GameCore.
+        // Cada SFX cria seu SoundPool somente quando for usado pela primeira vez.
         setMusicVolume(musicVolume);
         setSfxVolume(sfxVolume);
     }
@@ -245,17 +105,148 @@ public class SoundManager {
         bgmPlayer.fadeOut(duration, () -> currentTrack = null);
     }
 
-    private void loadSFX() {
-        for (SFX sfx : SFX.values()) {
-            sfxPools.put(sfx, new SoundPool(sfx.path, sfx.poolSize, sfxVolume));
+    // ALTERADO (Katakana assíncrono):
+    // O carregamento/conversão/Clip.open() não acontece mais na thread do jogo.
+    // Se várias letras chegarem enquanto o áudio está ocupado, guardamos apenas
+    // a mais recente para não criar uma fila de sons atrasados.
+    private Clip katanaClip;
+    private final Object katanaLock = new Object();
+    private String katanaPendente;
+    private Thread katanaThread;
+
+    public void playKatana(String silaba) {
+        if (silaba == null || silaba.isBlank()) {
+            return;
+        }
+
+        String normalizada = silaba.toLowerCase();
+        String fileName = "sound/dialogue/kata_" + normalizada + ".wav";
+
+        if (!new File(fileName).isFile()) {
+            return;
+        }
+
+        synchronized (katanaLock) {
+            katanaPendente = normalizada;
+
+            if (katanaThread == null || !katanaThread.isAlive()) {
+                katanaThread = new Thread(this::processarKatana, "KatakanaAudioThread");
+                katanaThread.setDaemon(true);
+                katanaThread.start();
+            }
+
+            katanaLock.notifyAll();
+        }
+    }
+
+    private void processarKatana() {
+        while (true) {
+            String silaba;
+
+            synchronized (katanaLock) {
+                while (katanaPendente == null) {
+                    try {
+                        katanaLock.wait();
+                    } catch (InterruptedException e) {
+                        return;
+                    }
+                }
+
+                silaba = katanaPendente;
+                katanaPendente = null;
+            }
+
+            tocarKatanaInterno(silaba);
+        }
+    }
+
+    private void tocarKatanaInterno(String silaba) {
+        String fileName = "sound/dialogue/kata_" + silaba + ".wav";
+        File file = new File(fileName);
+
+        try {
+            fecharKatanaClip();
+
+            try (AudioInputStream original = AudioSystem.getAudioInputStream(file)) {
+                AudioFormat sourceFormat = original.getFormat();
+
+                int channels = Math.max(1, sourceFormat.getChannels());
+                AudioFormat targetFormat = new AudioFormat(
+                        AudioFormat.Encoding.PCM_SIGNED,
+                        44100.0f,
+                        16,
+                        channels,
+                        channels * 2,
+                        44100.0f,
+                        false);
+
+                AudioInputStream pcmStream = original;
+
+                if (!sourceFormat.matches(targetFormat)) {
+                    if (!AudioSystem.isConversionSupported(targetFormat, sourceFormat)) {
+                        return;
+                    }
+
+                    pcmStream = AudioSystem.getAudioInputStream(targetFormat, original);
+                }
+
+                try (AudioInputStream converted = pcmStream) {
+                    Clip novoClip = AudioSystem.getClip();
+                    novoClip.open(converted);
+                    setVolume(novoClip, sfxVolume);
+
+                    synchronized (katanaLock) {
+                        katanaClip = novoClip;
+                    }
+
+                    novoClip.setFramePosition(0);
+                    novoClip.start();
+                }
+            }
+        } catch (Exception e) {
+            fecharKatanaClip();
+            System.err.println("Erro ao tocar Katakana [" + fileName + "]: " + e.getMessage());
+        }
+    }
+
+    private void fecharKatanaClip() {
+        Clip clip;
+
+        synchronized (katanaLock) {
+            clip = katanaClip;
+            katanaClip = null;
+        }
+
+        if (clip == null) {
+            return;
+        }
+
+        try {
+            clip.stop();
+            clip.flush();
+            clip.close();
+        } catch (Exception ignored) {
         }
     }
 
     /**
      * @param sfx valor do enum SFX
      */
-    public void playSFX(SFX sfx) {
-        sfxPools.get(sfx).play();
+    public synchronized void playSFX(SFX sfx) {
+      if (sfx == null) {
+        return;
+      }
+
+      SoundPool pool = sfxPools.get(sfx);
+
+      if (pool == null) {
+        // ALTERADO (Lazy Loading):
+        // O pool só passa a existir quando este SFX é realmente solicitado.
+        pool = new SoundPool(sfx.path, sfx.poolSize, sfxVolume);
+        sfxPools.put(sfx, pool);
+      }
+
+      pool.play();
     }
 
     public void playDialogue(SFX[] sons) {
@@ -288,7 +279,14 @@ public class SoundManager {
         dialogueAtiva = false;
         if (dialogueThread != null) {
             dialogueThread.interrupt();
+            dialogueThread = null;
         }
+
+        synchronized (katanaLock) {
+            katanaPendente = null;
+        }
+
+        fecharKatanaClip();
     }
 
     public void playRandomSnowStep() {
@@ -524,10 +522,14 @@ public class SoundManager {
     }
 
     public static void setVolume(Clip clip, float volume) {
+      if(clip == null || !clip.isOpen())return;
+
+      if(clip.isControlSupported(FloatControl.Type.MASTER_GAIN)){
         FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
         float curved = volume * volume;
         float dB = (float) (Math.log10(Math.max(curved, 0.0001)) * 20);
         gain.setValue(dB);
+      }
     }
 
     public void setMusicVolume(float volume) {
@@ -540,13 +542,50 @@ public class SoundManager {
         for (SoundPool pool : sfxPools.values()) {
             pool.setVolume(volume);
         }
+
+        // ALTERADO (Linux/Katakana): atualiza também a voz em execução.
+        if (katanaClip != null && katanaClip.isOpen()) {
+            setVolume(katanaClip, volume);
+        }
     }
 
     public static Clip loadClip(String path) throws Exception {
-        AudioInputStream ais = AudioSystem.getAudioInputStream(new File(path));
-        Clip clip = AudioSystem.getClip();
-        clip.open(ais);
-        return clip;
+      File file = new File(path);
+      if(!file.exists()) return null;
+
+      try (AudioInputStream original = AudioSystem.getAudioInputStream(file)) {
+        AudioFormat sourceFormat = original.getFormat();
+
+        int channels = Math.max(1, sourceFormat.getChannels());
+        AudioFormat targetFormat = new AudioFormat(
+                AudioFormat.Encoding.PCM_SIGNED,
+                44100.0f,
+                16,
+                channels,
+                channels * 2,
+                44100.0f,
+                false);
+
+        AudioInputStream pcmStream = original;
+
+        if (!sourceFormat.matches(targetFormat)) {
+          if (!AudioSystem.isConversionSupported(targetFormat, sourceFormat)) {
+            System.err.println("Formato de audio nao suportado [" + path + "]: " + sourceFormat);
+            return null;
+          }
+
+          pcmStream = AudioSystem.getAudioInputStream(targetFormat, original);
+        }
+
+        try (AudioInputStream converted = pcmStream) {
+          Clip clip = AudioSystem.getClip();
+          clip.open(converted);
+          return clip;
+        }
+      } catch(Exception e){
+        System.err.println("Erro ao carregar audio [" + path + "]: " + e.getMessage());
+        return null;
+      }
     }
 
     public BGM currentSong() {

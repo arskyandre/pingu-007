@@ -89,16 +89,17 @@ public class PescadorNPC extends NPC {
                         || input.isButtonJustPressed(InputManager.GamepadButton.Y))) {
                     if (laEle || player.hasFishingRod()) {
                         if (FishingManager.isPlayerHasKey())
-                            dialogueManager.iniciarDialogo(dialogo2_hasKey, DialogueCatalogo.PescadorFala2_hasKey,
+                            // ALTERADO (Katakana/Linux): o áudio agora é gerado diretamente pelo texto.
+                            dialogueManager.iniciarDialogo(dialogo2_hasKey,
                                     new BufferedImage[] { GameCore.pescador_portrait });
                         else
-                            dialogueManager.iniciarDialogo(dialogo2_noKey, DialogueCatalogo.PescadorFala2_noKey,
+                            dialogueManager.iniciarDialogo(dialogo2_noKey,
                                     new BufferedImage[] { GameCore.pescador_portrait });
 
                         dialogueManager.setAoTerminarDialogo(() -> {
 
                             dialogueManager.iniciarEscolha("PESCADOR: Deseja comprar algo?",
-                                    new String[] { "Sim", "Não" }, DialogueCatalogo.PescadorPergunta,
+                                    new String[] { "Sim", "Não" },
                                     GameCore.pescador_portrait, 0, escolha -> {
                                         switch (escolha) {
                                             case 0 -> {
@@ -121,12 +122,12 @@ public class PescadorNPC extends NPC {
                         laEle = true;
                     } else {
 
-                        dialogueManager.iniciarDialogo(dialogo1_part1, DialogueCatalogo.PescadorFala1_part1,
+                        dialogueManager.iniciarDialogo(dialogo1_part1,
                                 new BufferedImage[] { GameCore.pescador_portrait });
                         dialogueManager.setAoTerminarDialogo(() -> {
                             camera.focarEm(x + (largura / 2.0), y + altura + 40, 60, false);
                             itemManager.spawn(new FishingRodItem(x + (largura / 2.0), y + altura + 40));
-                            dialogueManager.iniciarDialogo(dialogo1_part2, DialogueCatalogo.PescadorFala1_part2,
+                            dialogueManager.iniciarDialogo(dialogo1_part2,
                                     new BufferedImage[] { GameCore.pescador_portrait });
                             dialogueManager.setAoTerminarDialogo(() -> {
                                 laEle = true;

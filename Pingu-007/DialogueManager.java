@@ -3,10 +3,7 @@ import java.awt.event.KeyEvent;
 import java.util.Random;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
-
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +29,6 @@ public class DialogueManager {
 
   private boolean mostrarBocaAberta = false;
   private SoundManager soundManager;
-  private SoundManager.SFX[][] sonsAtual;
 
   public interface EscolhaListener {
     void onEscolha(int indiceEscolhido);
@@ -62,6 +58,7 @@ public class DialogueManager {
     rostoAberto = GameCore.pingu_portrait;
   }
 
+
   public void iniciarDialogo(String[] texto) {
     this.falas = texto;
     this.falaAtualIndex = 0;
@@ -71,13 +68,12 @@ public class DialogueManager {
     this.isEscolha = false;
     this.modoEscolha = false;
     this.ultimoFrameTempo = System.currentTimeMillis();
-    this.sonsAtual = null;
     this.retratosAtual = null;
     this.rostoTemporario = null;
     soundManager.stopDialogue();
     aplicarPrefixoInstantaneo();
   }
-
+  
   public void iniciarDialogo(String[] texto, BufferedImage[] imgs) {
     this.falas = texto;
     retratosAtual = imgs;
@@ -88,49 +84,12 @@ public class DialogueManager {
     this.isEscolha = false;
     this.modoEscolha = false;
     this.ultimoFrameTempo = System.currentTimeMillis();
-    this.sonsAtual = null;
     soundManager.stopDialogue();
     aplicarRetratoFalaAtual();
     aplicarPrefixoInstantaneo();
   }
 
-  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons) {
-    this.falas = texto;
-    this.falaAtualIndex = 0;
-    this.caractereIndex = 0;
-    this.textoExibido = "";
-    this.ativo = true;
-    this.isEscolha = false;
-    this.modoEscolha = false;
-    this.ultimoFrameTempo = System.currentTimeMillis();
-    this.sonsAtual = sons;
-    this.retratosAtual = null;
-    this.rostoTemporario = null;
-    tocarSomFalaAtual();
-    aplicarPrefixoInstantaneo();
-  }
 
-  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons, BufferedImage[] imgs) {
-    this.falas = texto;
-    retratosAtual = imgs;
-    this.falaAtualIndex = 0;
-    this.caractereIndex = 0;
-    this.textoExibido = "";
-    this.ativo = true;
-    this.isEscolha = false;
-    this.modoEscolha = false;
-    this.ultimoFrameTempo = System.currentTimeMillis();
-    this.sonsAtual = sons;
-    tocarSomFalaAtual();
-    aplicarPrefixoInstantaneo();
-    aplicarRetratoFalaAtual();
-  }
-
-  private void tocarSomFalaAtual() {
-    if (sonsAtual != null && falaAtualIndex < sonsAtual.length) {
-      soundManager.playDialogue(sonsAtual[falaAtualIndex]);
-    }
-  }
 
   private void aplicarRetratoFalaAtual() {
     if (retratosAtual != null && falaAtualIndex < retratosAtual.length && retratosAtual[falaAtualIndex] != null) {
@@ -228,11 +187,13 @@ public class DialogueManager {
 
     if (caractereIndex < falas[falaAtualIndex].length()) {
       if (agora - ultimoFrameTempo >= delayLetrasMs) {
-        textoExibido += falas[falaAtualIndex].charAt(caractereIndex);
-        if (falas[falaAtualIndex].charAt(caractereIndex) != ' '
-            && falas[falaAtualIndex].charAt(caractereIndex) != '-') {
-          soundManager.playRandomDialogueSound();
+        char c = falas[falaAtualIndex].charAt(caractereIndex);
+        textoExibido +=c;
+
+        if(Character.isLetterOrDigit(c)){
+          soundManager.playKatana(String.valueOf(c).toLowerCase());
         }
+
         caractereIndex++;
         ultimoFrameTempo = agora;
 
@@ -279,7 +240,6 @@ public class DialogueManager {
         textoExibido = "";
         caractereIndex = 0;
         ultimoFrameTempo = System.currentTimeMillis();
-        tocarSomFalaAtual();
         aplicarRetratoFalaAtual();
         aplicarPrefixoInstantaneo();
       } else {
@@ -416,7 +376,6 @@ public class DialogueManager {
 
   public void iniciarEscolha(String pergunta, String[] opcoes, int escolhaInicial, EscolhaListener listener) {
     this.falas = new String[] { pergunta };
-    this.sonsAtual = null;
     this.retratosAtual = null;
     this.falaAtualIndex = 0;
     this.textoExibido = "";
@@ -440,7 +399,6 @@ public class DialogueManager {
   public void iniciarEscolha(String pergunta, String[] opcoes, BufferedImage retrato, int escolhaInicial,
       EscolhaListener listener) {
     this.falas = new String[] { pergunta };
-    this.sonsAtual = null;
     this.retratosAtual = null;
     this.falaAtualIndex = 0;
     this.textoExibido = "";
@@ -457,54 +415,6 @@ public class DialogueManager {
     aplicarPrefixoInstantaneo();
   }
 
-  public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[][] sons, EscolhaListener listener) {
-    iniciarEscolha(pergunta, opcoes, sons, 0, listener);
-  }
-
-  public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[][] sons, int escolhaInicial,
-      EscolhaListener listener) {
-    this.falas = new String[] { pergunta };
-    this.sonsAtual = sons;
-    this.retratosAtual = null;
-    this.falaAtualIndex = 0;
-    this.textoExibido = "";
-    this.caractereIndex = 0;
-    this.ultimoFrameTempo = System.currentTimeMillis();
-    this.rostoTemporario = null;
-    this.opcoesEscolha = opcoes;
-    this.escolhaSelecionada = Math.max(0, Math.min(escolhaInicial, opcoes.length - 1));
-    this.escolhaListener = listener;
-    this.isEscolha = true;
-    this.modoEscolha = false;
-    this.ativo = true;
-    tocarSomFalaAtual();
-    aplicarPrefixoInstantaneo();
-  }
-
-  public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[][] sons, BufferedImage retrato,
-      EscolhaListener listener) {
-    iniciarEscolha(pergunta, opcoes, sons, retrato, 0, listener);
-  }
-
-  public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[][] sons, BufferedImage retrato,
-      int escolhaInicial, EscolhaListener listener) {
-    this.falas = new String[] { pergunta };
-    this.sonsAtual = sons;
-    this.retratosAtual = null;
-    this.falaAtualIndex = 0;
-    this.textoExibido = "";
-    this.caractereIndex = 0;
-    this.ultimoFrameTempo = System.currentTimeMillis();
-    this.rostoTemporario = retrato;
-    this.opcoesEscolha = opcoes;
-    this.escolhaSelecionada = Math.max(0, Math.min(escolhaInicial, opcoes.length - 1));
-    this.escolhaListener = listener;
-    this.isEscolha = true;
-    this.modoEscolha = false;
-    this.ativo = true;
-    tocarSomFalaAtual();
-    aplicarPrefixoInstantaneo();
-  }
 
   private void onDialogoTerminado() {
     rostoTemporario = null;
