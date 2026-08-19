@@ -30,7 +30,178 @@ OUTPUT_SAMPLE_WIDTH = 2
 DEFAULT_INTERVAL_MS = 100
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-SOUND_MANAGER_PATH = SCRIPT_DIR / "SoundManager.java"
+
+# Kept here deliberately instead of being read from SoundManager.java. These
+# legacy names remain valid input even after their Java enum entries are removed.
+SFX_PATHS: dict[str, str] = {
+    "CALL_RING": "sound/sfx/call_ring.wav",
+    "NOOT_NOOT": "sound/sfx/noot_noot.wav",
+    "SNOW_STEP_1": "sound/sfx/snow_footstep1.wav",
+    "SNOW_STEP_2": "sound/sfx/snow_footstep2.wav",
+    "SNOW_STEP_3": "sound/sfx/snow_footstep3.wav",
+    "SNOW_STEP_4": "sound/sfx/snow_footstep4.wav",
+    "ICE_STEP_1": "sound/sfx/ice_footstep1.wav",
+    "ICE_STEP_2": "sound/sfx/ice_footstep2.wav",
+    "ARENA_ENTER": "sound/sfx/arena_enter.wav",
+    "PLAYER_DAMAGE": "sound/sfx/player_damage.wav",
+    "PLAYER_HEAL": "sound/sfx/player_heal.wav",
+    "KEY_SPAWN": "sound/sfx/key_spawn.wav",
+    "LINE_CAST": "sound/sfx/line_cast.wav",
+    "SPLASH": "sound/sfx/splash.wav",
+    "GUNSHOT": "sound/sfx/gunshot.wav",
+    "BOMBER_AVISO": "sound/sfx/bomber_aviso.wav",
+    "EXPLOSION": "sound/sfx/bomber_explosion.wav",
+    "SHOOTER_METRALHADA": "sound/sfx/shooter_metralhada.wav",
+    "WOLF_DEATH": "sound/sfx/wolf_death.wav",
+    "MORSA_ROAR": "sound/sfx/morsa_roar.wav",
+    "HUD_CLICK": "sound/hud/click.wav",
+    "DIALOGUE_SOUND_1": "sound/dialogue/dialogue_sound_1.wav",
+    "DIALOGUE_SOUND_2": "sound/dialogue/dialogue_sound_2.wav",
+    "DIALOGUE_SOUND_3": "sound/dialogue/dialogue_sound_3.wav",
+    "DIALOGUE_QUESTION": "sound/dialogue/question.wav",
+    "KATAKANA_A": "sound/dialogue/kata_a.wav",
+    "KATAKANA_BA": "sound/dialogue/kata_ba.wav",
+    "KATAKANA_BE": "sound/dialogue/kata_be.wav",
+    "KATAKANA_BI": "sound/dialogue/kata_bi.wav",
+    "KATAKANA_BO": "sound/dialogue/kata_bo.wav",
+    "KATAKANA_BU": "sound/dialogue/kata_bu.wav",
+    "KATAKANA_BYA": "sound/dialogue/kata_bya.wav",
+    "KATAKANA_BYE": "sound/dialogue/kata_bye.wav",
+    "KATAKANA_BYO": "sound/dialogue/kata_byo.wav",
+    "KATAKANA_BYU": "sound/dialogue/kata_byu.wav",
+    "KATAKANA_CHA": "sound/dialogue/kata_cha.wav",
+    "KATAKANA_CHE": "sound/dialogue/kata_che.wav",
+    "KATAKANA_CHI": "sound/dialogue/kata_chi.wav",
+    "KATAKANA_CHO": "sound/dialogue/kata_cho.wav",
+    "KATAKANA_CHU": "sound/dialogue/kata_chu.wav",
+    "KATAKANA_DA": "sound/dialogue/kata_da.wav",
+    "KATAKANA_DE": "sound/dialogue/kata_de.wav",
+    "KATAKANA_DI": "sound/dialogue/kata_di.wav",
+    "KATAKANA_DO": "sound/dialogue/kata_do.wav",
+    "KATAKANA_DU": "sound/dialogue/kata_du.wav",
+    "KATAKANA_DYU": "sound/dialogue/kata_dyu.wav",
+    "KATAKANA_E": "sound/dialogue/kata_e.wav",
+    "KATAKANA_FA": "sound/dialogue/kata_fa.wav",
+    "KATAKANA_FE": "sound/dialogue/kata_fe.wav",
+    "KATAKANA_FI": "sound/dialogue/kata_fi.wav",
+    "KATAKANA_FO": "sound/dialogue/kata_fo.wav",
+    "KATAKANA_FYO": "sound/dialogue/kata_fyo.wav",
+    "KATAKANA_FYU": "sound/dialogue/kata_fyu.wav",
+    "KATAKANA_GA": "sound/dialogue/kata_ga.wav",
+    "KATAKANA_GE": "sound/dialogue/kata_ge.wav",
+    "KATAKANA_GI": "sound/dialogue/kata_gi.wav",
+    "KATAKANA_GO": "sound/dialogue/kata_go.wav",
+    "KATAKANA_GU": "sound/dialogue/kata_gu.wav",
+    "KATAKANA_GWA": "sound/dialogue/kata_gwa.wav",
+    "KATAKANA_GWE": "sound/dialogue/kata_gwe.wav",
+    "KATAKANA_GWI": "sound/dialogue/kata_gwi.wav",
+    "KATAKANA_GWO": "sound/dialogue/kata_gwo.wav",
+    "KATAKANA_GYA": "sound/dialogue/kata_gya.wav",
+    "KATAKANA_GYE": "sound/dialogue/kata_gye.wav",
+    "KATAKANA_GYO": "sound/dialogue/kata_gyo.wav",
+    "KATAKANA_GYU": "sound/dialogue/kata_gyu.wav",
+    "KATAKANA_HA": "sound/dialogue/kata_ha.wav",
+    "KATAKANA_HE": "sound/dialogue/kata_he.wav",
+    "KATAKANA_HI": "sound/dialogue/kata_hi.wav",
+    "KATAKANA_HO": "sound/dialogue/kata_ho.wav",
+    "KATAKANA_HU": "sound/dialogue/kata_hu.wav",
+    "KATAKANA_HYA": "sound/dialogue/kata_hya.wav",
+    "KATAKANA_HYE": "sound/dialogue/kata_hye.wav",
+    "KATAKANA_HYO": "sound/dialogue/kata_hyo.wav",
+    "KATAKANA_HYU": "sound/dialogue/kata_hyu.wav",
+    "KATAKANA_I": "sound/dialogue/kata_i.wav",
+    "KATAKANA_JA": "sound/dialogue/kata_ja.wav",
+    "KATAKANA_JE": "sound/dialogue/kata_je.wav",
+    "KATAKANA_JO": "sound/dialogue/kata_jo.wav",
+    "KATAKANA_JU": "sound/dialogue/kata_ju.wav",
+    "KATAKANA_KA": "sound/dialogue/kata_ka.wav",
+    "KATAKANA_KE": "sound/dialogue/kata_ke.wav",
+    "KATAKANA_KI": "sound/dialogue/kata_ki.wav",
+    "KATAKANA_KO": "sound/dialogue/kata_ko.wav",
+    "KATAKANA_KU": "sound/dialogue/kata_ku.wav",
+    "KATAKANA_KWA": "sound/dialogue/kata_kwa.wav",
+    "KATAKANA_KWE": "sound/dialogue/kata_kwe.wav",
+    "KATAKANA_KWI": "sound/dialogue/kata_kwi.wav",
+    "KATAKANA_KWO": "sound/dialogue/kata_kwo.wav",
+    "KATAKANA_KYA": "sound/dialogue/kata_kya.wav",
+    "KATAKANA_KYE": "sound/dialogue/kata_kye.wav",
+    "KATAKANA_KYO": "sound/dialogue/kata_kyo.wav",
+    "KATAKANA_KYU": "sound/dialogue/kata_kyu.wav",
+    "KATAKANA_MA": "sound/dialogue/kata_ma.wav",
+    "KATAKANA_ME": "sound/dialogue/kata_me.wav",
+    "KATAKANA_MI": "sound/dialogue/kata_mi.wav",
+    "KATAKANA_MO": "sound/dialogue/kata_mo.wav",
+    "KATAKANA_MU": "sound/dialogue/kata_mu.wav",
+    "KATAKANA_MYA": "sound/dialogue/kata_mya.wav",
+    "KATAKANA_MYE": "sound/dialogue/kata_mye.wav",
+    "KATAKANA_MYO": "sound/dialogue/kata_myo.wav",
+    "KATAKANA_MYU": "sound/dialogue/kata_myu.wav",
+    "KATAKANA_N": "sound/dialogue/kata_n.wav",
+    "KATAKANA_NA": "sound/dialogue/kata_na.wav",
+    "KATAKANA_NE": "sound/dialogue/kata_ne.wav",
+    "KATAKANA_NI": "sound/dialogue/kata_ni.wav",
+    "KATAKANA_NO": "sound/dialogue/kata_no.wav",
+    "KATAKANA_NU": "sound/dialogue/kata_nu.wav",
+    "KATAKANA_NYA": "sound/dialogue/kata_nya.wav",
+    "KATAKANA_NYE": "sound/dialogue/kata_nye.wav",
+    "KATAKANA_NYO": "sound/dialogue/kata_nyo.wav",
+    "KATAKANA_NYU": "sound/dialogue/kata_nyu.wav",
+    "KATAKANA_O": "sound/dialogue/kata_o.wav",
+    "KATAKANA_PA": "sound/dialogue/kata_pa.wav",
+    "KATAKANA_PE": "sound/dialogue/kata_pe.wav",
+    "KATAKANA_PI": "sound/dialogue/kata_pi.wav",
+    "KATAKANA_PO": "sound/dialogue/kata_po.wav",
+    "KATAKANA_PU": "sound/dialogue/kata_pu.wav",
+    "KATAKANA_PYA": "sound/dialogue/kata_pya.wav",
+    "KATAKANA_PYE": "sound/dialogue/kata_pye.wav",
+    "KATAKANA_PYO": "sound/dialogue/kata_pyo.wav",
+    "KATAKANA_PYU": "sound/dialogue/kata_pyu.wav",
+    "KATAKANA_RA": "sound/dialogue/kata_ra.wav",
+    "KATAKANA_RE": "sound/dialogue/kata_re.wav",
+    "KATAKANA_RI": "sound/dialogue/kata_ri.wav",
+    "KATAKANA_RO": "sound/dialogue/kata_ro.wav",
+    "KATAKANA_RU": "sound/dialogue/kata_ru.wav",
+    "KATAKANA_RYA": "sound/dialogue/kata_rya.wav",
+    "KATAKANA_RYE": "sound/dialogue/kata_rye.wav",
+    "KATAKANA_RYO": "sound/dialogue/kata_ryo.wav",
+    "KATAKANA_RYU": "sound/dialogue/kata_ryu.wav",
+    "KATAKANA_SA": "sound/dialogue/kata_sa.wav",
+    "KATAKANA_SE": "sound/dialogue/kata_se.wav",
+    "KATAKANA_SHA": "sound/dialogue/kata_sha.wav",
+    "KATAKANA_SHO": "sound/dialogue/kata_sho.wav",
+    "KATAKANA_SHU": "sound/dialogue/kata_shu.wav",
+    "KATAKANA_SI": "sound/dialogue/kata_si.wav",
+    "KATAKANA_SO": "sound/dialogue/kata_so.wav",
+    "KATAKANA_SU": "sound/dialogue/kata_su.wav",
+    "KATAKANA_SWI": "sound/dialogue/kata_swi.wav",
+    "KATAKANA_SYE": "sound/dialogue/kata_sye.wav",
+    "KATAKANA_TA": "sound/dialogue/kata_ta.wav",
+    "KATAKANA_TE": "sound/dialogue/kata_te.wav",
+    "KATAKANA_TI": "sound/dialogue/kata_ti.wav",
+    "KATAKANA_TO": "sound/dialogue/kata_to.wav",
+    "KATAKANA_TSA": "sound/dialogue/kata_tsa.wav",
+    "KATAKANA_TSE": "sound/dialogue/kata_tse.wav",
+    "KATAKANA_TSO": "sound/dialogue/kata_tso.wav",
+    "KATAKANA_TSU": "sound/dialogue/kata_tsu.wav",
+    "KATAKANA_TSWI": "sound/dialogue/kata_tswi.wav",
+    "KATAKANA_TU": "sound/dialogue/kata_tu.wav",
+    "KATAKANA_TYU": "sound/dialogue/kata_tyu.wav",
+    "KATAKANA_U": "sound/dialogue/kata_u.wav",
+    "KATAKANA_WA": "sound/dialogue/kata_wa.wav",
+    "KATAKANA_WE": "sound/dialogue/kata_we.wav",
+    "KATAKANA_WI": "sound/dialogue/kata_wi.wav",
+    "KATAKANA_WO": "sound/dialogue/kata_wo.wav",
+    "KATAKANA_YA": "sound/dialogue/kata_ya.wav",
+    "KATAKANA_YE": "sound/dialogue/kata_ye.wav",
+    "KATAKANA_YO": "sound/dialogue/kata_yo.wav",
+    "KATAKANA_YU": "sound/dialogue/kata_yu.wav",
+    "KATAKANA_ZA": "sound/dialogue/kata_za.wav",
+    "KATAKANA_ZE": "sound/dialogue/kata_ze.wav",
+    "KATAKANA_ZI": "sound/dialogue/kata_zi.wav",
+    "KATAKANA_ZO": "sound/dialogue/kata_zo.wav",
+    "KATAKANA_ZU": "sound/dialogue/kata_zu.wav",
+    "KATAKANA_ZWI": "sound/dialogue/kata_zwi.wav",
+}
 
 
 class SequenceError(ValueError):
@@ -54,38 +225,10 @@ def _strip_java_comments(source: str) -> str:
     return re.sub(r"//[^\r\n]*|/\*.*?\*/", "", source, flags=re.DOTALL)
 
 
-def load_sfx_catalog(sound_manager_path: Path = SOUND_MANAGER_PATH) -> dict[str, Path]:
-    """Read enum names and WAV paths directly from ``SoundManager.java``.
+def load_sfx_catalog() -> dict[str, Path]:
+    """Return the embedded SFX mapping, rooted beside this Python script."""
 
-    Reading the Java source keeps this tool synchronized when SFX entries are
-    added or their files are moved.
-    """
-
-    try:
-        source = sound_manager_path.read_text(encoding="utf-8")
-    except OSError as exc:
-        raise SequenceError(f"Could not read {sound_manager_path}: {exc}") from exc
-
-    source = _strip_java_comments(source)
-    enum_match = re.search(
-        r"public\s+enum\s+SFX\s*\{(.*?)"
-        r";\s*public\s+final\s+String\s+path\s*;",
-        source,
-        flags=re.DOTALL,
-    )
-    if not enum_match:
-        raise SequenceError("Could not locate the SFX enum in SoundManager.java.")
-
-    entries = re.findall(
-        r"^\s*([A-Z][A-Z0-9_]*)\s*\(\s*\"([^\"]+\.wav)\"\s*,\s*\d+\s*\)\s*[,;]",
-        enum_match.group(1),
-        flags=re.MULTILINE,
-    )
-    if not entries:
-        raise SequenceError("The SFX enum did not contain any WAV entries.")
-
-    project_dir = sound_manager_path.resolve().parent
-    return {name: project_dir / Path(relative_path) for name, relative_path in entries}
+    return {name: SCRIPT_DIR / relative_path for name, relative_path in SFX_PATHS.items()}
 
 
 def parse_sequence(text: str, known_sfx: Iterable[str]) -> list[str | None]:
@@ -954,7 +1097,7 @@ def main() -> None:
                 raise SystemExit(1) from native_error
         if not isinstance(gui_error, SequenceError):
             raise
-        # This generally means the script was separated from SoundManager.java.
+        # On non-Windows systems this reports catalog or audio asset errors.
         print(f"Error: {gui_error}", file=sys.stderr)
         raise SystemExit(1) from gui_error
 
