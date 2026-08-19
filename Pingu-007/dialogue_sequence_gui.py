@@ -8,13 +8,18 @@ Run from any directory with::
 
     python dialogue_sequence_gui.py
 
-Only the Python standard library is required.
+The GUI and WAV mixer use only the Python standard library. Non-zero pitch uses
+an FFmpeg build that includes the Rubber Band filter.
 """
 
 from __future__ import annotations
 
+import math
 import os
+import random
 import re
+import shutil
+import subprocess
 import sys
 import tempfile
 import wave
@@ -28,6 +33,8 @@ OUTPUT_CHANNELS = 2
 OUTPUT_SAMPLE_RATE = 48_000
 OUTPUT_SAMPLE_WIDTH = 2
 DEFAULT_INTERVAL_MS = 100
+MIN_PITCH_SEMITONES = -12.0
+MAX_PITCH_SEMITONES = 12.0
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 
@@ -405,11 +412,212 @@ def read_audio_clip(path: Path) -> AudioClip:
     return AudioClip(output)
 
 
+def _apply_pitch_shift(samples: array, semitones: float) -> array:
+    """Pitch the finished mix with FFmpeg Rubber Band, preserving duration."""
+
+    if abs(semitones) < 1e-9:
+        return samples
+
+    ffmpeg_path = shutil.which("ffmpeg")
+    if ffmpeg_path is None:
+        raise SequenceError(
+            "FFmpeg was not found. Install a full FFmpeg build with the "
+            "rubberband filter, or export with pitch set to 0."
+        )
+
+    input_pcm = array("h")
+    input_pcm.extend(max(-32_768, min(32_767, sample)) for sample in samples)
+    if sys.byteorder != "little":
+        input_pcm.byteswap()
+
+    pitch_ratio = 2.0 ** (semitones / 12.0)
+    command = (
+        ffmpeg_path,
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-nostdin",
+        "-f",
+        "s16le",
+        "-ar",
+        str(OUTPUT_SAMPLE_RATE),
+        "-ac",
+        str(OUTPUT_CHANNELS),
+        "-i",
+        "pipe:0",
+        "-af",
+        f"rubberband=pitch={pitch_ratio:.12f}:tempo=1.0",
+        "-f",
+        "s16le",
+        "-acodec",
+        "pcm_s16le",
+        "-ar",
+        str(OUTPUT_SAMPLE_RATE),
+        "-ac",
+        str(OUTPUT_CHANNELS),
+        "pipe:1",
+    )
+    creation_flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+    try:
+        result = subprocess.run(
+            command,
+            input=input_pcm.tobytes(),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            creationflags=creation_flags,
+        )
+    except OSError as exc:
+        raise SequenceError(f"Could not run FFmpeg: {exc}") from exc
+
+    if result.returncode != 0:
+        detail = result.stderr.decode("utf-8", errors="replace").strip()
+        if "No such filter" in detail or "rubberband" in detail.lower():
+            detail = (
+                "This FFmpeg installation does not provide the rubberband filter. "
+                "Install a full build with librubberband support."
+            )
+        raise SequenceError(f"Pitch shifting failed. {detail}")
+
+    shifted_pcm = array("h")
+    shifted_pcm.frombytes(result.stdout)
+    if sys.byteorder != "little":
+        shifted_pcm.byteswap()
+    shifted = array("i", shifted_pcm)
+
+    # Rubber Band may return a few frames more or less because of its analysis
+    # window. Pin the result to the original length so timing is exact.
+    target_samples = len(samples)
+    if len(shifted) > target_samples:
+        del shifted[target_samples:]
+    elif len(shifted) < target_samples:
+        shifted.extend([0] * (target_samples - len(shifted)))
+    return shifted
+
+
+class _Biquad:
+    """Small transposed-direct-form-II filter used by the radio treatment."""
+
+    def __init__(
+        self,
+        b0: float,
+        b1: float,
+        b2: float,
+        a0: float,
+        a1: float,
+        a2: float,
+    ) -> None:
+        self.b0 = b0 / a0
+        self.b1 = b1 / a0
+        self.b2 = b2 / a0
+        self.a1 = a1 / a0
+        self.a2 = a2 / a0
+        self.z1 = 0.0
+        self.z2 = 0.0
+
+    def process(self, sample: float) -> float:
+        output = self.b0 * sample + self.z1
+        self.z1 = self.b1 * sample - self.a1 * output + self.z2
+        self.z2 = self.b2 * sample - self.a2 * output
+        return output
+
+
+def _butterworth_filter(kind: str, cutoff_hz: float) -> _Biquad:
+    omega = 2.0 * math.pi * cutoff_hz / OUTPUT_SAMPLE_RATE
+    cosine = math.cos(omega)
+    alpha = math.sin(omega) / (2.0 * math.sqrt(0.5))
+    if kind == "highpass":
+        b0 = (1.0 + cosine) / 2.0
+        b1 = -(1.0 + cosine)
+        b2 = b0
+    else:
+        b0 = (1.0 - cosine) / 2.0
+        b1 = 1.0 - cosine
+        b2 = b0
+    return _Biquad(b0, b1, b2, 1.0 + alpha, -2.0 * cosine, 1.0 - alpha)
+
+
+def _presence_filter(frequency_hz: float, gain_db: float, quality: float) -> _Biquad:
+    amplitude = 10.0 ** (gain_db / 40.0)
+    omega = 2.0 * math.pi * frequency_hz / OUTPUT_SAMPLE_RATE
+    cosine = math.cos(omega)
+    alpha = math.sin(omega) / (2.0 * quality)
+    return _Biquad(
+        1.0 + alpha * amplitude,
+        -2.0 * cosine,
+        1.0 - alpha * amplitude,
+        1.0 + alpha / amplitude,
+        -2.0 * cosine,
+        1.0 - alpha / amplitude,
+    )
+
+
+def _soft_limit(sample: float) -> float:
+    """Leave normal levels untouched and smoothly contain only high peaks."""
+
+    magnitude = abs(sample)
+    if magnitude <= 0.9:
+        return sample
+    limited = 0.9 + 0.1 * math.tanh((magnitude - 0.9) / 0.1)
+    return math.copysign(limited, sample)
+
+
+def _apply_radio_effect(samples: array) -> array:
+    """Apply an obvious band-limited radio color with controlled audible hiss.
+
+    The voice is mostly mono, loses substantial bass, and gains focused midrange.
+    Deterministic band-limited noise makes the radio character audible even in
+    pauses without using piercing full-band white noise or random crackles.
+    """
+
+    highpass = _butterworth_filter("highpass", 320.0)
+    presence = _presence_filter(1_800.0, 3.0, 0.9)
+    lowpass = _butterworth_filter("lowpass", 4_800.0)
+    noise_highpass = _butterworth_filter("highpass", 900.0)
+    noise_lowpass = _butterworth_filter("lowpass", 7_500.0)
+    noise_random = random.Random(0x50494E4755)
+    wet_amount = 0.92
+    dry_amount = 1.0 - wet_amount
+    drive = 1.22
+    output_gain = 1.02
+    noise_level = 0.075
+    effected = array("i")
+    frame_count = len(samples) // OUTPUT_CHANNELS
+    noise_fade_frames = max(1, min(round(OUTPUT_SAMPLE_RATE * 0.025), frame_count // 2))
+
+    for frame in range(frame_count):
+        left = samples[frame * OUTPUT_CHANNELS] / 32_768.0
+        right = samples[frame * OUTPUT_CHANNELS + 1] / 32_768.0
+        mono = (left + right) * 0.5
+        wet = lowpass.process(presence.process(highpass.process(mono)))
+        wet = math.tanh(wet * drive) / drive
+
+        edge_distance = min(frame, frame_count - 1 - frame)
+        noise_envelope = min(1.0, edge_distance / noise_fade_frames)
+        noise = noise_lowpass.process(
+            noise_highpass.process(noise_random.uniform(-1.0, 1.0))
+        )
+        noise *= noise_level * noise_envelope
+
+        output_left = _soft_limit(
+            ((dry_amount * left + wet_amount * wet) * output_gain) + noise
+        )
+        output_right = _soft_limit(
+            ((dry_amount * right + wet_amount * wet) * output_gain) + noise
+        )
+        effected.append(round(output_left * 32_767.0))
+        effected.append(round(output_right * 32_767.0))
+
+    return effected
+
+
 def render_sequence(
     tokens: list[str | None],
     catalog: dict[str, Path],
     output_path: Path,
     interval_ms: int = DEFAULT_INTERVAL_MS,
+    pitch_semitones: float = 0.0,
+    radio_effect: bool = False,
 ) -> float:
     """Mix the timed SFX events and write a Java-compatible PCM WAV.
 
@@ -420,6 +628,8 @@ def render_sequence(
         raise SequenceError("The sequence is empty.")
     if not 1 <= interval_ms <= 10_000:
         raise SequenceError("The interval must be between 1 and 10000 ms.")
+    if not MIN_PITCH_SEMITONES <= pitch_semitones <= MAX_PITCH_SEMITONES:
+        raise SequenceError("Pitch must be between -12 and +12 semitones.")
 
     clip_cache: dict[str, AudioClip] = {}
     for token in tokens:
@@ -443,8 +653,12 @@ def render_sequence(
         for sample_index, sample in enumerate(clip_cache[token].samples):
             mixed[destination + sample_index] += sample
 
+    processed = _apply_pitch_shift(mixed, pitch_semitones)
+    if radio_effect:
+        processed = _apply_radio_effect(processed)
+
     pcm = array("h")
-    pcm.extend(max(-32_768, min(32_767, sample)) for sample in mixed)
+    pcm.extend(max(-32_768, min(32_767, sample)) for sample in processed)
     if sys.byteorder != "little":
         pcm.byteswap()
 
@@ -470,7 +684,7 @@ def render_sequence(
         if temporary_path.exists():
             temporary_path.unlink()
 
-    return total_frames / OUTPUT_SAMPLE_RATE
+    return (len(processed) // OUTPUT_CHANNELS) / OUTPUT_SAMPLE_RATE
 
 
 class DialogueSequenceApp:
@@ -488,10 +702,12 @@ class DialogueSequenceApp:
 
         self.root = tk.Tk()
         self.root.title("Pingu Dialogue WAV Exporter")
-        self.root.geometry("760x540")
-        self.root.minsize(580, 420)
+        self.root.geometry("760x580")
+        self.root.minsize(580, 460)
 
         self.interval_value = tk.StringVar(value=str(DEFAULT_INTERVAL_MS))
+        self.pitch_value = tk.StringVar(value="0")
+        self.radio_value = tk.BooleanVar(value=False)
         self.status_value = tk.StringVar(value="Paste a sequence to begin.")
 
         outer = ttk.Frame(self.root, padding=16)
@@ -540,10 +756,27 @@ class DialogueSequenceApp:
 
         options = ttk.Frame(outer)
         options.grid(row=3, column=0, sticky="ew", pady=(12, 8))
-        ttk.Label(options, text="Start interval (ms):").pack(side="left")
+        options.columnconfigure(2, weight=1)
+        ttk.Label(options, text="Start interval (ms):").grid(row=0, column=0, sticky="w")
         interval_entry = ttk.Entry(options, textvariable=self.interval_value, width=8)
-        interval_entry.pack(side="left", padx=(6, 14))
-        ttk.Label(options, text="The game currently uses 100 ms.").pack(side="left")
+        interval_entry.grid(row=0, column=1, sticky="w", padx=(6, 14))
+        ttk.Label(options, text="The game currently uses 100 ms.").grid(
+            row=0, column=2, columnspan=2, sticky="w"
+        )
+
+        ttk.Label(options, text="Pitch (semitones):").grid(
+            row=1, column=0, sticky="w", pady=(8, 0)
+        )
+        pitch_entry = ttk.Entry(options, textvariable=self.pitch_value, width=8)
+        pitch_entry.grid(row=1, column=1, sticky="w", padx=(6, 14), pady=(8, 0))
+        ttk.Label(options, text="-12 to +12; duration is preserved.").grid(
+            row=1, column=2, sticky="w", pady=(8, 0)
+        )
+        ttk.Checkbutton(
+            options,
+            text="Radio effect + hiss",
+            variable=self.radio_value,
+        ).grid(row=1, column=3, sticky="e", padx=(16, 0), pady=(8, 0))
 
         actions = ttk.Frame(outer)
         actions.grid(row=4, column=0, sticky="ew")
@@ -569,6 +802,15 @@ class DialogueSequenceApp:
         if not 1 <= interval <= 10_000:
             raise SequenceError("The interval must be between 1 and 10000 ms.")
         return interval
+
+    def _current_pitch(self) -> float:
+        try:
+            pitch = float(self.pitch_value.get().strip())
+        except ValueError as exc:
+            raise SequenceError("Pitch must be a number of semitones.") from exc
+        if not MIN_PITCH_SEMITONES <= pitch <= MAX_PITCH_SEMITONES:
+            raise SequenceError("Pitch must be between -12 and +12 semitones.")
+        return pitch
 
     def _on_text_modified(self, _event: object) -> None:
         if self.editor.edit_modified():
@@ -600,6 +842,7 @@ class DialogueSequenceApp:
         try:
             tokens = self._current_tokens()
             interval = self._current_interval()
+            pitch = self._current_pitch()
         except SequenceError as exc:
             messagebox.showerror("Cannot export sequence", str(exc), parent=self.root)
             return
@@ -618,7 +861,14 @@ class DialogueSequenceApp:
         self.status_value.set("Rendering WAV…")
         self.root.update_idletasks()
         try:
-            duration = render_sequence(tokens, self.catalog, Path(selected), interval)
+            duration = render_sequence(
+                tokens,
+                self.catalog,
+                Path(selected),
+                interval,
+                pitch,
+                self.radio_value.get(),
+            )
         except (OSError, SequenceError) as exc:
             messagebox.showerror("Export failed", str(exc), parent=self.root)
             self.status_value.set("Export failed.")
@@ -822,8 +1072,12 @@ class NativeWindowsDialogueSequenceApp:
         self.WM_SETFONT = 0x0030
         self.EN_CHANGE = 0x0300
         self.BN_CLICKED = 0
+        self.BM_GETCHECK = 0x00F0
+        self.BST_CHECKED = 1
         self.ID_EDITOR = 101
         self.ID_INTERVAL = 102
+        self.ID_PITCH = 103
+        self.ID_RADIO = 104
         self.ID_EXAMPLE = 201
         self.ID_CLEAR = 202
         self.ID_EXPORT = 203
@@ -855,7 +1109,7 @@ class NativeWindowsDialogueSequenceApp:
             100,
             80,
             780,
-            580,
+            620,
             None,
             None,
             self.instance,
@@ -918,6 +1172,18 @@ class NativeWindowsDialogueSequenceApp:
         self.interval_note_handle = self._create_control(
             "STATIC", "The game currently uses 100 ms.", 0, 0
         )
+        self.pitch_label_handle = self._create_control(
+            "STATIC", "Pitch (semitones):", 0, 0
+        )
+        self.pitch_handle = self._create_control(
+            "EDIT", "0", 0x0080, self.ID_PITCH, extended_style=0x00000200
+        )
+        self.pitch_note_handle = self._create_control(
+            "STATIC", "-12 to +12; same duration.", 0, 0
+        )
+        self.radio_handle = self._create_control(
+            "BUTTON", "Radio effect + hiss", 0x00000003, self.ID_RADIO
+        )
         self.example_handle = self._create_control(
             "BUTTON", "Load example", 0, self.ID_EXAMPLE
         )
@@ -935,6 +1201,10 @@ class NativeWindowsDialogueSequenceApp:
             self.interval_label_handle,
             self.interval_handle,
             self.interval_note_handle,
+            self.pitch_label_handle,
+            self.pitch_handle,
+            self.pitch_note_handle,
+            self.radio_handle,
             self.example_handle,
             self.clear_handle,
             self.export_handle,
@@ -942,14 +1212,14 @@ class NativeWindowsDialogueSequenceApp:
         ):
             self.user32.SendMessageW(handle, self.WM_SETFONT, font, 1)
 
-        self._layout(760, 540)
+        self._layout(760, 580)
         self._refresh_native_status()
 
     def _layout(self, width: int, height: int) -> None:
         if not hasattr(self, "editor_handle"):
             return
         move = self.user32.MoveWindow
-        editor_height = max(180, height - 220)
+        editor_height = max(160, height - 250)
         move(self.title_handle, 16, 14, max(100, width - 32), 26, True)
         move(self.description_handle, 16, 44, max(100, width - 32), 38, True)
         move(self.editor_handle, 16, 86, max(100, width - 32), editor_height, True)
@@ -957,7 +1227,12 @@ class NativeWindowsDialogueSequenceApp:
         move(self.interval_label_handle, 16, options_y, 115, 24, True)
         move(self.interval_handle, 134, options_y - 2, 70, 25, True)
         move(self.interval_note_handle, 218, options_y, 240, 24, True)
-        buttons_y = options_y + 34
+        pitch_y = options_y + 30
+        move(self.pitch_label_handle, 16, pitch_y, 115, 24, True)
+        move(self.pitch_handle, 134, pitch_y - 2, 70, 25, True)
+        move(self.pitch_note_handle, 218, pitch_y, 205, 24, True)
+        move(self.radio_handle, max(380, width - 190), pitch_y - 2, 174, 25, True)
+        buttons_y = options_y + 64
         move(self.example_handle, 16, buttons_y, 105, 30, True)
         move(self.clear_handle, 129, buttons_y, 75, 30, True)
         move(self.export_handle, max(220, width - 136), buttons_y, 120, 30, True)
@@ -1015,6 +1290,19 @@ class NativeWindowsDialogueSequenceApp:
             raise SequenceError("The interval must be between 1 and 10000 ms.")
         return interval
 
+    def _native_pitch(self) -> float:
+        try:
+            pitch = float(self._get_text(self.pitch_handle).strip())
+        except ValueError as exc:
+            raise SequenceError("Pitch must be a number of semitones.") from exc
+        if not MIN_PITCH_SEMITONES <= pitch <= MAX_PITCH_SEMITONES:
+            raise SequenceError("Pitch must be between -12 and +12 semitones.")
+        return pitch
+
+    def _native_radio_effect(self) -> bool:
+        state = self.user32.SendMessageW(self.radio_handle, self.BM_GETCHECK, 0, 0)
+        return state == self.BST_CHECKED
+
     def _refresh_native_status(self) -> None:
         if not hasattr(self, "editor_handle"):
             return
@@ -1053,6 +1341,7 @@ class NativeWindowsDialogueSequenceApp:
         try:
             tokens = self._native_tokens()
             interval = self._native_interval()
+            pitch = self._native_pitch()
         except SequenceError as exc:
             self._message("Cannot export sequence", str(exc), error=True)
             return
@@ -1065,7 +1354,14 @@ class NativeWindowsDialogueSequenceApp:
         self._set_status("Rendering WAV...")
         self.user32.UpdateWindow(self.hwnd)
         try:
-            duration = render_sequence(tokens, self.catalog, output_path, interval)
+            duration = render_sequence(
+                tokens,
+                self.catalog,
+                output_path,
+                interval,
+                pitch,
+                self._native_radio_effect(),
+            )
         except (OSError, SequenceError) as exc:
             self._set_status("Export failed.")
             self._message("Export failed", str(exc), error=True)
