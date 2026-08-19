@@ -35,6 +35,7 @@ OUTPUT_SAMPLE_WIDTH = 2
 DEFAULT_INTERVAL_MS = 100
 MIN_PITCH_SEMITONES = -12.0
 MAX_PITCH_SEMITONES = 12.0
+RADIO_PADDING_SECONDS = 0.5
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 
@@ -565,35 +566,51 @@ def _soft_limit(sample: float) -> float:
 def _apply_radio_effect(samples: array) -> array:
     """Apply an obvious band-limited radio color with controlled audible hiss.
 
-    The voice is mostly mono, loses substantial bass, and gains focused midrange.
+    The voice is mostly mono, loses substantial bass, and gains focused high mids.
     Deterministic band-limited noise makes the radio character audible even in
-    pauses without using piercing full-band white noise or random crackles.
+    pauses without using piercing full-band white noise or random crackles. Radio
+    mode also adds a half-second hiss-only fade before and after the dialogue.
     """
 
-    highpass = _butterworth_filter("highpass", 320.0)
-    presence = _presence_filter(1_800.0, 3.0, 0.9)
-    lowpass = _butterworth_filter("lowpass", 4_800.0)
-    noise_highpass = _butterworth_filter("highpass", 900.0)
-    noise_lowpass = _butterworth_filter("lowpass", 7_500.0)
+    highpass = _butterworth_filter("highpass", 480.0)
+    presence = _presence_filter(2_800.0, 4.5, 0.85)
+    lowpass = _butterworth_filter("lowpass", 6_500.0)
+    noise_highpass = _butterworth_filter("highpass", 500.0)
+    noise_lowpass = _butterworth_filter("lowpass", 5_200.0)
     noise_random = random.Random(0x50494E4755)
-    wet_amount = 0.92
+    wet_amount = 0.95
     dry_amount = 1.0 - wet_amount
     drive = 1.22
     output_gain = 1.02
-    noise_level = 0.075
+    noise_level = 0.09
     effected = array("i")
-    frame_count = len(samples) // OUTPUT_CHANNELS
-    noise_fade_frames = max(1, min(round(OUTPUT_SAMPLE_RATE * 0.025), frame_count // 2))
+    dialogue_frames = len(samples) // OUTPUT_CHANNELS
+    padding_frames = round(OUTPUT_SAMPLE_RATE * RADIO_PADDING_SECONDS)
+    frame_count = dialogue_frames + (padding_frames * 2)
 
     for frame in range(frame_count):
-        left = samples[frame * OUTPUT_CHANNELS] / 32_768.0
-        right = samples[frame * OUTPUT_CHANNELS + 1] / 32_768.0
-        mono = (left + right) * 0.5
-        wet = lowpass.process(presence.process(highpass.process(mono)))
-        wet = math.tanh(wet * drive) / drive
+        dialogue_frame = frame - padding_frames
+        if 0 <= dialogue_frame < dialogue_frames:
+            source_index = dialogue_frame * OUTPUT_CHANNELS
+            left = samples[source_index] / 32_768.0
+            right = samples[source_index + 1] / 32_768.0
+            mono = (left + right) * 0.5
+            wet = lowpass.process(presence.process(highpass.process(mono)))
+            wet = math.tanh(wet * drive) / drive
+        else:
+            left = 0.0
+            right = 0.0
+            wet = 0.0
 
-        edge_distance = min(frame, frame_count - 1 - frame)
-        noise_envelope = min(1.0, edge_distance / noise_fade_frames)
+        if frame < padding_frames:
+            fade_position = frame / padding_frames
+            noise_envelope = 0.5 - (0.5 * math.cos(math.pi * fade_position))
+        elif frame >= padding_frames + dialogue_frames:
+            remaining = (frame_count - 1 - frame) / padding_frames
+            noise_envelope = 0.5 - (0.5 * math.cos(math.pi * remaining))
+        else:
+            noise_envelope = 1.0
+
         noise = noise_lowpass.process(
             noise_highpass.process(noise_random.uniform(-1.0, 1.0))
         )
@@ -687,10 +704,81 @@ def render_sequence(
     return (len(processed) // OUTPUT_CHANNELS) / OUTPUT_SAMPLE_RATE
 
 
+class AudioPreviewPlayer:
+    """Own and play one temporary simulation WAV at a time."""
+
+    def __init__(self) -> None:
+        self.preview_path: Path | None = None
+        self.process: subprocess.Popen[bytes] | None = None
+
+    def prepare_path(self) -> Path:
+        self.stop()
+        descriptor, filename = tempfile.mkstemp(
+            prefix="pingu-dialogue-preview-",
+            suffix=".wav",
+        )
+        os.close(descriptor)
+        self.preview_path = Path(filename)
+        return self.preview_path
+
+    def play(self) -> None:
+        if self.preview_path is None or not self.preview_path.is_file():
+            raise SequenceError("The temporary simulation WAV was not created.")
+
+        if os.name == "nt":
+            import winsound
+
+            try:
+                winsound.PlaySound(
+                    str(self.preview_path),
+                    winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_NODEFAULT,
+                )
+            except RuntimeError as exc:
+                raise SequenceError(f"Could not play the audio simulation: {exc}") from exc
+            return
+
+        ffplay_path = shutil.which("ffplay")
+        if ffplay_path is None:
+            raise SequenceError("ffplay was not found; audio simulation cannot be played.")
+        self.process = subprocess.Popen(
+            (
+                ffplay_path,
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-nodisp",
+                "-autoexit",
+                str(self.preview_path),
+            ),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+    def stop(self) -> None:
+        if os.name == "nt":
+            try:
+                import winsound
+
+                winsound.PlaySound(None, 0)
+            except RuntimeError:
+                pass
+        elif self.process is not None and self.process.poll() is None:
+            self.process.terminate()
+        self.process = None
+
+        if self.preview_path is not None:
+            try:
+                self.preview_path.unlink(missing_ok=True)
+            except OSError:
+                # Some audio backends briefly retain the file after stopping.
+                pass
+            self.preview_path = None
+
+
 class DialogueSequenceApp:
     """Tkinter front end for parsing and exporting an SFX sequence."""
 
-    EXAMPLE = "a, O, me, SoundManager.SFX.KATAKANA_YO"
+    EXAMPLE = "pi, n, gu, null, me, null, da, null, a, null, bu, n, da"
 
     def __init__(self) -> None:
         import tkinter as tk
@@ -699,11 +787,13 @@ class DialogueSequenceApp:
         self.tk = tk
         self.ttk = ttk
         self.catalog = load_sfx_catalog()
+        self.preview_player = AudioPreviewPlayer()
 
         self.root = tk.Tk()
         self.root.title("Pingu Dialogue WAV Exporter")
         self.root.geometry("760x580")
         self.root.minsize(580, 460)
+        self.root.protocol("WM_DELETE_WINDOW", self._close)
 
         self.interval_value = tk.StringVar(value=str(DEFAULT_INTERVAL_MS))
         self.pitch_value = tk.StringVar(value="0")
@@ -767,7 +857,15 @@ class DialogueSequenceApp:
         ttk.Label(options, text="Pitch (semitones):").grid(
             row=1, column=0, sticky="w", pady=(8, 0)
         )
-        pitch_entry = ttk.Entry(options, textvariable=self.pitch_value, width=8)
+        pitch_entry = ttk.Spinbox(
+            options,
+            from_=MIN_PITCH_SEMITONES,
+            to=MAX_PITCH_SEMITONES,
+            increment=0.5,
+            textvariable=self.pitch_value,
+            width=8,
+            wrap=False,
+        )
         pitch_entry.grid(row=1, column=1, sticky="w", padx=(6, 14), pady=(8, 0))
         ttk.Label(options, text="-12 to +12; duration is preserved.").grid(
             row=1, column=2, sticky="w", pady=(8, 0)
@@ -782,6 +880,13 @@ class DialogueSequenceApp:
         actions.grid(row=4, column=0, sticky="ew")
         ttk.Button(actions, text="Load example", command=self._load_example).pack(side="left")
         ttk.Button(actions, text="Clear", command=self._clear).pack(side="left", padx=8)
+        self.simulate_button = ttk.Button(
+            actions, text="Simulate audio", command=self._simulate
+        )
+        self.simulate_button.pack(side="left", padx=(8, 0))
+        ttk.Button(actions, text="Stop audio", command=self._stop_preview).pack(
+            side="left", padx=8
+        )
         self.export_button = ttk.Button(actions, text="Export WAV…", command=self._export)
         self.export_button.pack(side="right")
 
@@ -835,6 +940,48 @@ class DialogueSequenceApp:
     def _clear(self) -> None:
         self.editor.delete("1.0", "end")
         self.editor.focus_set()
+
+    def _simulate(self) -> None:
+        from tkinter import messagebox
+
+        try:
+            tokens = self._current_tokens()
+            interval = self._current_interval()
+            pitch = self._current_pitch()
+        except SequenceError as exc:
+            messagebox.showerror("Cannot simulate audio", str(exc), parent=self.root)
+            return
+
+        self.simulate_button.configure(state="disabled")
+        self.status_value.set("Rendering audio simulation…")
+        self.root.update_idletasks()
+        try:
+            preview_path = self.preview_player.prepare_path()
+            duration = render_sequence(
+                tokens,
+                self.catalog,
+                preview_path,
+                interval,
+                pitch,
+                self.radio_value.get(),
+            )
+            self.preview_player.play()
+        except (OSError, SequenceError) as exc:
+            self.preview_player.stop()
+            self.status_value.set("Audio simulation failed.")
+            messagebox.showerror("Simulation failed", str(exc), parent=self.root)
+        else:
+            self.status_value.set(f"Simulating current sequence ({duration:.2f} s).")
+        finally:
+            self.simulate_button.configure(state="normal")
+
+    def _stop_preview(self) -> None:
+        self.preview_player.stop()
+        self.status_value.set("Audio simulation stopped.")
+
+    def _close(self) -> None:
+        self.preview_player.stop()
+        self.root.destroy()
 
     def _export(self) -> None:
         from tkinter import filedialog, messagebox
@@ -903,6 +1050,7 @@ class NativeWindowsDialogueSequenceApp:
         self.ctypes = ctypes
         self.wintypes = wintypes
         self.catalog = load_sfx_catalog()
+        self.preview_player = AudioPreviewPlayer()
         self._configure_api()
         self._create_window()
 
@@ -1078,9 +1226,13 @@ class NativeWindowsDialogueSequenceApp:
         self.ID_INTERVAL = 102
         self.ID_PITCH = 103
         self.ID_RADIO = 104
+        self.ID_PITCH_UP = 105
+        self.ID_PITCH_DOWN = 106
         self.ID_EXAMPLE = 201
         self.ID_CLEAR = 202
         self.ID_EXPORT = 203
+        self.ID_SIMULATE = 204
+        self.ID_STOP_PREVIEW = 205
 
         self._window_proc_callback = self.WNDPROC(self._window_proc)
         self.instance = self.kernel32.GetModuleHandleW(None)
@@ -1178,6 +1330,12 @@ class NativeWindowsDialogueSequenceApp:
         self.pitch_handle = self._create_control(
             "EDIT", "0", 0x0080, self.ID_PITCH, extended_style=0x00000200
         )
+        self.pitch_up_handle = self._create_control(
+            "BUTTON", "▲", 0, self.ID_PITCH_UP
+        )
+        self.pitch_down_handle = self._create_control(
+            "BUTTON", "▼", 0, self.ID_PITCH_DOWN
+        )
         self.pitch_note_handle = self._create_control(
             "STATIC", "-12 to +12; same duration.", 0, 0
         )
@@ -1188,6 +1346,12 @@ class NativeWindowsDialogueSequenceApp:
             "BUTTON", "Load example", 0, self.ID_EXAMPLE
         )
         self.clear_handle = self._create_control("BUTTON", "Clear", 0, self.ID_CLEAR)
+        self.simulate_handle = self._create_control(
+            "BUTTON", "Simulate audio", 0, self.ID_SIMULATE
+        )
+        self.stop_preview_handle = self._create_control(
+            "BUTTON", "Stop audio", 0, self.ID_STOP_PREVIEW
+        )
         self.export_handle = self._create_control(
             "BUTTON", "Export WAV...", 0x00000001, self.ID_EXPORT
         )
@@ -1203,10 +1367,14 @@ class NativeWindowsDialogueSequenceApp:
             self.interval_note_handle,
             self.pitch_label_handle,
             self.pitch_handle,
+            self.pitch_up_handle,
+            self.pitch_down_handle,
             self.pitch_note_handle,
             self.radio_handle,
             self.example_handle,
             self.clear_handle,
+            self.simulate_handle,
+            self.stop_preview_handle,
             self.export_handle,
             self.status_handle,
         ):
@@ -1229,12 +1397,16 @@ class NativeWindowsDialogueSequenceApp:
         move(self.interval_note_handle, 218, options_y, 240, 24, True)
         pitch_y = options_y + 30
         move(self.pitch_label_handle, 16, pitch_y, 115, 24, True)
-        move(self.pitch_handle, 134, pitch_y - 2, 70, 25, True)
-        move(self.pitch_note_handle, 218, pitch_y, 205, 24, True)
-        move(self.radio_handle, max(380, width - 190), pitch_y - 2, 174, 25, True)
+        move(self.pitch_handle, 134, pitch_y - 4, 70, 30, True)
+        move(self.pitch_up_handle, 204, pitch_y - 4, 22, 15, True)
+        move(self.pitch_down_handle, 204, pitch_y + 11, 22, 15, True)
+        move(self.pitch_note_handle, 234, pitch_y, 150, 24, True)
+        move(self.radio_handle, max(392, width - 174), pitch_y - 2, 158, 25, True)
         buttons_y = options_y + 64
         move(self.example_handle, 16, buttons_y, 105, 30, True)
         move(self.clear_handle, 129, buttons_y, 75, 30, True)
+        move(self.simulate_handle, 212, buttons_y, 118, 30, True)
+        move(self.stop_preview_handle, 338, buttons_y, 82, 30, True)
         move(self.export_handle, max(220, width - 136), buttons_y, 120, 30, True)
         move(self.status_handle, 16, buttons_y + 42, max(100, width - 32), 36, True)
 
@@ -1260,10 +1432,19 @@ class NativeWindowsDialogueSequenceApp:
                 elif control_id == self.ID_CLEAR:
                     self.user32.SetWindowTextW(self.editor_handle, "")
                     self.user32.SetFocus(self.editor_handle)
+                elif control_id == self.ID_PITCH_UP:
+                    self._adjust_native_pitch(0.5)
+                elif control_id == self.ID_PITCH_DOWN:
+                    self._adjust_native_pitch(-0.5)
+                elif control_id == self.ID_SIMULATE:
+                    self._native_simulate()
+                elif control_id == self.ID_STOP_PREVIEW:
+                    self._native_stop_preview()
                 elif control_id == self.ID_EXPORT:
                     self._native_export()
                 return 0
         if message == self.WM_DESTROY:
+            self.preview_player.stop()
             self.user32.PostQuitMessage(0)
             return 0
         return self.user32.DefWindowProcW(hwnd, message, wparam, lparam)
@@ -1289,6 +1470,20 @@ class NativeWindowsDialogueSequenceApp:
         if not 1 <= interval <= 10_000:
             raise SequenceError("The interval must be between 1 and 10000 ms.")
         return interval
+
+    def _adjust_native_pitch(self, amount: float) -> None:
+        try:
+            current = float(self._get_text(self.pitch_handle).strip())
+            if not math.isfinite(current):
+                current = 0.0
+        except ValueError:
+            current = 0.0
+        adjusted = max(
+            MIN_PITCH_SEMITONES,
+            min(MAX_PITCH_SEMITONES, current + amount),
+        )
+        self.user32.SetWindowTextW(self.pitch_handle, f"{adjusted:g}")
+        self.user32.SetFocus(self.pitch_handle)
 
     def _native_pitch(self) -> float:
         try:
@@ -1336,6 +1531,42 @@ class NativeWindowsDialogueSequenceApp:
         if not self.comdlg32.GetSaveFileNameW(self.ctypes.byref(dialog)):
             return None
         return Path(buffer.value)
+
+    def _native_simulate(self) -> None:
+        try:
+            tokens = self._native_tokens()
+            interval = self._native_interval()
+            pitch = self._native_pitch()
+        except SequenceError as exc:
+            self._message("Cannot simulate audio", str(exc), error=True)
+            return
+
+        self.user32.EnableWindow(self.simulate_handle, False)
+        self._set_status("Rendering audio simulation...")
+        self.user32.UpdateWindow(self.hwnd)
+        try:
+            preview_path = self.preview_player.prepare_path()
+            duration = render_sequence(
+                tokens,
+                self.catalog,
+                preview_path,
+                interval,
+                pitch,
+                self._native_radio_effect(),
+            )
+            self.preview_player.play()
+        except (OSError, SequenceError) as exc:
+            self.preview_player.stop()
+            self._set_status("Audio simulation failed.")
+            self._message("Simulation failed", str(exc), error=True)
+        else:
+            self._set_status(f"Simulating current sequence ({duration:.2f} s).")
+        finally:
+            self.user32.EnableWindow(self.simulate_handle, True)
+
+    def _native_stop_preview(self) -> None:
+        self.preview_player.stop()
+        self._set_status("Audio simulation stopped.")
 
     def _native_export(self) -> None:
         try:

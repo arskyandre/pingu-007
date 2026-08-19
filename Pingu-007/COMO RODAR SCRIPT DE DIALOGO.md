@@ -73,11 +73,27 @@ be, jo
 - **Start interval (ms):** distância entre o início de cada som. O jogo usa
   `100 ms` atualmente.
 - **Pitch (semitones):** aceita valores entre `-12` e `+12`, incluindo decimais.
-  O pitch muda sem alterar a velocidade ou a duração final da sequência.
+  O pitch muda sem alterar a velocidade ou a duração final da sequência. Use as
+  setas ao lado do campo para subir ou descer em passos de `0,5` semitom.
 - **Radio effect + hiss:** deixa o áudio mono e bem limitado à faixa de voz,
-  reduz bastante os graves, destaca os médios e adiciona um chiado audível.
+  corta fortemente os graves, destaca os médios-agudos e adiciona um chiado
+  audível com timbre um pouco mais baixo e suave que ruído branco comum.
+
+Ao ativar o efeito de rádio, o arquivo recebe `0,5 s` extras no início e `0,5 s`
+extras no fim. Nenhum som de diálogo toca nesses trechos: somente o chiado, que
+entra gradualmente no começo e desaparece gradualmente no final.
 
 Com pitch igual a `0`, o FFmpeg não é necessário.
+
+## Simulando antes de exportar
+
+Clique em **Simulate audio** para montar e reproduzir uma prévia usando o texto,
+intervalo, pitch e efeito de rádio que estão atualmente na tela. Não é necessário
+exportar nem escolher um arquivo antes.
+
+A prévia é criada na pasta temporária do sistema. Clique em **Stop audio** para
+interromper a reprodução. O arquivo temporário anterior é removido ao iniciar
+outra simulação e também quando o programa é fechado.
 
 ## Exportando o WAV
 
