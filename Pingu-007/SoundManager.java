@@ -62,9 +62,9 @@ public class SoundManager {
         WOLF_DEATH("sound/sfx/wolf_death.wav", 8),
         MORSA_ROAR("sound/sfx/morsa_roar.wav", 2),
         HUD_CLICK("sound/hud/click.wav", 4),
-        DIALOGUE_SOUND_1("sound/dialogue/dialogue_sound_1.wav", 9),
-        DIALOGUE_SOUND_2("sound/dialogue/dialogue_sound_2.wav", 9),
-        DIALOGUE_SOUND_3("sound/dialogue/dialogue_sound_3.wav", 9),
+        DIALOGUE_SOUND_1("sound/dialogue/dialogue_sound_1.wav", 4),
+        DIALOGUE_SOUND_2("sound/dialogue/dialogue_sound_2.wav", 4),
+        DIALOGUE_SOUND_3("sound/dialogue/dialogue_sound_3.wav", 4),
         DIALOGUE_QUESTION("sound/dialogue/question.wav", 3),
 
         // falas completas do dialogo animal crossing
