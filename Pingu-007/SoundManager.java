@@ -134,14 +134,20 @@ public class SoundManager {
      * @param sfx valor do enum SFX
      */
     public void playSFX(SFX sfx) {
-        sfxPools.get(sfx).play();
+        SoundPool pool = sfxPools.get(sfx);
+        if (pool != null) {
+            pool.play();
+        }
     }
 
     public void playDialogue(SFX som) {
         stopDialogue(); // corta a fala anterior antes de comecar a nova
 
         if (som != null) {
-            dialogueClip = sfxPools.get(som).play();
+            SoundPool pool = sfxPools.get(som);
+            if (pool != null) {
+                dialogueClip = pool.play();
+            }
         }
     }
 
@@ -385,7 +391,17 @@ public class SoundManager {
     }
 
     public static void setVolume(Clip clip, float volume) {
-        FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+        if (clip == null || !clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+            return;
+        }
+
+        FloatControl gain;
+        try {
+            gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+        } catch (IllegalArgumentException | ClassCastException e) {
+            return;
+        }
+
         float curved = volume * volume;
         float dB = (float) (Math.log10(Math.max(curved, 0.0001)) * 20);
         gain.setValue(dB);
@@ -399,15 +415,18 @@ public class SoundManager {
     public void setSfxVolume(float volume) {
         sfxVolume = volume;
         for (SoundPool pool : sfxPools.values()) {
-            pool.setVolume(volume);
+            if (pool != null) {
+                pool.setVolume(volume);
+            }
         }
     }
 
     public static Clip loadClip(String path) throws Exception {
-        AudioInputStream ais = AudioSystem.getAudioInputStream(new File(path));
-        Clip clip = AudioSystem.getClip();
-        clip.open(ais);
-        return clip;
+        try (AudioInputStream ais = AudioSystem.getAudioInputStream(new File(path))) {
+            Clip clip = AudioSystem.getClip();
+            clip.open(ais);
+            return clip;
+        }
     }
 
     public BGM currentSong() {
