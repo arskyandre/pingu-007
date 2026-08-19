@@ -220,9 +220,17 @@ class AudioClip:
 
 
 def _strip_java_comments(source: str) -> str:
-    """Remove Java comments so commented-out SFX are not exported."""
+    """Remove Java comments so their words, commas, and SFX are ignored."""
 
-    return re.sub(r"//[^\r\n]*|/\*.*?\*/", "", source, flags=re.DOTALL)
+    def replace_comment(match: re.Match[str]) -> str:
+        comment = match.group(0)
+        if comment.startswith("//"):
+            return ""  # The line ending is outside this match and is preserved.
+        # Preserve block-comment line endings and use spaces to avoid joining the
+        # tokens on either side of a comment into one accidental entry.
+        return re.sub(r"[^\r\n]", " ", comment)
+
+    return re.sub(r"//[^\r\n]*|/\*.*?\*/", replace_comment, source, flags=re.DOTALL)
 
 
 def load_sfx_catalog() -> dict[str, Path]:
@@ -236,7 +244,8 @@ def parse_sequence(text: str, known_sfx: Iterable[str]) -> list[str | None]:
 
     Both ``SoundManager.SFX.NAME`` and the shorter ``SFX.NAME`` are accepted.
     Bare syllables are case-insensitive, so ``a`` and ``ME`` resolve to
-    ``KATAKANA_A`` and ``KATAKANA_ME``. Java array wrappers are optional.
+    ``KATAKANA_A`` and ``KATAKANA_ME``. Java array wrappers are optional, and
+    both ``// line`` and ``/* block */`` comments are ignored.
     """
 
     known = set(known_sfx)
@@ -500,8 +509,8 @@ class DialogueSequenceApp:
         ttk.Label(
             outer,
             text=(
-                "Separate every entry with a comma. Use full SoundManager.SFX names or "
-                "short syllables such as a and ME; null adds one silent timing slot."
+                "Comma-separate entries. Use full SFX names or syllables like a and ME. "
+                "null adds a pause; Java // comments are ignored."
             ),
             wraplength=700,
         ).grid(row=1, column=0, sticky="ew", pady=(4, 10))
@@ -891,8 +900,8 @@ class NativeWindowsDialogueSequenceApp:
         )
         self.description_handle = self._create_control(
             "STATIC",
-            "Separate every entry with a comma. Use full SoundManager.SFX names or short "
-            "syllables such as a and ME; null adds one silent timing slot.",
+            "Comma-separate entries. Use full SFX names or syllables like a and ME. "
+            "null adds a pause; Java // comments are ignored.",
             0,
             0,
         )
