@@ -10,7 +10,7 @@ sons de diálogo. Ele deve permanecer na pasta `Pingu-007`, ao lado da pasta
 - FFmpeg disponível no `PATH` para usar pitch diferente de zero.
 - O FFmpeg precisa ser uma versão completa com o filtro `rubberband`.
 
-Não é necessário instalar pacotes com `pip`.
+Não é necessário instalar pacotes com `pip`. Tkinter opcional
 
 Para conferir os requisitos, abra o PowerShell e execute:
 
@@ -78,6 +78,14 @@ be, jo
 - **Radio effect + hiss:** deixa o áudio mono e bem limitado à faixa de voz,
   corta fortemente os graves, destaca os médios-agudos e adiciona um chiado
   audível com timbre um pouco mais baixo e suave que ruído branco comum.
+- **Dialogue volume:** controla o volume dos sons de diálogo entre `0%` e
+  `100%`, sem alterar o volume do chiado.
+- **Radio hiss volume:** controla somente o chiado entre `0%` e `100%`. Esse
+  controle fica desativado enquanto o efeito de rádio estiver desligado.
+
+Nos dois controles, `50%` corresponde ao volume original que o script usava
+antes dos sliders. A faixa de `51%` a `100%` permite amplificar o som, chegando
+a duas vezes o volume original em `100%`. Os dois sliders iniciam em `50%`.
 
 Ao ativar o efeito de rádio, o arquivo recebe `0,5 s` extras no início e `0,5 s`
 extras no fim. Nenhum som de diálogo toca nesses trechos: somente o chiado, que

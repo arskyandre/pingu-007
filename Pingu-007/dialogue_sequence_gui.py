@@ -36,6 +36,9 @@ DEFAULT_INTERVAL_MS = 100
 MIN_PITCH_SEMITONES = -12.0
 MAX_PITCH_SEMITONES = 12.0
 RADIO_PADDING_SECONDS = 0.5
+BASE_HISS_LEVEL = 0.067
+VOLUME_SLIDER_UNITY = 50.0
+MAX_VOLUME_GAIN = 2.0
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 
@@ -563,7 +566,7 @@ def _soft_limit(sample: float) -> float:
     return math.copysign(limited, sample)
 
 
-def _apply_radio_effect(samples: array) -> array:
+def _apply_radio_effect(samples: array, hiss_volume: float = 1.0) -> array:
     """Apply an obvious band-limited radio color with controlled audible hiss.
 
     The voice is mostly mono, loses substantial bass, and gains focused high mids.
@@ -582,7 +585,7 @@ def _apply_radio_effect(samples: array) -> array:
     dry_amount = 1.0 - wet_amount
     drive = 1.22
     output_gain = 1.02
-    noise_level = 0.09
+    noise_level = BASE_HISS_LEVEL * hiss_volume
     effected = array("i")
     dialogue_frames = len(samples) // OUTPUT_CHANNELS
     padding_frames = round(OUTPUT_SAMPLE_RATE * RADIO_PADDING_SECONDS)
@@ -635,6 +638,8 @@ def render_sequence(
     interval_ms: int = DEFAULT_INTERVAL_MS,
     pitch_semitones: float = 0.0,
     radio_effect: bool = False,
+    dialogue_volume: float = 1.0,
+    hiss_volume: float = 1.0,
 ) -> float:
     """Mix the timed SFX events and write a Java-compatible PCM WAV.
 
@@ -647,6 +652,10 @@ def render_sequence(
         raise SequenceError("The interval must be between 1 and 10000 ms.")
     if not MIN_PITCH_SEMITONES <= pitch_semitones <= MAX_PITCH_SEMITONES:
         raise SequenceError("Pitch must be between -12 and +12 semitones.")
+    if not 0.0 <= dialogue_volume <= MAX_VOLUME_GAIN:
+        raise SequenceError("Dialogue volume must be between 0% and 100%.")
+    if not 0.0 <= hiss_volume <= MAX_VOLUME_GAIN:
+        raise SequenceError("Radio hiss volume must be between 0% and 100%.")
 
     clip_cache: dict[str, AudioClip] = {}
     for token in tokens:
@@ -671,8 +680,10 @@ def render_sequence(
             mixed[destination + sample_index] += sample
 
     processed = _apply_pitch_shift(mixed, pitch_semitones)
+    if dialogue_volume != 1.0:
+        processed = array("i", (round(sample * dialogue_volume) for sample in processed))
     if radio_effect:
-        processed = _apply_radio_effect(processed)
+        processed = _apply_radio_effect(processed, hiss_volume)
 
     pcm = array("h")
     pcm.extend(max(-32_768, min(32_767, sample)) for sample in processed)
@@ -778,7 +789,7 @@ class AudioPreviewPlayer:
 class DialogueSequenceApp:
     """Tkinter front end for parsing and exporting an SFX sequence."""
 
-    EXAMPLE = "pi, n, gu, null, me, null, da, null, a, null, bu, n, da"
+    EXAMPLE = "bo, se, ko, n, se, gi, u, null, o, po, ru, ta, o, a, bu, ri, u"
 
     def __init__(self) -> None:
         import tkinter as tk
@@ -791,13 +802,17 @@ class DialogueSequenceApp:
 
         self.root = tk.Tk()
         self.root.title("Pingu Dialogue WAV Exporter")
-        self.root.geometry("760x580")
-        self.root.minsize(580, 460)
+        self.root.geometry("760x660")
+        self.root.minsize(620, 540)
         self.root.protocol("WM_DELETE_WINDOW", self._close)
 
         self.interval_value = tk.StringVar(value=str(DEFAULT_INTERVAL_MS))
         self.pitch_value = tk.StringVar(value="0")
         self.radio_value = tk.BooleanVar(value=False)
+        self.dialogue_volume_value = tk.DoubleVar(value=VOLUME_SLIDER_UNITY)
+        self.hiss_volume_value = tk.DoubleVar(value=VOLUME_SLIDER_UNITY)
+        self.dialogue_volume_label = tk.StringVar(value="50%")
+        self.hiss_volume_label = tk.StringVar(value="50%")
         self.status_value = tk.StringVar(value="Paste a sequence to begin.")
 
         outer = ttk.Frame(self.root, padding=16)
@@ -874,7 +889,45 @@ class DialogueSequenceApp:
             options,
             text="Radio effect + hiss",
             variable=self.radio_value,
+            command=self._update_radio_controls,
         ).grid(row=1, column=3, sticky="e", padx=(16, 0), pady=(8, 0))
+
+        ttk.Label(options, text="Dialogue volume:").grid(
+            row=2, column=0, sticky="w", pady=(10, 0)
+        )
+        self.dialogue_volume_scale = ttk.Scale(
+            options,
+            from_=0,
+            to=100,
+            variable=self.dialogue_volume_value,
+            command=lambda value: self._update_volume_label(
+                value, self.dialogue_volume_label
+            ),
+        )
+        self.dialogue_volume_scale.grid(
+            row=2, column=1, columnspan=2, sticky="ew", padx=(6, 14), pady=(10, 0)
+        )
+        ttk.Label(options, textvariable=self.dialogue_volume_label, width=5).grid(
+            row=2, column=3, sticky="e", pady=(10, 0)
+        )
+
+        ttk.Label(options, text="Radio hiss volume:").grid(
+            row=3, column=0, sticky="w", pady=(8, 0)
+        )
+        self.hiss_volume_scale = ttk.Scale(
+            options,
+            from_=0,
+            to=100,
+            variable=self.hiss_volume_value,
+            command=lambda value: self._update_volume_label(value, self.hiss_volume_label),
+        )
+        self.hiss_volume_scale.grid(
+            row=3, column=1, columnspan=2, sticky="ew", padx=(6, 14), pady=(8, 0)
+        )
+        ttk.Label(options, textvariable=self.hiss_volume_label, width=5).grid(
+            row=3, column=3, sticky="e", pady=(8, 0)
+        )
+        self._update_radio_controls()
 
         actions = ttk.Frame(outer)
         actions.grid(row=4, column=0, sticky="ew")
@@ -916,6 +969,26 @@ class DialogueSequenceApp:
         if not MIN_PITCH_SEMITONES <= pitch <= MAX_PITCH_SEMITONES:
             raise SequenceError("Pitch must be between -12 and +12 semitones.")
         return pitch
+
+    def _current_dialogue_volume(self) -> float:
+        return max(
+            0.0,
+            min(MAX_VOLUME_GAIN, self.dialogue_volume_value.get() / VOLUME_SLIDER_UNITY),
+        )
+
+    def _current_hiss_volume(self) -> float:
+        return max(
+            0.0,
+            min(MAX_VOLUME_GAIN, self.hiss_volume_value.get() / VOLUME_SLIDER_UNITY),
+        )
+
+    def _update_volume_label(self, value: str, label) -> None:
+        label.set(f"{round(float(value))}%")
+
+    def _update_radio_controls(self) -> None:
+        state = "normal" if self.radio_value.get() else "disabled"
+        if hasattr(self, "hiss_volume_scale"):
+            self.hiss_volume_scale.configure(state=state)
 
     def _on_text_modified(self, _event: object) -> None:
         if self.editor.edit_modified():
@@ -964,6 +1037,8 @@ class DialogueSequenceApp:
                 interval,
                 pitch,
                 self.radio_value.get(),
+                self._current_dialogue_volume(),
+                self._current_hiss_volume(),
             )
             self.preview_player.play()
         except (OSError, SequenceError) as exc:
@@ -1015,6 +1090,8 @@ class DialogueSequenceApp:
                 interval,
                 pitch,
                 self.radio_value.get(),
+                self._current_dialogue_volume(),
+                self._current_hiss_volume(),
             )
         except (OSError, SequenceError) as exc:
             messagebox.showerror("Export failed", str(exc), parent=self.root)
@@ -1061,7 +1138,11 @@ class NativeWindowsDialogueSequenceApp:
         self.user32 = ctypes.WinDLL("user32", use_last_error=True)
         self.kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
         self.comdlg32 = ctypes.WinDLL("comdlg32", use_last_error=True)
+        self.comctl32 = ctypes.WinDLL("comctl32", use_last_error=True)
         self.gdi32 = ctypes.WinDLL("gdi32", use_last_error=True)
+        self.comctl32.InitCommonControls.argtypes = ()
+        self.comctl32.InitCommonControls.restype = None
+        self.comctl32.InitCommonControls()
 
         self.WNDPROC = ctypes.WINFUNCTYPE(
             ctypes.c_ssize_t,
@@ -1191,6 +1272,8 @@ class NativeWindowsDialogueSequenceApp:
         self.user32.MessageBoxW.restype = ctypes.c_int
         self.user32.EnableWindow.argtypes = (ctypes.c_void_p, wintypes.BOOL)
         self.user32.EnableWindow.restype = wintypes.BOOL
+        self.user32.IsWindowEnabled.argtypes = (ctypes.c_void_p,)
+        self.user32.IsWindowEnabled.restype = wintypes.BOOL
         self.user32.UpdateWindow.argtypes = (ctypes.c_void_p,)
         self.user32.UpdateWindow.restype = wintypes.BOOL
         self.user32.PostQuitMessage.argtypes = (ctypes.c_int,)
@@ -1217,17 +1300,23 @@ class NativeWindowsDialogueSequenceApp:
         self.WM_COMMAND = 0x0111
         self.WM_DESTROY = 0x0002
         self.WM_SIZE = 0x0005
+        self.WM_HSCROLL = 0x0114
         self.WM_SETFONT = 0x0030
         self.EN_CHANGE = 0x0300
         self.BN_CLICKED = 0
         self.BM_GETCHECK = 0x00F0
         self.BST_CHECKED = 1
+        self.TBM_GETPOS = 0x0400
+        self.TBM_SETPOS = 0x0405
+        self.TBM_SETRANGE = 0x0406
         self.ID_EDITOR = 101
         self.ID_INTERVAL = 102
         self.ID_PITCH = 103
         self.ID_RADIO = 104
         self.ID_PITCH_UP = 105
         self.ID_PITCH_DOWN = 106
+        self.ID_DIALOGUE_VOLUME = 107
+        self.ID_HISS_VOLUME = 108
         self.ID_EXAMPLE = 201
         self.ID_CLEAR = 202
         self.ID_EXPORT = 203
@@ -1261,7 +1350,7 @@ class NativeWindowsDialogueSequenceApp:
             100,
             80,
             780,
-            620,
+            700,
             None,
             None,
             self.instance,
@@ -1342,6 +1431,30 @@ class NativeWindowsDialogueSequenceApp:
         self.radio_handle = self._create_control(
             "BUTTON", "Radio effect + hiss", 0x00000003, self.ID_RADIO
         )
+        self.dialogue_volume_label_handle = self._create_control(
+            "STATIC", "Dialogue volume:", 0, 0
+        )
+        self.dialogue_volume_handle = self._create_control(
+            "msctls_trackbar32", "", 0x00000001 | 0x00010000, self.ID_DIALOGUE_VOLUME
+        )
+        self.dialogue_volume_value_handle = self._create_control(
+            "STATIC", "50%", 0, 0
+        )
+        self.hiss_volume_label_handle = self._create_control(
+            "STATIC", "Radio hiss volume:", 0, 0
+        )
+        self.hiss_volume_handle = self._create_control(
+            "msctls_trackbar32", "", 0x00000001 | 0x00010000, self.ID_HISS_VOLUME
+        )
+        self.hiss_volume_value_handle = self._create_control(
+            "STATIC", "50%", 0, 0
+        )
+        slider_range = 100 << 16
+        for slider in (self.dialogue_volume_handle, self.hiss_volume_handle):
+            self.user32.SendMessageW(slider, self.TBM_SETRANGE, 1, slider_range)
+            self.user32.SendMessageW(
+                slider, self.TBM_SETPOS, 1, round(VOLUME_SLIDER_UNITY)
+            )
         self.example_handle = self._create_control(
             "BUTTON", "Load example", 0, self.ID_EXAMPLE
         )
@@ -1371,6 +1484,12 @@ class NativeWindowsDialogueSequenceApp:
             self.pitch_down_handle,
             self.pitch_note_handle,
             self.radio_handle,
+            self.dialogue_volume_label_handle,
+            self.dialogue_volume_handle,
+            self.dialogue_volume_value_handle,
+            self.hiss_volume_label_handle,
+            self.hiss_volume_handle,
+            self.hiss_volume_value_handle,
             self.example_handle,
             self.clear_handle,
             self.simulate_handle,
@@ -1380,14 +1499,16 @@ class NativeWindowsDialogueSequenceApp:
         ):
             self.user32.SendMessageW(handle, self.WM_SETFONT, font, 1)
 
-        self._layout(760, 580)
+        self._layout(760, 660)
+        self._update_native_volume_labels()
+        self._update_native_radio_state()
         self._refresh_native_status()
 
     def _layout(self, width: int, height: int) -> None:
         if not hasattr(self, "editor_handle"):
             return
         move = self.user32.MoveWindow
-        editor_height = max(160, height - 250)
+        editor_height = max(130, height - 310)
         move(self.title_handle, 16, 14, max(100, width - 32), 26, True)
         move(self.description_handle, 16, 44, max(100, width - 32), 38, True)
         move(self.editor_handle, 16, 86, max(100, width - 32), editor_height, True)
@@ -1402,7 +1523,43 @@ class NativeWindowsDialogueSequenceApp:
         move(self.pitch_down_handle, 204, pitch_y + 11, 22, 15, True)
         move(self.pitch_note_handle, 234, pitch_y, 150, 24, True)
         move(self.radio_handle, max(392, width - 174), pitch_y - 2, 158, 25, True)
-        buttons_y = options_y + 64
+        dialogue_volume_y = options_y + 62
+        move(self.dialogue_volume_label_handle, 16, dialogue_volume_y + 4, 115, 24, True)
+        move(
+            self.dialogue_volume_handle,
+            134,
+            dialogue_volume_y,
+            max(120, width - 222),
+            30,
+            True,
+        )
+        move(
+            self.dialogue_volume_value_handle,
+            max(270, width - 78),
+            dialogue_volume_y + 4,
+            62,
+            24,
+            True,
+        )
+        hiss_volume_y = options_y + 94
+        move(self.hiss_volume_label_handle, 16, hiss_volume_y + 4, 115, 24, True)
+        move(
+            self.hiss_volume_handle,
+            134,
+            hiss_volume_y,
+            max(120, width - 222),
+            30,
+            True,
+        )
+        move(
+            self.hiss_volume_value_handle,
+            max(270, width - 78),
+            hiss_volume_y + 4,
+            62,
+            24,
+            True,
+        )
+        buttons_y = options_y + 130
         move(self.example_handle, 16, buttons_y, 105, 30, True)
         move(self.clear_handle, 129, buttons_y, 75, 30, True)
         move(self.simulate_handle, 212, buttons_y, 118, 30, True)
@@ -1420,6 +1577,9 @@ class NativeWindowsDialogueSequenceApp:
             height = (lparam >> 16) & 0xFFFF
             self._layout(width, height)
             return 0
+        if message == self.WM_HSCROLL:
+            self._update_native_volume_labels()
+            return 0
         if message == self.WM_COMMAND:
             control_id = wparam & 0xFFFF
             notification = (wparam >> 16) & 0xFFFF
@@ -1436,6 +1596,8 @@ class NativeWindowsDialogueSequenceApp:
                     self._adjust_native_pitch(0.5)
                 elif control_id == self.ID_PITCH_DOWN:
                     self._adjust_native_pitch(-0.5)
+                elif control_id == self.ID_RADIO:
+                    self._update_native_radio_state()
                 elif control_id == self.ID_SIMULATE:
                     self._native_simulate()
                 elif control_id == self.ID_STOP_PREVIEW:
@@ -1498,6 +1660,38 @@ class NativeWindowsDialogueSequenceApp:
         state = self.user32.SendMessageW(self.radio_handle, self.BM_GETCHECK, 0, 0)
         return state == self.BST_CHECKED
 
+    def _native_dialogue_volume(self) -> float:
+        position = self.user32.SendMessageW(
+            self.dialogue_volume_handle, self.TBM_GETPOS, 0, 0
+        )
+        return max(0.0, min(MAX_VOLUME_GAIN, position / VOLUME_SLIDER_UNITY))
+
+    def _native_hiss_volume(self) -> float:
+        position = self.user32.SendMessageW(
+            self.hiss_volume_handle, self.TBM_GETPOS, 0, 0
+        )
+        return max(0.0, min(MAX_VOLUME_GAIN, position / VOLUME_SLIDER_UNITY))
+
+    def _update_native_volume_labels(self) -> None:
+        if not hasattr(self, "dialogue_volume_handle"):
+            return
+        dialogue_percent = self.user32.SendMessageW(
+            self.dialogue_volume_handle, self.TBM_GETPOS, 0, 0
+        )
+        hiss_percent = self.user32.SendMessageW(
+            self.hiss_volume_handle, self.TBM_GETPOS, 0, 0
+        )
+        self.user32.SetWindowTextW(
+            self.dialogue_volume_value_handle, f"{dialogue_percent}%"
+        )
+        self.user32.SetWindowTextW(self.hiss_volume_value_handle, f"{hiss_percent}%")
+
+    def _update_native_radio_state(self) -> None:
+        if hasattr(self, "hiss_volume_handle"):
+            self.user32.EnableWindow(
+                self.hiss_volume_handle, self._native_radio_effect()
+            )
+
     def _refresh_native_status(self) -> None:
         if not hasattr(self, "editor_handle"):
             return
@@ -1553,6 +1747,8 @@ class NativeWindowsDialogueSequenceApp:
                 interval,
                 pitch,
                 self._native_radio_effect(),
+                self._native_dialogue_volume(),
+                self._native_hiss_volume(),
             )
             self.preview_player.play()
         except (OSError, SequenceError) as exc:
@@ -1592,6 +1788,8 @@ class NativeWindowsDialogueSequenceApp:
                 interval,
                 pitch,
                 self._native_radio_effect(),
+                self._native_dialogue_volume(),
+                self._native_hiss_volume(),
             )
         except (OSError, SequenceError) as exc:
             self._set_status("Export failed.")
@@ -1621,11 +1819,15 @@ class NativeWindowsDialogueSequenceApp:
 
 def main() -> None:
     try:
-        DialogueSequenceApp().run()
+        app = DialogueSequenceApp()
+        print("[Dialogue GUI] Interface: Tkinter", flush=True)
+        app.run()
     except Exception as gui_error:
         if os.name == "nt":
             try:
-                NativeWindowsDialogueSequenceApp().run()
+                native_app = NativeWindowsDialogueSequenceApp()
+                print("[Dialogue GUI] Interface: native Windows fallback", flush=True)
+                native_app.run()
                 return
             except Exception as native_error:
                 print(f"GUI error: {gui_error}", file=sys.stderr)

@@ -25,7 +25,7 @@ public class GameCore extends Canvas implements Runnable {
 
     // permite os botoes de teste(debuginputprocessing() e outros). se colocar false
     // o jogo se comporta como versao de "usuario"
-    private static boolean debugInputs = false;
+    private static boolean debugInputs = true;
 
     private double checkX, checkY;
     private int checkVida, checkMunicao, checkPente, checkChaves;
