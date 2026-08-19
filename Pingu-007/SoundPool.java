@@ -16,10 +16,12 @@ public class SoundPool {
         }
     }
 
-    public void play() {
-        pool[index].setFramePosition(0);
-        pool[index].start();
+    public Clip play() {
+        Clip clip = pool[index];
+        clip.setFramePosition(0);
+        clip.start();
         index = (index + 1) % pool.length;
+        return clip;
     }
 
     public void setVolume(float volume) {

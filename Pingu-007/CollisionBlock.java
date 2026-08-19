@@ -85,7 +85,8 @@ public class CollisionBlock extends ArenaObject {
             setActive(context, false, null);
             GateReplacer.applyUnlockVisuals(context.getMapData());
             dialogueManager.iniciarDialogo(new String[] {
-                    "RADIO: Você conseguiu! O portão abriu." }, new BufferedImage[] { GameCore.cellphone_image });
+                    "RADIO: Você conseguiu! O portão abriu." }, DialogueCatalogo.PortaoAbriu,
+                    new BufferedImage[] { GameCore.cellphone_image });
             return true;
         }
         String qtdChaves;

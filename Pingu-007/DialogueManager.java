@@ -32,7 +32,7 @@ public class DialogueManager {
 
   private boolean mostrarBocaAberta = false;
   private SoundManager soundManager;
-  private SoundManager.SFX[][] sonsAtual;
+  private SoundManager.SFX[] sonsAtual;
 
   public interface EscolhaListener {
     void onEscolha(int indiceEscolhido);
@@ -94,7 +94,7 @@ public class DialogueManager {
     aplicarPrefixoInstantaneo();
   }
 
-  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons) {
+  public void iniciarDialogo(String[] texto, SoundManager.SFX[] sons) {
     this.falas = texto;
     this.falaAtualIndex = 0;
     this.caractereIndex = 0;
@@ -110,7 +110,7 @@ public class DialogueManager {
     aplicarPrefixoInstantaneo();
   }
 
-  public void iniciarDialogo(String[] texto, SoundManager.SFX[][] sons, BufferedImage[] imgs) {
+  public void iniciarDialogo(String[] texto, SoundManager.SFX[] sons, BufferedImage[] imgs) {
     this.falas = texto;
     retratosAtual = imgs;
     this.falaAtualIndex = 0;
@@ -127,9 +127,11 @@ public class DialogueManager {
   }
 
   private void tocarSomFalaAtual() {
+    SoundManager.SFX som = null;
     if (sonsAtual != null && falaAtualIndex < sonsAtual.length) {
-      soundManager.playDialogue(sonsAtual[falaAtualIndex]);
+      som = sonsAtual[falaAtualIndex];
     }
+    soundManager.playDialogue(som);
   }
 
   private void aplicarRetratoFalaAtual() {
@@ -457,11 +459,11 @@ public class DialogueManager {
     aplicarPrefixoInstantaneo();
   }
 
-  public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[][] sons, EscolhaListener listener) {
+  public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[] sons, EscolhaListener listener) {
     iniciarEscolha(pergunta, opcoes, sons, 0, listener);
   }
 
-  public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[][] sons, int escolhaInicial,
+  public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[] sons, int escolhaInicial,
       EscolhaListener listener) {
     this.falas = new String[] { pergunta };
     this.sonsAtual = sons;
@@ -481,12 +483,12 @@ public class DialogueManager {
     aplicarPrefixoInstantaneo();
   }
 
-  public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[][] sons, BufferedImage retrato,
+  public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[] sons, BufferedImage retrato,
       EscolhaListener listener) {
     iniciarEscolha(pergunta, opcoes, sons, retrato, 0, listener);
   }
 
-  public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[][] sons, BufferedImage retrato,
+  public void iniciarEscolha(String pergunta, String[] opcoes, SoundManager.SFX[] sons, BufferedImage retrato,
       int escolhaInicial, EscolhaListener listener) {
     this.falas = new String[] { pergunta };
     this.sonsAtual = sons;
