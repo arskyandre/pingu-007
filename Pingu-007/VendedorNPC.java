@@ -57,14 +57,14 @@ public class VendedorNPC extends NPC {
                 }, !player.getHasShotgun(), true);
     }
 
-    private void loopInteracao(String pergunta, Player player, DialogueManager dialogueManager,
+    private void loopInteracao(String pergunta, SoundManager.SFX[] fala, Player player, DialogueManager dialogueManager,
             SoundManager soundManager) {
 
         dialogueManager.iniciarEscolha(pergunta, new String[] {
                 "Quero comprar algo.",
                 "Me dê minha recompensa!",
                 "Deixa pra lá."
-        },
+        }, fala,
                 portrait,
                 0,
                 escolha -> {
@@ -73,7 +73,8 @@ public class VendedorNPC extends NPC {
                         case 0 -> {
                             popularItens(player, soundManager);
                             shopMenu.setAoFechar(() -> {
-                                loopInteracao("VENDEDOR: Algo a mais, Pingu?", player, dialogueManager, soundManager);
+                                loopInteracao("VENDEDOR: Algo a mais, Pingu?", DialogueCatalogo.Vendedor_algo_a_mais,
+                                        player, dialogueManager, soundManager);
                             });
                             shopMenu.abrir(player);
                             GameCore.setShopMenu(shopMenu);
@@ -96,14 +97,15 @@ public class VendedorNPC extends NPC {
                             }
                             dialogueManager.setAoTerminarDialogo(() -> {
                                 player.addMoedas(moedas);
-                                loopInteracao("VENDEDOR: Algo a mais, Pingu?", player, dialogueManager,
+                                loopInteracao("VENDEDOR: Algo a mais, Pingu?", DialogueCatalogo.Vendedor_algo_a_mais,
+                                        player, dialogueManager,
                                         soundManager);
                             });
                         }
                         case 2 -> {
                             dialogueManager.iniciarDialogo(new String[] {
                                     "VENDEDOR: Estou aqui sempre que precisar!"
-                            }, new BufferedImage[] { portrait2 });
+                            }, DialogueCatalogo.VendedorTchau, new BufferedImage[] { portrait2 });
                             state = State.IDLE;
                         }
                     }
@@ -120,7 +122,8 @@ public class VendedorNPC extends NPC {
                         || input.isButtonJustPressed(InputManager.GamepadButton.Y))) {
                     if (Player.getDesbloqueouRecompensa()) {
 
-                        loopInteracao("VENDEDOR: E aí, Pingu? O que deseja?", player, dialogueManager, soundManager);
+                        loopInteracao("VENDEDOR: E aí, Pingu? O que deseja?", DialogueCatalogo.Vendedor_o_que_deseja,
+                                player, dialogueManager, soundManager);
 
                     } else {
                         int moedas = (int) (player.getCurrentEnemyCount() * inimigosPorMoeda);
@@ -133,7 +136,7 @@ public class VendedorNPC extends NPC {
                                         + " inimigos. Aqui estão "
                                         + Integer.toString(moedas)
                                         + " moedas."
-                        }, new BufferedImage[] { portrait });
+                        }, DialogueCatalogo.VendedorFala1, new BufferedImage[] { portrait });
                         dialogueManager.setAoTerminarDialogo(() -> {
                             ToastNotifications.RequestNotification(
                                     "Elimine inimigos e volte à loja do vendedor para receber recompensas!", 2.5);

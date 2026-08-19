@@ -1,22 +1,7 @@
 import java.awt.image.BufferedImage;
 
-/**
- * a feiura mais assustadora, escabrosa, macabra e triste de toda a historia da
- * programacao
- * <p>
- * <b>null = nenhum som = pausa</b>
- */
 public class DialogueCatalogo {
 
-        // separador
-
-        // de variaveis
-
-        // Deus tenha piedade
-
-        // das almas penadas
-
-        // que encostarem nesse arquivo
         public static void loopDialogoInicial(DialogueManager dialogueManager, SoundManager soundManager) {
                 dialogueManager.iniciarEscolha("RADIO: Deseja ouvir o protocolo novamente, Pingu?",
                                 new String[] { "Sim", "Não" }, GameCore.cellphone_image, 1, escolha -> {
@@ -46,7 +31,24 @@ public class DialogueCatalogo {
         public static final SoundManager.SFX[] PescadorPergunta = new SoundManager.SFX[] {
                         SoundManager.SFX.PESCADOR_PERGUNTA
         };
+        public static final SoundManager.SFX[] VendedorFala1 = new SoundManager.SFX[] {
+                        SoundManager.SFX.VENDEDOR_FALA1_1,
+                        SoundManager.SFX.VENDEDOR_FALA1_2,
+                        SoundManager.SFX.VENDEDOR_FALA1_3
 
+        };
+        public static final SoundManager.SFX[] Vendedor_insuficiente_recompensa = new SoundManager.SFX[] {
+                        SoundManager.SFX.VENDEDOR_INSUFICIENTE_RECOMPENSA
+        };
+        public static final SoundManager.SFX[] Vendedor_o_que_deseja = new SoundManager.SFX[] {
+                        SoundManager.SFX.VENDEDOR_O_QUE_DESEJA
+        };
+        public static final SoundManager.SFX[] Vendedor_algo_a_mais = new SoundManager.SFX[] {
+                        SoundManager.SFX.VENDEDOR_ALGO_A_MAIS
+        };
+        public static final SoundManager.SFX[] VendedorTchau = new SoundManager.SFX[] {
+                        SoundManager.SFX.VENDEDOR_TCHAU
+        };
         public static final String[] TextoInicialRadio = new String[] {
                         "PINGU: Entrando na base de operações.",
                         "RADIO: Cuidado, 007. Os lobos estão em alerta máximo.",

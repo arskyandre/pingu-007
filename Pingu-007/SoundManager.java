@@ -82,7 +82,14 @@ public class SoundManager {
         PESCADOR_FALA1_NOKEY_1("sound/dialogue/pescador_fala2_nokey_1.wav", 1),
         PESCADOR_FALA1_NOKEY_2("sound/dialogue/pescador_fala2_nokey_2.wav", 1),
         PESCADOR_PERGUNTA("sound/dialogue/pescador_pergunta.wav", 1),
-        PORTAO_ABRIU("sound/dialogue/portao_abriu.wav", 1);
+        PORTAO_ABRIU("sound/dialogue/portao_abriu.wav", 1),
+        VENDEDOR_ALGO_A_MAIS("sound/dialogue/vendedor_algo_a_mais.wav", 1),
+        VENDEDOR_FALA1_1("sound/dialogue/vendedor_fala1_1.wav", 1),
+        VENDEDOR_FALA1_2("sound/dialogue/vendedor_fala1_2.wav", 1),
+        VENDEDOR_FALA1_3("sound/dialogue/vendedor_fala1_3.wav", 1),
+        VENDEDOR_INSUFICIENTE_RECOMPENSA("sound/dialogue/vendedor_insuficiente_recompensa.wav", 1),
+        VENDEDOR_O_QUE_DESEJA("sound/dialogue/vendedor_o_que_deseja.wav", 1),
+        VENDEDOR_TCHAU("sound/dialogue/vendedor_tchau.wav", 1);
 
         public final String path;
         public final int poolSize;

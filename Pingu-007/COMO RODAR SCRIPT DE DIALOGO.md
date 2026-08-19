@@ -87,7 +87,7 @@ Nos dois controles, `50%` corresponde ao volume original que o script usava
 antes dos sliders. A faixa de `51%` a `100%` permite amplificar o som, chegando
 a duas vezes o volume original em `100%`. Os dois sliders iniciam em `50%`.
 
-Ao ativar o efeito de rádio, o arquivo recebe `0,5 s` extras no início e `0,5 s`
+Ao ativar o efeito de rádio, o arquivo recebe `0,3 s` extras no início e `0,3 s`
 extras no fim. Nenhum som de diálogo toca nesses trechos: somente o chiado, que
 entra gradualmente no começo e desaparece gradualmente no final.
 

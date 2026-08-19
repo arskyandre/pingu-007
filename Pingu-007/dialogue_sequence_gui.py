@@ -35,7 +35,7 @@ OUTPUT_SAMPLE_WIDTH = 2
 DEFAULT_INTERVAL_MS = 100
 MIN_PITCH_SEMITONES = -12.0
 MAX_PITCH_SEMITONES = 12.0
-RADIO_PADDING_SECONDS = 0.5
+RADIO_PADDING_SECONDS = 0.3
 BASE_HISS_LEVEL = 0.067
 VOLUME_SLIDER_UNITY = 50.0
 MAX_VOLUME_GAIN = 2.0
@@ -572,7 +572,7 @@ def _apply_radio_effect(samples: array, hiss_volume: float = 1.0) -> array:
     The voice is mostly mono, loses substantial bass, and gains focused high mids.
     Deterministic band-limited noise makes the radio character audible even in
     pauses without using piercing full-band white noise or random crackles. Radio
-    mode also adds a half-second hiss-only fade before and after the dialogue.
+    mode also adds a 0.3-second hiss-only fade before and after the dialogue.
     """
 
     highpass = _butterworth_filter("highpass", 480.0)
