@@ -431,7 +431,8 @@ public class GameCore extends Canvas implements Runnable {
                         }
                     }
                 }
-                if (dialogueManager.isAtivo()) {
+                if (dialogueManager.isAtivo() || dialogueManager.isEntradaChatVisivel()
+                        || dialogueManager.possuiAcoesPendentes()) {
                     dialogueManager.atualizar(input);
                     atualizarCameraSemInput();
                 } else {
@@ -468,7 +469,8 @@ public class GameCore extends Canvas implements Runnable {
                 updateCutscene();
                 updatePlayerMovement();
                 player.setEmDash(false);
-                if (dialogueManager.isAtivo()) {
+                if (dialogueManager.isAtivo() || dialogueManager.isEntradaChatVisivel()
+                        || dialogueManager.possuiAcoesPendentes()) {
                     dialogueManager.atualizar(input);
                 }
             }
@@ -1019,7 +1021,8 @@ public class GameCore extends Canvas implements Runnable {
         hud.ammobar(g2, getWidth(), getHeight(), player, renderer.getOffset());
         hud.desenha_chaves(g2, player, getWidth(), getHeight(), renderer.getOffset(), delta);
 
-        if (dialogueManager != null && dialogueManager.isAtivo()) {
+        if (dialogueManager != null
+                && (dialogueManager.isAtivo() || dialogueManager.isEntradaChatVisivel())) {
             dialogueManager.renderizar(g2, getWidth(), getHeight());
         }
     }
@@ -1284,6 +1287,7 @@ public class GameCore extends Canvas implements Runnable {
         game.frame.setLocationRelativeTo(null);
         game.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         game.frame.setResizable(true);
+        game.dialogueManager.configurarEntradaChat(game.frame, game);
         game.optionsMenu.repositionElements(game.getWidth(), game.getHeight(), game);
         game.keyBindingsMenu.repositionElements(game.getWidth(), game.getHeight());
         game.frame.setVisible(true);

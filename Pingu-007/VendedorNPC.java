@@ -19,6 +19,14 @@ public class VendedorNPC extends NPC {
     private CameraManager camera;
     private BufferedImage portrait = LoadSave.GetSpriteAtlas("images/portrait/vendedor_portrait.png");
     private BufferedImage portrait2 = LoadSave.GetSpriteAtlas("images/portrait/vendedor_portrait2.png");
+    private final OllamaClient ollamaClient = new OllamaClient();
+    private long chatGeneration = 0;
+    private boolean conversaIAAtiva = false;
+    private boolean requisicaoIAAtiva = false;
+    private boolean pensamentoTerminou = false;
+    private boolean respostaIAPronta = false;
+    private String respostaIAPendente;
+    private Throwable erroIAPendente;
 
     public VendedorNPC(double x, double y, CameraManager cameraMgr, SoundManager soundManager) {
         super(x, y, WIDTH, HEIGHT);
@@ -63,6 +71,7 @@ public class VendedorNPC extends NPC {
         dialogueManager.iniciarEscolha(pergunta, new String[] {
                 "Quero comprar algo.",
                 "Me dê minha recompensa!",
+                "Vamos conversar!",
                 "Deixa pra lá."
         }, fala,
                 portrait,
@@ -102,7 +111,8 @@ public class VendedorNPC extends NPC {
                                         soundManager);
                             });
                         }
-                        case 2 -> {
+                        case 2 -> iniciarConversaIA(player, dialogueManager, soundManager);
+                        case 3 -> {
                             dialogueManager.iniciarDialogo(new String[] {
                                     "VENDEDOR: Estou aqui sempre que precisar!"
                             }, DialogueCatalogo.VendedorTchau, new BufferedImage[] { portrait2 });
@@ -110,6 +120,106 @@ public class VendedorNPC extends NPC {
                         }
                     }
                 });
+    }
+
+    private void iniciarConversaIA(Player player, DialogueManager dialogueManager, SoundManager soundManager) {
+        System.out.println("[CHAT] Starting Vendedor AI conversation.");
+        conversaIAAtiva = true;
+        requisicaoIAAtiva = false;
+        chatGeneration++;
+        ollamaClient.clearConversation();
+        state = State.TALKING;
+        mostrarEntradaIA(player, dialogueManager, soundManager, chatGeneration);
+    }
+
+    private void mostrarEntradaIA(Player player, DialogueManager dialogueManager, SoundManager soundManager,
+            long generation) {
+        if (!conversaIAAtiva || generation != chatGeneration) {
+            return;
+        }
+
+        dialogueManager.iniciarEntradaChat(
+                texto -> dialogueManager.postarAcaoNoGameLoop(
+                        () -> enviarMensagemIA(texto, player, dialogueManager, soundManager, generation)),
+                () -> terminarConversaIA(player, dialogueManager, soundManager, generation));
+    }
+
+    private void enviarMensagemIA(String texto, Player player, DialogueManager dialogueManager,
+            SoundManager soundManager, long generation) {
+        if (!conversaIAAtiva || generation != chatGeneration || requisicaoIAAtiva) {
+            System.out.println("[CHAT] Message ignored: conversation inactive, stale, or request already active.");
+            return;
+        }
+
+        System.out.println("[CHAT] Sending player message to Ollama: " + texto);
+        requisicaoIAAtiva = true;
+        pensamentoTerminou = false;
+        respostaIAPronta = false;
+        respostaIAPendente = null;
+        erroIAPendente = null;
+
+        dialogueManager.iniciarDialogoBloqueado(new String[] {
+                "VENDEDOR: O vendedor está pensando..."
+        }, new BufferedImage[] { portrait });
+        dialogueManager.setAoTerminarDialogo(() -> {
+            pensamentoTerminou = true;
+            mostrarRespostaIASePronta(player, dialogueManager, soundManager, generation);
+        });
+
+        ollamaClient.askAsync(texto).whenComplete((resposta, erro) -> dialogueManager.postarAcaoNoGameLoop(() -> {
+            if (!conversaIAAtiva || generation != chatGeneration) {
+                System.out.println("[CHAT] Ignoring late Ollama response from an ended conversation.");
+                return;
+            }
+            System.out.println("[CHAT] Ollama result queued for display. Error=" + (erro != null));
+            respostaIAPendente = resposta;
+            erroIAPendente = erro;
+            respostaIAPronta = true;
+            dialogueManager.encerrarDialogoBloqueadoAoTerminarDigitacao();
+        }));
+    }
+
+    private void mostrarRespostaIASePronta(Player player, DialogueManager dialogueManager,
+            SoundManager soundManager, long generation) {
+        if (!conversaIAAtiva || generation != chatGeneration || !pensamentoTerminou || !respostaIAPronta) {
+            return;
+        }
+
+        System.out.println("[CHAT] Displaying Ollama response.");
+        requisicaoIAAtiva = false;
+        respostaIAPronta = false;
+        String resposta;
+        if (erroIAPendente != null || respostaIAPendente == null || respostaIAPendente.isBlank()) {
+            resposta = "Não consegui falar com Ollama agora. Tente novamente.";
+        } else {
+            resposta = respostaIAPendente;
+        }
+
+        dialogueManager.iniciarDialogo(new String[] {
+                "VENDEDOR: " + resposta
+        }, new BufferedImage[] { portrait });
+        dialogueManager.setAoTerminarDialogo(() -> {
+            if (conversaIAAtiva && generation == chatGeneration) {
+                mostrarEntradaIA(player, dialogueManager, soundManager, generation);
+            }
+        });
+    }
+
+    private void terminarConversaIA(Player player, DialogueManager dialogueManager,
+            SoundManager soundManager, long generation) {
+        if (generation != chatGeneration || !conversaIAAtiva) {
+            System.out.println("[CHAT] Ignoring stale conversation close request.");
+            return;
+        }
+
+        System.out.println("[CHAT] Ending Vendedor AI conversation.");
+        conversaIAAtiva = false;
+        requisicaoIAAtiva = false;
+        chatGeneration++;
+        ollamaClient.clearConversation();
+        dialogueManager.esconderEntradaChat();
+        loopInteracao("VENDEDOR: O que deseja fazer agora?", DialogueCatalogo.Vendedor_o_que_deseja,
+                player, dialogueManager, soundManager);
     }
 
     @Override

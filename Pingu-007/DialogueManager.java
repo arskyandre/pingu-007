@@ -9,6 +9,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
+import javax.swing.JFrame;
+import javax.swing.JWindow;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 public class DialogueManager {
   private String[] falas;
@@ -42,12 +48,29 @@ public class DialogueManager {
   // modoEscolha: a digitação terminou e as opções estão ativas/interativas
   private boolean isEscolha = false;
   private boolean modoEscolha = false;
+  private boolean avancoBloqueado = false;
+  private boolean encerrarQuandoTerminarDigitacao = false;
   private String[] opcoesEscolha;
   private int escolhaSelecionada = 0;
   private EscolhaListener escolhaListener;
   private Runnable aoTerminarDialogo; // callback opcional, roda quando o diálogo normal termina
   private long modoEscolhaAtivadoEm = 0;
   private static final long DELAY_INPUT_ESCOLHA_MS = 400;
+
+  private final ConcurrentLinkedQueue<Runnable> acoesPendentes = new ConcurrentLinkedQueue<>();
+  private JWindow janelaEntradaChat;
+  private JTextField campoEntradaChat;
+  private Canvas canvasChat;
+  private MenuButton terminarConversaButton;
+  private volatile boolean entradaChatVisivel = false;
+  private volatile Consumer<String> aoEnviarMensagemChat;
+  private volatile Runnable aoTerminarConversaChat;
+  private int chatInputX;
+  private int chatInputY;
+  private int chatInputWidth;
+  private static final int CHAT_INPUT_HEIGHT = 30;
+  private static final int CHAT_BUTTON_WIDTH = 170;
+  private static final int CHAT_BUTTON_HEIGHT = 32;
 
   public DialogueManager(SoundManager s) {
     soundManager = s;
@@ -62,12 +85,135 @@ public class DialogueManager {
     rostoAberto = GameCore.pingu_portrait;
   }
 
+  /** Creates the lightweight Swing text input after GameCore has created its JFrame. */
+  public void configurarEntradaChat(JFrame frame, Canvas canvas) {
+    canvasChat = canvas;
+    terminarConversaButton = new MenuButton("Terminar Conversa", 0, 0,
+        CHAT_BUTTON_WIDTH, CHAT_BUTTON_HEIGHT, true);
+
+    Runnable criarJanela = () -> {
+      janelaEntradaChat = new JWindow(frame);
+      campoEntradaChat = new JTextField();
+      campoEntradaChat.setFont(new Font("SansSerif", Font.PLAIN, 16));
+      campoEntradaChat.addActionListener(event -> {
+        String texto = campoEntradaChat.getText().trim();
+        if (texto.isEmpty() || !entradaChatVisivel) {
+          System.out.println("[CHAT] Ignored empty or inactive input.");
+          return;
+        }
+        System.out.println("[CHAT] Enter pressed: " + texto);
+        campoEntradaChat.setText("");
+        esconderEntradaChat();
+        Consumer<String> listener = aoEnviarMensagemChat;
+        if (listener != null) {
+          System.out.println("[CHAT] Queueing submitted message for game loop.");
+          listener.accept(texto);
+        } else {
+          System.err.println("[CHAT] No message listener is registered.");
+        }
+      });
+      janelaEntradaChat.add(campoEntradaChat);
+      janelaEntradaChat.setSize(500, CHAT_INPUT_HEIGHT);
+      janelaEntradaChat.setAlwaysOnTop(true);
+    };
+
+    try {
+      if (SwingUtilities.isEventDispatchThread()) {
+        criarJanela.run();
+      } else {
+        SwingUtilities.invokeAndWait(criarJanela);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("Nao foi possivel criar a entrada de conversa.", e);
+    }
+  }
+
+  public void iniciarEntradaChat(Consumer<String> aoEnviar, Runnable aoTerminar) {
+    System.out.println("[CHAT] Showing text input.");
+    aoEnviarMensagemChat = aoEnviar;
+    aoTerminarConversaChat = aoTerminar;
+    entradaChatVisivel = true;
+    posicionarEntradaChat();
+    SwingUtilities.invokeLater(() -> {
+      if (janelaEntradaChat == null || campoEntradaChat == null) {
+        return;
+      }
+      campoEntradaChat.setText("");
+      janelaEntradaChat.setVisible(true);
+      campoEntradaChat.requestFocusInWindow();
+    });
+  }
+
+  public void esconderEntradaChat() {
+    System.out.println("[CHAT] Hiding text input.");
+    entradaChatVisivel = false;
+    SwingUtilities.invokeLater(() -> {
+      if (janelaEntradaChat != null) {
+        janelaEntradaChat.setVisible(false);
+      }
+    });
+  }
+
+  public boolean isEntradaChatVisivel() {
+    return entradaChatVisivel;
+  }
+
+  public boolean possuiAcoesPendentes() {
+    return !acoesPendentes.isEmpty();
+  }
+
+  /** Queues work from Swing/HTTP threads so dialogue state changes happen in the game loop. */
+  public void postarAcaoNoGameLoop(Runnable acao) {
+    if (acao != null) {
+      System.out.println("[CHAT] Action added to game-loop queue.");
+      acoesPendentes.add(acao);
+    }
+  }
+
+  private void executarAcoesPendentes() {
+    Runnable acao;
+    while ((acao = acoesPendentes.poll()) != null) {
+      System.out.println("[CHAT] Executing queued game-loop action.");
+      acao.run();
+    }
+  }
+
+  private void posicionarEntradaChat() {
+    if (canvasChat == null || terminarConversaButton == null) {
+      return;
+    }
+
+    int canvasWidth = canvasChat.getWidth();
+    int canvasHeight = canvasChat.getHeight();
+    chatInputX = 70;
+    chatInputY = Math.max(10, canvasHeight - 54);
+    chatInputWidth = Math.max(260, canvasWidth - 300);
+    terminarConversaButton.setPosition(
+        chatInputX + chatInputWidth - CHAT_BUTTON_WIDTH,
+        Math.max(4, chatInputY - CHAT_BUTTON_HEIGHT - 6));
+
+    if (janelaEntradaChat != null && canvasChat.isShowing()) {
+      try {
+        Point screenLocation = canvasChat.getLocationOnScreen();
+        int width = Math.max(260, chatInputWidth);
+        SwingUtilities.invokeLater(() -> {
+          janelaEntradaChat.setBounds(screenLocation.x + chatInputX,
+              screenLocation.y + chatInputY, width, CHAT_INPUT_HEIGHT);
+        });
+      } catch (IllegalComponentStateException ignored) {
+        // The window is not showing yet; the next game frame will reposition it.
+      }
+    }
+  }
+
   public void iniciarDialogo(String[] texto) {
     this.falas = texto;
     this.falaAtualIndex = 0;
     this.caractereIndex = 0;
     this.textoExibido = "";
     this.ativo = true;
+    this.avancoBloqueado = false;
+    this.encerrarQuandoTerminarDigitacao = false;
     this.isEscolha = false;
     this.modoEscolha = false;
     this.ultimoFrameTempo = System.currentTimeMillis();
@@ -85,6 +231,8 @@ public class DialogueManager {
     this.caractereIndex = 0;
     this.textoExibido = "";
     this.ativo = true;
+    this.avancoBloqueado = false;
+    this.encerrarQuandoTerminarDigitacao = false;
     this.isEscolha = false;
     this.modoEscolha = false;
     this.ultimoFrameTempo = System.currentTimeMillis();
@@ -100,6 +248,8 @@ public class DialogueManager {
     this.caractereIndex = 0;
     this.textoExibido = "";
     this.ativo = true;
+    this.avancoBloqueado = false;
+    this.encerrarQuandoTerminarDigitacao = false;
     this.isEscolha = false;
     this.modoEscolha = false;
     this.ultimoFrameTempo = System.currentTimeMillis();
@@ -117,6 +267,8 @@ public class DialogueManager {
     this.caractereIndex = 0;
     this.textoExibido = "";
     this.ativo = true;
+    this.avancoBloqueado = false;
+    this.encerrarQuandoTerminarDigitacao = false;
     this.isEscolha = false;
     this.modoEscolha = false;
     this.ultimoFrameTempo = System.currentTimeMillis();
@@ -218,6 +370,23 @@ public class DialogueManager {
   }
 
   public void atualizar(InputManager input) {
+    executarAcoesPendentes();
+
+    if (entradaChatVisivel) {
+      posicionarEntradaChat();
+      if (terminarConversaButton.update(input) == MenuButton.CLICKED) {
+        System.out.println("[CHAT] Terminar Conversa clicked.");
+        entradaChatVisivel = false;
+        esconderEntradaChat();
+        Runnable listener = aoTerminarConversaChat;
+        aoTerminarConversaChat = null;
+        aoEnviarMensagemChat = null;
+        if (listener != null) {
+          listener.run();
+        }
+      }
+    }
+
     if (!ativo)
       return;
 
@@ -251,10 +420,23 @@ public class DialogueManager {
       shakeY = 0;
       mostrarBocaAberta = false;
 
+      if (encerrarQuandoTerminarDigitacao && !isEscolha) {
+        ativo = false;
+        avancoBloqueado = false;
+        encerrarQuandoTerminarDigitacao = false;
+        soundManager.stopDialogue();
+        onDialogoTerminado();
+        return;
+      }
+
       // texto da pergunta terminou de digitar -> ativa as opções automaticamente
       if (isEscolha) {
         modoEscolha = true;
         modoEscolhaAtivadoEm = System.currentTimeMillis();
+        return;
+      }
+
+      if (avancoBloqueado) {
         return;
       }
     }
@@ -312,8 +494,12 @@ public class DialogueManager {
   }
 
   public void renderizar(Graphics2D g2, int telaLargura, int telaAltura) {
-    if (!ativo)
+    if (!ativo) {
+      if (entradaChatVisivel) {
+        terminarConversaButton.draw(g2);
+      }
       return;
+    }
 
     int x = 50 + shakeX;
     int y = telaAltura - 170 + shakeY;
@@ -367,6 +553,10 @@ public class DialogueManager {
 
     if (modoEscolha) {
       desenharCaixaEscolha(g2, telaLargura, telaAltura, x, y, largura);
+    }
+
+    if (entradaChatVisivel) {
+      terminarConversaButton.draw(g2);
     }
   }
 
@@ -521,6 +711,20 @@ public class DialogueManager {
 
   public void setAoTerminarDialogo(Runnable callback) {
     this.aoTerminarDialogo = callback;
+  }
+
+  /** Starts a dialogue that cannot be skipped by keyboard or gamepad input. */
+  public void iniciarDialogoBloqueado(String[] texto, BufferedImage[] imgs) {
+    iniciarDialogo(texto, imgs);
+    avancoBloqueado = true;
+  }
+
+  /** Allows a blocked dialogue to close automatically after its text finishes typing. */
+  public void encerrarDialogoBloqueadoAoTerminarDigitacao() {
+    if (!avancoBloqueado && !ativo) {
+      return;
+    }
+    encerrarQuandoTerminarDigitacao = true;
   }
 
   public boolean isAtivo() {

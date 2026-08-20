@@ -12,6 +12,7 @@ public class MenuButton {
 
     protected final String label;
     protected final Rectangle rect;
+    protected final boolean dimBackground;
     protected boolean hovered = false;
     protected boolean held = false;
     protected static Font pixelFont;
@@ -30,8 +31,13 @@ public class MenuButton {
     public static final int CLICKED = 2;
 
     public MenuButton(String label, int x, int y, int width, int height) {
+        this(label, x, y, width, height, false);
+    }
+
+    public MenuButton(String label, int x, int y, int width, int height, boolean dimBackground) {
         this.label = label;
         this.rect = new Rectangle(x, y, width, height);
+        this.dimBackground = dimBackground;
         adjustHeight();
     }
 
@@ -92,10 +98,16 @@ public class MenuButton {
 
     public void draw(Graphics2D g2) {
         if (hovered) {
-            g2.setColor(new Color(255, 255, 255, 40));
+            g2.setColor(dimBackground
+                    ? new Color(90, 90, 90, 128)
+                    : new Color(255, 255, 255, 40));
             g2.fillRect(rect.x, rect.y, rect.width, rect.height);
             g2.setColor(Color.WHITE);
         } else {
+            if (dimBackground) {
+                g2.setColor(new Color(0, 0, 0, 150));
+                g2.fillRect(rect.x, rect.y, rect.width, rect.height);
+            }
             g2.setColor(new Color(200, 200, 200, 120));
         }
         g2.setStroke(new BasicStroke(2));
