@@ -72,7 +72,7 @@ public class OllamaClient {
                 throw new RuntimeException("Ollama returned HTTP " + response.statusCode());
             }
 
-            String answer = extractContent(response.body());
+            String answer = removeQuotationMarks(extractContent(response.body()));
             System.out.println("[OLLAMA] Response received: " + answer);
             synchronized (OllamaClient.this) {
                 if (requestGeneration != conversationGeneration) {
@@ -140,6 +140,17 @@ public class OllamaClient {
                 .replace("\r", "\\r")
                 .replace("\n", "\\n")
                 .replace("\t", "\\t");
+    }
+
+    private static String removeQuotationMarks(String text) {
+        return text.replace("\"", "")
+                .replace("“", "")
+                .replace("”", "")
+                .replace("„", "")
+                .replace("‟", "")
+                .replace("«", "")
+                .replace("»", "")
+                .trim();
     }
 
     private static String extractContent(String json) {
