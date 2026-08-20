@@ -34,6 +34,9 @@ public class OllamaClient {
             """
             .strip();
 
+    /** Message sent when the player presses “Terminar Conversa”. */
+    public static final String GOODBYE_MESSAGE = "Vou indo, Vendedor. Até mais!";
+
     private static final int MAX_MESSAGES = 21;
 
     private final HttpClient httpClient = HttpClient.newHttpClient();

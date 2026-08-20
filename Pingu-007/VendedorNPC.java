@@ -25,6 +25,7 @@ public class VendedorNPC extends NPC {
     private boolean requisicaoIAAtiva = false;
     private boolean pensamentoTerminou = false;
     private boolean respostaIAPronta = false;
+    private boolean encerrarAposResposta = false;
     private String respostaIAPendente;
     private Throwable erroIAPendente;
 
@@ -126,6 +127,7 @@ public class VendedorNPC extends NPC {
         System.out.println("[CHAT] Starting Vendedor AI conversation.");
         conversaIAAtiva = true;
         requisicaoIAAtiva = false;
+        encerrarAposResposta = false;
         chatGeneration++;
         ollamaClient.clearConversation();
         state = State.TALKING;
@@ -199,7 +201,9 @@ public class VendedorNPC extends NPC {
                 "VENDEDOR: " + resposta
         }, new BufferedImage[] { portrait });
         dialogueManager.setAoTerminarDialogo(() -> {
-            if (conversaIAAtiva && generation == chatGeneration) {
+            if (encerrarAposResposta && conversaIAAtiva && generation == chatGeneration) {
+                finalizarConversaIA(player, dialogueManager, soundManager, generation);
+            } else if (conversaIAAtiva && generation == chatGeneration) {
                 mostrarEntradaIA(player, dialogueManager, soundManager, generation);
             }
         });
@@ -212,9 +216,27 @@ public class VendedorNPC extends NPC {
             return;
         }
 
-        System.out.println("[CHAT] Ending Vendedor AI conversation.");
+        if (requisicaoIAAtiva || encerrarAposResposta) {
+            System.out.println("[CHAT] Goodbye request already in progress.");
+            return;
+        }
+
+        System.out.println("[CHAT] Sending goodbye message to Ollama: " + OllamaClient.GOODBYE_MESSAGE);
+        encerrarAposResposta = true;
+        dialogueManager.esconderEntradaChat();
+        enviarMensagemIA(OllamaClient.GOODBYE_MESSAGE, player, dialogueManager, soundManager, generation);
+    }
+
+    private void finalizarConversaIA(Player player, DialogueManager dialogueManager,
+            SoundManager soundManager, long generation) {
+        if (generation != chatGeneration || !conversaIAAtiva) {
+            return;
+        }
+
+        System.out.println("[CHAT] Ending Vendedor AI conversation after goodbye response.");
         conversaIAAtiva = false;
         requisicaoIAAtiva = false;
+        encerrarAposResposta = false;
         chatGeneration++;
         ollamaClient.clearConversation();
         dialogueManager.esconderEntradaChat();
