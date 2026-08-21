@@ -13,6 +13,7 @@ public class LoadSave {
     public static final String LEVEL_1_DATA = "LEVEL_1_DATA.json";
     public static final String LEVEL_2_DATA = "LEVEL_2_DATA.tmj";
     public static final String CASA_VENDEDOR = "CASA_VENDEDOR.tmj";
+    public static boolean confliteiro = true;
 
     public static BufferedImage GetSpriteAtlas(String filename) {
         try (InputStream is = LoadSave.class.getResourceAsStream("/" + filename)) {
@@ -156,6 +157,7 @@ public class LoadSave {
                     tObj.destino = extractStringProp(processStr, "destino");
                     tObj.npc_nome = extractStringProp(processStr, "npc_nome");
                     // Extração dos novos interativos
+                    confliteiro = !confliteiro;
                     tObj.colision = extractBoolProp(processStr, "colision", true);
                     // tObj.key = extractIntProp(processStr, "key", 0);
                     tObj.id_button = extractIntProp(processStr, "id_button", -1);
