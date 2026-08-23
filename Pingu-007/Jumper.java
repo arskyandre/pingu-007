@@ -30,14 +30,15 @@ public class Jumper extends Enemy {
     private double squash = 0;
 
     public Jumper(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr,
-            SoundManager sound) {
-        super(startX, startY, width, height, lvlData, sound);
+            SoundManager soundManager, ArenaManager arenaManager) {
+        super(startX, startY, width, height, lvlData, soundManager, arenaManager);
         this.bulletManager = bulmgr;
         this.vidaMaxima = 40;
         this.vida = this.vidaMaxima;
         this.podePularBuracos = true;
         this.velocidadeAndar = 1.5;
         this.velocidadeMax = 30.0;
+        this.raioDeteccao = GameCore.tiles_size * 5.0;
 
         this.aceleracao = 0.3;
         this.peso = 0.8;
@@ -222,7 +223,7 @@ public class Jumper extends Enemy {
             aplicarFisicaBasica();
             this.atritoAtual = atritoSalvo;
             this.velocidadeMax = velMaxSalva;
-            moveAndCollideWithMap(lvlData);
+            moveAndCollideWithMap(lvlData, arenaManager.getObjetosDeCenario());
         }
         if (isMoving()) {
             updateFootsteps(soundManager, lvlData);
@@ -273,7 +274,31 @@ public class Jumper extends Enemy {
     }
 
     @Override
-    public void animate(Graphics2D g2, double delta) {
+    public void draw(Graphics2D g2, double delta) {
+        int drawX = (int) x;
+        int drawY = (int) y;
+        int w = (int) width;
+        int h = (int) height;
+        int elevacaoSombra = 0;
+
+        switch (estadoAtual) {
+            case PULANDO ->
+                elevacaoSombra = 15;
+            case FLUTUANDO ->
+                elevacaoSombra = 25;
+            case COOLDOWN, PREPARANDO, ATIRANDO -> {
+            }
+        }
+
+        int shadowW = Math.max(10, w - 10 - (elevacaoSombra / 2));
+        int shadowH = Math.max(4, 10 - (elevacaoSombra / 4));
+        int shadowX = drawX + (w - shadowW) / 2;
+        int shadowY = drawY + h - (shadowH / 2);
+
+        int alpha = Math.max(20, 100 - (elevacaoSombra * 2));
+        g2.setColor(new Color(0, 0, 0, alpha));
+        g2.fillOval(shadowX, shadowY, shadowW, shadowH);
+
         int spIndex = 0;
         if (null != estadoAtual) {
             switch (estadoAtual) {
@@ -338,64 +363,5 @@ public class Jumper extends Enemy {
                 (int) width + (int) squash,
                 (int) height - (int) squash,
                 null);
-    }
-
-    @Override
-    public void draw(Graphics2D g2) {
-        int drawX = (int) x;
-        int drawY = (int) y;
-        int w = (int) width;
-        int h = (int) height;
-
-        int elevacao = 0;
-        /*
-         * Color corCorpo = Color.WHITE;
-         * 
-         * switch (estadoAtual) {
-         * case PREPARANDO ->
-         * corCorpo = Color.ORANGE;
-         * case PULANDO -> {
-         * corCorpo = Color.YELLOW;
-         * elevacao = 15;
-         * }
-         * case FLUTUANDO -> {
-         * corCorpo = Color.GREEN;
-         * elevacao = 25;
-         * }
-         * case COOLDOWN ->
-         * corCorpo = Color.DARK_GRAY;
-         * default -> {
-         * }
-         * }
-         */
-
-        switch (estadoAtual) {
-            case PULANDO -> {
-                elevacao = 15;
-            }
-            case FLUTUANDO -> {
-                elevacao = 25;
-            }
-            case COOLDOWN, PREPARANDO, ATIRANDO -> {
-            }
-        }
-        // Sombra Dinâmica
-        int shadowW = Math.max(10, w - 10 - (elevacao / 2));
-        int shadowH = Math.max(4, 10 - (elevacao / 4));
-        int shadowX = drawX + (w - shadowW) / 2;
-        int shadowY = drawY + h - (shadowH / 2);
-
-        int alpha = Math.max(20, 100 - (elevacao * 2));
-        g2.setColor(new Color(0, 0, 0, alpha));
-        g2.fillOval(shadowX, shadowY, shadowW, shadowH);
-        // Sombra
-        /*
-         * if (elevacao > 0) {
-         * g2.setColor(new Color(0, 0, 0, 80));
-         * g2.fillOval(drawX + 5, drawY + h - 10, w - 10, 10);
-         * }
-         */
-        // g2.setColor(corCorpo);
-        // g2.fillRect(drawX, drawY - elevacao, w, h);
     }
 }

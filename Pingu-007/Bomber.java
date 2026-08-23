@@ -34,8 +34,8 @@ public class Bomber extends Enemy {
     private boolean jaAvisou = false;
 
     public Bomber(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr,
-            ArrayList<Enemy> inimigos, SoundManager sound) {
-        super(startX, startY, width, height, lvlData, sound);
+            ArrayList<Enemy> inimigos, SoundManager soundManager, ArenaManager arenaManager) {
+        super(startX, startY, width, height, lvlData, soundManager, arenaManager);
         this.bulletManager = bulmgr;
         this.todosInimigos = inimigos;
 
@@ -46,6 +46,7 @@ public class Bomber extends Enemy {
         this.velocidadeMax = 30.0;
         this.aceleracao = 0.4;
         this.peso = 0.5;
+        this.raioDeteccao = GameCore.tiles_size * 10.0;
 
         this.bodyCollider = new Collider(0, height / 2.0, width, height / 2.0);
         this.hurtbox = new Collider(0, 0, width, height);
@@ -113,7 +114,7 @@ public class Bomber extends Enemy {
         }
 
         aplicarFisicaBasica();
-        moveAndCollideWithMap(lvlData);
+        moveAndCollideWithMap(lvlData, arenaManager.getObjetosDeCenario());
         if (isMoving()) {
             updateFootsteps(soundManager, lvlData);
         }
@@ -175,7 +176,7 @@ public class Bomber extends Enemy {
     }
 
     @Override
-    public void draw(Graphics2D g2) {
+    public void draw(Graphics2D g2, double delta) {
         int w = (int) width;
         int h = (int) height;
 
@@ -185,10 +186,7 @@ public class Bomber extends Enemy {
             int ry = (int) (y + h / 2.0 - raioExplosao);
             g2.fillOval(rx, ry, (int) raioExplosao * 2, (int) raioExplosao * 2);
         }
-    }
 
-    @Override
-    public void animate(Graphics2D g2, double delta) {
         if (estadoAtual == Status.PERSEGUINDO) {
             animTick += 60f * delta;
             if (animTick >= 4) {
@@ -199,12 +197,14 @@ public class Bomber extends Enemy {
                 animIndex = 0;
             }
             if (dirS == 0) {
-                if (timerDano > 0)
+                if (timerDano > 0) {
                     animIndex = 15;
+                }
                 g2.drawImage(Sprites[animIndex + 7], (int) x, (int) y, (int) width, (int) height, null);
             } else {
-                if (timerDano > 0)
+                if (timerDano > 0) {
                     animIndex = 21;
+                }
                 g2.drawImage(Sprites[animIndex], (int) x, (int) y, (int) width, (int) height, null);
             }
         } else if (estadoAtual == Status.ACIONADO) {

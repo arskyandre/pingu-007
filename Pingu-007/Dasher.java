@@ -29,8 +29,9 @@ public class Dasher extends Enemy {
     public boolean interromperNoTiro = true;
     private BufferedImage[] Sprites;
 
-    public Dasher(double startX, double startY, double width, double height, int[][] lvlData, SoundManager sound) {
-        super(startX, startY, width, height, lvlData, sound);
+    public Dasher(double startX, double startY, double width, double height, int[][] lvlData,
+            SoundManager soundManager, ArenaManager arenaManager) {
+        super(startX, startY, width, height, lvlData, soundManager, arenaManager);
         this.vidaMaxima = 45;
         this.vida = this.vidaMaxima;
         this.podePularBuracos = true;
@@ -39,6 +40,7 @@ public class Dasher extends Enemy {
         this.velocidadeMax = 45.0;
         this.aceleracao = 0.8;
         this.peso = 1.0;
+        this.raioDeteccao = GameCore.tiles_size * 9;
 
         this.bodyCollider = new Collider(0, height / 2.0, width, height / 2.0);
         this.hurtbox = new Collider(0, 0, width, height);
@@ -182,7 +184,7 @@ public class Dasher extends Enemy {
             this.velocidadeAndar = andarSalvo;
             this.atritoAtual = atritoSalvo;
 
-            moveAndCollideWithMap(lvlData);
+            moveAndCollideWithMap(lvlData, arenaManager.getObjetosDeCenario());
         }
 
         if (!isDead && !isCaindo && !isHooked && !isPuxado) {
@@ -205,7 +207,7 @@ public class Dasher extends Enemy {
     }
 
     @Override
-    public void animate(Graphics2D g2, double delta) {
+    public void draw(Graphics2D g2, double delta) {
         int xx = (int) x;
         int inv = 1;
 
@@ -245,10 +247,6 @@ public class Dasher extends Enemy {
             }
             g2.drawImage(Sprites[animIndex], xx, (int) y, inv * (int) width, (int) height, null);
         }
-    }
-
-    @Override
-    public void draw(Graphics2D g2) {
     }
 
     @Override

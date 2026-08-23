@@ -16,6 +16,23 @@ public class TileProperties {
         return false;
     }
 
+    private static final java.util.Set<Integer> TILES_OPACOS_EXTRA = java.util.Set.of( // ex: 88, 89, 90
+            );
+
+    // isOpaque diz o que bloqueia a LINHA DE VISÃO
+    public static boolean isOpaque(int tileID) {
+        int tempID = tileID - 1;
+        if (tempID < 0) {
+            return false;
+        }
+
+        if (isSolid(tileID)) {
+            return true;
+        }
+
+        return TILES_OPACOS_EXTRA.contains(tempID);
+    }
+
     // isSemiSolid diz o que é atravessavel usando alguma movimentação especifica
     // (ex: dash)
     public static boolean isSemiSolid(int tileID) {
@@ -44,8 +61,9 @@ public class TileProperties {
 
     public static boolean isKeyFishingHole(int tileID) {
         int tempID = tileID - 1;
-        if (tempID == keyFishingHoleID)
+        if (tempID == keyFishingHoleID) {
             System.out.println("is key fishing hole");
+        }
         return tempID == keyFishingHoleID;
     }
 
@@ -61,8 +79,8 @@ public class TileProperties {
     public static boolean isAdjacentToHole(int row, int col, int[][] lvlData) {
         int maxRow = lvlData.length;
         int maxCol = lvlData[0].length;
-        int[] dr = { -1, 1, 0, 0 };
-        int[] dc = { 0, 0, -1, 1 };
+        int[] dr = {-1, 1, 0, 0};
+        int[] dc = {0, 0, -1, 1};
 
         for (int i = 0; i < 4; i++) {
             int nr = row + dr[i];

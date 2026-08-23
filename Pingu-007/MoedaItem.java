@@ -1,3 +1,4 @@
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -35,7 +36,7 @@ public class MoedaItem extends ConsumableItem {
     }
 
     @Override
-    public void draw(Graphics2D g2) {
+    public void draw(Graphics2D g2, double delta) {
         if (!ativo) {
             return;
         }

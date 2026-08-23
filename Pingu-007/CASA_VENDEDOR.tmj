@@ -7,7 +7,7 @@
             71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71,
             71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71,
             71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71,
-            71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71,
+            19, 19, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71,
             71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71,
             71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71,
             71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71, 71,
@@ -111,6 +111,7 @@
                  "height":18.8579545454545,
                  "id":23,
                  "name":"",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"acao",
@@ -149,6 +150,7 @@
                  "height":0,
                  "id":1,
                  "name":"PlayerSpawner",
+                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -167,6 +169,7 @@
                  "height":0,
                  "id":19,
                  "name":"NPCSpawner",
+                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -258,7 +261,7 @@
  "nextobjectid":24,
  "orientation":"orthogonal",
  "renderorder":"right-down",
- "tiledversion":"1.11.2",
+ "tiledversion":"1.12.2",
  "tileheight":16,
  "tilesets":[
         {
@@ -268,6 +271,10 @@
         {
          "firstgid":127,
          "source":"tileset_placeholder.tsx"
+        }, 
+        {
+         "firstgid":207,
+         "source":"images\/portao.tsx"
         }],
  "tilewidth":16,
  "type":"map",

@@ -1,6 +1,7 @@
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
@@ -13,7 +14,7 @@ public class GameCore extends Canvas implements Runnable {
     // VARIÁVEL DO FPS CAP (0 para ilimitado)
     public int targetFps = 120;
     // TODO: consertar o checkpoint para que a arena ative e desative corretamente
-    // TODO: Converter os objetos do cenario de tiles para objetos
+    // TODO: Terminar de converter os objetos do cenario de tiles para objetos
     // TODO: nerfar o jumper
     private static GameState gameState = GameState.MAIN_MENU;
     private static ShopMenu currentShopMenu = null;
@@ -126,35 +127,42 @@ public class GameCore extends Canvas implements Runnable {
     public GameCore() {
         setPreferredSize(new Dimension(game_width, game_height));
         setBackground(Color.BLACK);
+
         soundManager = new SoundManager();
+        bulletmanager = new BulletManager();
+        itemManager = new ItemManager();
+        input = new InputManager();
+        renderer = new Renderer();
+        renderer.modoDebug = false;
+        levelManager = new LevelManager(this, soundManager);
+        dialogueManager = new DialogueManager(soundManager);
+        hud = new Hud();
+
         gameOverScreen = new GameOverScreen(soundManager);
         mainMenu = new MainMenu(soundManager);
         pauseMenu = new PauseMenu(soundManager);
         optionsMenu = new OptionsMenu(soundManager);
         keyBindingsMenu = new KeyBindingsMenu(soundManager);
-        bulletmanager = new BulletManager();
-        itemManager = new ItemManager();
-        input = new InputManager();
-        player = new Player(380, 500, tiles_size - 1, tiles_size - 1, bulletmanager, soundManager);
-        camera = new CameraManager(player.getX(), player.getY(), BASE_ZOOM);
-        renderer = new Renderer();
-        renderer.modoDebug = false;
-        levelManager = new LevelManager(this, soundManager);
 
-        dialogueManager = new DialogueManager(soundManager);
-        itemManager = new ItemManager();
+        npcManager = new NPCManager(dialogueManager, itemManager, soundManager);
+
+        player = new Player(380, 500, tiles_size - 1, tiles_size - 1, bulletmanager, soundManager, null);
+
+        camera = new CameraManager(player.getX(), player.getY(), BASE_ZOOM);
+        cutsceneManager = new CutsceneManager(this, soundManager, dialogueManager, camera);
+
+        enemyManager = new EnemyManager(levelManager, bulletmanager, soundManager, this, null);
+        enemyManager.setItemManager(itemManager);
+
+        arenaManager = new ArenaManager(enemyManager, levelManager, itemManager, npcManager, cutsceneManager, this, camera, soundManager);
+
+        player.arenaManager = this.arenaManager;
+        enemyManager.arenaManager = this.arenaManager;
+
         fishingManager = new FishingManager(player, soundManager, itemManager);
         player.setFishingManager(fishingManager);
-        enemyManager = new EnemyManager(levelManager, bulletmanager, soundManager, this);
-        enemyManager.setItemManager(itemManager);
-        npcManager = new NPCManager(dialogueManager, itemManager, soundManager);
-        cutsceneManager = new CutsceneManager(this, soundManager, dialogueManager, camera);
-        arenaManager = new ArenaManager(enemyManager, levelManager, itemManager, npcManager, cutsceneManager, this,
-                camera, soundManager);
-        hud = new Hud();
 
         levelManager.inicializarPrimeiroNivel();
-
         player.loadLvlData(levelManager.getCurLevelData());
 
         addKeyListener(input);
@@ -162,6 +170,7 @@ public class GameCore extends Canvas implements Runnable {
         addMouseListener(input);
         setFocusable(true);
         requestFocus();
+
         try {
             Font base = Font.createFont(Font.TRUETYPE_FONT, new File("font/PressStart2P-Regular.ttf"));
             pixelFont = base.deriveFont(Font.BOLD, 32f);
@@ -377,6 +386,7 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void update() {
+        // System.out.println("Player position MapaUpdate (" + player.getX() + ", " + player.getY() + ")");
         if (input.isKeyJustPressed(KeyEvent.VK_F11)) {
             toggleFullscreen();
         }
@@ -457,8 +467,9 @@ public class GameCore extends Canvas implements Runnable {
                 }
                 if (next == GameState.PLAYING) {
                     carregarCheckpoint();
-                    if (!arenaManager.existeArenaRealAtiva())
+                    if (!arenaManager.existeArenaRealAtiva()) {
                         setCinematicBorderAnimation(Renderer.BorderState.OUT);
+                    }
 
                     player.setShootCooldownTimer(30);
                 }
@@ -524,11 +535,11 @@ public class GameCore extends Canvas implements Runnable {
     public void triggerDialogoInicial() {
         if (!dialogueManager.isAtivo()) {
             dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadio, DialogueCatalogo.FalaInicialRadio,
-                    new BufferedImage[] {
-                            pingu_portrait,
-                            cellphone_image,
-                            pingu_portrait,
-                            cellphone_image
+                    new BufferedImage[]{
+                        pingu_portrait,
+                        cellphone_image,
+                        pingu_portrait,
+                        cellphone_image
                     });
             dialogueManager.setAoTerminarDialogo(() -> {
                 ToastNotifications.RequestNotification("Use as setas para selecionar a opção e ENTER para confirmar.",
@@ -660,6 +671,12 @@ public class GameCore extends Canvas implements Runnable {
             System.out.println("Indo para o Mapa 2 de Testes...");
             entrarNivelBoss();
         }
+
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_4) && mapLoadCooldown <= 0) {
+            System.out.println("Indo para o Mapa 4 de Testes...");
+            entrarNivelTest();
+        }
+
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_3) && mapLoadCooldown <= 0) {
             System.out.println("Indo para o Mapa 3 de Testes...");
             entrarCasaVendedor();
@@ -706,10 +723,12 @@ public class GameCore extends Canvas implements Runnable {
 
     public void sairCasaVendedor() {
         levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
+        //System.out.println("Player position levelManager.carregarNivel (" + player.getX() + ", " + player.getY() + ")");
 
         if (estadoLevel1AntesDaLoja != null) {
             arenaManager.restaurarEstadoMapa(estadoLevel1AntesDaLoja, player, itemManager);
         }
+        //System.out.println("Player position arenaManager.restaurarEstadoMapa (" + player.getX() + ", " + player.getY() + ")");
 
         if (!itensLevel1AntesDaLoja.isEmpty()) {
             itemManager.getItems().addAll(itensLevel1AntesDaLoja);
@@ -720,6 +739,7 @@ public class GameCore extends Canvas implements Runnable {
             player.setY(retornoLojaY);
         }
 
+        //System.out.println("Player position retorno (" + player.getX() + ", " + player.getY() + ")");
         camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
                 getWidth(), getHeight());
         setCinematicBorderAnimation(Renderer.BorderState.OUT);
@@ -741,6 +761,14 @@ public class GameCore extends Canvas implements Runnable {
     public void entrarNivelBoss() {
 
         levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
+        arenaManager.setFirstArenaFlag(false);
+        mapLoadCooldown = 60;
+        camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(), getWidth(),
+                getHeight());
+    }
+
+    public void entrarNivelTest() {
+        levelManager.carregarNivel(LoadSave.LEVEL_YSORT);
         arenaManager.setFirstArenaFlag(false);
         mapLoadCooldown = 60;
         camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(), getWidth(),
@@ -890,6 +918,12 @@ public class GameCore extends Canvas implements Runnable {
                 obj.y *= GameCore.scale;
                 obj.width *= GameCore.scale;
                 obj.height *= GameCore.scale;
+
+                if (obj.hitbox != null) {
+                    AffineTransform scaleTransform = new AffineTransform();
+                    scaleTransform.scale(GameCore.scale, GameCore.scale);
+                    obj.hitbox = scaleTransform.createTransformedShape(obj.hitbox);
+                }
 
                 if (obj.isPolygon && obj.polygonXs != null) {
                     for (int i = 0; i < obj.polygonXs.length; i++) {

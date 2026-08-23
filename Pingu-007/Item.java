@@ -1,6 +1,7 @@
+
 import java.awt.Graphics2D;
 
-public abstract class Item {
+public abstract class Item implements Renderable {
 
     protected double x, y;
     protected double largura, altura;
@@ -24,7 +25,8 @@ public abstract class Item {
 
     protected abstract void aplicarEfeito(Player player);
 
-    public abstract void draw(Graphics2D g2);
+    @Override
+    public abstract void draw(Graphics2D g2, double delta);
 
     public void update(Player player) {
         if (!ativo) {
@@ -82,6 +84,11 @@ public abstract class Item {
 
     public double getAltura() {
         return altura;
+    }
+
+    @Override
+    public double getProfundidade() {
+        return getSortBaseY();
     }
 
     public Collider getBodyCollider() {

@@ -1,6 +1,7 @@
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
@@ -16,6 +17,9 @@ public abstract class Enemy extends Entity {
     protected int currentPathIndex = 0;
     protected double aStarDelay = 0;
     protected double tempoRecalculoAStar = 30;
+
+    protected boolean calculandoCaminho = false;
+
     public boolean podePularBuracos = false;
     public boolean isInvulneravel = false;
 
@@ -41,8 +45,8 @@ public abstract class Enemy extends Entity {
      */
     protected SoundManager.SFX deathSFX = null;
 
-    public Enemy(double startX, double startY, double width, double height, int[][] lvlData, SoundManager sound) {
-        super(sound);
+    public Enemy(double startX, double startY, double width, double height, int[][] lvlData, SoundManager soundManager, ArenaManager arenaManager) {
+        super(arenaManager, soundManager);
         this.x = startX;
         this.y = startY;
         this.width = width;
@@ -127,7 +131,40 @@ public abstract class Enemy extends Entity {
 
             if (row >= 0 && row < lvlData.length && col >= 0 && col < lvlData[0].length) {
                 int tile = lvlData[row][col];
-                if (TileProperties.isSolid(tile) || TileProperties.isHole(tile)) {
+                if (TileProperties.isOpaque(tile)) {
+                    return false;
+                }
+            }
+        }
+
+        if (arenaManager != null && arenaManager.getObjetosDeCenario() != null) {
+            java.awt.geom.Line2D.Double linhaDeVisao = new java.awt.geom.Line2D.Double(x0, y0, x1, y1);
+
+            java.awt.geom.Rectangle2D segBounds = new java.awt.geom.Rectangle2D.Double(
+                    Math.min(x0, x1), Math.min(y0, y1),
+                    Math.abs(dx), Math.abs(dy));
+
+            for (MapObject obj : arenaManager.getObjetosDeCenario()) {
+                if (obj == null || !obj.isSolid() || obj.isTransparent()) {
+                    continue;
+                }
+
+                Shape hb = obj.getHitbox();
+                if (hb == null) {
+                    continue;
+                }
+
+                java.awt.geom.Rectangle2D bounds = hb.getBounds2D();
+
+                if (!bounds.intersects(segBounds)) {
+                    continue;
+                }
+
+                if (hb instanceof java.awt.geom.Rectangle2D rect) {
+                    if (linhaDeVisao.intersects(rect)) {
+                        return false;
+                    }
+                } else if (hb.intersects(segBounds)) {
                     return false;
                 }
             }
@@ -248,16 +285,24 @@ public abstract class Enemy extends Entity {
 
         if (!isAirborne) {
             aStarDelay++;
-            if (aStarDelay >= tempoRecalculoAStar || caminhoAStar == null || currentPathIndex >= caminhoAStar.size()) {
+
+            if (!calculandoCaminho && (aStarDelay >= tempoRecalculoAStar || caminhoAStar == null || currentPathIndex >= caminhoAStar.size())) {
+
                 int startCol = (int) (meuCenterX / GameCore.tiles_size);
                 int startRow = (int) (meuCenterY / GameCore.tiles_size);
                 int targetCol = (int) (playerCenterX / GameCore.tiles_size);
                 int targetRow = (int) (playerCenterY / GameCore.tiles_size);
 
-                caminhoAStar = PathFinder.encontrarCaminho(startCol, startRow, targetCol, targetRow, this.lvlData,
-                        this.podePularBuracos ? jumpLinks : null);
+                calculandoCaminho = true;
                 aStarDelay = 0;
-                currentPathIndex = 0;
+
+                PathFinder.solicitarCaminhoAsync(startCol, startRow, targetCol, targetRow, this.lvlData,
+                        this.podePularBuracos ? jumpLinks : null,
+                        (novoCaminho) -> {
+                            this.caminhoAStar = novoCaminho;
+                            this.currentPathIndex = 0;
+                            this.calculandoCaminho = false;
+                        });
             }
         }
 

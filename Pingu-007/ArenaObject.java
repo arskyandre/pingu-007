@@ -1,6 +1,9 @@
-import java.awt.Graphics2D;
 
-public abstract class ArenaObject {
+import java.awt.Graphics2D;
+import java.awt.Shape;
+import java.awt.geom.Rectangle2D;
+
+public abstract class ArenaObject implements DebugRenderable {
 
     protected final TiledObject data;
 
@@ -10,6 +13,23 @@ public abstract class ArenaObject {
 
     public TiledObject getData() {
         return data;
+    }
+
+    @Override
+    public TiledObject getDadosTiled() {
+        return data;
+    }
+
+    @Override
+    public Shape getHitboxAtual() {
+        if (data.hitbox != null) {
+            return data.hitbox;
+        } else if (data.isPolygon) {
+            return data.getPolygonShape();
+        } else if (data.width > 0 && data.height > 0) {
+            return new Rectangle2D.Double(data.x, data.y, data.width, data.height);
+        }
+        return null;
     }
 
     public abstract String getTipo();

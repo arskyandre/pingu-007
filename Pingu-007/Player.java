@@ -92,8 +92,9 @@ public class Player extends Entity {
     private int[][] lvlData;
 
     public Player(double startX, double startY, double largura, double altura, BulletManager bulmgr,
-            SoundManager sound) {
-        super(sound);
+            SoundManager soundManager, ArenaManager arenaManager) {
+        super(arenaManager, soundManager);
+
         this.x = startX;
         this.y = startY;
         this.aceleracao = 1.0;
@@ -155,8 +156,9 @@ public class Player extends Entity {
         extendedMag = set;
         if (extendedMag) {
             maxpente = 30;
-        } else
+        } else {
             maxpente = 15;
+        }
     }
 
     public boolean getExtendedMag() {
@@ -260,7 +262,7 @@ public class Player extends Entity {
         aplicarFisicaBasica();
         this.atritoAtual = atritoSalvo;
 
-        moveAndCollideWithMap(lvlData);
+        moveAndCollideWithMap(lvlData, arenaManager.getObjetosDeCenario());
 
         int mapaLargura = lvlData[0].length * GameCore.tiles_size;
         int mapaAltura = lvlData.length * GameCore.tiles_size;
@@ -443,7 +445,7 @@ public class Player extends Entity {
                         setGunType(Player.GunType.PISTOL);
                         if (ToastNotifications.getNotifAtual() != null
                                 && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                             ToastNotifications.skipNotification();
                         }
                         if (ToastNotifications.getNotifAtual() == null
@@ -454,7 +456,7 @@ public class Player extends Entity {
                         setGunType(Player.GunType.SHOTGUN);
                         if (ToastNotifications.getNotifAtual() != null
                                 && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                             ToastNotifications.skipNotification();
                         }
                         if (ToastNotifications.getNotifAtual() == null
@@ -583,7 +585,7 @@ public class Player extends Entity {
                         setGunType(Player.GunType.PISTOL);
                         if (ToastNotifications.getNotifAtual() != null
                                 && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                             ToastNotifications.skipNotification();
                         }
                         if (ToastNotifications.getNotifAtual() == null
@@ -594,7 +596,7 @@ public class Player extends Entity {
                         setGunType(Player.GunType.SHOTGUN);
                         if (ToastNotifications.getNotifAtual() != null
                                 && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                             ToastNotifications.skipNotification();
                         }
                         if (ToastNotifications.getNotifAtual() == null
@@ -727,7 +729,7 @@ public class Player extends Entity {
     }
 
     @Override
-    public void animate(Graphics2D g2, double delta) {
+    public void draw(Graphics2D g2, double delta) {
         int inv = 1;
         int xx = (int) x;
 
@@ -831,22 +833,22 @@ public class Player extends Entity {
 
         if (gunType == GunType.PISTOL) {
             g2.drawImage(gun, xgun - (gap - 20) * ginv, yy, gun.getWidth() * 3 * ginv, gun.getHeight() * 3, null);// gun
-                                                                                                                  // render
-                                                                                                                  // under
-                                                                                                                  // pingu
+            // render
+            // under
+            // pingu
         }
         if (gunType != GunType.PISTOL && direction == Direction.UP) {
             g2.drawImage(gun, xgun - (gap - 12) * ginv, yy, gun.getWidth() * 3 * ginv, gun.getHeight() * 3, null);// gun
-                                                                                                                  // render
-                                                                                                                  // under
-                                                                                                                  // pingous
+            // render
+            // under
+            // pingous
         }
         g2.drawImage(Sprites[spriteFinal], xx, (int) y, 48 * inv, 48, null);
         if (gunType != GunType.PISTOL && direction != Direction.UP) {
             g2.drawImage(gun, xgun - (gap - 12) * ginv, yy, gun.getWidth() * 3 * ginv, gun.getHeight() * 3, null);// gun
-                                                                                                                  // render
-                                                                                                                  // above
-                                                                                                                  // pingous
+            // render
+            // above
+            // pingous
         }
 
         if (hasFishingRod && fishingBobber != null && fishingBobber.isAtivo()) {

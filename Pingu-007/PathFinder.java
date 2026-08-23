@@ -2,8 +2,31 @@
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 public class PathFinder {
+
+    // MULTITHREADING (é sério)
+    private static final ExecutorService aiThreadPool = Executors.newFixedThreadPool(3);
+
+    public static void solicitarCaminhoAsync(
+            int startCol, int startRow,
+            int targetCol, int targetRow,
+            int[][] lvlData,
+            ArrayList<JumpLink> jumpLinks,
+            Consumer<ArrayList<Node>> callback) {
+
+        aiThreadPool.submit(() -> {
+            ArrayList<Node> caminhoPronto = encontrarCaminho(startCol, startRow, targetCol, targetRow, lvlData, jumpLinks);
+            callback.accept(caminhoPronto);
+        });
+    }
+
+    public static void desligarIA() {
+        aiThreadPool.shutdown();
+    }
 
     public static ArrayList<Node> encontrarCaminho(
             int startCol, int startRow,
@@ -25,7 +48,7 @@ public class PathFinder {
         while (!openList.isEmpty()) {
 
             limiteTentativas++;
-            if (limiteTentativas > 300) {
+            if (limiteTentativas > 2500) {
                 return null;
             }
 

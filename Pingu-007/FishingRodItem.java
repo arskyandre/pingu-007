@@ -37,7 +37,7 @@ public class FishingRodItem extends Item {
     }
 
     @Override
-    public void draw(Graphics2D g2) {
+    public void draw(Graphics2D g2, double delta) {
         if (!ativo) {
             return;
         }

@@ -44,8 +44,8 @@ public class MorsaBoss extends Enemy {
     private int contadorBote = 0;
 
     public MorsaBoss(double startX, double startY, int[][] lvlData, BulletManager bulmgr, SoundManager sound,
-            GameCore GC) {
-        super(startX, startY, GameCore.tiles_size * 6, GameCore.tiles_size * 6, lvlData, sound);
+            GameCore GC, ArenaManager am) {
+        super(startX, startY, GameCore.tiles_size * 6, GameCore.tiles_size * 6, lvlData, sound, am);
         gameCore = GC;
         this.bulletManager = bulmgr;
         this.vidaMaxima = 1100;
@@ -384,7 +384,7 @@ public class MorsaBoss extends Enemy {
     }
 
     @Override
-    public void animate(Graphics2D g, double delta) {
+    public void draw(Graphics2D g, double delta) {
         int index = 0;
         int xx = (int) x;
         int inv = 1;
@@ -438,10 +438,7 @@ public class MorsaBoss extends Enemy {
         if (Sprites[index] != null) {
             g.drawImage(Sprites[index], xx, (int) y, inv * (int) width, (int) height, null);
         }
-    }
 
-    @Override
-    public void draw(Graphics2D g) {
         desenharBarradevida(g);
     }
 
@@ -506,8 +503,8 @@ class BossMao extends Enemy {
     private double slingshotDirY = 0;
     private int cooldownDano = 0;
 
-    public BossMao(double startX, double startY, int[][] lvlData, SoundManager sound, MorsaBoss corpo) {
-        super(startX, startY, GameCore.tiles_size * 1.5, GameCore.tiles_size * 1.5, lvlData, sound);
+    public BossMao(double startX, double startY, int[][] lvlData, SoundManager sound, ArenaManager am, MorsaBoss corpo) {
+        super(startX, startY, GameCore.tiles_size * 1.5, GameCore.tiles_size * 1.5, lvlData, sound, am);
         this.bodyCollider = new Collider(-1, 0, GameCore.tiles_size * 1.5, GameCore.tiles_size * 1.5);
         this.xHome = startX;
         this.yHome = startY;
@@ -939,7 +936,7 @@ class BossMao extends Enemy {
     }
 
     @Override
-    public void draw(Graphics2D g) {
+    public void draw(Graphics2D g, double delta) {
         if (mostrarSombra) {
             double maxShadowWidth = this.width * 1.3;
             double maxShadowHeight = this.height * 0.4;

@@ -10,9 +10,11 @@ public class EnemyManager {
     private ItemManager itemManager;
     private int[][] lvlData;
     private SoundManager soundManager;
+    public ArenaManager arenaManager;
     private MorsaBoss morsaAtual;
 
-    public EnemyManager(LevelManager lm, BulletManager bm, SoundManager sound, GameCore GC) {
+    public EnemyManager(LevelManager lm, BulletManager bm, SoundManager sound, GameCore GC, ArenaManager am) {
+        arenaManager = am;
         gameCore = GC;
         levelManager = lm;
         bulmgr = bm;
@@ -80,23 +82,22 @@ public class EnemyManager {
         Enemy novo = null;
         switch (tipo.toLowerCase()) {
             case "lobo" ->
-                novo = new BasicEnemy(x, y, 48, 48, lvlData, soundManager);
+                novo = new BasicEnemy(x, y, 48, 48, lvlData, soundManager, arenaManager);
             case "jumper" ->
-                novo = new Jumper(x, y, 48, 48, lvlData, bulmgr, soundManager);
+                novo = new Jumper(x, y, 48, 48, lvlData, bulmgr, soundManager, arenaManager);
             case "shooter" ->
-                novo = new Shooter(x, y, 60, 60, lvlData, bulmgr, soundManager);
+                novo = new Shooter(x, y, 60, 60, lvlData, bulmgr, soundManager, arenaManager);
             case "dasher" ->
-                novo = new Dasher(x, y, 48, 48, lvlData, soundManager);
+                novo = new Dasher(x, y, 48, 48, lvlData, soundManager, arenaManager);
             case "bomber" ->
-                novo = new Bomber(x, y, 48, 48, lvlData, bulmgr, enemies, soundManager);
+                novo = new Bomber(x, y, 48, 48, lvlData, bulmgr, enemies, soundManager, arenaManager);
             case "morsa" -> {
-                MorsaBoss morsaInstancia = new MorsaBoss(x, y, lvlData, bulmgr, soundManager, gameCore);
+                MorsaBoss morsaInstancia = new MorsaBoss(x, y, lvlData, bulmgr, soundManager, gameCore, arenaManager);
 
                 this.morsaAtual = morsaInstancia;
 
-                BossMao maoEsq = new BossMao(x - 140, y + 64, lvlData, soundManager, morsaInstancia);
-                BossMao maoDir = new BossMao(x + (GameCore.tiles_size * 6) + 44, y + 64, lvlData, soundManager,
-                        morsaInstancia);
+                BossMao maoEsq = new BossMao(x - 140, y + 64, lvlData, soundManager, arenaManager, morsaInstancia);
+                BossMao maoDir = new BossMao(x + (GameCore.tiles_size * 6) + 44, y + 64, lvlData, soundManager, arenaManager, morsaInstancia);
 
                 morsaInstancia.vincularMaos(maoEsq, maoDir);
 

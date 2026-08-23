@@ -1,6 +1,7 @@
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ArenaManager {
 
@@ -13,9 +14,15 @@ public class ArenaManager {
     private CameraManager camera;
     private final SoundManager soundManager;
     private final GameCore gameCore;
+
+    private ArrayList<MapObject> objetosDeCenario = new ArrayList<>();
+    private final ArrayList<InteractiveMapObject> interactives = new ArrayList<>();
+    // Trigger e spawner não viram uma classe própria, então não tem como implementar DebugRenderable.
+    private final ArrayList<TiledObject> triggersESpawnersParaDebug = new ArrayList<>();
+
     // public boolean flagArena16Ativada = false;
     private boolean chave14_15_spawnada = false;
-    private boolean cutscene_vendedor = false;
+    private boolean cutscene_vendedor = false; // TODO: mudar pra false
     private boolean cutsceneBossSolicitada = false;
     private boolean fezCutscene = false;
     private boolean la_ele = false;
@@ -62,9 +69,7 @@ public class ArenaManager {
 
     private final ArrayList<Arena> arenas = new ArrayList<>();
     private final ArrayList<DoorObject> doors = new ArrayList<>();
-    private final ArrayList<InteractiveObject> interactives = new ArrayList<>();
     private final ArrayList<PressureButton> buttons = new ArrayList<>();
-    private final ArrayList<CollisionBlock> collisionBlocks = new ArrayList<>();
     private final ArrayList<ArenaObject> allObjects = new ArrayList<>();
 
     public ArenaManager(EnemyManager enemyManager, LevelManager levelManager, ItemManager itemManager,
@@ -86,16 +91,18 @@ public class ArenaManager {
         doors.clear();
         interactives.clear();
         buttons.clear();
-        collisionBlocks.clear();
         allObjects.clear();
+        objetosDeCenario.clear();
+        triggersESpawnersParaDebug.clear();
         // flagArena16Ativada = false;
         chave14_15_spawnada = false;
-        cutscene_vendedor = false;
+        cutscene_vendedor = false; // TODO: mudar para false
         cutsceneBossSolicitada = false;
         la_ele = false;
 
         for (TiledObject obj : objetos) {
             String tipo = obj.tipo != null ? obj.tipo.toLowerCase().trim() : "";
+            String acao = obj.acao != null ? obj.acao.toLowerCase().trim() : "";
 
             switch (tipo) {
                 case "trigger", "arena_trigger", "level_trigger" -> {
@@ -105,10 +112,27 @@ public class ArenaManager {
                     if (tipo.equals("level_trigger")) {
                         arena.trigger.destino = obj.destino;
                     }
+                    triggersESpawnersParaDebug.add(obj);
                 }
-                case "spawner" -> {
-                    if (obj.id_arena >= 0) {
+                case "spawner", "spawn_player", "spawn_npc" -> {
+                    if (tipo.equals("spawner") && obj.id_arena >= 0) {
                         getOuCriarArena(obj.id_arena).spawners.add(obj);
+                    }
+                    triggersESpawnersParaDebug.add(obj);
+                }
+                case "map_object", "interativo", "colision" -> {
+                    boolean isInteract = obj.isInteractive || "interativo".equals(tipo) || "pescar".equals(acao) || "trocar_mapa".equalsIgnoreCase(acao);
+
+                    if (isInteract) {
+                        InteractiveMapObject interativo = new InteractiveMapObject(obj, gameCore.getDialogueManager());
+                        objetosDeCenario.add(interativo);
+                        interactives.add(interativo);
+                    } else if ("colision".equals(tipo)) {
+                        CollisionPolygon block = new CollisionPolygon(obj);
+                        objetosDeCenario.add(block);
+                    } else {
+                        MapObject novoObjeto = new MapObject(obj);
+                        objetosDeCenario.add(novoObjeto);
                     }
                 }
                 default -> {
@@ -183,14 +207,8 @@ public class ArenaManager {
         switch (arenaObject) {
             case DoorObject door ->
                 doors.add(door);
-            case InteractiveObject interactive ->
-                interactives.add(interactive);
             case PressureButton button ->
                 buttons.add(button);
-            case CollisionBlock block -> {
-                block.setDialogueManager(gameCore.getDialogueManager());
-                collisionBlocks.add(block);
-            }
             default -> {
             }
         }
@@ -198,8 +216,8 @@ public class ArenaManager {
 
     // private int debugCooldown = 60;
     public void update(Player player, CameraManager camera, SoundManager sound) {
-        for (InteractiveObject interactive : interactives) {
-            interactive.update(context, player);
+        for (InteractiveMapObject interactive : interactives) {
+            interactive.update(player);
         }
         atualizarBotoes(player);
         for (int i = 0; i < arenas.size(); i++) {
@@ -317,19 +335,14 @@ public class ArenaManager {
     }
 
     public void interagir(Player player, int chavesDoPlayer) {
-        for (InteractiveObject interactive : interactives) {
-            if (interactive.tryInteract(context, player, chavesDoPlayer)) {
+        for (InteractiveMapObject interactive : interactives) {
+            if (interactive.tryInteract(player, chavesDoPlayer)) {
                 TiledObject data = interactive.getData();
 
-                if ("trocar_mapa".equalsIgnoreCase(data.acao)) {
+                if (data != null && "trocar_mapa".equalsIgnoreCase(data.acao)) {
+                    System.out.println(data.destino);
                     iniciarTransicaoDeFase(data.destino);
                 }
-                return;
-            }
-        }
-
-        for (CollisionBlock block : collisionBlocks) {
-            if (block.tryInteract(context, player, chavesDoPlayer)) {
                 return;
             }
         }
@@ -735,7 +748,7 @@ public class ArenaManager {
                     }
                 }
                 if (arena.id == 10) {
-                    cutscene_vendedor = false;
+                    cutscene_vendedor = false; // TODO: vc já entendeu
                 }
                 if (arena.id == 14 || arena.id == 15) {
                     chave14_15_spawnada = false;
@@ -787,5 +800,20 @@ public class ArenaManager {
             }
         }
         return concluidas;
+    }
+
+    public ArrayList<MapObject> getObjetosDeCenario() {
+        return objetosDeCenario;
+    }
+
+    public List<TiledObject> getTriggersESpawnersParaDebug() {
+        return triggersESpawnersParaDebug;
+    }
+
+    public List<DebugRenderable> getObjetosInstanciadosParaDebug() {
+        List<DebugRenderable> combinados = new ArrayList<>(objetosDeCenario.size() + allObjects.size());
+        combinados.addAll(objetosDeCenario);
+        combinados.addAll(allObjects);
+        return combinados;
     }
 }

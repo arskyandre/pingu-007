@@ -1,18 +1,39 @@
 
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 import javax.imageio.ImageIO;
 
 public class LoadSave {
 
+    public static final long FLIPPED_HORIZONTALLY_FLAG = 0x80000000L;
+    public static final long FLIPPED_VERTICALLY_FLAG = 0x40000000L;
+    public static final long FLIPPED_DIAGONALLY_FLAG = 0x20000000L;
+
+    public double x, y, width, height;
+    public int gid = 0;
+
+    public BufferedImage sprite;
+    public Shape hitbox;
+
     public static final String LEVEL_ATLAS = "images/tile_set.png";
     public static final String LEVEL_1_DATA = "LEVEL_1_DATA.json";
     public static final String LEVEL_2_DATA = "LEVEL_2_DATA.tmj";
+    public static final String LEVEL_YSORT = "teste_ysort.tmj";
     public static final String CASA_VENDEDOR = "CASA_VENDEDOR.tmj";
+
+    public static ArrayList<TilesetData> currentTilesets = new ArrayList<>();
 
     public static BufferedImage GetSpriteAtlas(String filename) {
         try (InputStream is = LoadSave.class.getResourceAsStream("/" + filename)) {
@@ -44,6 +65,56 @@ public class LoadSave {
             }
             if (height <= 0) {
                 height = GameCore.tiles_in_height;
+            }
+
+            currentTilesets.clear();
+            int tsIdx = json.indexOf("\"tilesets\":[");
+            if (tsIdx != -1) {
+                int tsEnd = json.indexOf("],", tsIdx);
+                if (tsEnd == -1) {
+                    tsEnd = json.indexOf("]", tsIdx);
+                }
+                String tsString = json.substring(tsIdx, tsEnd);
+
+                String[] tsBlocks = tsString.split("\\{");
+                for (int i = 1; i < tsBlocks.length; i++) {
+                    int firstGid = (int) extractDouble(tsBlocks[i], "\"firstgid\"");
+                    String sourceTSX = extractRootString(tsBlocks[i], "source");
+
+                    if (!sourceTSX.isEmpty()) {
+                        currentTilesets.add(loadTSX(sourceTSX, firstGid));
+                    } else {
+                        TilesetData embeddedData = new TilesetData();
+                        embeddedData.firstGid = firstGid;
+
+                        double tw = extractDouble(tsBlocks[i], "\"tilewidth\"");
+                        if (tw > 0) {
+                            embeddedData.tileWidth = (int) tw;
+                        }
+
+                        double th = extractDouble(tsBlocks[i], "\"tileheight\"");
+                        if (th > 0) {
+                            embeddedData.tileHeight = (int) th;
+                        }
+
+                        double cols = extractDouble(tsBlocks[i], "\"columns\"");
+                        if (cols > 0) {
+                            embeddedData.columns = (int) cols;
+                        }
+
+                        String imgPath = extractRootString(tsBlocks[i], "image");
+                        if (imgPath.isEmpty()) {
+                            imgPath = extractStringProp(tsBlocks[i], "image");
+                        }
+                        if (!imgPath.isEmpty()) {
+                            if (imgPath.contains("/")) {
+                                imgPath = imgPath.substring(imgPath.lastIndexOf("/") + 1);
+                            }
+                            embeddedData.texture = GetSpriteAtlas("images/" + imgPath);
+                        }
+                        currentTilesets.add(embeddedData);
+                    }
+                }
             }
 
             int dataIdx = json.indexOf("\"data\":[");
@@ -83,98 +154,295 @@ public class LoadSave {
                 dataIdx = json.indexOf("\"data\":[", dataIdx + 8);
             }
 
-            String[] rawObjects = json.split("\"id\":");
-            for (int i = 1; i < rawObjects.length; i++) {
-                String objStr = rawObjects[i];
-                if (objStr.contains("\"x\"") && objStr.contains("\"y\"")) {
-                    TiledObject tObj = new TiledObject();
+            int objectsIdx = json.indexOf("\"objects\"");
+            int countEsperado = 0;
+            int countCarregado = 0;
+            ArrayList<String> falhas = new ArrayList<>();
 
-                    String processStr = objStr;
-                    String previousStr = rawObjects[i - 1];
-                    int objectStart = previousStr.lastIndexOf("{");
-                    String objectPrefix = objectStart >= 0
-                            ? previousStr.substring(objectStart)
-                            : "";
+            while (objectsIdx != -1) {
+                int arrayStart = json.indexOf("[", objectsIdx);
+                if (arrayStart == -1) {
+                    break;
+                }
 
-                    int polyIdx = processStr.indexOf("\"polygon\":[");
-                    if (polyIdx == -1) {
-                        polyIdx = processStr.indexOf("\"polyline\":[");
-                    }
+                int arrayEnd = findClosingBracket(json, arrayStart, '[', ']');
+                if (arrayEnd == -1) {
+                    break;
+                }
 
-                    if (polyIdx != -1) {
-                        tObj.isPolygon = true;
-                        int polyEnd = processStr.indexOf("]", polyIdx);
-                        String polyStr = processStr.substring(polyIdx, polyEnd + 1);
-                        String[] points = polyStr.split("\\}");
+                String objectsArrayStr = json.substring(arrayStart, arrayEnd + 1);
+                ArrayList<String> objStrings = extractJsonObjects(objectsArrayStr);
+                countEsperado += objStrings.size();
 
-                        ArrayList<Double> xs = new ArrayList<>();
-                        ArrayList<Double> ys = new ArrayList<>();
-                        for (String pt : points) {
-                            if (pt.contains("\"x\"")) {
-                                xs.add(extractDouble(pt, "\"x\""));
-                                ys.add(extractDouble(pt, "\"y\""));
+                for (int idxObj = 0; idxObj < objStrings.size(); idxObj++) {
+                    String objStr = objStrings.get(idxObj);
+                    try {
+                        TiledObject tObj = parseObjeto(objStr);
+                        objects.add(tObj);
+                        countCarregado++;
+                    } catch (Exception e) {
+                        String idHint = "desconhecido";
+                        try {
+                            int rawId = (int) extractDouble(objStr, "\"id\"");
+                            if (rawId > 0) {
+                                idHint = String.valueOf(rawId);
                             }
+                        } catch (Exception ignored) {
                         }
-                        tObj.polygonXs = new double[xs.size()];
-                        tObj.polygonYs = new double[ys.size()];
-                        for (int j = 0; j < xs.size(); j++) {
-                            tObj.polygonXs[j] = xs.get(j);
-                            tObj.polygonYs[j] = ys.get(j);
-                        }
-
-                        processStr = processStr.replace(polyStr, "");
+                        String msg = "objeto #" + (idxObj + 1) + " do array (id Tiled=" + idHint + "): "
+                                + e.getClass().getSimpleName() + " - " + e.getMessage();
+                        falhas.add(msg);
                     }
+                }
+                objectsIdx = json.indexOf("\"objects\"", arrayEnd);
+            }
 
-                    tObj.x = extractDouble(processStr, "\"x\"");
-                    tObj.y = extractDouble(processStr, "\"y\"");
-                    tObj.width = extractDouble(processStr, "\"width\"");
-                    // O Tiled exporta "height" antes de "id". Como os objetos sao
-                    // separados acima por "id", a altura fica no trecho anterior.
-                    // Mantemos o fallback para arquivos que usem outra ordem.
-                    tObj.height = objectPrefix.contains("\"height\"")
-                            ? extractDouble(objectPrefix, "\"height\"")
-                            : extractDouble(processStr, "\"height\"");
-
-                    if (processStr.contains("\"gid\"")) {
-                        tObj.gid = (int) extractDouble(processStr, "\"gid\"");
-                        tObj.y -= tObj.height;
-                    }
-
-                    tObj.tipo = extractStringProp(processStr, "type");
-                    if (tObj.tipo.isEmpty()) {
-                        tObj.tipo = extractRootString(processStr, "type");
-                    }
-                    if (tObj.tipo.isEmpty()) {
-                        tObj.tipo = extractRootString(processStr, "class");
-                    }
-                    tObj.acao = extractStringProp(processStr, "acao");
-                    tObj.inimigo = extractStringProp(processStr, "enemy");
-                    tObj.id_arena = extractIntProp(processStr, "id_arena", -1);
-                    tObj.horda = extractIntProp(processStr, "horda", 1);
-                    tObj.ativa = extractBoolProp(processStr, "isActive", false);
-                    tObj.totalHordas = extractIntProp(processStr, "totalHordas", 1);
-                    tObj.destino = extractStringProp(processStr, "destino");
-                    tObj.npc_nome = extractStringProp(processStr, "npc_nome");
-                    // Extração dos novos interativos
-                    tObj.colision = extractBoolProp(processStr, "colision", true);
-                    // tObj.key = extractIntProp(processStr, "key", 0);
-                    tObj.id_button = extractIntProp(processStr, "id_button", -1);
-                    tObj.isToggle = extractBoolProp(processStr, "isToggle", false);
-
-                    if (processStr.contains("\"point\":true")) {
-                        tObj.isPoint = true;
-                        if (tObj.tipo.isEmpty()) {
-                            tObj.tipo = "spawner";
-                        }
-                    }
-
-                    objects.add(tObj);
+            if (!falhas.isEmpty()) {
+                System.err.println("[MAP LOAD] " + filename + ": " + countCarregado + "/" + countEsperado
+                        + " objetos carregados. Falhas:");
+                for (String f : falhas) {
+                    System.err.println("  - " + f);
                 }
             }
+
+            if (countEsperado > 0 && countCarregado < countEsperado * 0.5) {
+                throw new RuntimeException("Falha crítica ao carregar '" + filename + "': apenas "
+                        + countCarregado + "/" + countEsperado + " objetos válidos. Abortando o load do mapa.");
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException("Falha ao carregar mapa: " + filename, e);
         }
         return new MapDATA(layers, objects);
+    }
+
+    private static TiledObject parseObjeto(String objStr) {
+        TiledObject tObj = new TiledObject();
+
+        String baseStr = objStr;
+        Map<String, String> props = new HashMap<>();
+        int propsIdx = objStr.indexOf("\"properties\"");
+        if (propsIdx != -1) {
+            int propsArrayStart = objStr.indexOf("[", propsIdx);
+            if (propsArrayStart != -1) {
+                int propsEnd = findClosingBracket(objStr, propsArrayStart, '[', ']');
+                if (propsEnd != -1) {
+                    baseStr = objStr.substring(0, propsIdx) + objStr.substring(propsEnd + 1);
+                    props = parsePropertiesMap(objStr.substring(propsArrayStart, propsEnd + 1));
+                }
+            }
+        }
+
+        tObj.acao = props.getOrDefault("acao", "");
+        tObj.tipo = props.getOrDefault("type", props.getOrDefault("class", ""));
+        tObj.inimigo = props.getOrDefault("enemy", "");
+        tObj.id_arena = parseIntOr(props.get("id_arena"), -1);
+        tObj.horda = parseIntOr(props.get("horda"), 1);
+        tObj.ativa = parseBoolOr(props.get("isActive"), false);
+        tObj.totalHordas = parseIntOr(props.get("totalHordas"), 1);
+        tObj.destino = props.getOrDefault("destino", "");
+        tObj.npc_nome = props.getOrDefault("npc_nome", "");
+        tObj.collision = parseBoolOr(props.get("colisao"), tObj.tipo.equals("colision"));
+        tObj.solidoPorPadrao = parseBoolOr(props.get("solido"), true);
+        tObj.isTransparent = parseBoolOr(props.get("isTransparent"), false);
+        tObj.isInteractive = parseBoolOr(props.get("isInteractive"), false);
+        tObj.id_button = parseIntOr(props.get("id_button"), -1);
+        tObj.isToggle = parseBoolOr(props.get("isToggle"), false);
+
+        int polyIdx = baseStr.indexOf("\"polygon\"");
+        boolean isPolyline = false;
+        if (polyIdx == -1) {
+            polyIdx = baseStr.indexOf("\"polyline\"");
+            isPolyline = polyIdx != -1;
+        }
+        if (polyIdx != -1) {
+            int polyArrayStart = baseStr.indexOf("[", polyIdx);
+            if (polyArrayStart != -1) {
+                int polyEnd = findClosingBracket(baseStr, polyArrayStart, '[', ']');
+                if (polyEnd != -1) {
+                    tObj.isPolygon = true;
+                    String polyStr = baseStr.substring(polyArrayStart, polyEnd + 1);
+
+                    ArrayList<String> pointsStr = extractJsonObjects(polyStr);
+                    tObj.polygonXs = new double[pointsStr.size()];
+                    tObj.polygonYs = new double[pointsStr.size()];
+                    for (int i = 0; i < pointsStr.size(); i++) {
+                        String pt = pointsStr.get(i);
+                        tObj.polygonXs[i] = extractDouble(pt, "\"x\"");
+                        tObj.polygonYs[i] = extractDouble(pt, "\"y\"");
+                    }
+
+                    int keyStart = isPolyline ? baseStr.indexOf("\"polyline\"") : baseStr.indexOf("\"polygon\"");
+                    baseStr = baseStr.substring(0, keyStart) + baseStr.substring(polyEnd + 1);
+                }
+            }
+        }
+
+        tObj.id = (int) extractDouble(baseStr, "\"id\"");
+        tObj.x = extractDouble(baseStr, "\"x\"");
+        tObj.y = extractDouble(baseStr, "\"y\"");
+        tObj.width = extractDouble(baseStr, "\"width\"");
+        tObj.height = extractDouble(baseStr, "\"height\"");
+        tObj.rotation = extractDouble(baseStr, "\"rotation\"");
+
+        if (tObj.tipo.isEmpty()) {
+            tObj.tipo = extractRootString(baseStr, "type");
+        }
+        if (tObj.tipo.isEmpty()) {
+            tObj.tipo = extractRootString(baseStr, "class");
+        }
+
+        if (baseStr.contains("\"point\":true") || baseStr.contains("\"point\": true")) {
+            tObj.isPoint = true;
+            if (tObj.tipo.isEmpty()) {
+                tObj.tipo = "spawner";
+            }
+        }
+
+        long rawGid = (long) extractDouble(baseStr, "\"gid\"");
+        if (rawGid > 0) {
+            tObj.flipH = (rawGid & FLIPPED_HORIZONTALLY_FLAG) != 0;
+            tObj.flipV = (rawGid & FLIPPED_VERTICALLY_FLAG) != 0;
+            tObj.flipDiagonal = (rawGid & FLIPPED_DIAGONALLY_FLAG) != 0;
+            tObj.gid = (int) (rawGid
+                    & ~(FLIPPED_HORIZONTALLY_FLAG | FLIPPED_VERTICALLY_FLAG | FLIPPED_DIAGONALLY_FLAG));
+            tObj.y -= tObj.height;
+        }
+
+        if (tObj.gid > 0 && !tObj.isPolygon) {
+            applyGidData(tObj);
+        }
+
+        return tObj;
+    }
+
+    private static Map<String, String> parsePropertiesMap(String propsArrayStr) {
+        Map<String, String> map = new HashMap<>();
+        for (String p : extractJsonObjects(propsArrayStr)) {
+            String name = extractRootString(p, "name");
+            if (name.isEmpty()) {
+                continue;
+            }
+            String rawValue = extractRawValue(p, "value");
+            map.put(name, rawValue);
+        }
+        return map;
+    }
+
+    private static String extractRawValue(String text, String key) {
+        int idx = text.indexOf("\"" + key + "\"");
+        if (idx == -1) {
+            return "";
+        }
+        int colonIdx = text.indexOf(":", idx);
+        if (colonIdx == -1) {
+            return "";
+        }
+        int start = colonIdx + 1;
+        while (start < text.length() && Character.isWhitespace(text.charAt(start))) {
+            start++;
+        }
+        if (start < text.length() && text.charAt(start) == '"') {
+            int quote2 = text.indexOf("\"", start + 1);
+            return quote2 == -1 ? "" : text.substring(start + 1, quote2);
+        }
+        int end = start;
+        while (end < text.length() && text.charAt(end) != ',' && text.charAt(end) != '}') {
+            end++;
+        }
+        return text.substring(start, end).trim();
+    }
+
+    private static int parseIntOr(String raw, int defaultVal) {
+        if (raw == null || raw.isEmpty()) {
+            return defaultVal;
+        }
+        try {
+            return (int) Double.parseDouble(raw);
+        } catch (Exception e) {
+            return defaultVal;
+        }
+    }
+
+    private static boolean parseBoolOr(String raw, boolean defaultVal) {
+        if (raw == null || raw.isEmpty()) {
+            return defaultVal;
+        }
+        return raw.equalsIgnoreCase("true");
+    }
+
+    public static void applyGidData(TiledObject tObj) {
+        if (tObj.gid <= 0) {
+            return;
+        }
+
+        TilesetData tsAtual = tilesetParaGid(tObj.gid);
+        if (tsAtual == null) {
+            return;
+        }
+
+        int localId = tObj.gid - tsAtual.firstGid;
+
+        if (tsAtual.tileHeight > 0 && tsAtual.tileWidth > 0) {
+            tObj.height = tsAtual.tileHeight;
+            tObj.width = tsAtual.tileWidth;
+        }
+
+        if (tsAtual.texture != null) {
+            int col = localId % tsAtual.columns;
+            int row = localId / tsAtual.columns;
+            int sx = col * tsAtual.tileWidth;
+            int sy = row * tsAtual.tileHeight;
+
+            if (sx + tsAtual.tileWidth <= tsAtual.texture.getWidth()
+                    && sy + tsAtual.tileHeight <= tsAtual.texture.getHeight()) {
+                tObj.sprite = tsAtual.texture.getSubimage(sx, sy, tsAtual.tileWidth, tsAtual.tileHeight);
+            } else {
+                tObj.sprite = tsAtual.texture;
+            }
+        } else {
+            tObj.sprite = null;
+        }
+
+        tObj.hitbox = recalcularHitboxDeGid(tObj);
+        tObj.collision = tObj.hitbox != null;
+    }
+
+    public static Shape recalcularHitboxDeGid(TiledObject tObj) {
+        if (tObj.gid <= 0) {
+            return null;
+        }
+        TilesetData tsAtual = tilesetParaGid(tObj.gid);
+        if (tsAtual == null) {
+            return null;
+        }
+        int localId = tObj.gid - tsAtual.firstGid;
+        Shape localShape = tsAtual.collisions.get(localId);
+        if (localShape == null) {
+            return null;
+        }
+
+        AffineTransform transform = new AffineTransform();
+        transform.translate(tObj.x, tObj.y);
+        if (tObj.flipH) {
+            transform.translate(tObj.width, 0);
+            transform.scale(-1, 1);
+        }
+        if (tObj.flipV) {
+            transform.translate(0, tObj.height);
+            transform.scale(1, -1);
+        }
+        return transform.createTransformedShape(localShape);
+    }
+
+    private static TilesetData tilesetParaGid(int gid) {
+        for (int j = currentTilesets.size() - 1; j >= 0; j--) {
+            if (gid >= currentTilesets.get(j).firstGid) {
+                return currentTilesets.get(j);
+            }
+        }
+        return null;
     }
 
     private static double extractDouble(String text, String key) {
@@ -182,15 +450,15 @@ public class LoadSave {
         if (idx == -1) {
             return 0;
         }
-        idx = text.indexOf(":", idx) + 1;
-        while (idx < text.length() && Character.isWhitespace(text.charAt(idx))) {
+
+        idx += key.length();
+        while (idx < text.length() && (Character.isWhitespace(text.charAt(idx)) || text.charAt(idx) == ':')) {
             idx++;
         }
         int end = idx;
         while (end < text.length()
-                && (Character.isDigit(text.charAt(end))
-                        || text.charAt(end) == '-'
-                        || text.charAt(end) == '.')) {
+                && (Character.isDigit(text.charAt(end)) || text.charAt(end) == '-' || text.charAt(end) == '.'
+                || text.charAt(end) == 'e' || text.charAt(end) == 'E' || text.charAt(end) == '+')) {
             end++;
         }
         try {
@@ -200,71 +468,234 @@ public class LoadSave {
         }
     }
 
+    public static int findClosingBracket(String text, int openPos, char openChar, char closeChar) {
+        int depth = 0;
+        boolean inQuotes = false;
+        for (int i = openPos; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '"' && (i == 0 || text.charAt(i - 1) != '\\')) {
+                inQuotes = !inQuotes;
+            }
+            if (!inQuotes) {
+                if (c == openChar) {
+                    depth++;
+                } else if (c == closeChar) {
+                    depth--;
+                    if (depth == 0) {
+                        return i;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    public static ArrayList<String> extractJsonObjects(String jsonArray) {
+        ArrayList<String> objects = new ArrayList<>();
+        int depth = 0, start = -1;
+        boolean inQuotes = false;
+
+        for (int i = 0; i < jsonArray.length(); i++) {
+            char c = jsonArray.charAt(i);
+            if (c == '"' && (i == 0 || jsonArray.charAt(i - 1) != '\\')) {
+                inQuotes = !inQuotes;
+            }
+            if (!inQuotes) {
+                if (c == '{') {
+                    if (depth == 0) {
+                        start = i;
+                    }
+                    depth++;
+                } else if (c == '}') {
+                    depth--;
+                    if (depth == 0 && start != -1) {
+                        objects.add(jsonArray.substring(start, i + 1));
+                    }
+                }
+            }
+        }
+        return objects;
+    }
+
     private static String extractRootString(String text, String key) {
-        int idx = text.indexOf("\"" + key + "\":\"");
+        int idx = text.indexOf("\"" + key + "\"");
         if (idx == -1) {
             return "";
         }
-        int start = idx + key.length() + 4;
-        int end = text.indexOf("\"", start);
-        if (end == -1) {
+        int colonIdx = text.indexOf(":", idx);
+        if (colonIdx == -1) {
             return "";
         }
-        return text.substring(start, end);
+        int quote1 = text.indexOf("\"", colonIdx);
+        if (quote1 == -1) {
+            return "";
+        }
+        int quote2 = text.indexOf("\"", quote1 + 1);
+        if (quote2 == -1) {
+            return "";
+        }
+        return text.substring(quote1 + 1, quote2);
     }
 
     private static String extractStringProp(String text, String propName) {
-        int idx = text.indexOf("\"name\":\"" + propName + "\"");
-        if (idx == -1) {
-            return "";
+        ArrayList<String> props = extractJsonObjects(text);
+        String lowerProp = "\"" + propName.toLowerCase() + "\"";
+
+        for (String p : props) {
+            if (p.toLowerCase().contains(lowerProp)) {
+                return extractRootString(p, "value");
+            }
         }
-        int valIdx = text.indexOf("\"value\"", idx);
-        if (valIdx == -1) {
-            return "";
-        }
-        valIdx = text.indexOf("\"", text.indexOf(":", valIdx)) + 1;
-        int end = text.indexOf("\"", valIdx);
-        return text.substring(valIdx, end);
+        return "";
     }
 
-    private static int extractIntProp(String text, String propName, int defaultVal) {
-        int idx = text.indexOf("\"name\":\"" + propName + "\"");
-        if (idx == -1) {
-            return defaultVal;
+    public static class TilesetData {
+
+        public int firstGid;
+        public BufferedImage texture;
+        public int tileWidth = 16;
+        public int tileHeight = 16;
+        public int columns = 1;
+        public Map<Integer, Shape> collisions = new HashMap<>();
+    }
+
+    private static TilesetData loadTSX(String tsxName, int firstGid) {
+        TilesetData data = new TilesetData();
+        data.firstGid = firstGid;
+
+        if (tsxName.contains("/")) {
+            tsxName = tsxName.substring(tsxName.lastIndexOf("/") + 1);
         }
-        int valIdx = text.indexOf("\"value\"", idx);
-        if (valIdx == -1) {
-            return defaultVal;
+
+        InputStream is = LoadSave.class.getResourceAsStream("/images/" + tsxName);
+        if (is == null) {
+            System.out.println("ERRO: TSX nao encontrado no classpath em /images/" + tsxName
+                    + " -- confira se o arquivo esta em /images/ e foi incluido no build.");
+            return data;
         }
-        valIdx = text.indexOf(":", valIdx) + 1;
-        while (valIdx < text.length() && Character.isWhitespace(text.charAt(valIdx))) {
-            valIdx++;
-        }
-        int end = valIdx;
-        while (end < text.length()
-                && (Character.isDigit(text.charAt(end)) || text.charAt(end) == '-')) {
-            end++;
-        }
-        try {
-            return Integer.parseInt(text.substring(valIdx, end));
+
+        try (Scanner scanner = new Scanner(is, "UTF-8")) {
+
+            String xml = scanner.useDelimiter("\\A").next();
+
+            double tw = extractXMLDouble(xml, "tilewidth");
+            if (tw > 0) {
+                data.tileWidth = (int) tw;
+            }
+            double th = extractXMLDouble(xml, "tileheight");
+            if (th > 0) {
+                data.tileHeight = (int) th;
+            }
+            double cols = extractXMLDouble(xml, "columns");
+            if (cols > 0) {
+                data.columns = (int) cols;
+            }
+
+            int imgIdx = xml.indexOf("<image source=\"");
+            if (imgIdx != -1) {
+                int start = imgIdx + 15;
+                int end = xml.indexOf("\"", start);
+                String imgName = xml.substring(start, end);
+
+                if (imgName.contains("/")) {
+                    imgName = imgName.substring(imgName.lastIndexOf("/") + 1);
+                }
+                data.texture = GetSpriteAtlas("images/" + imgName);
+            }
+
+            String[] tiles = xml.split("<tile id=\"");
+            for (int i = 1; i < tiles.length; i++) {
+                String tileBlock = tiles[i];
+                int idEnd = tileBlock.indexOf("\"");
+                int localId = Integer.parseInt(tileBlock.substring(0, idEnd));
+
+                Area areaDoTile = new Area();
+                boolean temColisao = false;
+
+                int objIdx = tileBlock.indexOf("<object ");
+                while (objIdx != -1) {
+                    int bracketIdx = tileBlock.indexOf(">", objIdx);
+                    if (bracketIdx == -1) {
+                        break;
+                    }
+                    String objTag;
+                    int indexParaProximaBusca;
+
+                    if (tileBlock.charAt(bracketIdx - 1) == '/') {
+                        indexParaProximaBusca = bracketIdx + 1;
+                        objTag = tileBlock.substring(objIdx, indexParaProximaBusca);
+                    } else {
+                        int endObjIdx = tileBlock.indexOf("</object>", bracketIdx);
+                        if (endObjIdx == -1) {
+                            break;
+                        }
+                        indexParaProximaBusca = endObjIdx + 9;
+                        objTag = tileBlock.substring(objIdx, indexParaProximaBusca);
+                    }
+
+                    double cx = extractXMLDouble(objTag, "x");
+                    double cy = extractXMLDouble(objTag, "y");
+                    double cw = extractXMLDouble(objTag, "width");
+                    double ch = extractXMLDouble(objTag, "height");
+
+                    Shape shape;
+                    int polyIdx2 = objTag.indexOf("<polygon points=\"");
+                    if (polyIdx2 != -1) {
+                        int startPts = polyIdx2 + 17;
+                        int endPts = objTag.indexOf("\"", startPts);
+                        String[] points = objTag.substring(startPts, endPts).split(" ");
+
+                        Path2D.Double path = new Path2D.Double();
+                        boolean first = true;
+                        for (String pt : points) {
+                            if (pt.trim().isEmpty()) {
+                                continue;
+                            }
+                            String[] coords = pt.split(",");
+                            double px = Double.parseDouble(coords[0]);
+                            double py = Double.parseDouble(coords[1]);
+                            if (first) {
+                                path.moveTo(cx + px, cy + py);
+                                first = false;
+                            } else {
+                                path.lineTo(cx + px, cy + py);
+                            }
+                        }
+                        path.closePath();
+                        shape = path;
+                    } else if (objTag.contains("<ellipse")) {
+                        shape = new Ellipse2D.Double(cx, cy, cw, ch);
+                    } else {
+                        shape = new Rectangle2D.Double(cx, cy, cw, ch);
+                    }
+                    areaDoTile.add(new Area(shape));
+                    temColisao = true;
+
+                    objIdx = tileBlock.indexOf("<object ", indexParaProximaBusca);
+                }
+                if (temColisao) {
+                    data.collisions.put(localId, areaDoTile);
+                }
+            }
         } catch (Exception e) {
-            return defaultVal;
+            System.out.println("ERRO: Falha ao ler/processar o TSX externo: " + tsxName
+                    + " -- " + e.getClass().getSimpleName() + ": " + e.getMessage());
+            e.printStackTrace();
         }
+        return data;
     }
 
-    private static boolean extractBoolProp(String text, String propName, boolean defaultVal) {
-        int idx = text.indexOf("\"name\":\"" + propName + "\"");
+    private static double extractXMLDouble(String text, String key) {
+        int idx = text.indexOf(key + "=\"");
         if (idx == -1) {
-            return defaultVal;
+            return 0;
         }
-        int valIdx = text.indexOf("\"value\"", idx);
-        if (valIdx == -1) {
-            return defaultVal;
+        int start = idx + key.length() + 2;
+        int end = text.indexOf("\"", start);
+        try {
+            return Double.parseDouble(text.substring(start, end));
+        } catch (Exception e) {
+            return 0;
         }
-        valIdx = text.indexOf(":", valIdx) + 1;
-        while (valIdx < text.length() && Character.isWhitespace(text.charAt(valIdx))) {
-            valIdx++;
-        }
-        return text.startsWith("true", valIdx);
     }
 }

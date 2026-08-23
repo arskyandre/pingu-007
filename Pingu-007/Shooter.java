@@ -32,12 +32,12 @@ public class Shooter extends Enemy {
     private double animTick = 0;
     private double anguloArma = 0;
 
-    public boolean modoShotgun = false;
+    public boolean modoShotgun = true;
     public boolean interromperNoTiro = true;
 
     public Shooter(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr,
-            SoundManager sound) {
-        super(startX, startY, width, height, lvlData, sound);
+            SoundManager soundManager, ArenaManager arenaManager) {
+        super(startX, startY, width, height, lvlData, soundManager, arenaManager);
         this.bulletManager = bulmgr;
         this.vidaMaxima = 30;
         this.vida = this.vidaMaxima;
@@ -45,6 +45,7 @@ public class Shooter extends Enemy {
         this.velocidadeMax = 30.0;
         this.aceleracao = 0.5;
         this.peso = 1.0;
+        this.raioDeteccao = GameCore.tiles_size * 10.0;
 
         this.bodyCollider = new Collider(0, height / 2.0, width, height / 2.0);
         this.hurtbox = new Collider(0, 0, width, height);
@@ -198,7 +199,7 @@ public class Shooter extends Enemy {
         }
 
         aplicarFisicaBasica();
-        moveAndCollideWithMap(lvlData);
+        moveAndCollideWithMap(lvlData, arenaManager.getObjetosDeCenario());
 
         if (!isDead && !isCaindo && !isHooked && !isPuxado) {
             if (this.hitbox != null && player.getHurtbox() != null) {
@@ -222,12 +223,7 @@ public class Shooter extends Enemy {
     }
 
     @Override
-    public void draw(Graphics2D g2) {
-        // Cancela o retângulo padrão
-    }
-
-    @Override
-    public void animate(Graphics2D g2, double delta) {
+    public void draw(Graphics2D g2, double delta) {
         int xx = (int) x;
         int inv = 1;
         int indexArma = 0;

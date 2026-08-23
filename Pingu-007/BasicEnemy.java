@@ -10,8 +10,9 @@ public class BasicEnemy extends Enemy {
     private int animIndex = 0;
     private BufferedImage[] Sprites;
 
-    public BasicEnemy(double startX, double startY, double width, double height, int[][] lvlData, SoundManager sound) {
-        super(startX, startY, width, height, lvlData, sound);
+    public BasicEnemy(double startX, double startY, double width, double height, int[][] lvlData,
+            SoundManager soundManager, ArenaManager arenaManager) {
+        super(startX, startY, width, height, lvlData, soundManager, arenaManager);
         deathSFX = SoundManager.SFX.WOLF_DEATH;
         this.vidaMaxima = 30;
         this.vida = this.vidaMaxima;
@@ -21,6 +22,7 @@ public class BasicEnemy extends Enemy {
 
         this.aceleracao = 0.5;
         this.peso = 1.0;
+        this.raioDeteccao = GameCore.tiles_size * 12;
 
         this.bodyCollider = new Collider(0, height / 2.0, width, height / 2.0);
         this.hurtbox = new Collider(0, 0, width, height);
@@ -44,7 +46,7 @@ public class BasicEnemy extends Enemy {
         seguirCaminhoAStar(player, jumpLinks);
 
         aplicarFisicaBasica();
-        moveAndCollideWithMap(lvlData);
+        moveAndCollideWithMap(lvlData, arenaManager.getObjetosDeCenario());
 
         if (!isDead && !isCaindo && !isHooked && !isPuxado) {
             if (this.hitbox != null && player.getHurtbox() != null) {
@@ -67,12 +69,7 @@ public class BasicEnemy extends Enemy {
     }
 
     @Override
-    public void draw(Graphics2D g2) {
-        // Cancela o retângulo padrão rosa
-    }
-
-    @Override
-    public void animate(Graphics2D g2, double delta) {
+    public void draw(Graphics2D g2, double delta) {
         int xx = (int) x;
         int inv = 1;
 

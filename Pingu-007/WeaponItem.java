@@ -1,3 +1,4 @@
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 
@@ -22,7 +23,7 @@ public class WeaponItem extends Item {
     }
 
     @Override
-    public void draw(Graphics2D g2) {
+    public void draw(Graphics2D g2, double delta) {
         if (!ativo) {
             return;
         }

@@ -1,9 +1,8 @@
 
 import java.awt.*;
 import java.awt.geom.*;
-import java.util.ArrayList;
-
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 public class Renderer {
 
@@ -18,15 +17,23 @@ public class Renderer {
     private double mouseCircleAlpha = 1.0;
     private static final double MOUSE_CIRCLE_FADE_DURATION = 0.5; // segundos
 
+    // Cache de Strokes
+    private static final BasicStroke DEBUG_STROKE_SOLID = new BasicStroke(2f);
+    private static final BasicStroke DEBUG_STROKE_DASHED = new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{3}, 0);
+
+    // Cores em cache para o Bounding Box
+    private static final Color DEBUG_BOUNDS_FILL = new Color(255, 255, 0, 30);
+    private static final Color DEBUG_BOUNDS_LINE = new Color(255, 255, 0, 180);
+    private static final Color DEBUG_WHITE_TRANS = new Color(255, 255, 255, 70);
+
     private int cinematicBorderHeight;
     private final double borderFadeDuration = 0.7;
     private double borderProgress = 0;
-    // Boolean preDash = false;
 
-    private final ArrayList<Object> renderQueue = new ArrayList<>(200);
-    private final java.util.Comparator<Object> depthComparator = (o1, o2) -> Double.compare(getRenderBaseY(o1),
-            getRenderBaseY(o2));
-    // private final Polygon dashPoly = new Polygon();
+    private final ArrayList<Renderable> renderQueue = new ArrayList<>(200);
+    private final java.util.Comparator<Renderable> depthComparator = (o1, o2) -> Double.compare(o1.getProfundidade(),
+            o2.getProfundidade());
+
     private final Ellipse2D.Double mouseShape = new Ellipse2D.Double(0, 0, 20, 20);
     public boolean useAntiAliasing = true;
 
@@ -47,7 +54,7 @@ public class Renderer {
         return cinematicBorder;
     }
 
-    public static Color interpolateColor( // media ponderada
+    public static Color interpolateColor(
             Color ColorA,
             Color ColorB,
             double amount) {
@@ -55,19 +62,19 @@ public class Renderer {
 
         int red = (int) Math.round(
                 ColorA.getRed()
-                        + (ColorB.getRed() - ColorA.getRed()) * t);
+                + (ColorB.getRed() - ColorA.getRed()) * t);
 
         int green = (int) Math.round(
                 ColorA.getGreen()
-                        + (ColorB.getGreen() - ColorA.getGreen()) * t);
+                + (ColorB.getGreen() - ColorA.getGreen()) * t);
 
         int blue = (int) Math.round(
                 ColorA.getBlue()
-                        + (ColorB.getBlue() - ColorA.getBlue()) * t);
+                + (ColorB.getBlue() - ColorA.getBlue()) * t);
 
         int alpha = (int) Math.round(
                 ColorA.getAlpha()
-                        + (ColorB.getAlpha() - ColorA.getAlpha()) * t);
+                + (ColorB.getAlpha() - ColorA.getAlpha()) * t);
 
         return new Color(red, green, blue, alpha);
     }
@@ -103,7 +110,7 @@ public class Renderer {
         }
 
         if (hour < 16.0) {
-            double localProgress = (hour - 9.0) / (16.0 - 6.5);
+            double localProgress = (hour - 9.0) / (16.0 - 9.0);
 
             return interpolateColor(
                     DAY_OVERLAY,
@@ -169,7 +176,7 @@ public class Renderer {
         g2.setColor(originalColor);
     }
 
-    public void renderizar(Graphics2D g2, CameraManager camera, Player quadrado, InputManager input, int telaLargura,
+    public void renderizar(Graphics2D g2, CameraManager camera, Player player, InputManager input, int telaLargura,
             int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager,
             EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager,
             FishingManager fishingManager, NPCManager npcManager, CutsceneManager cutsceneManager,
@@ -208,76 +215,84 @@ public class Renderer {
         }
 
         renderQueue.clear();
-        renderQueue.add(quadrado);
-        renderQueue.addAll(enemyManager.getEnemies());
-        renderQueue.addAll(itemManager.getItems());
-        renderQueue.addAll(npcManager.getNpcs());
+        renderQueue.add(player);
 
-        renderQueue.sort(depthComparator);
-
-        for (Object entidade : renderQueue) {
-            switch (entidade) {
-                case Enemy enemy -> {
-                    if (!enemy.isDead()) {
-                        enemy.draw(g2);
-                        enemy.animate(g2, delta);
+        if (enemyManager != null && enemyManager.getEnemies() != null) {
+            for (Enemy e : enemyManager.getEnemies()) {
+                if (e != null && !e.isDead()) {
+                    if (camera.onScreen(e.getX(), e.getY(), e.getLargura(), e.getAltura(), telaLargura, telaAltura)) {
+                        renderQueue.add(e);
                     }
-                }
-                case Player p -> {
-                    // renderDashEffect(g2, p);
-                    p.animate(g2, delta);
-                }
-                case Item item -> {
-                    if (item.isAtivo() && camera.onScreen(item.getX(), item.getY(), item.getLargura(), item.getAltura(),
-                            telaLargura, telaAltura)) {
-                        item.draw(g2);
-                    }
-                }
-                case NPC npc -> {
-                    if (npc.isActive()) {
-                        npc.draw(g2, delta);
-                    }
-                }
-                default -> {
                 }
             }
         }
+
+        if (itemManager != null && itemManager.getItems() != null) {
+            for (Item item : itemManager.getItems()) {
+                if (item != null && item.isAtivo()) {
+                    if (camera.onScreen(item.getX(), item.getY(), item.getLargura(), item.getAltura(), telaLargura, telaAltura)) {
+                        renderQueue.add(item);
+                    }
+                }
+            }
+        }
+
+        if (npcManager != null && npcManager.getNpcs() != null) {
+            for (NPC npc : npcManager.getNpcs()) {
+                if (npc != null && npc.isActive()) {
+                    if (camera.onScreen(npc.getX(), npc.getY(), npc.getLargura(), npc.getAltura(), telaLargura, telaAltura)) {
+                        renderQueue.add(npc);
+                    }
+                }
+            }
+        }
+
+        if (arenaManager != null && arenaManager.getObjetosDeCenario() != null) {
+            for (MapObject obj : arenaManager.getObjetosDeCenario()) {
+                double w = obj.getLargura() > 0 ? obj.getLargura() : GameCore.tiles_size;
+                double h = obj.getAltura() > 0 ? obj.getAltura() : GameCore.tiles_size;
+
+                if (camera.onScreen(obj.getX(), obj.getY(), w, h, telaLargura, telaAltura)) {
+                    renderQueue.add(obj);
+                }
+            }
+        }
+        renderQueue.sort(depthComparator);
+
+        for (Renderable obj : renderQueue) {
+            obj.draw(g2, delta);
+        }
+
         bulletmanager.draw(g2, camera, telaLargura, telaAltura);
         lm.drawForeground(g2, camera, telaLargura, telaAltura);
 
         if (modoDebug) {
-            renderDebug(g2, camera, quadrado, input); // Hitboxes and Mouse Lines
+            renderDebug(g2, camera, player, input);
 
-            // Draw Tiled Objects
-            MapDATA mapData = lm.getMapData();
-            if (mapData != null && mapData.objects != null) {
-                for (TiledObject obj : mapData.objects) {
-                    if (obj.isPoint || obj.tipo.equals("spawner")) {
-                        // Point Spawner
-                        g2.setColor(Color.MAGENTA);
-                        g2.fillOval((int) obj.x - 5, (int) obj.y - 5, 10, 10);
-                        g2.drawString("Spawn: " + obj.inimigo, (int) obj.x + 10, (int) obj.y);
-                    } else if (obj.isPolygon) {
-                        // Polygon Trigger
-                        Polygon poly = obj.getPolygon();
-                        g2.setColor(new Color(0, 255, 255, 75)); // Cyan transparent
-                        g2.fillPolygon(poly);
-                        g2.setColor(Color.CYAN);
-                        g2.setStroke(new BasicStroke(2));
-                        g2.drawPolygon(poly);
-                        g2.drawString(obj.tipo, (int) obj.x, (int) obj.y);
-                    } else {
-                        // Standard Rectangle
-                        g2.setColor(new Color(255, 255, 0, 75)); // Yellow transparent
-                        g2.fillRect((int) obj.x, (int) obj.y, (int) obj.width, (int) obj.height);
-                        g2.setColor(Color.YELLOW);
-                        g2.setStroke(new BasicStroke(2));
-                        g2.drawRect((int) obj.x, (int) obj.y, (int) obj.width, (int) obj.height);
-                        g2.drawString(obj.tipo, (int) obj.x, (int) obj.y);
+            drawDebugColliders(g2, player);
+            if (enemyManager != null && enemyManager.getEnemies() != null) {
+                for (Enemy e : enemyManager.getEnemies()) {
+                    if (e != null && !e.isDead()) {
+                        drawDebugColliders(g2, e);
                     }
                 }
             }
 
+            if (arenaManager != null) {
+                if (arenaManager.getObjetosInstanciadosParaDebug() != null) {
+                    for (DebugRenderable obj : arenaManager.getObjetosInstanciadosParaDebug()) {
+                        desenharDebugDeObjeto(g2, obj.getDadosTiled(), obj.getHitboxAtual(), camera, telaLargura, telaAltura);
+                    }
+                }
+                if (arenaManager.getTriggersESpawnersParaDebug() != null) {
+                    for (TiledObject raw : arenaManager.getTriggersESpawnersParaDebug()) {
+                        Shape hitboxCru = raw.isPolygon
+                                ? raw.getPolygonShape()
+                                : new Rectangle2D.Double(raw.x, raw.y, raw.width, raw.height);
+                        desenharDebugDeObjeto(g2, raw, hitboxCru, camera, telaLargura, telaAltura);
+                    }
+                }
+            }
         }
 
         g2.setTransform(originalTransform);
@@ -303,9 +318,10 @@ public class Renderer {
             }
         }
         int cinematicBorder = getOffset();
-        if (renderizarDayNightOverlay)
+        if (renderizarDayNightOverlay) {
             drawDayNightOverlay(g2, dayProgress, telaLargura, telaAltura);
-        HUD.draw(g2, telaLargura, telaAltura, camera, quadrado, enemyManager, delta, (int) cinematicBorder);
+        }
+        HUD.draw(g2, telaLargura, telaAltura, camera, player, enemyManager, delta, (int) cinematicBorder);
         fishingManager.render(g2, camera, telaLargura, telaAltura, delta);
         double mouseCircleTarget = (mouseCircle && camera.isMouseMiraAtiva()) ? 1.0 : 0.0;
         double mouseCircleFadeSpeed = 1.0 / MOUSE_CIRCLE_FADE_DURATION;
@@ -319,20 +335,21 @@ public class Renderer {
         if (mouseCircleAlpha > 0.0) {
             renderMouse(g2, input, mouseCircleAlpha, telaAltura);
         }
-        if (GameCore.getGameState() == GameState.CUTSCENE)
+        if (GameCore.getGameState() == GameState.CUTSCENE) {
             cutsceneManager.draw(g2, telaLargura, telaAltura, delta);
+        }
         if (cinematicBorder > 0) {
             camera.setLetterboxAtivo(true);
             g2.setColor(Color.BLACK);
             g2.fillRect(0, 0, telaLargura, (int) cinematicBorder);
             g2.fillRect(0, telaAltura - (int) cinematicBorder, telaLargura, (int) cinematicBorder);
-        } else
+        } else {
             camera.setLetterboxAtivo(false);
+        }
 
         ToastNotifications.draw(g2, telaLargura, telaAltura);
 
         // if (modoDebug) {
-
         int totalMinutes = (int) (dayProgress * 24.0 * 60.0) % 1440;
         int hour = totalMinutes / 60;
         int minute = totalMinutes % 60;
@@ -351,18 +368,125 @@ public class Renderer {
     }
 
     private double getRenderBaseY(Object entidade) {
-        if (entidade instanceof Entity e) {
-            return e.getY() + (e.getBodyCollider() != null
-                    ? (e.getBodyCollider().getOffsetY() + e.getBodyCollider().getHeight())
-                    : 48);
+        return 0; // Substituído pelo método nativo Renderable::getProfundidade
+    }
+
+    private void desenharDebugDeObjeto(Graphics2D g2, TiledObject data, Shape hitbox, CameraManager camera, int telaLargura, int telaAltura) {
+        if (data == null) {
+            return;
         }
-        if (entidade instanceof Item item) {
-            return item.getSortBaseY();
+
+        double sx = data.x;
+        double sy = data.y;
+        double sw = data.width > 0 ? data.width : 16;
+        double sh = data.height > 0 ? data.height : 16;
+
+        double checkX = sx;
+        double checkY = sy;
+        double checkW = sw;
+        double checkH = sh;
+
+        if (hitbox != null) {
+            Rectangle2D bounds = hitbox.getBounds2D();
+            checkX = bounds.getX();
+            checkY = bounds.getY();
+            checkW = bounds.getWidth();
+            checkH = bounds.getHeight();
         }
-        if (entidade instanceof NPC npc) {
-            return npc.getY() + npc.altura;
+
+        if (camera != null && !camera.onScreen(checkX, checkY, checkW, checkH, telaLargura, telaAltura)) {
+            return;
         }
-        return 0;
+
+        String tipoSeguro = data.tipo != null ? data.tipo.toLowerCase() : "";
+
+        // Spawners
+        if (data.isPoint || tipoSeguro.contains("spawn")) {
+            switch (tipoSeguro) {
+                case "spawn_player" -> {
+                    g2.setColor(new Color(50, 205, 50));
+                    g2.fillOval((int) sx - 6, (int) sy - 6, 12, 12);
+                    g2.drawString("Spawn Player", (int) sx + 10, (int) sy);
+                }
+                case "spawn_npc" -> {
+                    g2.setColor(new Color(30, 144, 255));
+                    g2.fillOval((int) sx - 5, (int) sy - 5, 10, 10);
+                    String npcNomeStr = (data.npc_nome != null && !data.npc_nome.isEmpty()) ? data.npc_nome : "NPC";
+                    g2.drawString("Spawn: " + npcNomeStr, (int) sx + 10, (int) sy);
+                }
+                default -> {
+                    g2.setColor(new Color(255, 105, 180));
+                    g2.fillOval((int) sx - 5, (int) sy - 5, 10, 10);
+                    String inimigoStr = (data.inimigo != null && !data.inimigo.isEmpty()) ? data.inimigo : "Spawner";
+                    g2.drawString("Spawn: " + inimigoStr, (int) sx + 10, (int) sy);
+                }
+            }
+            return;
+        }
+
+        g2.setColor(DEBUG_BOUNDS_FILL);
+        g2.fillRect((int) sx, (int) sy, (int) sw, (int) sh);
+
+        g2.setColor(DEBUG_BOUNDS_LINE);
+        g2.setStroke(DEBUG_STROKE_DASHED);
+        g2.drawRect((int) sx, (int) sy, (int) sw, (int) sh);
+
+        g2.setStroke(DEBUG_STROKE_SOLID);
+
+        Color fillColor = null;
+        Color outlineColor = null;
+
+        if (tipoSeguro.contains("trigger")) {
+            if (tipoSeguro.equalsIgnoreCase("level_trigger")) {
+                fillColor = new Color(255, 165, 0, 80);
+                outlineColor = Color.ORANGE;
+            } else if (tipoSeguro.equalsIgnoreCase("arena_trigger")) {
+                fillColor = new Color(138, 43, 226, 80);
+                outlineColor = new Color(138, 43, 226);
+            } else {
+                fillColor = new Color(0, 250, 154, 80);
+                outlineColor = new Color(0, 200, 120);
+            }
+        } else if (data.isPolygon && hitbox != null && !data.collision && !tipoSeguro.equals("colision")) {
+            fillColor = new Color(0, 255, 255, 75);
+            outlineColor = Color.CYAN;
+        } else if (data.collision || tipoSeguro.equals("colision")) {
+            fillColor = new Color(255, 0, 0, 90);
+            outlineColor = Color.RED;
+        } else if (!tipoSeguro.equals("map_object") && !tipoSeguro.isEmpty()) {
+            if (tipoSeguro.equalsIgnoreCase("wall") || tipoSeguro.equalsIgnoreCase("door")) {
+                fillColor = new Color(255, 0, 255, 90);
+                outlineColor = Color.MAGENTA;
+            } else {
+                fillColor = new Color(255, 255, 0, 75);
+                outlineColor = Color.YELLOW;
+            }
+        }
+
+        // Hitbox ou Trigger
+        if (hitbox != null) {
+            if (fillColor != null && outlineColor != null) {
+                g2.setColor(fillColor);
+                g2.fill(hitbox);
+                g2.setColor(outlineColor);
+                g2.draw(hitbox);
+            } else {
+                g2.setColor(DEBUG_WHITE_TRANS);
+                g2.fill(hitbox);
+                g2.setColor(Color.WHITE);
+                g2.draw(hitbox);
+            }
+        } else if (fillColor != null && outlineColor != null) {
+            g2.setColor(fillColor);
+            g2.fillRect((int) sx, (int) sy, (int) sw, (int) sh);
+            g2.setColor(outlineColor);
+            g2.drawRect((int) sx, (int) sy, (int) sw, (int) sh);
+        }
+
+        if (!tipoSeguro.equals("map_object") && !tipoSeguro.isEmpty()) {
+            g2.setColor(outlineColor != null ? outlineColor : Color.YELLOW);
+            g2.drawString(data.tipo, (int) sx, (int) sy - 5);
+        }
     }
 
     private void drawDebugColliders(Graphics2D g2, Entity e) {
@@ -449,6 +573,8 @@ public class Renderer {
         g2.setRenderingHint(
                 RenderingHints.KEY_RENDERING,
                 RenderingHints.VALUE_RENDER_SPEED);
+
+        g2.scale(1.0, 1.0);
 
         double scale = telaAltura / 672.0;
         double dampenedScale = 1.0 + (scale - 1.0) * 0.5;

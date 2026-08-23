@@ -1,7 +1,9 @@
 
 import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 
-public abstract class Entity {
+public abstract class Entity implements Renderable {
 
     protected double x, y;
     protected double velX, velY;
@@ -35,13 +37,15 @@ public abstract class Entity {
     public boolean no_clip = false;
 
     public SoundManager soundManager;
+    public ArenaManager arenaManager;
     protected int snowFootstepTimer = 0;
     protected int snowFootstepInterval = 22;
     protected int iceFootstepTimer = 0;
     protected int iceFootstepInterval = 50;
 
-    public Entity(SoundManager sound) {
-        soundManager = sound;
+    public Entity(ArenaManager arenaManager, SoundManager sound) {
+        this.arenaManager = arenaManager;
+        this.soundManager = sound;
     }
 
     public void receberDano(int dano) {
@@ -88,8 +92,8 @@ public abstract class Entity {
         }
     }
 
-    public void animate(Graphics2D g2, double delta) {
-    }
+    @Override
+    public abstract void draw(Graphics2D g2, double delta);
 
     public void dmgCheck() {
         if (timerDano > 0) {
@@ -136,7 +140,24 @@ public abstract class Entity {
         }
     }
 
-    protected void moveAndCollideWithMap(int[][] lvlData) {
+    protected boolean colideComObjetos(double nextX, double nextY, double width, double height, ArrayList<MapObject> objetos) {
+        if (objetos == null || objetos.isEmpty()) {
+            return false;
+        }
+
+        Rectangle2D.Double hitboxFutura = new Rectangle2D.Double(nextX, nextY, width, height);
+
+        for (MapObject obj : objetos) {
+            if (obj.isSolid() && obj.getHitbox() != null) {
+                if (obj.getHitbox().intersects(hitboxFutura)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    protected void moveAndCollideWithMap(int[][] lvlData, ArrayList<MapObject> objetosDeCenario) {
         if (no_clip) {
             this.x += velX;
             this.y += velY;
@@ -170,15 +191,21 @@ public abstract class Entity {
             double proxX = cbX + stepX;
             double proxY = cbY + stepY;
 
-            // Horizontal
-            if (!canMoveHere(proxX, cbY, cbW, cbH, lvlData)) {
-                if (stepX > 0) {
-                    int tileX = (int) ((proxX + cbW - 0.1) / GameCore.tiles_size);
-                    x = tileX * GameCore.tiles_size - cbW - 0.1 - bodyCollider.getOffsetX();
-                } else if (stepX < 0) {
-                    int tileX = (int) (proxX / GameCore.tiles_size);
-                    x = (tileX + 1) * GameCore.tiles_size + 0.1 - bodyCollider.getOffsetX();
+            // HORIZONTAL
+            boolean colidiuTileX = !canMoveHere(proxX, cbY, cbW, cbH, lvlData);
+            boolean colidiuObjX = colideComObjetos(proxX, cbY, cbW, cbH, objetosDeCenario);
+
+            if (colidiuTileX || colidiuObjX) {
+                if (colidiuTileX && !colidiuObjX) {
+                    if (stepX > 0) {
+                        int tileX = (int) ((proxX + cbW - 0.1) / GameCore.tiles_size);
+                        x = tileX * GameCore.tiles_size - cbW - 0.1 - bodyCollider.getOffsetX();
+                    } else if (stepX < 0) {
+                        int tileX = (int) (proxX / GameCore.tiles_size);
+                        x = (tileX + 1) * GameCore.tiles_size + 0.1 - bodyCollider.getOffsetX();
+                    }
                 }
+
                 velX = 0;
                 stepX = 0;
                 if (isAirborne) {
@@ -188,18 +215,23 @@ public abstract class Entity {
             } else {
                 x += stepX;
             }
-
             cbX = x + bodyCollider.getOffsetX();
 
-            // Vertical
-            if (!canMoveHere(cbX, proxY, cbW, cbH, lvlData)) {
-                if (stepY > 0) {
-                    int tileY = (int) ((proxY + cbH - 0.1) / GameCore.tiles_size);
-                    y = tileY * GameCore.tiles_size - cbH - 0.1 - bodyCollider.getOffsetY();
-                } else if (stepY < 0) {
-                    int tileY = (int) (proxY / GameCore.tiles_size);
-                    y = (tileY + 1) * GameCore.tiles_size + 0.1 - bodyCollider.getOffsetY();
+            // VERTICAL
+            boolean colidiuTileY = !canMoveHere(cbX, proxY, cbW, cbH, lvlData);
+            boolean colidiuObjY = colideComObjetos(cbX, proxY, cbW, cbH, objetosDeCenario);
+
+            if (colidiuTileY || colidiuObjY) {
+                if (colidiuTileY && !colidiuObjY) {
+                    if (stepY > 0) {
+                        int tileY = (int) ((proxY + cbH - 0.1) / GameCore.tiles_size);
+                        y = tileY * GameCore.tiles_size - cbH - 0.1 - bodyCollider.getOffsetY();
+                    } else if (stepY < 0) {
+                        int tileY = (int) (proxY / GameCore.tiles_size);
+                        y = (tileY + 1) * GameCore.tiles_size + 0.1 - bodyCollider.getOffsetY();
+                    }
                 }
+
                 velY = 0;
                 stepY = 0;
                 if (isAirborne) {
@@ -215,6 +247,7 @@ public abstract class Entity {
             }
         }
 
+        // BURACOS
         if (!isAirborne && !isCaindo) {
             double cbX = x + bodyCollider.getOffsetX();
             double cbY = y + bodyCollider.getOffsetY();
@@ -226,13 +259,10 @@ public abstract class Entity {
 
             if (rowAtual >= 0 && rowAtual < lvlData.length && colAtual >= 0 && colAtual < lvlData[0].length) {
                 if (TileProperties.isHole(lvlData[rowAtual][colAtual])) {
-
                     boolean salvoPelaBorda = false;
-
                     if (this.timerLedgeSnap > 0) {
                         salvoPelaBorda = verificarEApplicarLedgeSnap(lvlData);
                     }
-
                     if (!salvoPelaBorda) {
                         this.isCaindo = true;
                     }
@@ -486,5 +516,13 @@ public abstract class Entity {
 
     public Collider getBodyCollider() {
         return bodyCollider;
+    }
+
+    @Override
+    public double getProfundidade() {
+        if (bodyCollider != null) {
+            return this.y + bodyCollider.getOffsetY() + bodyCollider.getHeight();
+        }
+        return this.y;
     }
 }

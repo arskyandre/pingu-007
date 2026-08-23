@@ -12,7 +12,7 @@ public final class ArenaTriggers {
         }
 
         if (trigger.isPolygon) {
-            return trigger.getPolygon().contains(player.getX(), player.getY());
+            return trigger.getPolygonShape().contains(player.getX(), player.getY());
         }
 
         Rectangle2D.Double rect = new Rectangle2D.Double(trigger.x, trigger.y, trigger.width, trigger.height);
