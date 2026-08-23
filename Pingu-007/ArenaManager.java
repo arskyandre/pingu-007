@@ -20,6 +20,7 @@ public class ArenaManager {
     // Trigger e spawner não viram uma classe própria, então não tem como implementar DebugRenderable.
     private final ArrayList<TiledObject> triggersESpawnersParaDebug = new ArrayList<>();
 
+    private boolean conflitador = true;
     // public boolean flagArena16Ativada = false;
     private boolean chave14_15_spawnada = false;
     private boolean cutscene_vendedor = false; // TODO: mudar pra false
@@ -241,6 +242,8 @@ public class ArenaManager {
                     ativarArena(arena.id, player, camera, cutsceneManager, sound);
                     return;
                 }
+                conflitador = conflitador;
+                // xd
             }
             if (arena.ativa && !arena.concluida) {
                 arena.inimigosVivos.removeIf(e -> e.isDead() || e.isCaindo);
