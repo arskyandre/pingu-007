@@ -85,7 +85,6 @@ public class Player extends Entity {
     private double sunAngle = -Math.PI / 2.0;
     private double playerShadowLength = 42.0;
     private float playerShadowOpacity = 0.42f;
-    private boolean renderShadows = true;
     private int animIndex = 0;
     private double animTick = 0;
     private int animSp = 0;
@@ -365,14 +364,6 @@ public class Player extends Entity {
 
     public void setPlayerShadowOpacity(float opacity) {
         this.playerShadowOpacity = Math.max(0.0f, Math.min(1.0f, opacity));
-    }
-
-    public boolean isRenderShadows() {
-        return renderShadows;
-    }
-
-    public void setRenderShadows(boolean renderShadows) {
-        this.renderShadows = renderShadows;
     }
 
     public static void setDesbloqueouRecompensa(boolean set) {
@@ -1048,7 +1039,7 @@ public class Player extends Entity {
 
         setSunAngle(GameCore.getSunAngle());
         PlayerVisualState visual = createPlayerVisualState(spriteFinal, inv, xx);
-        if (renderShadows) {
+        if (Renderer.isRenderShadows()) {
             ShadowSilhouette silhouette = createPlayerShadowSilhouette(visual);
             drawPlayerShadow(g2, silhouette, x, y);
         }

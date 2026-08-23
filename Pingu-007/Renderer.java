@@ -13,6 +13,7 @@ public class Renderer {
     }
 
     public static final BufferedImage crosshair = LoadSave.GetSpriteAtlas("images/hud/crosshair.png");
+    private static boolean renderShadows = true;
 
     public BorderState borderState = BorderState.IDLE;
     public boolean modoDebug = false;
@@ -38,6 +39,18 @@ public class Renderer {
 
     private final Ellipse2D.Double mouseShape = new Ellipse2D.Double(0, 0, 20, 20);
     public boolean useAntiAliasing = true;
+
+    public static boolean isRenderShadows() {
+        return renderShadows;
+    }
+
+    public static void setRenderShadows(boolean enabled) {
+        renderShadows = enabled;
+    }
+
+    public static void toggleRenderShadows() {
+        renderShadows = !renderShadows;
+    }
 
     public void setBorderProgress(double prog) {
         borderProgress = prog;
