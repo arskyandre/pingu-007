@@ -200,12 +200,20 @@ public class Bomber extends Enemy {
                 if (timerDano > 0) {
                     animIndex = 15;
                 }
-                g2.drawImage(Sprites[animIndex + 7], (int) x, (int) y, (int) width, (int) height, null);
+                BufferedImage frame = Sprites[animIndex + 7];
+                ProjectedShadow.drawForEntity(g2, x, y, width, height,
+                        new ProjectedShadow.Part(frame, (int) x, (int) y,
+                                (int) width, (int) height));
+                g2.drawImage(frame, (int) x, (int) y, (int) width, (int) height, null);
             } else {
                 if (timerDano > 0) {
                     animIndex = 21;
                 }
-                g2.drawImage(Sprites[animIndex], (int) x, (int) y, (int) width, (int) height, null);
+                BufferedImage frame = Sprites[animIndex];
+                ProjectedShadow.drawForEntity(g2, x, y, width, height,
+                        new ProjectedShadow.Part(frame, (int) x, (int) y,
+                                (int) width, (int) height));
+                g2.drawImage(frame, (int) x, (int) y, (int) width, (int) height, null);
             }
         } else if (estadoAtual == Status.ACIONADO) {
             if (timer > 34) {
@@ -221,6 +229,9 @@ public class Bomber extends Enemy {
             } else {
                 animIndex = 19;
             }
+            ProjectedShadow.drawForEntity(g2, x, y, width, height,
+                    new ProjectedShadow.Part(Sprites[animIndex], (int) x, (int) y,
+                            (int) width, (int) height));
             g2.drawImage(Sprites[animIndex], (int) x, (int) y, (int) width, (int) height, null);
         }
     }

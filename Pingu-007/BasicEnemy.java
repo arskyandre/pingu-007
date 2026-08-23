@@ -93,6 +93,9 @@ public class BasicEnemy extends Enemy {
         if (timerDano > 0) {
             animIndex = 6;
         }
+        ProjectedShadow.drawForEntity(g2, x, y, width, height,
+                new ProjectedShadow.Part(Sprites[animIndex], xx, (int) y,
+                        inv * (int) width, (int) height));
         g2.drawImage(Sprites[animIndex], xx, (int) y, inv * (int) width, (int) height, null);
     }
 

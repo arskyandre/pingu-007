@@ -42,10 +42,11 @@ public class KeyItem extends Item {
         }
 
         double drawY = getVisualY();
-        g2.setColor(new Color(0, 0, 0, 60));
-        g2.fillRect((int) x - 2, (int) (y + altura - 4), (int) largura + 4, 6);
 
         if (sprite != null) {
+            ProjectedShadow.drawForEntity(g2, x, y, largura, altura,
+                    new ProjectedShadow.Part(sprite, (int) x, (int) drawY,
+                            (int) largura, (int) altura));
             g2.drawImage(sprite, (int) x, (int) drawY, (int) largura, (int) altura, null);
         } else {
             g2.setColor(COR_PLACEHOLDER);

@@ -217,6 +217,9 @@ public class Dasher extends Enemy {
         }
 
         if (estadoAtual == Status.DASHING || isAirborne || emSaltoCinematico) {
+            ProjectedShadow.drawForEntity(g2, x, y, width, height,
+                    new ProjectedShadow.Part(Sprites[8], xx, (int) y,
+                            inv * (int) (19 * width / 16), (int) height));
             g2.drawImage(Sprites[8], xx, (int) y, inv * (int) (19 * width / 16), (int) height, null);
         } else {
             if (estadoAtual == Status.PREPARANDO) {
@@ -245,6 +248,9 @@ public class Dasher extends Enemy {
             if (timerDano > 0) {
                 animIndex = 9;
             }
+            ProjectedShadow.drawForEntity(g2, x, y, width, height,
+                    new ProjectedShadow.Part(Sprites[animIndex], xx, (int) y,
+                            inv * (int) width, (int) height));
             g2.drawImage(Sprites[animIndex], xx, (int) y, inv * (int) width, (int) height, null);
         }
     }

@@ -262,8 +262,15 @@ public class Shooter extends Enemy {
             gap *= -1;
         }
 
+        int gunX = xx + gap;
+        int gunWidth = inv * gun.getWidth() * 3;
+        int gunHeight = gun.getHeight() * 3;
+        ProjectedShadow.drawForEntity(g2, x, y, width, height,
+                new ProjectedShadow.Part(Sprites[animIndex], xx, (int) y,
+                        inv * (int) width, (int) height),
+                new ProjectedShadow.Part(gun, gunX, yy, gunWidth, gunHeight));
         g2.drawImage(Sprites[animIndex], xx, (int) y, inv * (int) width, (int) height, null);
-        g2.drawImage(gun, xx + gap, yy, inv * gun.getWidth() * 3, gun.getHeight() * 3, null);
+        g2.drawImage(gun, gunX, yy, gunWidth, gunHeight, null);
     }
 
     @Override

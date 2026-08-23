@@ -1,5 +1,4 @@
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -275,30 +274,6 @@ public class Jumper extends Enemy {
 
     @Override
     public void draw(Graphics2D g2, double delta) {
-        int drawX = (int) x;
-        int drawY = (int) y;
-        int w = (int) width;
-        int h = (int) height;
-        int elevacaoSombra = 0;
-
-        switch (estadoAtual) {
-            case PULANDO ->
-                elevacaoSombra = 15;
-            case FLUTUANDO ->
-                elevacaoSombra = 25;
-            case COOLDOWN, PREPARANDO, ATIRANDO -> {
-            }
-        }
-
-        int shadowW = Math.max(10, w - 10 - (elevacaoSombra / 2));
-        int shadowH = Math.max(4, 10 - (elevacaoSombra / 4));
-        int shadowX = drawX + (w - shadowW) / 2;
-        int shadowY = drawY + h - (shadowH / 2);
-
-        int alpha = Math.max(20, 100 - (elevacaoSombra * 2));
-        g2.setColor(new Color(0, 0, 0, alpha));
-        g2.fillOval(shadowX, shadowY, shadowW, shadowH);
-
         int spIndex = 0;
         if (null != estadoAtual) {
             switch (estadoAtual) {
@@ -357,11 +332,13 @@ public class Jumper extends Enemy {
             spIndex = spIndex + 7;
         }
 
-        g2.drawImage(Sprites[spIndex],
-                (int) x - (int) squash / 2,
-                (int) (y - alt) + (int) squash,
-                (int) width + (int) squash,
-                (int) height - (int) squash,
-                null);
+        int spriteX = (int) x - (int) squash / 2;
+        int spriteY = (int) (y - alt) + (int) squash;
+        int spriteWidth = (int) width + (int) squash;
+        int spriteHeight = (int) height - (int) squash;
+        ProjectedShadow.drawForEntity(g2, x, y, width, height,
+                new ProjectedShadow.Part(Sprites[spIndex], spriteX, spriteY,
+                        spriteWidth, spriteHeight));
+        g2.drawImage(Sprites[spIndex], spriteX, spriteY, spriteWidth, spriteHeight, null);
     }
 }

@@ -28,8 +28,9 @@ public class AmmoPackItem extends ConsumableItem {
         }
 
         double drawY = getVisualY();
-        g2.setColor(new Color(0, 0, 0, 60));
-        g2.fillRect((int) x - 2, (int) (y + altura - 4), (int) largura + 4, 8);
+        ProjectedShadow.drawForEntity(g2, x, y, largura, altura,
+                ProjectedShadow.solidPart((int) x, (int) drawY,
+                        (int) largura, (int) altura));
 
         g2.setColor(COR_PLACEHOLDER);
         g2.fillRect((int) x, (int) drawY, (int) largura, (int) altura);
