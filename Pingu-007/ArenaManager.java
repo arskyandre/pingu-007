@@ -396,6 +396,7 @@ public class ArenaManager {
             }
         }
         if (botaoLightsOutAcionado != null) {
+            soundManager.playSFX(SoundManager.SFX.CLICK);
             alternarLightsOut(botaoLightsOutAcionado, player);
         }
     }

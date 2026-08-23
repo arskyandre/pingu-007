@@ -96,11 +96,11 @@ public class Bomber extends Enemy {
             }
             case ACIONADO -> {
                 if (!jaAvisou) {
-                    // if (timer == tempoPavio) {
-                    soundManager.playSFX(SoundManager.SFX.BOMBER_AVISO);
-                    // } else{
-                    // soundManager.playSFX(SoundManager.SFX.AAAHHHH);
-                    // }
+                    if (timer == tempoPavio) {
+                        soundManager.playSFX(SoundManager.SFX.BOMBER_AVISO);
+                    } else {
+                        soundManager.playSFX(SoundManager.SFX.AAAHHHH);
+                    }
                     jaAvisou = true;
                 }
                 velX *= 0.8;

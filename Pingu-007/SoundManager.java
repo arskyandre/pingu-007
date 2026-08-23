@@ -50,6 +50,8 @@ public class SoundManager {
         PLAYER_HEAL("sound/sfx/player_heal.wav", 4),
         KEY_SPAWN("sound/sfx/key_spawn.wav", 1),
         // GET_AMMO("sound/sfx/get_ammo.wav", 4),
+        AAAHHHH("sound/sfx/AAAHHHH.wav", 4),
+        CLICK("sound/sfx/click.wav", 4),
         LINE_CAST("sound/sfx/line_cast.wav", 3),
         SPLASH("sound/sfx/splash.wav", 3),
         // FISHING_FISH_FOUND("sound/sfx/fishing_fish_found.wav", 2),
