@@ -2,6 +2,8 @@
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 import java.util.ArrayList;
 
 public class Renderer {
@@ -77,6 +79,67 @@ public class Renderer {
                 + (ColorB.getAlpha() - ColorA.getAlpha()) * t);
 
         return new Color(red, green, blue, alpha);
+    }
+
+    public static BufferedImage gaussianBlur(BufferedImage source, int radius, double sigma) {
+        if (source == null) {
+            return null;
+        }
+        if (radius <= 0) {
+            return source;
+        }
+        if (sigma <= 0.0) {
+            throw new IllegalArgumentException("Sigma must be greater than zero.");
+        }
+
+        int kernelSize = radius * 2 + 1;
+        float[] kernelData = new float[kernelSize];
+        double sigmaSquaredTimesTwo = 2.0 * sigma * sigma;
+        double sum = 0.0;
+
+        for (int i = -radius; i <= radius; i++) {
+            double weight = Math.exp(-(i * i) / sigmaSquaredTimesTwo);
+            kernelData[i + radius] = (float) weight;
+            sum += weight;
+        }
+        for (int i = 0; i < kernelData.length; i++) {
+            kernelData[i] /= (float) sum;
+        }
+
+        BufferedImage preparedSource = new BufferedImage(
+                source.getWidth(),
+                source.getHeight(),
+                BufferedImage.TYPE_INT_ARGB_PRE);
+        Graphics2D preparedGraphics = preparedSource.createGraphics();
+        try {
+            preparedGraphics.setComposite(AlphaComposite.Src);
+            preparedGraphics.drawImage(source, 0, 0, null);
+        } finally {
+            preparedGraphics.dispose();
+        }
+
+        BufferedImage horizontalResult = new BufferedImage(
+                source.getWidth(),
+                source.getHeight(),
+                BufferedImage.TYPE_INT_ARGB_PRE);
+        BufferedImage finalResult = new BufferedImage(
+                source.getWidth(),
+                source.getHeight(),
+                BufferedImage.TYPE_INT_ARGB_PRE);
+
+        ConvolveOp blurOp = new ConvolveOp(
+                new Kernel(kernelSize, 1, kernelData),
+                ConvolveOp.EDGE_NO_OP,
+                null);
+        blurOp.filter(preparedSource, horizontalResult);
+
+        blurOp = new ConvolveOp(
+                new Kernel(1, kernelSize, kernelData),
+                ConvolveOp.EDGE_NO_OP,
+                null);
+        blurOp.filter(horizontalResult, finalResult);
+
+        return finalResult;
     }
 
     private static final Color PRE_DAWN_OVERLAY = new Color(90, 48, 70, 105);

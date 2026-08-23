@@ -71,11 +71,11 @@ public class GameCore extends Canvas implements Runnable {
     private int lastProcessedDay = 1;
     private long updateDayNightAnteriorNanos = -1L;
 
-    private double fullDaySeconds = 360.0;
+    private static double fullDaySeconds = 360.0;
     private static final double STARTING_DAY_PROGRESS = 8.0 / 24.0;
 
-    private double dayProgress = STARTING_DAY_PROGRESS;
-    private double elapsedGameSeconds = STARTING_DAY_PROGRESS * fullDaySeconds;
+    private static double dayProgress = STARTING_DAY_PROGRESS;
+    private static double elapsedGameSeconds = STARTING_DAY_PROGRESS * fullDaySeconds;
 
     private boolean dayNightClockRunning = true;
 
@@ -218,6 +218,10 @@ public class GameCore extends Canvas implements Runnable {
 
     public double getInGameTime() {
         return dayProgress;
+    }
+
+    public static double getSunAngle() {
+        return (dayProgress * Math.PI * 2.0) - (Math.PI / 2.0);
     }
 
     private void atualizarMusicaDayNight() {

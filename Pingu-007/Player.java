@@ -1,5 +1,8 @@
 
+import java.awt.AlphaComposite;
+import java.awt.Composite;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -78,7 +81,10 @@ public class Player extends Entity {
     private int chavesColetadasTotal = 0;
     private boolean checkpointSolicitado = false;
 
-    private BufferedImage[] Sprites, arma;
+    private BufferedImage[] Sprites, shadowSprites, arma;
+    private double sunAngle = -Math.PI / 2.0;
+    private double playerShadowLength = 42.0;
+    private float playerShadowOpacity = 0.42f;
     private int animIndex = 0;
     private double animTick = 0;
     private int animSp = 0;
@@ -114,21 +120,159 @@ public class Player extends Entity {
         BufferedImage img = LoadSave.GetSpriteAtlas("images/pingu_sprite_sheet.png");
 
         Sprites = new BufferedImage[24];
+        shadowSprites = new BufferedImage[24];
         arma = new BufferedImage[4];
         for (int j = 0; j < 3; j++) {
             for (int i = 0; i < 7; i++) {
                 int index = j * 7 + i;
-                Sprites[index] = img.getSubimage(i * 16, j * 16, 16, 16);
+                BufferedImage frame = img.getSubimage(i * 16, j * 16, 16, 16);
+                Sprites[index] = frame;
+                shadowSprites[index] = createShadowGradient(frame);
             }
         }
         Sprites[21] = img.getSubimage(0, 48, 16, 16);
         Sprites[22] = img.getSubimage(16, 48, 16, 16);
         Sprites[23] = img.getSubimage(32, 48, 16, 16);
+        shadowSprites[21] = createShadowGradient(Sprites[21]);
+        shadowSprites[22] = createShadowGradient(Sprites[22]);
+        shadowSprites[23] = createShadowGradient(Sprites[23]);
         arma[0] = img.getSubimage(48, 48, 16, 16);
         arma[1] = img.getSubimage(64, 48, 16, 16);
         arma[2] = img.getSubimage(80, 48, 16, 16);
         arma[3] = img.getSubimage(96, 48, 16, 16);
 
+    }
+
+    private BufferedImage createShadowGradient(BufferedImage source) {
+        int width = source.getWidth();
+        int height = source.getHeight();
+        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        for (int py = 0; py < height; py++) {
+            float proximity = (height <= 1) ? 1.0f : py / (float) (height - 1);
+            float rowStrength = 0.12f + 0.88f * (float) Math.pow(proximity, 0.75);
+
+            for (int px = 0; px < width; px++) {
+                int pixel = source.getRGB(px, py);
+                int originalAlpha = (pixel >>> 24) & 0xFF;
+                int finalAlpha = Math.round(originalAlpha * rowStrength);
+                result.setRGB(px, py, finalAlpha << 24);
+            }
+        }
+
+        return result;
+    }
+
+    private void drawPlayerShadow(
+            Graphics2D g2,
+            BufferedImage shadowFrame,
+            double playerX,
+            double playerY,
+            int horizontalFlip) {
+        if (shadowFrame == null) {
+            return;
+        }
+
+        int sourceWidth = shadowFrame.getWidth();
+        int sourceHeight = shadowFrame.getHeight();
+        double shadowAngle = sunAngle + Math.PI;
+        double shadowDirX = Math.cos(shadowAngle);
+        double shadowDirY = Math.sin(shadowAngle);
+        double southFactor = (shadowDirY + 1.0) / 2.0;
+        southFactor = Math.max(0.0, Math.min(1.0, southFactor));
+
+        double lengthMultiplier = 0.55 + (1.60 - 0.55) * southFactor;
+        double widthMultiplier = 0.80 + (1.20 - 0.80) * southFactor;
+        double effectiveLength = playerShadowLength * lengthMultiplier;
+        double renderedSpriteWidth = 48.0;
+        double worldFeetX = playerX + 24.0;
+        double worldFeetY = playerY + 45.0;
+        int blurPadding = 12;
+        int safetyPadding = 12;
+
+        int bufferWidth = (int) Math.ceil(
+                renderedSpriteWidth * widthMultiplier
+                        + Math.abs(shadowDirX) * effectiveLength
+                        + blurPadding * 2
+                        + safetyPadding * 2);
+        int bufferHeight = (int) Math.ceil(
+                48.0
+                        + Math.abs(shadowDirY) * effectiveLength
+                        + blurPadding * 2
+                        + safetyPadding * 2);
+
+        BufferedImage shadowLayer = new BufferedImage(
+                Math.max(1, bufferWidth),
+                Math.max(1, bufferHeight),
+                BufferedImage.TYPE_INT_ARGB);
+
+        double localFeetX = blurPadding
+                + safetyPadding
+                + Math.max(0.0, -shadowDirX * effectiveLength)
+                + renderedSpriteWidth * widthMultiplier / 2.0;
+        double localFeetY = blurPadding
+                + safetyPadding
+                + Math.max(0.0, -shadowDirY * effectiveLength)
+                + 6.0;
+
+        Graphics2D sg = shadowLayer.createGraphics();
+        try {
+            sg.setComposite(AlphaComposite.Src);
+            sg.setRenderingHint(
+                    RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+            for (int sourceY = 0; sourceY < sourceHeight; sourceY++) {
+                double distanceFromFeet = (sourceHeight - 1 - sourceY) / (double) (sourceHeight - 1);
+                double projectedDistance = effectiveLength * Math.pow(distanceFromFeet, 0.90);
+                double rowCenterX = localFeetX + shadowDirX * projectedDistance;
+                double rowCenterY = localFeetY + shadowDirY * projectedDistance;
+                double rowPerspective = 0.72 + 0.28 * (1.0 - distanceFromFeet);
+
+                int destinationWidth = Math.max(
+                        1,
+                        (int) Math.round(renderedSpriteWidth * widthMultiplier * rowPerspective));
+                int destinationHeight = Math.max(
+                        2,
+                        (int) Math.ceil(Math.abs(shadowDirY) * effectiveLength / (sourceHeight - 1)) + 1);
+
+                int dx1 = (int) Math.round(rowCenterX - destinationWidth / 2.0);
+                int dx2 = dx1 + destinationWidth;
+                int dy1 = (int) Math.round(rowCenterY - destinationHeight / 2.0);
+                int dy2 = dy1 + destinationHeight;
+
+                int sx1 = (horizontalFlip < 0) ? sourceWidth : 0;
+                int sx2 = (horizontalFlip < 0) ? 0 : sourceWidth;
+
+                sg.drawImage(
+                        shadowFrame,
+                        dx1, dy1, dx2, dy2,
+                        sx1, sourceY, sx2, sourceY + 1,
+                        null);
+            }
+
+        } finally {
+            sg.dispose();
+        }
+
+        BufferedImage blurredShadow = Renderer.gaussianBlur(shadowLayer, 4, 2.0);
+        int drawX = (int) Math.round(worldFeetX - localFeetX);
+        int drawY = (int) Math.round(worldFeetY - localFeetY);
+        Composite oldComposite = g2.getComposite();
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, playerShadowOpacity));
+        g2.drawImage(blurredShadow, drawX, drawY, null);
+        g2.setComposite(oldComposite);
+    }
+
+    public void setSunAngle(double angleRadians) {
+        this.sunAngle = angleRadians;
+    }
+
+    public void setPlayerShadowLength(double length) {
+        this.playerShadowLength = Math.max(0.0, length);
+    }
+
+    public void setPlayerShadowOpacity(float opacity) {
+        this.playerShadowOpacity = Math.max(0.0f, Math.min(1.0f, opacity));
     }
 
     // TODO: Recompensa em moedas do vendedor por eliminar inimigos
@@ -802,6 +946,9 @@ public class Player extends Entity {
         boolean overrideAtivo = spriteOverrideTimer > 0 && spriteOverrideIndex >= 0
                 && spriteOverrideIndex < Sprites.length;
         int spriteFinal = overrideAtivo ? spriteOverrideIndex : (animSp + animIndex);
+
+        setSunAngle(GameCore.getSunAngle());
+        drawPlayerShadow(g2, shadowSprites[spriteFinal], x, y, inv);
 
         int ginv = 1, xgun = (int) x;
 
