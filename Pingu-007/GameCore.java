@@ -367,6 +367,14 @@ public class GameCore extends Canvas implements Runnable {
         showFpsCounter = !showFpsCounter;
     }
 
+    public boolean isRenderShadows() {
+        return player.isRenderShadows();
+    }
+
+    public void toggleRenderShadows() {
+        player.setRenderShadows(!player.isRenderShadows());
+    }
+
     public int getTargetFps() {
         return targetFps;
     }

@@ -85,6 +85,7 @@ public class Player extends Entity {
     private double sunAngle = -Math.PI / 2.0;
     private double playerShadowLength = 42.0;
     private float playerShadowOpacity = 0.42f;
+    private boolean renderShadows = true;
     private int animIndex = 0;
     private double animTick = 0;
     private int animSp = 0;
@@ -366,7 +367,14 @@ public class Player extends Entity {
         this.playerShadowOpacity = Math.max(0.0f, Math.min(1.0f, opacity));
     }
 
-    // TODO: Recompensa em moedas do vendedor por eliminar inimigos
+    public boolean isRenderShadows() {
+        return renderShadows;
+    }
+
+    public void setRenderShadows(boolean renderShadows) {
+        this.renderShadows = renderShadows;
+    }
+
     public static void setDesbloqueouRecompensa(boolean set) {
         desbloqueouRecompensa = set;
     }
@@ -1040,8 +1048,10 @@ public class Player extends Entity {
 
         setSunAngle(GameCore.getSunAngle());
         PlayerVisualState visual = createPlayerVisualState(spriteFinal, inv, xx);
-        ShadowSilhouette silhouette = createPlayerShadowSilhouette(visual);
-        drawPlayerShadow(g2, silhouette, x, y);
+        if (renderShadows) {
+            ShadowSilhouette silhouette = createPlayerShadowSilhouette(visual);
+            drawPlayerShadow(g2, silhouette, x, y);
+        }
 
         if (visual.gunBehindPlayer) {
             g2.drawImage(visual.gunFrame, visual.gunX, visual.gunY,

@@ -78,6 +78,7 @@ public class OptionsMenu {
     private final MenuButton backBtn;
     private final MenuButton keyBindBtn;
     private final IconButton fullScreenButton;
+    private final IconButton renderShadowsButton;
     private final IconButton showFpsButton;
     private final IconButton enableAAButton;
 
@@ -98,6 +99,7 @@ public class OptionsMenu {
         toggleMuteSFX = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED, false);
         toggleUnlimitedFps = new IconButton(0, 0, BTN_SIZE, IconIndex.UNLIM_FPS_OFF, false);
         fullScreenButton = new IconButton(0, 0, BTN_SIZE, IconIndex.FULLSCREEN, false);
+        renderShadowsButton = new IconButton(0, 0, BTN_SIZE, IconIndex.GREEN_CHECK, false);
         showFpsButton = new IconButton(0, 0, BTN_SIZE, IconIndex.RED_X, false);
         enableAAButton = new IconButton(0, 0, BTN_SIZE, IconIndex.GREEN_CHECK, false);
 
@@ -114,6 +116,10 @@ public class OptionsMenu {
         }));
         itensFoco.add(new ItemFoco(fpsCapSlider, toggleUnlimitedFps, gc -> {
             alternarFpsIlimitado(gc);
+            return GameState.OPTIONS;
+        }));
+        itensFoco.add(new ItemFoco(renderShadowsButton, gc -> {
+            gc.toggleRenderShadows();
             return GameState.OPTIONS;
         }));
         itensFoco.add(new ItemFoco(showFpsButton, gc -> {
@@ -168,8 +174,12 @@ public class OptionsMenu {
 
     public void repositionElements(int width, int height, GameCore GC) {
         int centerX = width / 2;
-        LayoutCursor cursor = new LayoutCursor(height / CONTENT_START_FRACTION, ROW_GAP);
+        int contentStartY = height / CONTENT_START_FRACTION;
         int sliderRowHeight = LABEL_TO_SLIDER_GAP + SLIDER_H;
+        int fixedContentHeight = sliderRowHeight * 3 + BTN_SIZE * 3 + 46;
+        int availableForGaps = height - contentStartY - 20 - fixedContentHeight;
+        int responsiveGap = Math.clamp(availableForGaps / 6, 10, ROW_GAP);
+        LayoutCursor cursor = new LayoutCursor(contentStartY, responsiveGap);
 
         int musicY = cursor.nextRow(sliderRowHeight);
         positionSliderRow(musicSlider, toggleMuteBGM, centerX, musicY);
@@ -179,6 +189,9 @@ public class OptionsMenu {
 
         int fpsCapY = cursor.nextRow(sliderRowHeight);
         positionSliderRow(fpsCapSlider, toggleUnlimitedFps, centerX, fpsCapY);
+
+        int shadowsToggleY = cursor.nextRow(BTN_SIZE);
+        renderShadowsButton.setPosition(centerX + SLIDER_W / 2 - BTN_SIZE, shadowsToggleY);
 
         int fpsToggleY = cursor.nextRow(BTN_SIZE);
         showFpsButton.setPosition(centerX + SLIDER_W / 2 - BTN_SIZE, fpsToggleY);
@@ -229,6 +242,10 @@ public class OptionsMenu {
         }
 
         atualizarIconesFps(GC);
+
+        renderShadowsButton.setIcon(GC.isRenderShadows()
+                ? IconIndex.GREEN_CHECK
+                : IconIndex.RED_X);
 
         if (GC.isAntiAliasingEnabled()) {
             enableAAButton.setIcon(IconIndex.GREEN_CHECK);
@@ -583,8 +600,10 @@ public class OptionsMenu {
         drawSliderRow(g2, rotuloLimiteFps(),
                 fpsCapSlider, estaFocado(fpsCapSlider), width, true, false);
 
+        drawLabelLeftOf(g2, "RENDERIZAR SOMBRAS", renderShadowsButton.getRect());
         drawLabelLeftOf(g2, "MOSTRAR FPS", showFpsButton.getRect());
         drawLabelLeftOf(g2, "Habilitar Anti-Aliasing", enableAAButton.getRect());
+        renderShadowsButton.draw(g2);
         enableAAButton.draw(g2);
         toggleMuteBGM.draw(g2);
         toggleMuteSFX.draw(g2);
