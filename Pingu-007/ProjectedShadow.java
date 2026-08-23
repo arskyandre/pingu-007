@@ -40,6 +40,12 @@ public final class ProjectedShadow {
 
     public static void drawForEntity(Graphics2D g2, double x, double y, double width, double height,
             Part... parts) {
+        drawForEntity(g2, x, y, width, height,
+                PLAYER_SHADOW_LENGTH * (height / PLAYER_HEIGHT), SHADOW_OPACITY, parts);
+    }
+
+    public static void drawForEntity(Graphics2D g2, double x, double y, double width, double height,
+            double shadowLength, float shadowOpacity, Part... parts) {
         if (!Renderer.isRenderShadows() || parts == null || parts.length == 0) {
             return;
         }
@@ -48,7 +54,23 @@ public final class ProjectedShadow {
         double feetX = x + width / 2.0;
         double feetY = y + PLAYER_FEET_HEIGHT * scale;
         double referenceHeight = PLAYER_FEET_HEIGHT * scale;
-        draw(g2, feetX, feetY, referenceHeight, PLAYER_SHADOW_LENGTH * scale, SHADOW_OPACITY, parts);
+        double safeLength = Math.max(0.0, shadowLength);
+        float safeOpacity = Math.max(0.0f, Math.min(1.0f, shadowOpacity));
+        draw(g2, feetX, feetY, referenceHeight, safeLength, safeOpacity, parts);
+    }
+
+    public static void drawForEntityAtFeet(Graphics2D g2, double x, double y,
+            double width, double height, double feetRatioY, Part... parts) {
+        if (!Renderer.isRenderShadows() || parts == null || parts.length == 0) {
+            return;
+        }
+
+        double safeFeetRatioY = Math.max(0.01, feetRatioY);
+        double referenceHeight = Math.max(1.0, height * safeFeetRatioY);
+        double feetX = x + width / 2.0;
+        double feetY = y + referenceHeight;
+        double shadowLength = PLAYER_SHADOW_LENGTH * (referenceHeight / PLAYER_FEET_HEIGHT);
+        draw(g2, feetX, feetY, referenceHeight, shadowLength, SHADOW_OPACITY, parts);
     }
 
     private static void draw(Graphics2D g2, double worldFeetX, double worldFeetY,

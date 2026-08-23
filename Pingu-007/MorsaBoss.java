@@ -436,7 +436,7 @@ public class MorsaBoss extends Enemy {
         }
 
         if (Sprites[index] != null) {
-            ProjectedShadow.drawForEntity(g, x, y, width, height,
+            ProjectedShadow.drawForEntityAtFeet(g, x, y, width, height, 81.0 / 96.0,
                     new ProjectedShadow.Part(Sprites[index], xx, (int) y,
                             inv * (int) width, (int) height));
             g.drawImage(Sprites[index], xx, (int) y, inv * (int) width, (int) height, null);

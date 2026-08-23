@@ -1,8 +1,5 @@
 
-import java.awt.AlphaComposite;
-import java.awt.Composite;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -82,7 +79,6 @@ public class Player extends Entity {
     private boolean checkpointSolicitado = false;
 
     private BufferedImage[] Sprites, arma;
-    private double sunAngle = -Math.PI / 2.0;
     private double playerShadowLength = 42.0;
     private float playerShadowOpacity = 0.42f;
     private int animIndex = 0;
@@ -161,17 +157,6 @@ public class Player extends Entity {
         }
     }
 
-    private static final class ShadowSilhouette {
-        private final BufferedImage image;
-        private final double sourceFeetX, sourceFeetY;
-
-        private ShadowSilhouette(BufferedImage image, double sourceFeetX, double sourceFeetY) {
-            this.image = image;
-            this.sourceFeetX = sourceFeetX;
-            this.sourceFeetY = sourceFeetY;
-        }
-    }
-
     private PlayerVisualState createPlayerVisualState(int spriteFinal, int playerFlip, int playerDrawX) {
         int gunFlip = 1;
         int gunAnchorX = (int) x;
@@ -200,162 +185,6 @@ public class Player extends Entity {
                 Sprites[spriteFinal], playerDrawX, (int) y, 48 * playerFlip,
                 gunFrame, gunX, gunY, gunWidth, gunHeight,
                 gunType == GunType.PISTOL || direction == Direction.UP);
-    }
-
-    private ShadowSilhouette createPlayerShadowSilhouette(PlayerVisualState visual) {
-        double playerLeft = Math.min(visual.playerX, visual.playerX + visual.playerWidth);
-        double playerRight = Math.max(visual.playerX, visual.playerX + visual.playerWidth);
-        double gunLeft = Math.min(visual.gunX, visual.gunX + visual.gunWidth);
-        double gunRight = Math.max(visual.gunX, visual.gunX + visual.gunWidth);
-
-        int worldLeft = (int) Math.floor(Math.min(playerLeft, gunLeft));
-        int worldTop = (int) Math.floor(Math.min(visual.playerY, visual.gunY));
-        int worldRight = (int) Math.ceil(Math.max(playerRight, gunRight));
-        int worldBottom = (int) Math.ceil(Math.max(visual.playerY + 48.0, visual.gunY + visual.gunHeight));
-
-        BufferedImage combined = new BufferedImage(
-                Math.max(1, worldRight - worldLeft),
-                Math.max(1, worldBottom - worldTop),
-                BufferedImage.TYPE_INT_ARGB);
-        Graphics2D cg = combined.createGraphics();
-        try {
-            cg.setComposite(AlphaComposite.SrcOver);
-            cg.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                    RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-            cg.drawImage(visual.playerFrame, visual.playerX - worldLeft, visual.playerY - worldTop,
-                    visual.playerWidth, 48, null);
-            cg.drawImage(visual.gunFrame, visual.gunX - worldLeft, visual.gunY - worldTop,
-                    visual.gunWidth, visual.gunHeight, null);
-        } finally {
-            cg.dispose();
-        }
-
-        double sourceFeetX = x + 24.0 - worldLeft;
-        double sourceFeetY = y + 45.0 - worldTop;
-        BufferedImage shadowMask = new BufferedImage(combined.getWidth(), combined.getHeight(),
-                BufferedImage.TYPE_INT_ARGB);
-
-        for (int py = 0; py < combined.getHeight(); py++) {
-            double heightAboveFeet = Math.max(0.0, sourceFeetY - py);
-            double normalizedHeight = heightAboveFeet / 45.0;
-            float proximity = (float) Math.max(0.0, 1.0 - normalizedHeight);
-            float rowStrength = 0.12f + 0.88f * (float) Math.pow(proximity, 0.75);
-
-            for (int px = 0; px < combined.getWidth(); px++) {
-                int originalAlpha = (combined.getRGB(px, py) >>> 24) & 0xFF;
-                int finalAlpha = Math.round(originalAlpha * rowStrength);
-                shadowMask.setRGB(px, py, finalAlpha << 24);
-            }
-        }
-
-        return new ShadowSilhouette(shadowMask, sourceFeetX, sourceFeetY);
-    }
-
-    // "merge" da sombras
-    private void drawPlayerShadow(
-            Graphics2D g2,
-            ShadowSilhouette silhouette,
-            double playerX,
-            double playerY) {
-        if (silhouette == null || silhouette.image == null) {
-            return;
-        }
-
-        BufferedImage shadowFrame = silhouette.image;
-        int sourceWidth = shadowFrame.getWidth();
-        int sourceHeight = shadowFrame.getHeight();
-        double shadowAngle = sunAngle + Math.PI;
-        double shadowDirX = Math.cos(shadowAngle);
-        double shadowDirY = Math.sin(shadowAngle);
-        double southFactor = (shadowDirY + 1.0) / 2.0;
-        southFactor = Math.max(0.0, Math.min(1.0, southFactor));
-
-        double lengthMultiplier = 0.55 + (1.60 - 0.55) * southFactor;
-        double widthMultiplier = 0.80 + (1.20 - 0.80) * southFactor;
-        double effectiveLength = playerShadowLength * lengthMultiplier;
-        double maximumHeight = Math.max(45.0, silhouette.sourceFeetY);
-        double maximumProjectedDistance = effectiveLength * Math.pow(maximumHeight / 45.0, 0.90);
-        double worldFeetX = playerX + 24.0;
-        double worldFeetY = playerY + 45.0;
-        int blurPadding = 12;
-        int safetyPadding = 12;
-
-        int bufferWidth = (int) Math.ceil(
-                sourceWidth * widthMultiplier
-                        + Math.abs(shadowDirX) * maximumProjectedDistance
-                        + blurPadding * 2
-                        + safetyPadding * 2);
-        int bufferHeight = (int) Math.ceil(
-                sourceHeight
-                        + Math.abs(shadowDirY) * maximumProjectedDistance
-                        + blurPadding * 2
-                        + safetyPadding * 2);
-
-        BufferedImage shadowLayer = new BufferedImage(
-                Math.max(1, bufferWidth),
-                Math.max(1, bufferHeight),
-                BufferedImage.TYPE_INT_ARGB);
-
-        double localFeetX = blurPadding
-                + safetyPadding
-                + Math.max(0.0, -shadowDirX * maximumProjectedDistance)
-                + silhouette.sourceFeetX * widthMultiplier;
-        double localFeetY = blurPadding
-                + safetyPadding
-                + Math.max(0.0, -shadowDirY * maximumProjectedDistance)
-                + 6.0;
-
-        Graphics2D sg = shadowLayer.createGraphics();
-        try {
-            sg.setComposite(AlphaComposite.Src);
-            sg.setRenderingHint(
-                    RenderingHints.KEY_INTERPOLATION,
-                    RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-            for (int sourceY = 0; sourceY < sourceHeight; sourceY++) {
-                double heightAboveFeet = Math.max(0.0, silhouette.sourceFeetY - sourceY);
-                double distanceFromFeet = heightAboveFeet / 45.0;
-                double projectedDistance = effectiveLength * Math.pow(distanceFromFeet, 0.90);
-                double rowCenterY = localFeetY + shadowDirY * projectedDistance;
-                double rowPerspective = 0.72 + 0.28 * (1.0 - distanceFromFeet);
-                rowPerspective = Math.max(0.45, rowPerspective);
-                double horizontalScale = widthMultiplier * rowPerspective;
-
-                int destinationHeight = Math.max(
-                        2,
-                        (int) Math.ceil(Math.abs(shadowDirY) * effectiveLength / 45.0) + 1);
-
-                double projectedFeetX = localFeetX + shadowDirX * projectedDistance;
-                int dx1 = (int) Math.round(projectedFeetX - silhouette.sourceFeetX * horizontalScale);
-                int dx2 = (int) Math.round(
-                        projectedFeetX + (sourceWidth - silhouette.sourceFeetX) * horizontalScale);
-                if (dx2 <= dx1) {
-                    dx2 = dx1 + 1;
-                }
-                int dy1 = (int) Math.round(rowCenterY - destinationHeight / 2.0);
-                int dy2 = dy1 + destinationHeight;
-
-                sg.drawImage(
-                        shadowFrame,
-                        dx1, dy1, dx2, dy2,
-                        0, sourceY, sourceWidth, sourceY + 1,
-                        null);
-            }
-
-        } finally {
-            sg.dispose();
-        }
-
-        BufferedImage blurredShadow = Renderer.gaussianBlur(shadowLayer, 4, 2.0);
-        int drawX = (int) Math.round(worldFeetX - localFeetX);
-        int drawY = (int) Math.round(worldFeetY - localFeetY);
-        Composite oldComposite = g2.getComposite();
-        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, playerShadowOpacity));
-        g2.drawImage(blurredShadow, drawX, drawY, null);
-        g2.setComposite(oldComposite);
-    }
-
-    public void setSunAngle(double angleRadians) {
-        this.sunAngle = angleRadians;
     }
 
     public void setPlayerShadowLength(double length) {
@@ -1037,12 +866,13 @@ public class Player extends Entity {
                 && spriteOverrideIndex < Sprites.length;
         int spriteFinal = overrideAtivo ? spriteOverrideIndex : (animSp + animIndex);
 
-        setSunAngle(GameCore.getSunAngle());
         PlayerVisualState visual = createPlayerVisualState(spriteFinal, inv, xx);
-        if (Renderer.isRenderShadows()) {
-            ShadowSilhouette silhouette = createPlayerShadowSilhouette(visual);
-            drawPlayerShadow(g2, silhouette, x, y);
-        }
+        ProjectedShadow.drawForEntity(g2, x, y, 48, 48,
+                playerShadowLength, playerShadowOpacity,
+                new ProjectedShadow.Part(visual.playerFrame,
+                        visual.playerX, visual.playerY, visual.playerWidth, 48),
+                new ProjectedShadow.Part(visual.gunFrame,
+                        visual.gunX, visual.gunY, visual.gunWidth, visual.gunHeight));
 
         if (visual.gunBehindPlayer) {
             g2.drawImage(visual.gunFrame, visual.gunX, visual.gunY,
