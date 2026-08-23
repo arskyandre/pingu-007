@@ -71,7 +71,7 @@ public class GameCore extends Canvas implements Runnable {
     private int lastProcessedDay = 1;
     private long updateDayNightAnteriorNanos = -1L;
 
-    private static double fullDaySeconds = 360.0;
+    private static double fullDaySeconds = 24.0;
     private static final double STARTING_DAY_PROGRESS = 8.0 / 24.0;
 
     private static double dayProgress = STARTING_DAY_PROGRESS;
@@ -154,7 +154,8 @@ public class GameCore extends Canvas implements Runnable {
         enemyManager = new EnemyManager(levelManager, bulletmanager, soundManager, this, null);
         enemyManager.setItemManager(itemManager);
 
-        arenaManager = new ArenaManager(enemyManager, levelManager, itemManager, npcManager, cutsceneManager, this, camera, soundManager);
+        arenaManager = new ArenaManager(enemyManager, levelManager, itemManager, npcManager, cutsceneManager, this,
+                camera, soundManager);
 
         player.arenaManager = this.arenaManager;
         enemyManager.arenaManager = this.arenaManager;
@@ -390,7 +391,8 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void update() {
-        // System.out.println("Player position MapaUpdate (" + player.getX() + ", " + player.getY() + ")");
+        // System.out.println("Player position MapaUpdate (" + player.getX() + ", " +
+        // player.getY() + ")");
         if (input.isKeyJustPressed(KeyEvent.VK_F11)) {
             toggleFullscreen();
         }
@@ -539,11 +541,11 @@ public class GameCore extends Canvas implements Runnable {
     public void triggerDialogoInicial() {
         if (!dialogueManager.isAtivo()) {
             dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadio, DialogueCatalogo.FalaInicialRadio,
-                    new BufferedImage[]{
-                        pingu_portrait,
-                        cellphone_image,
-                        pingu_portrait,
-                        cellphone_image
+                    new BufferedImage[] {
+                            pingu_portrait,
+                            cellphone_image,
+                            pingu_portrait,
+                            cellphone_image
                     });
             dialogueManager.setAoTerminarDialogo(() -> {
                 ToastNotifications.RequestNotification("Use as setas para selecionar a opção e ENTER para confirmar.",
@@ -727,12 +729,14 @@ public class GameCore extends Canvas implements Runnable {
 
     public void sairCasaVendedor() {
         levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
-        //System.out.println("Player position levelManager.carregarNivel (" + player.getX() + ", " + player.getY() + ")");
+        // System.out.println("Player position levelManager.carregarNivel (" +
+        // player.getX() + ", " + player.getY() + ")");
 
         if (estadoLevel1AntesDaLoja != null) {
             arenaManager.restaurarEstadoMapa(estadoLevel1AntesDaLoja, player, itemManager);
         }
-        //System.out.println("Player position arenaManager.restaurarEstadoMapa (" + player.getX() + ", " + player.getY() + ")");
+        // System.out.println("Player position arenaManager.restaurarEstadoMapa (" +
+        // player.getX() + ", " + player.getY() + ")");
 
         if (!itensLevel1AntesDaLoja.isEmpty()) {
             itemManager.getItems().addAll(itensLevel1AntesDaLoja);
@@ -743,7 +747,8 @@ public class GameCore extends Canvas implements Runnable {
             player.setY(retornoLojaY);
         }
 
-        //System.out.println("Player position retorno (" + player.getX() + ", " + player.getY() + ")");
+        // System.out.println("Player position retorno (" + player.getX() + ", " +
+        // player.getY() + ")");
         camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
                 getWidth(), getHeight());
         setCinematicBorderAnimation(Renderer.BorderState.OUT);

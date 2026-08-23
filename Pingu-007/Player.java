@@ -81,7 +81,7 @@ public class Player extends Entity {
     private int chavesColetadasTotal = 0;
     private boolean checkpointSolicitado = false;
 
-    private BufferedImage[] Sprites, shadowSprites, arma;
+    private BufferedImage[] Sprites, arma;
     private double sunAngle = -Math.PI / 2.0;
     private double playerShadowLength = 42.0;
     private float playerShadowOpacity = 0.42f;
@@ -120,22 +120,17 @@ public class Player extends Entity {
         BufferedImage img = LoadSave.GetSpriteAtlas("images/pingu_sprite_sheet.png");
 
         Sprites = new BufferedImage[24];
-        shadowSprites = new BufferedImage[24];
         arma = new BufferedImage[4];
         for (int j = 0; j < 3; j++) {
             for (int i = 0; i < 7; i++) {
                 int index = j * 7 + i;
                 BufferedImage frame = img.getSubimage(i * 16, j * 16, 16, 16);
                 Sprites[index] = frame;
-                shadowSprites[index] = createShadowGradient(frame);
             }
         }
         Sprites[21] = img.getSubimage(0, 48, 16, 16);
         Sprites[22] = img.getSubimage(16, 48, 16, 16);
         Sprites[23] = img.getSubimage(32, 48, 16, 16);
-        shadowSprites[21] = createShadowGradient(Sprites[21]);
-        shadowSprites[22] = createShadowGradient(Sprites[22]);
-        shadowSprites[23] = createShadowGradient(Sprites[23]);
         arma[0] = img.getSubimage(48, 48, 16, 16);
         arma[1] = img.getSubimage(64, 48, 16, 16);
         arma[2] = img.getSubimage(80, 48, 16, 16);
@@ -143,36 +138,130 @@ public class Player extends Entity {
 
     }
 
-    private BufferedImage createShadowGradient(BufferedImage source) {
-        int width = source.getWidth();
-        int height = source.getHeight();
-        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    private static final class PlayerVisualState {
+        private final BufferedImage playerFrame;
+        private final int playerX, playerY, playerWidth;
+        private final BufferedImage gunFrame;
+        private final int gunX, gunY, gunWidth, gunHeight;
+        private final boolean gunBehindPlayer;
 
-        for (int py = 0; py < height; py++) {
-            float proximity = (height <= 1) ? 1.0f : py / (float) (height - 1);
+        private PlayerVisualState(BufferedImage playerFrame, int playerX, int playerY, int playerWidth,
+                BufferedImage gunFrame, int gunX, int gunY, int gunWidth, int gunHeight,
+                boolean gunBehindPlayer) {
+            this.playerFrame = playerFrame;
+            this.playerX = playerX;
+            this.playerY = playerY;
+            this.playerWidth = playerWidth;
+            this.gunFrame = gunFrame;
+            this.gunX = gunX;
+            this.gunY = gunY;
+            this.gunWidth = gunWidth;
+            this.gunHeight = gunHeight;
+            this.gunBehindPlayer = gunBehindPlayer;
+        }
+    }
+
+    private static final class ShadowSilhouette {
+        private final BufferedImage image;
+        private final double sourceFeetX, sourceFeetY;
+
+        private ShadowSilhouette(BufferedImage image, double sourceFeetX, double sourceFeetY) {
+            this.image = image;
+            this.sourceFeetX = sourceFeetX;
+            this.sourceFeetY = sourceFeetY;
+        }
+    }
+
+    private PlayerVisualState createPlayerVisualState(int spriteFinal, int playerFlip, int playerDrawX) {
+        int gunFlip = 1;
+        int gunAnchorX = (int) x;
+        double gunAngle = angulo;
+
+        if (angulo > Math.PI / 2 || angulo < -Math.PI / 2) {
+            gunFlip = -1;
+            gunAnchorX = (int) x + 48;
+            gunAngle = angulo > 0 ? Math.PI - angulo : -Math.PI - angulo;
+        }
+
+        int gunIndex = gunType == GunType.SHOTGUN ? 2 : 0;
+        if (tiroTimer > 0) {
+            gunIndex++;
+        }
+
+        BufferedImage gunFrame = HelpMethods.rotateImageByDegrees(arma[gunIndex], gunAngle);
+        int gap = (gunFrame.getWidth() * 3 - 48) / 2;
+        int gunY = (int) y - gap + 6;
+        int gunOffset = gunType == GunType.PISTOL ? 20 : 12;
+        int gunX = gunAnchorX - (gap - gunOffset) * gunFlip;
+        int gunWidth = gunFrame.getWidth() * 3 * gunFlip;
+        int gunHeight = gunFrame.getHeight() * 3;
+
+        return new PlayerVisualState(
+                Sprites[spriteFinal], playerDrawX, (int) y, 48 * playerFlip,
+                gunFrame, gunX, gunY, gunWidth, gunHeight,
+                gunType == GunType.PISTOL || direction == Direction.UP);
+    }
+
+    private ShadowSilhouette createPlayerShadowSilhouette(PlayerVisualState visual) {
+        double playerLeft = Math.min(visual.playerX, visual.playerX + visual.playerWidth);
+        double playerRight = Math.max(visual.playerX, visual.playerX + visual.playerWidth);
+        double gunLeft = Math.min(visual.gunX, visual.gunX + visual.gunWidth);
+        double gunRight = Math.max(visual.gunX, visual.gunX + visual.gunWidth);
+
+        int worldLeft = (int) Math.floor(Math.min(playerLeft, gunLeft));
+        int worldTop = (int) Math.floor(Math.min(visual.playerY, visual.gunY));
+        int worldRight = (int) Math.ceil(Math.max(playerRight, gunRight));
+        int worldBottom = (int) Math.ceil(Math.max(visual.playerY + 48.0, visual.gunY + visual.gunHeight));
+
+        BufferedImage combined = new BufferedImage(
+                Math.max(1, worldRight - worldLeft),
+                Math.max(1, worldBottom - worldTop),
+                BufferedImage.TYPE_INT_ARGB);
+        Graphics2D cg = combined.createGraphics();
+        try {
+            cg.setComposite(AlphaComposite.SrcOver);
+            cg.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+            cg.drawImage(visual.playerFrame, visual.playerX - worldLeft, visual.playerY - worldTop,
+                    visual.playerWidth, 48, null);
+            cg.drawImage(visual.gunFrame, visual.gunX - worldLeft, visual.gunY - worldTop,
+                    visual.gunWidth, visual.gunHeight, null);
+        } finally {
+            cg.dispose();
+        }
+
+        double sourceFeetX = x + 24.0 - worldLeft;
+        double sourceFeetY = y + 45.0 - worldTop;
+        BufferedImage shadowMask = new BufferedImage(combined.getWidth(), combined.getHeight(),
+                BufferedImage.TYPE_INT_ARGB);
+
+        for (int py = 0; py < combined.getHeight(); py++) {
+            double heightAboveFeet = Math.max(0.0, sourceFeetY - py);
+            double normalizedHeight = heightAboveFeet / 45.0;
+            float proximity = (float) Math.max(0.0, 1.0 - normalizedHeight);
             float rowStrength = 0.12f + 0.88f * (float) Math.pow(proximity, 0.75);
 
-            for (int px = 0; px < width; px++) {
-                int pixel = source.getRGB(px, py);
-                int originalAlpha = (pixel >>> 24) & 0xFF;
+            for (int px = 0; px < combined.getWidth(); px++) {
+                int originalAlpha = (combined.getRGB(px, py) >>> 24) & 0xFF;
                 int finalAlpha = Math.round(originalAlpha * rowStrength);
-                result.setRGB(px, py, finalAlpha << 24);
+                shadowMask.setRGB(px, py, finalAlpha << 24);
             }
         }
 
-        return result;
+        return new ShadowSilhouette(shadowMask, sourceFeetX, sourceFeetY);
     }
 
+    // "merge" da sombras
     private void drawPlayerShadow(
             Graphics2D g2,
-            BufferedImage shadowFrame,
+            ShadowSilhouette silhouette,
             double playerX,
-            double playerY,
-            int horizontalFlip) {
-        if (shadowFrame == null) {
+            double playerY) {
+        if (silhouette == null || silhouette.image == null) {
             return;
         }
 
+        BufferedImage shadowFrame = silhouette.image;
         int sourceWidth = shadowFrame.getWidth();
         int sourceHeight = shadowFrame.getHeight();
         double shadowAngle = sunAngle + Math.PI;
@@ -184,20 +273,21 @@ public class Player extends Entity {
         double lengthMultiplier = 0.55 + (1.60 - 0.55) * southFactor;
         double widthMultiplier = 0.80 + (1.20 - 0.80) * southFactor;
         double effectiveLength = playerShadowLength * lengthMultiplier;
-        double renderedSpriteWidth = 48.0;
+        double maximumHeight = Math.max(45.0, silhouette.sourceFeetY);
+        double maximumProjectedDistance = effectiveLength * Math.pow(maximumHeight / 45.0, 0.90);
         double worldFeetX = playerX + 24.0;
         double worldFeetY = playerY + 45.0;
         int blurPadding = 12;
         int safetyPadding = 12;
 
         int bufferWidth = (int) Math.ceil(
-                renderedSpriteWidth * widthMultiplier
-                        + Math.abs(shadowDirX) * effectiveLength
+                sourceWidth * widthMultiplier
+                        + Math.abs(shadowDirX) * maximumProjectedDistance
                         + blurPadding * 2
                         + safetyPadding * 2);
         int bufferHeight = (int) Math.ceil(
-                48.0
-                        + Math.abs(shadowDirY) * effectiveLength
+                sourceHeight
+                        + Math.abs(shadowDirY) * maximumProjectedDistance
                         + blurPadding * 2
                         + safetyPadding * 2);
 
@@ -208,11 +298,11 @@ public class Player extends Entity {
 
         double localFeetX = blurPadding
                 + safetyPadding
-                + Math.max(0.0, -shadowDirX * effectiveLength)
-                + renderedSpriteWidth * widthMultiplier / 2.0;
+                + Math.max(0.0, -shadowDirX * maximumProjectedDistance)
+                + silhouette.sourceFeetX * widthMultiplier;
         double localFeetY = blurPadding
                 + safetyPadding
-                + Math.max(0.0, -shadowDirY * effectiveLength)
+                + Math.max(0.0, -shadowDirY * maximumProjectedDistance)
                 + 6.0;
 
         Graphics2D sg = shadowLayer.createGraphics();
@@ -222,31 +312,32 @@ public class Player extends Entity {
                     RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
             for (int sourceY = 0; sourceY < sourceHeight; sourceY++) {
-                double distanceFromFeet = (sourceHeight - 1 - sourceY) / (double) (sourceHeight - 1);
+                double heightAboveFeet = Math.max(0.0, silhouette.sourceFeetY - sourceY);
+                double distanceFromFeet = heightAboveFeet / 45.0;
                 double projectedDistance = effectiveLength * Math.pow(distanceFromFeet, 0.90);
-                double rowCenterX = localFeetX + shadowDirX * projectedDistance;
                 double rowCenterY = localFeetY + shadowDirY * projectedDistance;
                 double rowPerspective = 0.72 + 0.28 * (1.0 - distanceFromFeet);
+                rowPerspective = Math.max(0.45, rowPerspective);
+                double horizontalScale = widthMultiplier * rowPerspective;
 
-                int destinationWidth = Math.max(
-                        1,
-                        (int) Math.round(renderedSpriteWidth * widthMultiplier * rowPerspective));
                 int destinationHeight = Math.max(
                         2,
-                        (int) Math.ceil(Math.abs(shadowDirY) * effectiveLength / (sourceHeight - 1)) + 1);
+                        (int) Math.ceil(Math.abs(shadowDirY) * effectiveLength / 45.0) + 1);
 
-                int dx1 = (int) Math.round(rowCenterX - destinationWidth / 2.0);
-                int dx2 = dx1 + destinationWidth;
+                double projectedFeetX = localFeetX + shadowDirX * projectedDistance;
+                int dx1 = (int) Math.round(projectedFeetX - silhouette.sourceFeetX * horizontalScale);
+                int dx2 = (int) Math.round(
+                        projectedFeetX + (sourceWidth - silhouette.sourceFeetX) * horizontalScale);
+                if (dx2 <= dx1) {
+                    dx2 = dx1 + 1;
+                }
                 int dy1 = (int) Math.round(rowCenterY - destinationHeight / 2.0);
                 int dy2 = dy1 + destinationHeight;
-
-                int sx1 = (horizontalFlip < 0) ? sourceWidth : 0;
-                int sx2 = (horizontalFlip < 0) ? 0 : sourceWidth;
 
                 sg.drawImage(
                         shadowFrame,
                         dx1, dy1, dx2, dy2,
-                        sx1, sourceY, sx2, sourceY + 1,
+                        0, sourceY, sourceWidth, sourceY + 1,
                         null);
             }
 
@@ -589,7 +680,7 @@ public class Player extends Entity {
                         setGunType(Player.GunType.PISTOL);
                         if (ToastNotifications.getNotifAtual() != null
                                 && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                             ToastNotifications.skipNotification();
                         }
                         if (ToastNotifications.getNotifAtual() == null
@@ -600,7 +691,7 @@ public class Player extends Entity {
                         setGunType(Player.GunType.SHOTGUN);
                         if (ToastNotifications.getNotifAtual() != null
                                 && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                             ToastNotifications.skipNotification();
                         }
                         if (ToastNotifications.getNotifAtual() == null
@@ -729,7 +820,7 @@ public class Player extends Entity {
                         setGunType(Player.GunType.PISTOL);
                         if (ToastNotifications.getNotifAtual() != null
                                 && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                             ToastNotifications.skipNotification();
                         }
                         if (ToastNotifications.getNotifAtual() == null
@@ -740,7 +831,7 @@ public class Player extends Entity {
                         setGunType(Player.GunType.SHOTGUN);
                         if (ToastNotifications.getNotifAtual() != null
                                 && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                             ToastNotifications.skipNotification();
                         }
                         if (ToastNotifications.getNotifAtual() == null
@@ -948,54 +1039,19 @@ public class Player extends Entity {
         int spriteFinal = overrideAtivo ? spriteOverrideIndex : (animSp + animIndex);
 
         setSunAngle(GameCore.getSunAngle());
-        drawPlayerShadow(g2, shadowSprites[spriteFinal], x, y, inv);
+        PlayerVisualState visual = createPlayerVisualState(spriteFinal, inv, xx);
+        ShadowSilhouette silhouette = createPlayerShadowSilhouette(visual);
+        drawPlayerShadow(g2, silhouette, x, y);
 
-        int ginv = 1, xgun = (int) x;
-
-        double ang = angulo;
-        if (angulo > Math.PI / 2 || angulo < -Math.PI / 2) {
-            ginv = -1;
-            if (angulo > 0) {
-                ang = Math.PI - ang;
-            } else {
-                ang = (-Math.PI) - ang; // atenção
-            }
+        if (visual.gunBehindPlayer) {
+            g2.drawImage(visual.gunFrame, visual.gunX, visual.gunY,
+                    visual.gunWidth, visual.gunHeight, null);
         }
-        int indexArma = 0;
-        if (gunType == GunType.SHOTGUN) {
-            indexArma = 2;
-        }
-        if (tiroTimer > 0) {
-            indexArma = indexArma + 1;
-        }
-        BufferedImage gun = HelpMethods.rotateImageByDegrees(arma[indexArma], ang);
-        int gap = gun.getWidth() * 3 - 48, yy = (int) y;
-        gap /= 2;
-
-        yy = yy - gap + 6;
-
-        if (ginv == -1) {
-            xgun = (int) x + 48;
-        }
-
-        if (gunType == GunType.PISTOL) {
-            g2.drawImage(gun, xgun - (gap - 20) * ginv, yy, gun.getWidth() * 3 * ginv, gun.getHeight() * 3, null);// gun
-            // render
-            // under
-            // pingu
-        }
-        if (gunType != GunType.PISTOL && direction == Direction.UP) {
-            g2.drawImage(gun, xgun - (gap - 12) * ginv, yy, gun.getWidth() * 3 * ginv, gun.getHeight() * 3, null);// gun
-            // render
-            // under
-            // pingous
-        }
-        g2.drawImage(Sprites[spriteFinal], xx, (int) y, 48 * inv, 48, null);
-        if (gunType != GunType.PISTOL && direction != Direction.UP) {
-            g2.drawImage(gun, xgun - (gap - 12) * ginv, yy, gun.getWidth() * 3 * ginv, gun.getHeight() * 3, null);// gun
-            // render
-            // above
-            // pingous
+        g2.drawImage(visual.playerFrame, visual.playerX, visual.playerY,
+                visual.playerWidth, 48, null);
+        if (!visual.gunBehindPlayer) {
+            g2.drawImage(visual.gunFrame, visual.gunX, visual.gunY,
+                    visual.gunWidth, visual.gunHeight, null);
         }
 
         if (hasFishingRod && fishingBobber != null && fishingBobber.isAtivo()) {
