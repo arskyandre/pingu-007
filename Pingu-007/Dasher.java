@@ -32,7 +32,7 @@ public class Dasher extends Enemy {
     public Dasher(double startX, double startY, double width, double height, int[][] lvlData,
             SoundManager soundManager, ArenaManager arenaManager) {
         super(startX, startY, width, height, lvlData, soundManager, arenaManager);
-        this.vidaMaxima = 45;
+        this.vidaMaxima = 40;
         this.vida = this.vidaMaxima;
         this.podePularBuracos = true;
 

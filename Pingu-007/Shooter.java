@@ -39,7 +39,7 @@ public class Shooter extends Enemy {
             SoundManager soundManager, ArenaManager arenaManager) {
         super(startX, startY, width, height, lvlData, soundManager, arenaManager);
         this.bulletManager = bulmgr;
-        this.vidaMaxima = 30;
+        this.vidaMaxima = 50;
         this.vida = this.vidaMaxima;
         this.velocidadeAndar = 2.0;
         this.velocidadeMax = 30.0;
