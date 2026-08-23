@@ -47,6 +47,9 @@ public class HealthPackItem extends ConsumableItem {
                             (int) largura, (int) altura));
             g2.drawImage(sprite, (int) x, (int) drawY, (int) largura, (int) altura, null);
         } else {
+            ProjectedShadow.drawForEntity(g2, x, y, largura, altura,
+                    ProjectedShadow.solidPart((int) x, (int) drawY,
+                            (int) largura, (int) altura));
             g2.setColor(COR_PLACEHOLDER);
             g2.fillRect((int) x, (int) drawY, (int) largura, (int) altura);
         }

@@ -49,6 +49,9 @@ public class KeyItem extends Item {
                             (int) largura, (int) altura));
             g2.drawImage(sprite, (int) x, (int) drawY, (int) largura, (int) altura, null);
         } else {
+            ProjectedShadow.drawForEntity(g2, x, y, largura, altura,
+                    ProjectedShadow.solidPart((int) x + 2, (int) drawY,
+                            (int) largura - 4, (int) altura));
             g2.setColor(COR_PLACEHOLDER);
             g2.fillRect((int) x + 4, (int) drawY, (int) largura - 8, (int) altura);
             g2.fillRect((int) x + 2, (int) (drawY + altura / 2.0), 6, 6);
