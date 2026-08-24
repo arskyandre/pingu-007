@@ -12,12 +12,14 @@ public final class ProjectedShadow {
     private static final double PLAYER_HEIGHT = 48.0;
     private static final double PLAYER_FEET_HEIGHT = 45.0;
     private static final double PLAYER_SHADOW_LENGTH = 42.0;
-    private static final float SHADOW_OPACITY = 0.42f;
-    private static final int SUN_ANGLE_BUCKETS = 120;
+    public static final double SHADOW_LENGTH_PER_REFERENCE_HEIGHT =
+            PLAYER_SHADOW_LENGTH / PLAYER_FEET_HEIGHT;
+    public static final float DEFAULT_SHADOW_OPACITY = 0.42f;
+    private static final int SUN_ANGLE_BUCKETS = 360;
     private static final double SUN_ANGLE_STEP = Math.PI * 2.0 / SUN_ANGLE_BUCKETS;
     private static final int MAX_CACHED_SHADOWS = 48;
     private static final BufferedImage SOLID_PIXEL = createSolidPixel();
-    private static final Map<BufferedImage, Boolean> SEEN_IMAGES = new WeakHashMap<>();
+    private static final Map<BufferedImage, AlphaMetrics> ALPHA_METRICS = new WeakHashMap<>();
     private static final Map<ShadowCacheKey, CachedShadow> SHADOW_CACHE =
             new LinkedHashMap<>(MAX_CACHED_SHADOWS, 0.75f, true) {
                 @Override
@@ -25,6 +27,8 @@ public final class ProjectedShadow {
                     return size() > MAX_CACHED_SHADOWS;
                 }
             };
+    private static long generatedShadowCount;
+    private static long shadowCacheHitCount;
 
     private ProjectedShadow() {
     }
@@ -48,19 +52,75 @@ public final class ProjectedShadow {
         }
     }
 
+    public static final class VisualAnchor {
+        private final double x;
+        private final double y;
+        private final double visibleHeight;
+        private final boolean hasVisiblePixels;
+
+        private VisualAnchor(double x, double y, double visibleHeight, boolean hasVisiblePixels) {
+            this.x = x;
+            this.y = y;
+            this.visibleHeight = visibleHeight;
+            this.hasVisiblePixels = hasVisiblePixels;
+        }
+
+        public double getX() {
+            return x;
+        }
+
+        public double getY() {
+            return y;
+        }
+
+        public double getVisibleHeight() {
+            return visibleHeight;
+        }
+
+        public boolean hasVisiblePixels() {
+            return hasVisiblePixels;
+        }
+    }
+
+    private static final class AlphaMetrics {
+        private final int firstVisibleRow;
+        private final int lastVisibleRow;
+        private final int firstRowMinX;
+        private final int firstRowMaxX;
+        private final int lastRowMinX;
+        private final int lastRowMaxX;
+
+        private AlphaMetrics(int firstVisibleRow, int lastVisibleRow,
+                int firstRowMinX, int firstRowMaxX, int lastRowMinX, int lastRowMaxX) {
+            this.firstVisibleRow = firstVisibleRow;
+            this.lastVisibleRow = lastVisibleRow;
+            this.firstRowMinX = firstRowMinX;
+            this.firstRowMaxX = firstRowMaxX;
+            this.lastRowMinX = lastRowMinX;
+            this.lastRowMaxX = lastRowMaxX;
+        }
+
+        private boolean hasVisiblePixels() {
+            return firstVisibleRow >= 0;
+        }
+    }
+
     private static final class ShadowCacheKey {
         private final int angleBucket;
         private final long referenceHeightBits;
         private final long shadowLengthBits;
+        private final int opacityBits;
         private final BufferedImage[] images;
         private final int[] geometry;
+        private final byte[] flipFlags;
         private final int hash;
 
         private ShadowCacheKey(int angleBucket, double referenceHeight, double shadowLength,
-                int anchorX, int anchorY, Part... parts) {
+                float opacity, int anchorX, int anchorY, Part... parts) {
             this.angleBucket = angleBucket;
             this.referenceHeightBits = Double.doubleToLongBits(referenceHeight);
             this.shadowLengthBits = Double.doubleToLongBits(shadowLength);
+            this.opacityBits = Float.floatToIntBits(opacity);
 
             int validPartCount = 0;
             for (Part part : parts) {
@@ -70,17 +130,21 @@ public final class ProjectedShadow {
             }
             this.images = new BufferedImage[validPartCount];
             this.geometry = new int[validPartCount * 4];
+            this.flipFlags = new byte[validPartCount];
 
             int imageIndex = 0;
             int geometryIndex = 0;
             int calculatedHash = angleBucket;
             calculatedHash = 31 * calculatedHash + Long.hashCode(referenceHeightBits);
             calculatedHash = 31 * calculatedHash + Long.hashCode(shadowLengthBits);
+            calculatedHash = 31 * calculatedHash + opacityBits;
             for (Part part : parts) {
                 if (part == null || part.image == null || part.width == 0 || part.height == 0) {
                     continue;
                 }
                 images[imageIndex++] = part.image;
+                flipFlags[imageIndex - 1] = (byte) ((part.width < 0 ? 1 : 0)
+                        | (part.height < 0 ? 2 : 0));
                 geometry[geometryIndex++] = part.x - anchorX;
                 geometry[geometryIndex++] = part.y - anchorY;
                 geometry[geometryIndex++] = part.width;
@@ -90,6 +154,9 @@ public final class ProjectedShadow {
                 calculatedHash = 31 * calculatedHash + part.y - anchorY;
                 calculatedHash = 31 * calculatedHash + part.width;
                 calculatedHash = 31 * calculatedHash + part.height;
+            }
+            for (byte flipFlag : flipFlags) {
+                calculatedHash = 31 * calculatedHash + flipFlag;
             }
             this.hash = calculatedHash;
         }
@@ -108,8 +175,10 @@ public final class ProjectedShadow {
                     || angleBucket != other.angleBucket
                     || referenceHeightBits != other.referenceHeightBits
                     || shadowLengthBits != other.shadowLengthBits
+                    || opacityBits != other.opacityBits
                     || images.length != other.images.length
-                    || geometry.length != other.geometry.length) {
+                    || geometry.length != other.geometry.length
+                    || flipFlags.length != other.flipFlags.length) {
                 return false;
             }
             for (int i = 0; i < images.length; i++) {
@@ -119,6 +188,11 @@ public final class ProjectedShadow {
             }
             for (int i = 0; i < geometry.length; i++) {
                 if (geometry[i] != other.geometry[i]) {
+                    return false;
+                }
+            }
+            for (int i = 0; i < flipFlags.length; i++) {
+                if (flipFlags[i] != other.flipFlags[i]) {
                     return false;
                 }
             }
@@ -144,25 +218,93 @@ public final class ProjectedShadow {
         return new Part(SOLID_PIXEL, x, y, width, height);
     }
 
+    public static double shadowLengthForReferenceHeight(double referenceHeight) {
+        return Math.max(0.0, referenceHeight) * SHADOW_LENGTH_PER_REFERENCE_HEIGHT;
+    }
+
+    public static VisualAnchor getVisualGroundAnchor(BufferedImage image,
+            int dx, int dy, int drawWidth, int drawHeight) {
+        if (image == null || drawWidth == 0 || drawHeight == 0) {
+            return new VisualAnchor(dx, dy, 1.0, false);
+        }
+
+        AlphaMetrics metrics = getAlphaMetrics(image);
+        double renderedWidth = Math.abs((double) drawWidth);
+        double renderedHeight = Math.abs((double) drawHeight);
+        double left = Math.min(dx, dx + (double) drawWidth);
+        double top = Math.min(dy, dy + (double) drawHeight);
+
+        if (!metrics.hasVisiblePixels()) {
+            return new VisualAnchor(left + renderedWidth / 2.0, top + renderedHeight,
+                    1.0, false);
+        }
+
+        boolean flipH = drawWidth < 0;
+        boolean flipV = drawHeight < 0;
+        int sourceRow = flipV ? metrics.firstVisibleRow : metrics.lastVisibleRow;
+        int rowMinX = flipV ? metrics.firstRowMinX : metrics.lastRowMinX;
+        int rowMaxX = flipV ? metrics.firstRowMaxX : metrics.lastRowMaxX;
+        double sourceCenterX = (rowMinX + rowMaxX + 1) / 2.0;
+        double sourceWidth = image.getWidth();
+        double sourceHeight = image.getHeight();
+        double anchorSourceX = flipH ? sourceWidth - sourceCenterX : sourceCenterX;
+        double anchorSourceY = flipV ? sourceHeight - sourceRow : sourceRow + 1.0;
+        double visibleHeight = Math.max(1.0,
+                (metrics.lastVisibleRow - metrics.firstVisibleRow + 1) * renderedHeight / sourceHeight);
+
+        return new VisualAnchor(
+                left + anchorSourceX * renderedWidth / sourceWidth,
+                top + anchorSourceY * renderedHeight / sourceHeight,
+                visibleHeight,
+                true);
+    }
+
+    private static AlphaMetrics getAlphaMetrics(BufferedImage image) {
+        synchronized (ALPHA_METRICS) {
+            AlphaMetrics cached = ALPHA_METRICS.get(image);
+            if (cached != null) {
+                return cached;
+            }
+
+            int firstRow = -1;
+            int lastRow = -1;
+            int firstMinX = Integer.MAX_VALUE;
+            int firstMaxX = Integer.MIN_VALUE;
+            int lastMinX = Integer.MAX_VALUE;
+            int lastMaxX = Integer.MIN_VALUE;
+            for (int sourceY = 0; sourceY < image.getHeight(); sourceY++) {
+                int rowMinX = Integer.MAX_VALUE;
+                int rowMaxX = Integer.MIN_VALUE;
+                for (int sourceX = 0; sourceX < image.getWidth(); sourceX++) {
+                    int alpha = (image.getRGB(sourceX, sourceY) >>> 24) & 0xFF;
+                    if (alpha != 0) {
+                        rowMinX = Math.min(rowMinX, sourceX);
+                        rowMaxX = Math.max(rowMaxX, sourceX);
+                    }
+                }
+                if (rowMinX == Integer.MAX_VALUE) {
+                    continue;
+                }
+                if (firstRow == -1) {
+                    firstRow = sourceY;
+                    firstMinX = rowMinX;
+                    firstMaxX = rowMaxX;
+                }
+                lastRow = sourceY;
+                lastMinX = rowMinX;
+                lastMaxX = rowMaxX;
+            }
+
+            AlphaMetrics metrics = new AlphaMetrics(firstRow, lastRow,
+                    firstMinX, firstMaxX, lastMinX, lastMaxX);
+            ALPHA_METRICS.put(image, metrics);
+            return metrics;
+        }
+    }
+
     private static int getSunAngleBucket() {
         int bucket = (int) Math.round(GameCore.getSunAngle() / SUN_ANGLE_STEP);
         return Math.floorMod(bucket, SUN_ANGLE_BUCKETS);
-    }
-
-    private static boolean partsWereSeenBefore(Part... parts) {
-        boolean allSeen = true;
-        synchronized (SEEN_IMAGES) {
-            for (Part part : parts) {
-                if (part == null || part.image == null || part.width == 0 || part.height == 0) {
-                    continue;
-                }
-                if (!SEEN_IMAGES.containsKey(part.image)) {
-                    allSeen = false;
-                    SEEN_IMAGES.put(part.image, Boolean.TRUE);
-                }
-            }
-        }
-        return allSeen;
     }
 
     private static CachedShadow getCachedShadow(ShadowCacheKey key) {
@@ -174,6 +316,26 @@ public final class ProjectedShadow {
     private static void cacheShadow(ShadowCacheKey key, CachedShadow shadow) {
         synchronized (SHADOW_CACHE) {
             SHADOW_CACHE.put(key, shadow);
+        }
+    }
+
+    public static void resetCacheStatistics() {
+        synchronized (SHADOW_CACHE) {
+            SHADOW_CACHE.clear();
+            generatedShadowCount = 0;
+            shadowCacheHitCount = 0;
+        }
+    }
+
+    public static long getGeneratedShadowCount() {
+        synchronized (SHADOW_CACHE) {
+            return generatedShadowCount;
+        }
+    }
+
+    public static long getShadowCacheHitCount() {
+        synchronized (SHADOW_CACHE) {
+            return shadowCacheHitCount;
         }
     }
 
@@ -198,7 +360,7 @@ public final class ProjectedShadow {
     public static void drawForEntity(Graphics2D g2, double x, double y, double width, double height,
             Part... parts) {
         drawForEntity(g2, x, y, width, height,
-                PLAYER_SHADOW_LENGTH * (height / PLAYER_HEIGHT), SHADOW_OPACITY, parts);
+                PLAYER_SHADOW_LENGTH * (height / PLAYER_HEIGHT), DEFAULT_SHADOW_OPACITY, parts);
     }
 
     public static void drawForEntity(Graphics2D g2, double x, double y, double width, double height,
@@ -226,8 +388,21 @@ public final class ProjectedShadow {
         double referenceHeight = Math.max(1.0, height * safeFeetRatioY);
         double feetX = x + width / 2.0;
         double feetY = y + referenceHeight;
-        double shadowLength = PLAYER_SHADOW_LENGTH * (referenceHeight / PLAYER_FEET_HEIGHT);
-        draw(g2, feetX, feetY, referenceHeight, shadowLength, SHADOW_OPACITY, parts);
+        double shadowLength = shadowLengthForReferenceHeight(referenceHeight);
+        draw(g2, feetX, feetY, referenceHeight, shadowLength, DEFAULT_SHADOW_OPACITY, parts);
+    }
+
+    public static void drawAtGroundAnchor(Graphics2D g2, double groundAnchorX, double groundAnchorY,
+            double referenceHeight, double shadowLength, float opacity, Part... parts) {
+        if (!Renderer.isRenderShadows() || parts == null || parts.length == 0) {
+            return;
+        }
+
+        double safeReferenceHeight = Math.max(1.0, referenceHeight);
+        double safeLength = Math.max(0.0, shadowLength);
+        float safeOpacity = Math.max(0.0f, Math.min(1.0f, opacity));
+        draw(g2, groundAnchorX, groundAnchorY, safeReferenceHeight,
+                safeLength, safeOpacity, parts);
     }
 
     private static void draw(Graphics2D g2, double worldFeetX, double worldFeetY,
@@ -235,15 +410,15 @@ public final class ProjectedShadow {
         int anchorX = (int) Math.floor(worldFeetX);
         int anchorY = (int) Math.floor(worldFeetY);
         int angleBucket = getSunAngleBucket();
-        ShadowCacheKey cacheKey = null;
-        if (partsWereSeenBefore(parts)) {
-            cacheKey = new ShadowCacheKey(angleBucket, referenceHeight, shadowLength,
-                    anchorX, anchorY, parts);
-            CachedShadow cachedShadow = getCachedShadow(cacheKey);
-            if (cachedShadow != null) {
-                drawCachedShadow(g2, cachedShadow, anchorX, anchorY, opacity);
-                return;
+        ShadowCacheKey cacheKey = new ShadowCacheKey(angleBucket, referenceHeight, shadowLength,
+                opacity, anchorX, anchorY, parts);
+        CachedShadow cachedShadow = getCachedShadow(cacheKey);
+        if (cachedShadow != null) {
+            synchronized (SHADOW_CACHE) {
+                shadowCacheHitCount++;
             }
+            drawCachedShadow(g2, cachedShadow, anchorX, anchorY, opacity);
+            return;
         }
 
         int worldLeft = Integer.MAX_VALUE;
@@ -262,6 +437,10 @@ public final class ProjectedShadow {
         }
         if (worldLeft == Integer.MAX_VALUE) {
             return;
+        }
+
+        synchronized (SHADOW_CACHE) {
+            generatedShadowCount++;
         }
 
         worldLeft = Math.min(worldLeft, (int) Math.floor(worldFeetX));

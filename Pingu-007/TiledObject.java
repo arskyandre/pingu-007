@@ -19,6 +19,7 @@ public class TiledObject {
     public boolean flipV = false;
     public boolean flipDiagonal = false; // rotação 90°
     public boolean collision = false;
+    public boolean castsShadow = false;
 
     public boolean solidoPorPadrao = false;
 

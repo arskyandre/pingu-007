@@ -13,6 +13,10 @@ public class MapObject implements Renderable, DebugRenderable {
     private double width, height;
     private Shape hitboxNoMundo;
     private double profundidade;
+    private double visualAnchorX;
+    private double visualAnchorY;
+    private double visibleAlphaHeight = 1.0;
+    private boolean hasVisibleVisualAnchor;
 
     private boolean temColisao;
     private boolean isTransparent;
@@ -41,11 +45,7 @@ public class MapObject implements Renderable, DebugRenderable {
             this.hitboxNoMundo = null;
         }
 
-        if (this.hitboxNoMundo != null) {
-            this.profundidade = this.hitboxNoMundo.getBounds2D().getMaxY();
-        } else {
-            this.profundidade = this.y + this.height;
-        }
+        recalculateVisualAnchorAndDepth();
     }
 
     @Override
@@ -56,20 +56,21 @@ public class MapObject implements Renderable, DebugRenderable {
     @Override
     public void draw(Graphics2D g2, double delta) {
         if (sprite != null) {
-            int dx = (int) x;
-            int dy = (int) y;
+            SpriteGeometry geometry = calculateSpriteGeometry();
+            int dx = geometry.dx;
+            int dy = geometry.dy;
+            int drawW = geometry.drawWidth;
+            int drawH = geometry.drawHeight;
 
-            int drawW = (int) Math.round(sprite.getWidth() * GameCore.scale);
-            int drawH = (int) Math.round(sprite.getHeight() * GameCore.scale);
+            if (data.castsShadow && hasVisibleVisualAnchor) {
+                double referenceHeight = Math.max(1.0, visibleAlphaHeight);
+                ProjectedShadow.drawAtGroundAnchor(g2, visualAnchorX, visualAnchorY,
+                        referenceHeight,
+                        ProjectedShadow.shadowLengthForReferenceHeight(referenceHeight),
+                        ProjectedShadow.DEFAULT_SHADOW_OPACITY,
+                        new ProjectedShadow.Part(sprite, dx, dy, drawW, drawH));
+            }
 
-            if (flipH) {
-                dx += drawW;
-                drawW = -drawW;
-            }
-            if (flipV) {
-                dy += drawH;
-                drawH = -drawH;
-            }
             g2.drawImage(sprite, dx, dy, drawW, drawH, null);
         }
 
@@ -85,6 +86,9 @@ public class MapObject implements Renderable, DebugRenderable {
         this.y = this.data.y;
         this.width = this.data.width;
         this.height = this.data.height;
+        this.flipH = this.data.flipH;
+        this.flipV = this.data.flipV;
+        this.sprite = this.data.sprite;
 
         if (this.data.isPolygon) {
             this.hitboxNoMundo = this.data.getPolygonShape();
@@ -94,11 +98,7 @@ public class MapObject implements Renderable, DebugRenderable {
             this.hitboxNoMundo = new java.awt.geom.Rectangle2D.Double(this.x, this.y, this.width, this.height);
         }
 
-        if (this.hitboxNoMundo != null) {
-            this.profundidade = this.hitboxNoMundo.getBounds2D().getMaxY();
-        } else {
-            this.profundidade = this.y + this.height;
-        }
+        recalculateVisualAnchorAndDepth();
     }
 
     public TiledObject getData() {
@@ -121,6 +121,7 @@ public class MapObject implements Renderable, DebugRenderable {
 
     public void setSprite(BufferedImage novoSprite) {
         this.sprite = novoSprite;
+        recalculateVisualAnchorAndDepth();
     }
 
     public void setHitboxNoMundo(Shape shape) {
@@ -153,5 +154,65 @@ public class MapObject implements Renderable, DebugRenderable {
 
     public double getAltura() {
         return height;
+    }
+
+    private void recalculateVisualAnchorAndDepth() {
+        SpriteGeometry geometry = calculateSpriteGeometry();
+        if (geometry != null) {
+            ProjectedShadow.VisualAnchor anchor = ProjectedShadow.getVisualGroundAnchor(
+                    sprite, geometry.dx, geometry.dy, geometry.drawWidth, geometry.drawHeight);
+            this.visualAnchorX = anchor.getX();
+            this.visualAnchorY = anchor.getY();
+            this.visibleAlphaHeight = Math.max(1.0, anchor.getVisibleHeight());
+            this.hasVisibleVisualAnchor = anchor.hasVisiblePixels();
+        } else {
+            this.visualAnchorX = this.x + this.width / 2.0;
+            this.visualAnchorY = this.y + this.height;
+            this.visibleAlphaHeight = 1.0;
+            this.hasVisibleVisualAnchor = false;
+        }
+
+        if (data.castsShadow) {
+            this.profundidade = geometry != null ? this.visualAnchorY : this.y + this.height;
+        } else if (this.hitboxNoMundo != null) {
+            this.profundidade = this.hitboxNoMundo.getBounds2D().getMaxY();
+        } else {
+            this.profundidade = this.y + this.height;
+        }
+    }
+
+    private SpriteGeometry calculateSpriteGeometry() {
+        if (sprite == null) {
+            return null;
+        }
+
+        int dx = (int) x;
+        int dy = (int) y;
+        int drawW = (int) Math.round(sprite.getWidth() * GameCore.scale);
+        int drawH = (int) Math.round(sprite.getHeight() * GameCore.scale);
+
+        if (flipH) {
+            dx += drawW;
+            drawW = -drawW;
+        }
+        if (flipV) {
+            dy += drawH;
+            drawH = -drawH;
+        }
+        return new SpriteGeometry(dx, dy, drawW, drawH);
+    }
+
+    private static final class SpriteGeometry {
+        private final int dx;
+        private final int dy;
+        private final int drawWidth;
+        private final int drawHeight;
+
+        private SpriteGeometry(int dx, int dy, int drawWidth, int drawHeight) {
+            this.dx = dx;
+            this.dy = dy;
+            this.drawWidth = drawWidth;
+            this.drawHeight = drawHeight;
+        }
     }
 }

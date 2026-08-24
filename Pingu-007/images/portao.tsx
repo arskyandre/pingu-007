@@ -6,6 +6,7 @@
  <image source="portao.png" width="128" height="48"/>
  <tile id="0">
   <properties>
+   <property name="castsShadow" type="bool" value="true"/>
    <property name="acao" value="abrir_portao"/>
    <property name="colisao" type="bool" value="true"/>
    <property name="isActive" type="bool" value="true"/>
@@ -19,6 +20,7 @@
  </tile>
  <tile id="1">
   <properties>
+   <property name="castsShadow" type="bool" value="true"/>
    <property name="acao" value="null"/>
    <property name="colisao" type="bool" value="true"/>
    <property name="isActive" type="bool" value="true"/>

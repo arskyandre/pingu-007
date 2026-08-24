@@ -3,6 +3,7 @@
  <image source="iglus.png" width="48" height="64"/>
  <tile id="0">
   <properties>
+   <property name="castsShadow" type="bool" value="true"/>
    <property name="acao" value="none"/>
    <property name="colisao" type="bool" value="true"/>
    <property name="isActive" type="bool" value="true"/>
@@ -14,6 +15,7 @@
  </tile>
  <tile id="1">
   <properties>
+   <property name="castsShadow" type="bool" value="true"/>
    <property name="acao" value="null"/>
    <property name="colisao" type="bool" value="true"/>
    <property name="isActive" type="bool" value="true"/>

@@ -247,6 +247,7 @@ public class LoadSave {
         tObj.solidoPorPadrao = parseBoolOr(props.get("solido"), true);
         tObj.isTransparent = parseBoolOr(props.get("isTransparent"), false);
         tObj.isInteractive = parseBoolOr(props.get("isInteractive"), false);
+        tObj.castsShadow = parseBoolOr(props.get("castsShadow"), false);
         tObj.id_button = parseIntOr(props.get("id_button"), -1);
         tObj.isToggle = parseBoolOr(props.get("isToggle"), false);
 
@@ -390,21 +391,27 @@ public class LoadSave {
         }
 
         if (tsAtual.texture != null) {
-            int col = localId % tsAtual.columns;
-            int row = localId / tsAtual.columns;
-            int sx = col * tsAtual.tileWidth;
-            int sy = row * tsAtual.tileHeight;
+            tObj.sprite = tsAtual.sprites.get(localId);
+            if (tObj.sprite == null) {
+                int col = localId % tsAtual.columns;
+                int row = localId / tsAtual.columns;
+                int sx = col * tsAtual.tileWidth;
+                int sy = row * tsAtual.tileHeight;
 
-            if (sx + tsAtual.tileWidth <= tsAtual.texture.getWidth()
-                    && sy + tsAtual.tileHeight <= tsAtual.texture.getHeight()) {
-                tObj.sprite = tsAtual.texture.getSubimage(sx, sy, tsAtual.tileWidth, tsAtual.tileHeight);
-            } else {
-                tObj.sprite = tsAtual.texture;
+                if (sx + tsAtual.tileWidth <= tsAtual.texture.getWidth()
+                        && sy + tsAtual.tileHeight <= tsAtual.texture.getHeight()) {
+                    tObj.sprite = tsAtual.texture.getSubimage(sx, sy,
+                            tsAtual.tileWidth, tsAtual.tileHeight);
+                } else {
+                    tObj.sprite = tsAtual.texture;
+                }
+                tsAtual.sprites.put(localId, tObj.sprite);
             }
         } else {
             tObj.sprite = null;
         }
 
+        tObj.castsShadow = tsAtual.castsShadows.getOrDefault(localId, false);
         tObj.hitbox = recalcularHitboxDeGid(tObj);
         tObj.collision = tObj.hitbox != null;
     }
@@ -557,6 +564,8 @@ public class LoadSave {
         public int tileHeight = 16;
         public int columns = 1;
         public Map<Integer, Shape> collisions = new HashMap<>();
+        public Map<Integer, Boolean> castsShadows = new HashMap<>();
+        public Map<Integer, BufferedImage> sprites = new HashMap<>();
     }
 
     private static TilesetData loadTSX(String tsxName, int firstGid) {
@@ -608,6 +617,19 @@ public class LoadSave {
                 String tileBlock = tiles[i];
                 int idEnd = tileBlock.indexOf("\"");
                 int localId = Integer.parseInt(tileBlock.substring(0, idEnd));
+
+                int castsShadowIdx = tileBlock.indexOf("<property name=\"castsShadow\"");
+                if (castsShadowIdx != -1) {
+                    int valueIdx = tileBlock.indexOf("value=\"", castsShadowIdx);
+                    if (valueIdx != -1) {
+                        int valueStart = valueIdx + 7;
+                        int valueEnd = tileBlock.indexOf("\"", valueStart);
+                        if (valueEnd != -1) {
+                            data.castsShadows.put(localId,
+                                    Boolean.parseBoolean(tileBlock.substring(valueStart, valueEnd)));
+                        }
+                    }
+                }
 
                 Area areaDoTile = new Area();
                 boolean temColisao = false;
