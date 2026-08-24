@@ -22,7 +22,8 @@ public class Renderer {
 
     // Cache de Strokes
     private static final BasicStroke DEBUG_STROKE_SOLID = new BasicStroke(2f);
-    private static final BasicStroke DEBUG_STROKE_DASHED = new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{3}, 0);
+    private static final BasicStroke DEBUG_STROKE_DASHED = new BasicStroke(1f, BasicStroke.CAP_BUTT,
+            BasicStroke.JOIN_BEVEL, 0, new float[] { 3 }, 0);
 
     // Cores em cache para o Bounding Box
     private static final Color DEBUG_BOUNDS_FILL = new Color(255, 255, 0, 30);
@@ -77,19 +78,19 @@ public class Renderer {
 
         int red = (int) Math.round(
                 ColorA.getRed()
-                + (ColorB.getRed() - ColorA.getRed()) * t);
+                        + (ColorB.getRed() - ColorA.getRed()) * t);
 
         int green = (int) Math.round(
                 ColorA.getGreen()
-                + (ColorB.getGreen() - ColorA.getGreen()) * t);
+                        + (ColorB.getGreen() - ColorA.getGreen()) * t);
 
         int blue = (int) Math.round(
                 ColorA.getBlue()
-                + (ColorB.getBlue() - ColorA.getBlue()) * t);
+                        + (ColorB.getBlue() - ColorA.getBlue()) * t);
 
         int alpha = (int) Math.round(
                 ColorA.getAlpha()
-                + (ColorB.getAlpha() - ColorA.getAlpha()) * t);
+                        + (ColorB.getAlpha() - ColorA.getAlpha()) * t);
 
         return new Color(red, green, blue, alpha);
     }
@@ -306,7 +307,8 @@ public class Renderer {
         if (itemManager != null && itemManager.getItems() != null) {
             for (Item item : itemManager.getItems()) {
                 if (item != null && item.isAtivo()) {
-                    if (camera.onScreen(item.getX(), item.getY(), item.getLargura(), item.getAltura(), telaLargura, telaAltura)) {
+                    if (camera.onScreen(item.getX(), item.getY(), item.getLargura(), item.getAltura(), telaLargura,
+                            telaAltura)) {
                         renderQueue.add(item);
                     }
                 }
@@ -316,7 +318,8 @@ public class Renderer {
         if (npcManager != null && npcManager.getNpcs() != null) {
             for (NPC npc : npcManager.getNpcs()) {
                 if (npc != null && npc.isActive()) {
-                    if (camera.onScreen(npc.getX(), npc.getY(), npc.getLargura(), npc.getAltura(), telaLargura, telaAltura)) {
+                    if (camera.onScreen(npc.getX(), npc.getY(), npc.getLargura(), npc.getAltura(), telaLargura,
+                            telaAltura)) {
                         renderQueue.add(npc);
                     }
                 }
@@ -357,7 +360,8 @@ public class Renderer {
             if (arenaManager != null) {
                 if (arenaManager.getObjetosInstanciadosParaDebug() != null) {
                     for (DebugRenderable obj : arenaManager.getObjetosInstanciadosParaDebug()) {
-                        desenharDebugDeObjeto(g2, obj.getDadosTiled(), obj.getHitboxAtual(), camera, telaLargura, telaAltura);
+                        desenharDebugDeObjeto(g2, obj.getDadosTiled(), obj.getHitboxAtual(), camera, telaLargura,
+                                telaAltura);
                     }
                 }
                 if (arenaManager.getTriggersESpawnersParaDebug() != null) {
@@ -425,12 +429,13 @@ public class Renderer {
 
         ToastNotifications.draw(g2, telaLargura, telaAltura);
 
-        // if (modoDebug) {
-        int totalMinutes = (int) (dayProgress * 24.0 * 60.0) % 1440;
-        int hour = totalMinutes / 60;
-        int minute = totalMinutes % 60;
-        debugDrawHorario(g2, hour, minute, telaLargura, telaAltura);
-        // }
+        if (modoDebug) {
+            int totalMinutes = (int) (dayProgress * 24.0 * 60.0) % 1440;
+            int hour = totalMinutes / 60;
+            int minute = totalMinutes % 60;
+
+            debugDrawHorario(g2, hour, minute, telaLargura, telaAltura);
+        }
     }
 
     public void setCinematicBorderAnimation(BorderState state) {
@@ -447,7 +452,8 @@ public class Renderer {
         return 0; // Substituído pelo método nativo Renderable::getProfundidade
     }
 
-    private void desenharDebugDeObjeto(Graphics2D g2, TiledObject data, Shape hitbox, CameraManager camera, int telaLargura, int telaAltura) {
+    private void desenharDebugDeObjeto(Graphics2D g2, TiledObject data, Shape hitbox, CameraManager camera,
+            int telaLargura, int telaAltura) {
         if (data == null) {
             return;
         }
