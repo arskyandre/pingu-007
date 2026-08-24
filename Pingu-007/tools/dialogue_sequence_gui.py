@@ -6,7 +6,7 @@ one timing slot without starting a sound.
 
 Run from any directory with::
 
-    python dialogue_sequence_gui.py
+    python tools/dialogue_sequence_gui.py
 
 The GUI and WAV mixer use only the Python standard library. Non-zero pitch uses
 an FFmpeg build that includes the Rubber Band filter.
@@ -40,7 +40,7 @@ BASE_HISS_LEVEL = 0.067
 VOLUME_SLIDER_UNITY = 50.0
 MAX_VOLUME_GAIN = 2.0
 
-SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_DIR = Path(__file__).resolve().parent.parent
 
 # Kept here deliberately instead of being read from SoundManager.java. These
 # legacy names remain valid input even after their Java enum entries are removed.
@@ -245,9 +245,9 @@ def _strip_java_comments(source: str) -> str:
 
 
 def load_sfx_catalog() -> dict[str, Path]:
-    """Return the embedded SFX mapping, rooted beside this Python script."""
+    """Return the embedded SFX mapping, rooted at the project directory."""
 
-    return {name: SCRIPT_DIR / relative_path for name, relative_path in SFX_PATHS.items()}
+    return {name: PROJECT_DIR / relative_path for name, relative_path in SFX_PATHS.items()}
 
 
 def parse_sequence(text: str, known_sfx: Iterable[str]) -> list[str | None]:
