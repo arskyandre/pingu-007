@@ -72,10 +72,10 @@ public class GameCore extends Canvas implements Runnable {
     private long updateDayNightAnteriorNanos = -1L;
 
     private static double fullDaySeconds = 360.0;
-    private static final double STARTING_DAY_PROGRESS = 8.0 / 24.0;
+    private static final double horarioinicial = 8.0 / 24.0;
 
-    private static double dayProgress = STARTING_DAY_PROGRESS;
-    private static double elapsedGameSeconds = STARTING_DAY_PROGRESS * fullDaySeconds;
+    private static double dayProgress = horarioinicial;
+    private static double elapsedGameSeconds = horarioinicial * fullDaySeconds;
 
     private boolean dayNightClockRunning = true;
 
@@ -421,8 +421,8 @@ public class GameCore extends Canvas implements Runnable {
                 }
                 if (next == GameState.PLAYING) {
                     updateDayNightAnteriorNanos = -1L;
-                    elapsedGameSeconds = STARTING_DAY_PROGRESS * fullDaySeconds;
-                    dayProgress = STARTING_DAY_PROGRESS;
+                    elapsedGameSeconds = horarioinicial * fullDaySeconds;
+                    dayProgress = horarioinicial;
                     lastProcessedDay = 1;
                     soundManager.playBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP);
                     player.setShootCooldownTimer(30);
@@ -1017,8 +1017,8 @@ public class GameCore extends Canvas implements Runnable {
         musicaDeDiaAtiva = true;
         musicaDeFightAtiva = false;
         updateDayNightAnteriorNanos = -1L;
-        elapsedGameSeconds = STARTING_DAY_PROGRESS * fullDaySeconds;
-        dayProgress = STARTING_DAY_PROGRESS;
+        elapsedGameSeconds = horarioinicial * fullDaySeconds;
+        dayProgress = horarioinicial;
         hasCheckpoint = false;
         checkArenas.clear();
         estadoLevel1AntesDaLoja = null;
