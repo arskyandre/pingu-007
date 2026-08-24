@@ -28,7 +28,7 @@ public class LoadSave {
     public Shape hitbox;
 
     public static final String LEVEL_ATLAS = "images/tile_set.png";
-    public static final String LEVEL_1_DATA = "LEVEL_1_DATA.json";
+    public static final String LEVEL_1_DATA = "LEVEL_1_DATA_converted.json";
     public static final String LEVEL_2_DATA = "LEVEL_2_DATA.tmj";
     public static final String LEVEL_YSORT = "teste_ysort.tmj";
     public static final String CASA_VENDEDOR = "CASA_VENDEDOR.tmj";
@@ -68,7 +68,7 @@ public class LoadSave {
             }
 
             currentTilesets.clear();
-            int tsIdx = json.indexOf("\"tilesets\":[");
+            int tsIdx = findJsonArrayStart(json, "tilesets", 0);
             if (tsIdx != -1) {
                 int tsEnd = json.indexOf("],", tsIdx);
                 if (tsEnd == -1) {
@@ -117,27 +117,23 @@ public class LoadSave {
                 }
             }
 
-            int dataIdx = json.indexOf("\"data\":[");
+            int dataIdx = findJsonArrayStart(json, "data", 0);
             while (dataIdx != -1) {
                 int layerStart = json.lastIndexOf("{", dataIdx);
-                int nameIdx = json.indexOf("\"name\":\"", layerStart);
-                String name = "unknown";
-
-                if (nameIdx != -1 && nameIdx < dataIdx) {
-                    nameIdx += 8;
-                    name = json.substring(nameIdx, json.indexOf("\"", nameIdx));
-                } else {
-                    int endData = json.indexOf("]", dataIdx);
-                    nameIdx = json.indexOf("\"name\":\"", endData);
-                    if (nameIdx != -1) {
-                        nameIdx += 8;
-                        name = json.substring(nameIdx, json.indexOf("\"", nameIdx));
-                    }
-                }
+                String name = extractRootString(json.substring(layerStart, dataIdx), "name");
 
                 int endIdx = json.indexOf("]", dataIdx);
                 if (endIdx != -1) {
-                    String dataString = json.substring(dataIdx + 8, endIdx);
+                    if (name.isEmpty()) {
+                        int layerEnd = json.indexOf("}", endIdx);
+                        if (layerEnd != -1) {
+                            name = extractRootString(json.substring(endIdx + 1, layerEnd), "name");
+                        }
+                    }
+                    if (name.isEmpty()) {
+                        name = "unknown";
+                    }
+                    String dataString = json.substring(dataIdx + 1, endIdx);
                     String[] stringValues = dataString.split(",");
                     int[][] lvlData = new int[height][width];
                     int index = 0;
@@ -151,7 +147,7 @@ public class LoadSave {
                     }
                     layers.add(new MapDATA.TileLayer(name, lvlData));
                 }
-                dataIdx = json.indexOf("\"data\":[", dataIdx + 8);
+                dataIdx = findJsonArrayStart(json, "data", dataIdx + 1);
             }
 
             int objectsIdx = json.indexOf("\"objects\"");
@@ -355,6 +351,35 @@ public class LoadSave {
         return text.substring(start, end).trim();
     }
 
+    private static int findJsonArrayStart(String text, String key, int fromIndex) {
+        String quotedKey = "\"" + key + "\"";
+        int searchFrom = Math.max(0, fromIndex);
+        while (searchFrom < text.length()) {
+            int keyIndex = text.indexOf(quotedKey, searchFrom);
+            if (keyIndex == -1) {
+                return -1;
+            }
+
+            int cursor = keyIndex + quotedKey.length();
+            while (cursor < text.length() && Character.isWhitespace(text.charAt(cursor))) {
+                cursor++;
+            }
+            if (cursor >= text.length() || text.charAt(cursor) != ':') {
+                searchFrom = cursor;
+                continue;
+            }
+            cursor++;
+            while (cursor < text.length() && Character.isWhitespace(text.charAt(cursor))) {
+                cursor++;
+            }
+            if (cursor < text.length() && text.charAt(cursor) == '[') {
+                return cursor;
+            }
+            searchFrom = cursor;
+        }
+        return -1;
+    }
+
     private static int parseIntOr(String raw, int defaultVal) {
         if (raw == null || raw.isEmpty()) {
             return defaultVal;
@@ -465,7 +490,7 @@ public class LoadSave {
         int end = idx;
         while (end < text.length()
                 && (Character.isDigit(text.charAt(end)) || text.charAt(end) == '-' || text.charAt(end) == '.'
-                || text.charAt(end) == 'e' || text.charAt(end) == 'E' || text.charAt(end) == '+')) {
+                        || text.charAt(end) == 'e' || text.charAt(end) == 'E' || text.charAt(end) == '+')) {
             end++;
         }
         try {
