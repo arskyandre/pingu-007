@@ -1237,7 +1237,6 @@
                  "height":16,
                  "id":759,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -1271,7 +1270,6 @@
                  "height":16,
                  "id":760,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -1305,7 +1303,6 @@
                  "height":16,
                  "id":761,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -1339,7 +1336,6 @@
                  "height":16,
                  "id":763,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -1373,7 +1369,6 @@
                  "height":16,
                  "id":779,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"acao",
@@ -1422,7 +1417,6 @@
                  "height":16,
                  "id":832,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -1456,7 +1450,6 @@
                  "height":16,
                  "id":833,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -1490,7 +1483,6 @@
                  "height":16,
                  "id":837,
                  "name":"",
-                 "opacity":1,
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -1503,7 +1495,6 @@
                  "height":48,
                  "id":838,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"acao",
@@ -1547,7 +1538,6 @@
                  "height":32,
                  "id":845,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"acao",
@@ -1596,7 +1586,6 @@
                  "height":32,
                  "id":847,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"acao",
@@ -1630,7 +1619,6 @@
                  "height":32,
                  "id":848,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"acao",
@@ -1706,7 +1694,6 @@
                  "height":0,
                  "id":3,
                  "name":"PlayerSpawner",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -1725,7 +1712,6 @@
                  "height":0,
                  "id":416,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -1759,7 +1745,6 @@
                  "height":0,
                  "id":417,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -1793,7 +1778,6 @@
                  "height":0,
                  "id":418,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -1827,7 +1811,6 @@
                  "height":0,
                  "id":419,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -1861,7 +1844,6 @@
                  "height":0,
                  "id":420,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -1895,7 +1877,6 @@
                  "height":0,
                  "id":421,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -1929,7 +1910,6 @@
                  "height":0,
                  "id":422,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -1963,7 +1943,6 @@
                  "height":0,
                  "id":423,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -1997,7 +1976,6 @@
                  "height":0,
                  "id":424,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2031,7 +2009,6 @@
                  "height":0,
                  "id":425,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2065,7 +2042,6 @@
                  "height":0,
                  "id":426,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2099,7 +2075,6 @@
                  "height":0,
                  "id":427,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2133,7 +2108,6 @@
                  "height":0,
                  "id":428,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2167,7 +2141,6 @@
                  "height":0,
                  "id":429,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2201,7 +2174,6 @@
                  "height":0,
                  "id":431,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2235,7 +2207,6 @@
                  "height":0,
                  "id":448,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2269,7 +2240,6 @@
                  "height":0,
                  "id":449,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2303,7 +2273,6 @@
                  "height":0,
                  "id":450,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2337,7 +2306,6 @@
                  "height":0,
                  "id":451,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2371,7 +2339,6 @@
                  "height":0,
                  "id":452,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2405,7 +2372,6 @@
                  "height":0,
                  "id":453,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2439,7 +2405,6 @@
                  "height":0,
                  "id":454,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2473,7 +2438,6 @@
                  "height":0,
                  "id":455,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2507,7 +2471,6 @@
                  "height":0,
                  "id":456,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2541,7 +2504,6 @@
                  "height":0,
                  "id":457,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2575,7 +2537,6 @@
                  "height":0,
                  "id":458,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2609,7 +2570,6 @@
                  "height":0,
                  "id":459,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2643,7 +2603,6 @@
                  "height":0,
                  "id":460,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2677,7 +2636,6 @@
                  "height":0,
                  "id":461,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2711,7 +2669,6 @@
                  "height":0,
                  "id":463,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2745,7 +2702,6 @@
                  "height":0,
                  "id":464,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2779,7 +2735,6 @@
                  "height":0,
                  "id":465,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2813,7 +2768,6 @@
                  "height":0,
                  "id":514,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2847,7 +2801,6 @@
                  "height":0,
                  "id":515,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2881,7 +2834,6 @@
                  "height":0,
                  "id":516,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2915,7 +2867,6 @@
                  "height":0,
                  "id":517,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2949,7 +2900,6 @@
                  "height":0,
                  "id":518,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -2983,7 +2933,6 @@
                  "height":0,
                  "id":519,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3017,7 +2966,6 @@
                  "height":0,
                  "id":520,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3051,7 +2999,6 @@
                  "height":0,
                  "id":521,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3085,7 +3032,6 @@
                  "height":0,
                  "id":522,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3119,7 +3065,6 @@
                  "height":0,
                  "id":523,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3153,7 +3098,6 @@
                  "height":0,
                  "id":524,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3187,7 +3131,6 @@
                  "height":0,
                  "id":525,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3221,7 +3164,6 @@
                  "height":0,
                  "id":526,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3255,7 +3197,6 @@
                  "height":0,
                  "id":527,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3289,7 +3230,6 @@
                  "height":0,
                  "id":528,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3323,7 +3263,6 @@
                  "height":0,
                  "id":529,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3357,7 +3296,6 @@
                  "height":0,
                  "id":530,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3391,7 +3329,6 @@
                  "height":0,
                  "id":531,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3425,7 +3362,6 @@
                  "height":0,
                  "id":532,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3459,7 +3395,6 @@
                  "height":0,
                  "id":533,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3493,7 +3428,6 @@
                  "height":0,
                  "id":534,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3527,7 +3461,6 @@
                  "height":0,
                  "id":535,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3561,7 +3494,6 @@
                  "height":0,
                  "id":536,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3595,7 +3527,6 @@
                  "height":0,
                  "id":537,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3629,7 +3560,6 @@
                  "height":0,
                  "id":538,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3663,7 +3593,6 @@
                  "height":0,
                  "id":539,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3697,7 +3626,6 @@
                  "height":0,
                  "id":540,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3731,7 +3659,6 @@
                  "height":0,
                  "id":541,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3765,7 +3692,6 @@
                  "height":0,
                  "id":542,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3799,7 +3725,6 @@
                  "height":0,
                  "id":543,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3833,7 +3758,6 @@
                  "height":0,
                  "id":544,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3867,7 +3791,6 @@
                  "height":0,
                  "id":545,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3901,7 +3824,6 @@
                  "height":0,
                  "id":546,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3935,7 +3857,6 @@
                  "height":0,
                  "id":547,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -3969,7 +3890,6 @@
                  "height":0,
                  "id":548,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4003,7 +3923,6 @@
                  "height":0,
                  "id":549,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4037,7 +3956,6 @@
                  "height":0,
                  "id":550,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4071,7 +3989,6 @@
                  "height":0,
                  "id":551,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4105,7 +4022,6 @@
                  "height":0,
                  "id":552,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4139,7 +4055,6 @@
                  "height":0,
                  "id":553,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4173,7 +4088,6 @@
                  "height":0,
                  "id":554,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4207,7 +4121,6 @@
                  "height":0,
                  "id":555,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4241,7 +4154,6 @@
                  "height":0,
                  "id":556,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4275,7 +4187,6 @@
                  "height":0,
                  "id":557,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4309,7 +4220,6 @@
                  "height":0,
                  "id":558,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4343,7 +4253,6 @@
                  "height":0,
                  "id":559,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4377,7 +4286,6 @@
                  "height":0,
                  "id":560,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4411,7 +4319,6 @@
                  "height":0,
                  "id":561,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4445,7 +4352,6 @@
                  "height":0,
                  "id":562,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4479,7 +4385,6 @@
                  "height":0,
                  "id":563,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4513,7 +4418,6 @@
                  "height":0,
                  "id":564,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4547,7 +4451,6 @@
                  "height":0,
                  "id":565,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4581,7 +4484,6 @@
                  "height":0,
                  "id":566,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4615,7 +4517,6 @@
                  "height":0,
                  "id":567,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4649,7 +4550,6 @@
                  "height":0,
                  "id":568,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4683,7 +4583,6 @@
                  "height":0,
                  "id":569,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4717,7 +4616,6 @@
                  "height":0,
                  "id":570,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4751,7 +4649,6 @@
                  "height":0,
                  "id":571,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4785,7 +4682,6 @@
                  "height":0,
                  "id":572,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4819,7 +4715,6 @@
                  "height":0,
                  "id":573,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4853,7 +4748,6 @@
                  "height":0,
                  "id":574,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4887,7 +4781,6 @@
                  "height":0,
                  "id":575,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4921,7 +4814,6 @@
                  "height":0,
                  "id":624,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4955,7 +4847,6 @@
                  "height":0,
                  "id":625,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -4989,7 +4880,6 @@
                  "height":0,
                  "id":626,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "rotation":0,
                  "type":"",
@@ -5002,7 +4892,6 @@
                  "height":0,
                  "id":628,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5036,7 +4925,6 @@
                  "height":0,
                  "id":629,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5070,7 +4958,6 @@
                  "height":0,
                  "id":630,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5104,7 +4991,6 @@
                  "height":0,
                  "id":631,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5138,7 +5024,6 @@
                  "height":0,
                  "id":632,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5172,7 +5057,6 @@
                  "height":0,
                  "id":633,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5206,7 +5090,6 @@
                  "height":0,
                  "id":634,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5240,7 +5123,6 @@
                  "height":0,
                  "id":635,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5274,7 +5156,6 @@
                  "height":0,
                  "id":636,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5308,7 +5189,6 @@
                  "height":0,
                  "id":637,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5342,7 +5222,6 @@
                  "height":0,
                  "id":638,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5376,7 +5255,6 @@
                  "height":0,
                  "id":639,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5410,7 +5288,6 @@
                  "height":0,
                  "id":640,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5444,7 +5321,6 @@
                  "height":0,
                  "id":641,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5478,7 +5354,6 @@
                  "height":0,
                  "id":642,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5512,7 +5387,6 @@
                  "height":0,
                  "id":643,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5546,7 +5420,6 @@
                  "height":0,
                  "id":644,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5580,7 +5453,6 @@
                  "height":0,
                  "id":645,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5614,7 +5486,6 @@
                  "height":0,
                  "id":646,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5648,7 +5519,6 @@
                  "height":0,
                  "id":647,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5682,7 +5552,6 @@
                  "height":0,
                  "id":648,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5716,7 +5585,6 @@
                  "height":0,
                  "id":649,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5750,7 +5618,6 @@
                  "height":0,
                  "id":650,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5784,7 +5651,6 @@
                  "height":0,
                  "id":651,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5818,7 +5684,6 @@
                  "height":0,
                  "id":652,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5852,7 +5717,6 @@
                  "height":0,
                  "id":653,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5886,7 +5750,6 @@
                  "height":0,
                  "id":654,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5920,7 +5783,6 @@
                  "height":0,
                  "id":655,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5954,7 +5816,6 @@
                  "height":0,
                  "id":656,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -5988,7 +5849,6 @@
                  "height":0,
                  "id":657,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6022,7 +5882,6 @@
                  "height":0,
                  "id":658,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6056,7 +5915,6 @@
                  "height":0,
                  "id":659,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6090,7 +5948,6 @@
                  "height":0,
                  "id":660,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6124,7 +5981,6 @@
                  "height":0,
                  "id":661,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6158,7 +6014,6 @@
                  "height":0,
                  "id":662,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6192,7 +6047,6 @@
                  "height":0,
                  "id":663,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6226,7 +6080,6 @@
                  "height":0,
                  "id":664,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6260,7 +6113,6 @@
                  "height":0,
                  "id":665,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6294,7 +6146,6 @@
                  "height":0,
                  "id":666,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6328,7 +6179,6 @@
                  "height":0,
                  "id":667,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6362,7 +6212,6 @@
                  "height":0,
                  "id":668,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6396,7 +6245,6 @@
                  "height":0,
                  "id":669,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6430,7 +6278,6 @@
                  "height":0,
                  "id":670,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6464,7 +6311,6 @@
                  "height":0,
                  "id":671,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6498,7 +6344,6 @@
                  "height":0,
                  "id":672,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6532,7 +6377,6 @@
                  "height":0,
                  "id":673,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6566,7 +6410,6 @@
                  "height":0,
                  "id":674,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6600,7 +6443,6 @@
                  "height":0,
                  "id":675,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6634,7 +6476,6 @@
                  "height":0,
                  "id":676,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6668,7 +6509,6 @@
                  "height":0,
                  "id":677,
                  "name":"",
-                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -6714,7 +6554,6 @@
                  "height":0,
                  "id":7,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":17.6103,
@@ -6764,7 +6603,6 @@
                  "height":0,
                  "id":9,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":0,
@@ -6814,7 +6652,6 @@
                  "height":0,
                  "id":10,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":-39.3333,
@@ -6864,7 +6701,6 @@
                  "height":0,
                  "id":11,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":22.0126,
@@ -6914,7 +6750,6 @@
                  "height":0,
                  "id":12,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":-2.66667,
@@ -6964,7 +6799,6 @@
                  "height":0,
                  "id":13,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":-1,
@@ -7014,7 +6848,6 @@
                  "height":0,
                  "id":15,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":58.6667,
@@ -7064,7 +6897,6 @@
                  "height":0,
                  "id":16,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":-11.7675,
@@ -7114,7 +6946,6 @@
                  "height":0,
                  "id":17,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":-4,
@@ -7172,7 +7003,6 @@
                  "height":0,
                  "id":18,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":7,
@@ -7222,7 +7052,6 @@
                  "height":0,
                  "id":19,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":-15,
@@ -7276,7 +7105,6 @@
                  "height":0,
                  "id":21,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":0,
@@ -7334,7 +7162,6 @@
                  "height":0,
                  "id":22,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":9,
@@ -7384,7 +7211,6 @@
                  "height":0,
                  "id":23,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":29,
@@ -7442,7 +7268,6 @@
                  "height":0,
                  "id":24,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":0,
@@ -7492,7 +7317,6 @@
                  "height":0,
                  "id":25,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":0.333333,
@@ -7542,7 +7366,6 @@
                  "height":0,
                  "id":26,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":-2.39063,
@@ -7592,7 +7415,6 @@
                  "height":0,
                  "id":27,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":-7,
@@ -7658,7 +7480,6 @@
                  "height":0,
                  "id":28,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":0,
@@ -7708,7 +7529,6 @@
                  "height":0,
                  "id":335,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":0,
@@ -7758,7 +7578,6 @@
                  "height":0,
                  "id":778,
                  "name":"",
-                 "opacity":1,
                  "polygon":[
                         {
                          "x":0,
@@ -7842,7 +7661,6 @@
                  "height":16,
                  "id":36,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -7871,7 +7689,6 @@
                  "height":16,
                  "id":37,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -7900,7 +7717,6 @@
                  "height":16,
                  "id":38,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -7929,7 +7745,6 @@
                  "height":16,
                  "id":39,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -7958,7 +7773,6 @@
                  "height":16,
                  "id":40,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -7987,7 +7801,6 @@
                  "height":16,
                  "id":41,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8016,7 +7829,6 @@
                  "height":16,
                  "id":42,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8045,7 +7857,6 @@
                  "height":16,
                  "id":43,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8074,7 +7885,6 @@
                  "height":16,
                  "id":44,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8103,7 +7913,6 @@
                  "height":16,
                  "id":45,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8132,7 +7941,6 @@
                  "height":16,
                  "id":46,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8161,7 +7969,6 @@
                  "height":16,
                  "id":47,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8190,7 +7997,6 @@
                  "height":16,
                  "id":48,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8219,7 +8025,6 @@
                  "height":16,
                  "id":49,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8248,7 +8053,6 @@
                  "height":16,
                  "id":50,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8277,7 +8081,6 @@
                  "height":16,
                  "id":51,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8306,7 +8109,6 @@
                  "height":16,
                  "id":52,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8335,7 +8137,6 @@
                  "height":16,
                  "id":53,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8364,7 +8165,6 @@
                  "height":16,
                  "id":54,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8393,7 +8193,6 @@
                  "height":16,
                  "id":55,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8422,7 +8221,6 @@
                  "height":16,
                  "id":56,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8451,7 +8249,6 @@
                  "height":16,
                  "id":57,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8480,7 +8277,6 @@
                  "height":16,
                  "id":58,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8509,7 +8305,6 @@
                  "height":16,
                  "id":59,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8538,7 +8333,6 @@
                  "height":16,
                  "id":60,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8567,7 +8361,6 @@
                  "height":16,
                  "id":61,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8596,7 +8389,6 @@
                  "height":16,
                  "id":62,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8625,7 +8417,6 @@
                  "height":16,
                  "id":63,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8654,7 +8445,6 @@
                  "height":16,
                  "id":64,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8683,7 +8473,6 @@
                  "height":16,
                  "id":65,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8712,7 +8501,6 @@
                  "height":16,
                  "id":66,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8741,7 +8529,6 @@
                  "height":16,
                  "id":71,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8770,7 +8557,6 @@
                  "height":16,
                  "id":72,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8799,7 +8585,6 @@
                  "height":16,
                  "id":73,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8828,7 +8613,6 @@
                  "height":16,
                  "id":74,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8857,7 +8641,6 @@
                  "height":16,
                  "id":75,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8886,7 +8669,6 @@
                  "height":16,
                  "id":76,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8915,7 +8697,6 @@
                  "height":16,
                  "id":80,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8944,7 +8725,6 @@
                  "height":16,
                  "id":81,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -8973,7 +8753,6 @@
                  "height":16,
                  "id":82,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9002,7 +8781,6 @@
                  "height":16,
                  "id":83,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9031,7 +8809,6 @@
                  "height":16,
                  "id":84,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9060,7 +8837,6 @@
                  "height":16,
                  "id":85,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9089,7 +8865,6 @@
                  "height":16,
                  "id":86,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9118,7 +8893,6 @@
                  "height":16,
                  "id":87,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9147,7 +8921,6 @@
                  "height":16,
                  "id":88,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9176,7 +8949,6 @@
                  "height":16,
                  "id":89,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9205,7 +8977,6 @@
                  "height":16,
                  "id":90,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9234,7 +9005,6 @@
                  "height":16,
                  "id":91,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9263,7 +9033,6 @@
                  "height":16,
                  "id":92,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9292,7 +9061,6 @@
                  "height":16,
                  "id":93,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9321,7 +9089,6 @@
                  "height":16,
                  "id":94,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9350,7 +9117,6 @@
                  "height":16,
                  "id":95,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9379,7 +9145,6 @@
                  "height":16,
                  "id":96,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9408,7 +9173,6 @@
                  "height":16,
                  "id":97,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9437,7 +9201,6 @@
                  "height":16,
                  "id":98,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9466,7 +9229,6 @@
                  "height":16,
                  "id":99,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9495,7 +9257,6 @@
                  "height":16,
                  "id":100,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9524,7 +9285,6 @@
                  "height":16,
                  "id":101,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9553,7 +9313,6 @@
                  "height":16,
                  "id":102,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9582,7 +9341,6 @@
                  "height":16,
                  "id":103,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9611,7 +9369,6 @@
                  "height":16,
                  "id":104,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9640,7 +9397,6 @@
                  "height":16,
                  "id":105,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9669,7 +9425,6 @@
                  "height":16,
                  "id":106,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9698,7 +9453,6 @@
                  "height":16,
                  "id":107,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9727,7 +9481,6 @@
                  "height":16,
                  "id":108,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9756,7 +9509,6 @@
                  "height":16,
                  "id":121,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9785,7 +9537,6 @@
                  "height":16,
                  "id":122,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9814,7 +9565,6 @@
                  "height":16,
                  "id":123,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9843,7 +9593,6 @@
                  "height":16,
                  "id":124,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9872,7 +9621,6 @@
                  "height":16,
                  "id":125,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9901,7 +9649,6 @@
                  "height":16,
                  "id":126,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9930,7 +9677,6 @@
                  "height":16,
                  "id":127,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9959,7 +9705,6 @@
                  "height":16,
                  "id":128,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -9988,7 +9733,6 @@
                  "height":16,
                  "id":129,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10017,7 +9761,6 @@
                  "height":16,
                  "id":130,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10046,7 +9789,6 @@
                  "height":16,
                  "id":131,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10075,7 +9817,6 @@
                  "height":16,
                  "id":132,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10104,7 +9845,6 @@
                  "height":16,
                  "id":133,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10133,7 +9873,6 @@
                  "height":16,
                  "id":134,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10162,7 +9901,6 @@
                  "height":16,
                  "id":135,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10191,7 +9929,6 @@
                  "height":16,
                  "id":136,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10220,7 +9957,6 @@
                  "height":16,
                  "id":137,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10249,7 +9985,6 @@
                  "height":16,
                  "id":138,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10278,7 +10013,6 @@
                  "height":16,
                  "id":139,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10307,7 +10041,6 @@
                  "height":16,
                  "id":140,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10336,7 +10069,6 @@
                  "height":16,
                  "id":141,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10365,7 +10097,6 @@
                  "height":16,
                  "id":142,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10394,7 +10125,6 @@
                  "height":16,
                  "id":143,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10423,7 +10153,6 @@
                  "height":16,
                  "id":144,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10452,7 +10181,6 @@
                  "height":16,
                  "id":166,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10481,7 +10209,6 @@
                  "height":16,
                  "id":167,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10510,7 +10237,6 @@
                  "height":16,
                  "id":168,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10539,7 +10265,6 @@
                  "height":16,
                  "id":169,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10568,7 +10293,6 @@
                  "height":16,
                  "id":170,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10597,7 +10321,6 @@
                  "height":16,
                  "id":171,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10626,7 +10349,6 @@
                  "height":16,
                  "id":172,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10655,7 +10377,6 @@
                  "height":16,
                  "id":173,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10684,7 +10405,6 @@
                  "height":16,
                  "id":174,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10713,7 +10433,6 @@
                  "height":16,
                  "id":175,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10742,7 +10461,6 @@
                  "height":16,
                  "id":176,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10771,7 +10489,6 @@
                  "height":16,
                  "id":177,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10800,7 +10517,6 @@
                  "height":16,
                  "id":178,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10829,7 +10545,6 @@
                  "height":16,
                  "id":179,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10858,7 +10573,6 @@
                  "height":16,
                  "id":180,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10887,7 +10601,6 @@
                  "height":16,
                  "id":181,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10916,7 +10629,6 @@
                  "height":16,
                  "id":182,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10945,7 +10657,6 @@
                  "height":16,
                  "id":183,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -10974,7 +10685,6 @@
                  "height":16,
                  "id":225,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11003,7 +10713,6 @@
                  "height":16,
                  "id":226,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11032,7 +10741,6 @@
                  "height":16,
                  "id":227,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11061,7 +10769,6 @@
                  "height":16,
                  "id":228,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11090,7 +10797,6 @@
                  "height":16,
                  "id":229,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11119,7 +10825,6 @@
                  "height":16,
                  "id":230,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11148,7 +10853,6 @@
                  "height":16,
                  "id":231,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11177,7 +10881,6 @@
                  "height":16,
                  "id":232,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11206,7 +10909,6 @@
                  "height":16,
                  "id":233,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11235,7 +10937,6 @@
                  "height":16,
                  "id":234,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11264,7 +10965,6 @@
                  "height":16,
                  "id":235,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11293,7 +10993,6 @@
                  "height":16,
                  "id":236,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11322,7 +11021,6 @@
                  "height":16,
                  "id":237,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11351,7 +11049,6 @@
                  "height":16,
                  "id":238,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11380,7 +11077,6 @@
                  "height":16,
                  "id":239,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11409,7 +11105,6 @@
                  "height":16,
                  "id":240,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11438,7 +11133,6 @@
                  "height":16,
                  "id":241,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11467,7 +11161,6 @@
                  "height":16,
                  "id":242,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11496,7 +11189,6 @@
                  "height":16,
                  "id":243,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11525,7 +11217,6 @@
                  "height":16,
                  "id":244,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11554,7 +11245,6 @@
                  "height":16,
                  "id":245,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11583,7 +11273,6 @@
                  "height":16,
                  "id":246,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11612,7 +11301,6 @@
                  "height":16,
                  "id":247,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11641,7 +11329,6 @@
                  "height":16,
                  "id":248,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11670,7 +11357,6 @@
                  "height":16,
                  "id":249,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11699,7 +11385,6 @@
                  "height":16,
                  "id":250,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11728,7 +11413,6 @@
                  "height":16,
                  "id":251,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11757,7 +11441,6 @@
                  "height":16,
                  "id":257,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11786,7 +11469,6 @@
                  "height":16,
                  "id":258,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11815,7 +11497,6 @@
                  "height":16,
                  "id":259,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11844,7 +11525,6 @@
                  "height":16,
                  "id":260,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11873,7 +11553,6 @@
                  "height":16,
                  "id":261,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11902,7 +11581,6 @@
                  "height":16,
                  "id":262,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11931,7 +11609,6 @@
                  "height":16,
                  "id":263,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11960,7 +11637,6 @@
                  "height":16,
                  "id":264,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -11989,7 +11665,6 @@
                  "height":16,
                  "id":265,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12018,7 +11693,6 @@
                  "height":16,
                  "id":266,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12047,7 +11721,6 @@
                  "height":16,
                  "id":267,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12076,7 +11749,6 @@
                  "height":16,
                  "id":268,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12105,7 +11777,6 @@
                  "height":16,
                  "id":269,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12134,7 +11805,6 @@
                  "height":16,
                  "id":270,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12163,7 +11833,6 @@
                  "height":16,
                  "id":271,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12192,7 +11861,6 @@
                  "height":16,
                  "id":272,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12221,7 +11889,6 @@
                  "height":16,
                  "id":273,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12250,7 +11917,6 @@
                  "height":16,
                  "id":274,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12279,7 +11945,6 @@
                  "height":16,
                  "id":275,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12308,7 +11973,6 @@
                  "height":16,
                  "id":276,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12337,7 +12001,6 @@
                  "height":16,
                  "id":277,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12366,7 +12029,6 @@
                  "height":16,
                  "id":278,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12395,7 +12057,6 @@
                  "height":16,
                  "id":279,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12424,7 +12085,6 @@
                  "height":16,
                  "id":280,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12453,7 +12113,6 @@
                  "height":16,
                  "id":281,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12482,7 +12141,6 @@
                  "height":16,
                  "id":282,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12511,7 +12169,6 @@
                  "height":16,
                  "id":283,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12540,7 +12197,6 @@
                  "height":16,
                  "id":284,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12569,7 +12225,6 @@
                  "height":16,
                  "id":285,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12598,7 +12253,6 @@
                  "height":16,
                  "id":286,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12627,7 +12281,6 @@
                  "height":16,
                  "id":287,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12656,7 +12309,6 @@
                  "height":16,
                  "id":288,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12685,7 +12337,6 @@
                  "height":16,
                  "id":289,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12714,7 +12365,6 @@
                  "height":16,
                  "id":290,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12743,7 +12393,6 @@
                  "height":16,
                  "id":291,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12772,7 +12421,6 @@
                  "height":16,
                  "id":292,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12801,7 +12449,6 @@
                  "height":16,
                  "id":293,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12830,7 +12477,6 @@
                  "height":16,
                  "id":294,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12859,7 +12505,6 @@
                  "height":16,
                  "id":295,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12888,7 +12533,6 @@
                  "height":16,
                  "id":296,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12917,7 +12561,6 @@
                  "height":16,
                  "id":297,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12946,7 +12589,6 @@
                  "height":16,
                  "id":320,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -12975,7 +12617,6 @@
                  "height":16,
                  "id":321,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13004,7 +12645,6 @@
                  "height":16,
                  "id":322,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13033,7 +12673,6 @@
                  "height":16,
                  "id":323,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13062,7 +12701,6 @@
                  "height":16,
                  "id":324,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13091,7 +12729,6 @@
                  "height":16,
                  "id":325,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13120,7 +12757,6 @@
                  "height":16,
                  "id":326,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13149,7 +12785,6 @@
                  "height":16,
                  "id":331,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13178,7 +12813,6 @@
                  "height":16,
                  "id":332,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13207,7 +12841,6 @@
                  "height":16,
                  "id":333,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13236,7 +12869,6 @@
                  "height":16,
                  "id":334,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13265,7 +12897,6 @@
                  "height":16,
                  "id":336,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13294,7 +12925,6 @@
                  "height":16,
                  "id":337,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13323,7 +12953,6 @@
                  "height":16,
                  "id":338,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13352,7 +12981,6 @@
                  "height":16,
                  "id":339,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13381,7 +13009,6 @@
                  "height":16,
                  "id":340,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13410,7 +13037,6 @@
                  "height":16,
                  "id":347,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13439,7 +13065,6 @@
                  "height":16,
                  "id":348,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13468,7 +13093,6 @@
                  "height":16,
                  "id":349,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13497,7 +13121,6 @@
                  "height":16,
                  "id":350,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13526,7 +13149,6 @@
                  "height":16,
                  "id":351,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13555,7 +13177,6 @@
                  "height":16,
                  "id":352,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13584,7 +13205,6 @@
                  "height":16,
                  "id":353,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13613,7 +13233,6 @@
                  "height":16,
                  "id":354,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13642,7 +13261,6 @@
                  "height":16,
                  "id":355,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13671,7 +13289,6 @@
                  "height":16,
                  "id":356,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13700,7 +13317,6 @@
                  "height":16,
                  "id":357,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13729,7 +13345,6 @@
                  "height":16,
                  "id":358,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13758,7 +13373,6 @@
                  "height":16,
                  "id":359,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13787,7 +13401,6 @@
                  "height":16,
                  "id":360,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13816,7 +13429,6 @@
                  "height":16,
                  "id":361,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13845,7 +13457,6 @@
                  "height":16,
                  "id":362,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13874,7 +13485,6 @@
                  "height":16,
                  "id":363,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13903,7 +13513,6 @@
                  "height":16,
                  "id":364,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13932,7 +13541,6 @@
                  "height":16,
                  "id":365,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13961,7 +13569,6 @@
                  "height":16,
                  "id":366,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -13990,7 +13597,6 @@
                  "height":16,
                  "id":367,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14019,7 +13625,6 @@
                  "height":16,
                  "id":368,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14048,7 +13653,6 @@
                  "height":16,
                  "id":369,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14077,7 +13681,6 @@
                  "height":16,
                  "id":370,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14106,7 +13709,6 @@
                  "height":16,
                  "id":371,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14135,7 +13737,6 @@
                  "height":16,
                  "id":372,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14164,7 +13765,6 @@
                  "height":16,
                  "id":373,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14193,7 +13793,6 @@
                  "height":16,
                  "id":374,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14222,7 +13821,6 @@
                  "height":16,
                  "id":375,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14251,7 +13849,6 @@
                  "height":16,
                  "id":376,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14280,7 +13877,6 @@
                  "height":16,
                  "id":377,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14309,7 +13905,6 @@
                  "height":16,
                  "id":378,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14338,7 +13933,6 @@
                  "height":16,
                  "id":379,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14367,7 +13961,6 @@
                  "height":16,
                  "id":380,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14396,7 +13989,6 @@
                  "height":16,
                  "id":381,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14425,7 +14017,6 @@
                  "height":16,
                  "id":382,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14454,7 +14045,6 @@
                  "height":16,
                  "id":383,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14483,7 +14073,6 @@
                  "height":16,
                  "id":384,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14512,7 +14101,6 @@
                  "height":16,
                  "id":385,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14541,7 +14129,6 @@
                  "height":16,
                  "id":386,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14570,7 +14157,6 @@
                  "height":16,
                  "id":387,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14599,7 +14185,6 @@
                  "height":16,
                  "id":388,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14628,7 +14213,6 @@
                  "height":16,
                  "id":797,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14657,7 +14241,6 @@
                  "height":16,
                  "id":798,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14686,7 +14269,6 @@
                  "height":16,
                  "id":799,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14715,7 +14297,6 @@
                  "height":16,
                  "id":800,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14744,7 +14325,6 @@
                  "height":16,
                  "id":801,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14773,7 +14353,6 @@
                  "height":16,
                  "id":802,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14802,7 +14381,6 @@
                  "height":16,
                  "id":803,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14831,7 +14409,6 @@
                  "height":16,
                  "id":804,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14860,7 +14437,6 @@
                  "height":16,
                  "id":805,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14889,7 +14465,6 @@
                  "height":16,
                  "id":806,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14918,7 +14493,6 @@
                  "height":16,
                  "id":807,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14947,7 +14521,6 @@
                  "height":16,
                  "id":808,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -14976,7 +14549,6 @@
                  "height":16,
                  "id":809,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15005,7 +14577,6 @@
                  "height":16,
                  "id":810,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15034,7 +14605,6 @@
                  "height":16,
                  "id":811,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15063,7 +14633,6 @@
                  "height":16,
                  "id":812,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15092,7 +14661,6 @@
                  "height":16,
                  "id":813,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15121,7 +14689,6 @@
                  "height":16,
                  "id":814,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15150,7 +14717,6 @@
                  "height":16,
                  "id":815,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15179,7 +14745,6 @@
                  "height":16,
                  "id":816,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15208,7 +14773,6 @@
                  "height":16,
                  "id":817,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15237,7 +14801,6 @@
                  "height":16,
                  "id":818,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15266,7 +14829,6 @@
                  "height":16,
                  "id":819,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15295,7 +14857,6 @@
                  "height":16,
                  "id":820,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15324,7 +14885,6 @@
                  "height":16,
                  "id":821,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15353,7 +14913,6 @@
                  "height":16,
                  "id":822,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15382,7 +14941,6 @@
                  "height":16,
                  "id":823,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15411,7 +14969,6 @@
                  "height":16,
                  "id":824,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15440,7 +14997,6 @@
                  "height":16,
                  "id":825,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15469,7 +15025,6 @@
                  "height":16,
                  "id":826,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15498,7 +15053,6 @@
                  "height":16,
                  "id":827,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15527,7 +15081,6 @@
                  "height":16,
                  "id":828,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15556,7 +15109,6 @@
                  "height":16,
                  "id":829,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15585,7 +15137,6 @@
                  "height":16,
                  "id":830,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"id_arena",
@@ -15613,7 +15164,6 @@
                  "height":64.3636363636363,
                  "id":841,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"isActive",
@@ -15641,7 +15191,6 @@
                  "height":64.3636,
                  "id":842,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"isActive",
@@ -15670,7 +15219,6 @@
                  "height":47,
                  "id":843,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"acao",
@@ -15714,7 +15262,6 @@
                  "height":47,
                  "id":844,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"acao",
@@ -15757,7 +15304,6 @@
                  "height":32,
                  "id":846,
                  "name":"",
-                 "opacity":1,
                  "properties":[
                         {
                          "name":"isActive",
@@ -16403,12 +15949,12 @@
  "nextobjectid":849,
  "orientation":"orthogonal",
  "renderorder":"right-down",
- "tiledversion":"1.12.2",
+ "tiledversion":"1.11.2",
  "tileheight":16,
  "tilesets":[
         {
          "firstgid":1,
-         "source":"tile_set_pingu.tsx"
+         "source":"images\/tile_set_pingu.tsx"
         }, 
         {
          "firstgid":127,
