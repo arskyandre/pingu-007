@@ -11,9 +11,32 @@ tiles. Para cada conjunto reconhecido, o programa:
 3. cria o objeto equivalente na camada `Paredes`;
 4. atualiza o `nextobjectid` do mapa.
 
-O mapa precisa conter a camada de objetos `Paredes` e as camadas antigas usadas
-pelo conversor, como `tTree`, `bTree`, `tIglu`, `bIglu`, `tStone`, `bStone` e
-`fence`.
+O mapa precisa conter a camada de objetos `Paredes`. As camadas antigas de
+tiles são opcionais: `tTree`, `bTree`, `tIglu`, `bIglu`, `tStone`, `bStone` e
+`fence` podem estar ausentes quando o mapa não usa aquela família de objetos.
+
+## Compatibilidade com camadas faltando
+
+O conversor trata cada família de objetos de forma independente:
+
+- árvores usam `tTree` e `bTree`;
+- iglus usam `tIglu` e `bIglu`;
+- pedras usam `tStone` e `bStone`;
+- cercas usam `fence`.
+
+Se as camadas necessárias para uma família não existirem, essa família será
+ignorada sem interromper a conversão das demais. Por exemplo, um mapa sem
+iglus pode não possuir `tIglu` e `bIglu`; árvores, pedras e cercas ainda serão
+convertidas normalmente.
+
+Nesse caso, o programa exibe um aviso semelhante a:
+
+```text
+WARNING: Skipped patterns requiring missing layer(s): bIglu, tIglu
+```
+
+Esse aviso é informativo e não indica falha. A camada `Paredes`, porém, continua
+obrigatória porque recebe os novos MapObjects.
 
 ## Conferir sem alterar o mapa
 
