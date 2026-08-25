@@ -408,6 +408,26 @@ public class CameraManager {
                 && objY + objH > viewTop);
     }
 
+    public boolean onScreenWithTolerance(double objX, double objY, double objW, double objH,
+            int telaLargura, int telaAltura) {
+        return onScreenWithTolerance(objX, objY, objW, objH, telaLargura, telaAltura,
+                GameCore.tiles_size * 2.0);
+    }
+
+    public boolean onScreenWithTolerance(double objX, double objY, double objW, double objH,
+            int telaLargura, int telaAltura, double tolerance) {
+        double safeTolerance = Math.max(0.0, tolerance);
+        double viewLeft = getX() - safeTolerance;
+        double viewTop = getY() - safeTolerance;
+        double viewRight = getX() + (telaLargura / this.zoom) + safeTolerance;
+        double viewBottom = getY() + (telaAltura / this.zoom) + safeTolerance;
+
+        return (objX < viewRight
+                && objX + objW > viewLeft
+                && objY < viewBottom
+                && objY + objH > viewTop);
+    }
+
     public double getX() {
         return x + shakeOffsetX;
     }
