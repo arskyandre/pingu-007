@@ -741,6 +741,8 @@ public class GameCore extends Canvas implements Runnable {
         }
 
         levelManager.carregarNivel(LoadSave.CASA_VENDEDOR);
+        camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
+                getWidth(), getHeight());
         mapLoadCooldown = 60;
         // Rectangle2D.Double rect = new Rectangle2D.Double(0, 0, 2 * tiles_size, 1 *
         // tiles_size);
