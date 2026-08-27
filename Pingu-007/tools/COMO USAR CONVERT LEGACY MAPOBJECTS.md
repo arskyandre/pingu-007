@@ -68,5 +68,5 @@ Antes de substituir o mapa, o programa cria uma cópia com a extensão `.bak`.
 Por segurança, ele interrompe a operação se esse backup já existir.
 
 Revise os avisos exibidos: partes incompletas ficam inalteradas, sobreposições
-recuperadas são informadas e o modelo antigo de iglu com porta à direita não é
-convertido porque não possui um MapObject equivalente.
+recuperadas são informadas e o modelo antigo de iglu com porta à direita é
+convertido para o terceiro tile de `images/iglus.tsx`.

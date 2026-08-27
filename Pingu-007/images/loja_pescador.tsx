@@ -3,6 +3,7 @@
  <image source="loja_pescador.png" width="32" height="32"/>
  <tile id="0">
   <properties>
+   <property name="castsShadow" type="bool" value="true"/>
    <property name="acao" value="none"/>
    <property name="colisao" type="bool" value="true"/>
    <property name="isActive" type="bool" value="true"/>

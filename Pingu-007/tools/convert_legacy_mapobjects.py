@@ -51,6 +51,10 @@ PATTERNS = (
         ("tIglu", 0, -1, 68), ("tIglu", 1, -1, 69), ("tIglu", 2, -1, 70),
         ("bIglu", 0, 0, 82), ("bIglu", 1, 0, 83), ("bIglu", 2, 0, 84),
     ), "bIglu", 82),
+    Pattern("right igloo", "images/iglus.tsx", 2, 48, 32, (
+        ("tIglu", 0, -1, 12), ("tIglu", 1, -1, 13), ("tIglu", 2, -1, 14),
+        ("bIglu", 0, 0, 26), ("bIglu", 1, 0, 27), ("bIglu", 2, 0, 28),
+    ), "bIglu", 26),
     Pattern("small stone", "images/stone1.tsx", 0, 16, 31, (
         ("bStone", 0, 0, 48),
     ), "bStone", 48, -1),
@@ -70,7 +74,7 @@ FENCE_LOCAL_IDS = {7: 0, 8: 1, 9: 2, 21: 3, 22: 4, 23: 5}
 TILESET_COUNTS = {
     "images/tile_set_pingu.tsx": 126,
     "tile_set_pingu.tsx": 126,
-    "images/iglus.tsx": 2,
+    "images/iglus.tsx": 3,
     "images/portao.tsx": 2,
     "images/arvore.tsx": 2,
     "images/loja_pescador.tsx": 1,
@@ -242,7 +246,7 @@ def convert(level: dict) -> tuple[dict[str, int], list[str]]:
     old_igloos = sum(1 for gid in layers.get("bIglu", {}).get("data", []) if gid == 26)
     if old_igloos:
         warnings.append(
-            f"Left {old_igloos} old right-door igloo(s) unchanged: no equivalent MapObject asset exists"
+            f"Left {old_igloos} legacy right-door igloo(s) unchanged"
         )
 
     level["nextobjectid"] = next_id
