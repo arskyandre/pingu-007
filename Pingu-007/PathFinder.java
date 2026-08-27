@@ -1,4 +1,5 @@
 
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -8,18 +9,19 @@ import java.util.function.Consumer;
 
 public class PathFinder {
 
-    // MULTITHREADING (é sério)
     private static final ExecutorService aiThreadPool = Executors.newFixedThreadPool(3);
 
+    // MULTITHREADING (é sério)
     public static void solicitarCaminhoAsync(
             int startCol, int startRow,
             int targetCol, int targetRow,
             int[][] lvlData,
             ArrayList<JumpLink> jumpLinks,
+            ArrayList<MapObject> objetosCenario,
             Consumer<ArrayList<Node>> callback) {
 
         aiThreadPool.submit(() -> {
-            ArrayList<Node> caminhoPronto = encontrarCaminho(startCol, startRow, targetCol, targetRow, lvlData, jumpLinks);
+            ArrayList<Node> caminhoPronto = encontrarCaminho(startCol, startRow, targetCol, targetRow, lvlData, jumpLinks, objetosCenario);
             callback.accept(caminhoPronto);
         });
     }
@@ -32,7 +34,39 @@ public class PathFinder {
             int startCol, int startRow,
             int targetCol, int targetRow,
             int[][] lvlData,
-            ArrayList<JumpLink> jumpLinks) {
+            ArrayList<JumpLink> jumpLinks,
+            ArrayList<MapObject> objetosCenario) {
+
+        int maxRow = lvlData.length;
+        int maxCol = lvlData[0].length;
+
+        // Otimização : cria uma matriz para pre calcular os tiles com colisões de objetos (PERDE PRECISÃO)
+        boolean[][] gridObjetos = new boolean[maxRow][maxCol];
+        if (objetosCenario != null) {
+            for (MapObject obj : objetosCenario) {
+                if (obj == null || !obj.isSolid() || obj.getHitbox() == null) {
+                    continue;
+                }
+
+                Rectangle2D bounds = obj.getHitbox().getBounds2D();
+                int startC = Math.max(0, (int) (bounds.getX() / GameCore.tiles_size));
+                int startR = Math.max(0, (int) (bounds.getY() / GameCore.tiles_size));
+                int endC = Math.min(maxCol - 1, (int) ((bounds.getX() + bounds.getWidth()) / GameCore.tiles_size));
+                int endR = Math.min(maxRow - 1, (int) ((bounds.getY() + bounds.getHeight()) / GameCore.tiles_size));
+
+                for (int r = startR; r <= endR; r++) {
+                    for (int c = startC; c <= endC; c++) {
+                        Rectangle2D.Double tileRect = new Rectangle2D.Double(
+                                c * GameCore.tiles_size, r * GameCore.tiles_size,
+                                GameCore.tiles_size, GameCore.tiles_size);
+
+                        if (obj.getHitbox().intersects(tileRect)) {
+                            gridObjetos[r][c] = true;
+                        }
+                    }
+                }
+            }
+        }
 
         ArrayList<Node> openList = new ArrayList<>();
         HashMap<Long, Node> openMap = new HashMap<>();
@@ -48,7 +82,7 @@ public class PathFinder {
         while (!openList.isEmpty()) {
 
             limiteTentativas++;
-            if (limiteTentativas > 2500) {
+            if (limiteTentativas > 3000) {
                 return null;
             }
 
@@ -65,12 +99,11 @@ public class PathFinder {
             openMap.remove(nodeKey(current.coluna, current.linha));
             closedMap.put(nodeKey(current.coluna, current.linha), current);
 
-            if (current.coluna == targetNode.coluna
-                    && current.linha == targetNode.linha) {
+            if (current.coluna == targetNode.coluna && current.linha == targetNode.linha) {
                 return construirCaminho(current);
             }
 
-            for (Node vizinho : getVizinhos(current, lvlData, jumpLinks, closedMap)) {
+            for (Node vizinho : getVizinhos(current, lvlData, jumpLinks, closedMap, gridObjetos)) {
                 long key = nodeKey(vizinho.coluna, vizinho.linha);
                 int moveCost = current.gCost + calcularMoveCost(current, vizinho, lvlData);
                 Node existingOpen = openMap.get(key);
@@ -107,7 +140,8 @@ public class PathFinder {
             Node current,
             int[][] lvlData,
             ArrayList<JumpLink> jumpLinks,
-            HashMap<Long, Node> closedMap) {
+            HashMap<Long, Node> closedMap,
+            boolean[][] gridObjetos) {
 
         ArrayList<Node> vizinhos = new ArrayList<>();
         int maxRow = lvlData.length;
@@ -122,6 +156,7 @@ public class PathFinder {
 
             if (nCol >= 0 && nCol < maxCol && nRow >= 0 && nRow < maxRow) {
                 if (isCaminhavel(lvlData[nRow][nCol])
+                        && !gridObjetos[nRow][nCol]
                         && !closedMap.containsKey(nodeKey(nCol, nRow))) {
                     vizinhos.add(new Node(nCol, nRow));
                 }
@@ -130,18 +165,18 @@ public class PathFinder {
 
         if (jumpLinks != null) {
             for (JumpLink link : jumpLinks) {
-                if (link.origemCol == current.coluna
-                        && link.origemRow == current.linha
-                        && !closedMap.containsKey(nodeKey(link.destinoCol, link.destinoRow))) {
+                if (link.origemCol == current.coluna && link.origemRow == current.linha
+                        && !closedMap.containsKey(nodeKey(link.destinoCol, link.destinoRow))
+                        && !gridObjetos[link.destinoRow][link.destinoCol]) {
 
                     Node jumpNode = new Node(link.destinoCol, link.destinoRow);
                     jumpNode.requerSalto = true;
                     jumpNode.distanciaTiles = link.distanciaTiles;
                     vizinhos.add(jumpNode);
 
-                } else if (link.destinoCol == current.coluna
-                        && link.destinoRow == current.linha
-                        && !closedMap.containsKey(nodeKey(link.origemCol, link.origemRow))) {
+                } else if (link.destinoCol == current.coluna && link.destinoRow == current.linha
+                        && !closedMap.containsKey(nodeKey(link.origemCol, link.origemRow))
+                        && !gridObjetos[link.origemRow][link.origemCol]) {
 
                     Node jumpNode = new Node(link.origemCol, link.origemRow);
                     jumpNode.requerSalto = true;
@@ -157,7 +192,6 @@ public class PathFinder {
         return (Math.abs(a.coluna - b.coluna) + Math.abs(a.linha - b.linha)) * 10;
     }
 
-    // --- LÓGICA DE EVITAR SUICÍDIO NO GELO ---
     private static boolean temBuracoAdjacente(int row, int col, int[][] lvlData) {
         int[] dirX = {1, -1, 0, 0};
         int[] dirY = {0, 0, 1, -1};
@@ -186,10 +220,9 @@ public class PathFinder {
             base = calcularDistancia(from, to);
             base += TileProperties.getHazardMoveCost(to.linha, to.coluna, lvlData);
 
-            // HAZARD AVOIDANCE EXTREMO: Se é Gelo colado num buraco, taxa altíssima de risco!
             if (TileProperties.isIce(lvlData[to.linha][to.coluna])) {
                 if (temBuracoAdjacente(to.linha, to.coluna, lvlData)) {
-                    base += 40; // Ele preferirá quase qualquer outra rota, mas andará se não houver saída.
+                    base += 40;
                 }
             }
         }
