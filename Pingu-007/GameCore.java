@@ -90,6 +90,7 @@ public class GameCore extends Canvas implements Runnable {
     private final InputManager input;
     private final Renderer renderer;
     private final LevelManager levelManager;
+    private final ScreenTransition screenTransition;
     private ArenaManager arenaManager;
     private DialogueManager dialogueManager;
     private SoundManager soundManager;
@@ -134,6 +135,7 @@ public class GameCore extends Canvas implements Runnable {
         itemManager = new ItemManager();
         input = new InputManager();
         renderer = new Renderer();
+        screenTransition = new ScreenTransition();
         renderer.modoDebug = false;
         levelManager = new LevelManager(this, soundManager);
         dialogueManager = new DialogueManager(soundManager);
@@ -409,6 +411,15 @@ public class GameCore extends Canvas implements Runnable {
         camera.adjustForViewportResize(getWidth(), getHeight(), calculateBaseZoom(getHeight()));
         updateCursorVisibility();
 
+        if (screenTransition.isActive()) {
+            screenTransition.update();
+            if (screenTransition.shouldBlockSceneUpdate()) {
+                input.update();
+                updateCursorVisibility();
+                return;
+            }
+        }
+
         boolean avancarRelogio = (gameState == GameState.PLAYING
                 || gameState == GameState.CUTSCENE) && !getEstaDentroLoja();
 
@@ -421,16 +432,8 @@ public class GameCore extends Canvas implements Runnable {
                     optionsMenu.setReturnState(GameState.MAIN_MENU);
                 }
                 if (next == GameState.PLAYING) {
-                    updateDayNightAnteriorNanos = -1L;
-                    elapsedGameSeconds = horarioinicial * fullDaySeconds;
-                    dayProgress = horarioinicial;
-                    lastProcessedDay = 1;
-                    soundManager.playBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP);
-                    player.setShootCooldownTimer(30);
-                    iniciarSequenciaIntro();
-
-                    camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
-                            getWidth(), getHeight());
+                    screenTransition.start(this::iniciarJogoDoMenu);
+                    next = GameState.MAIN_MENU;
                 }
                 gameState = next;
             }
@@ -477,8 +480,8 @@ public class GameCore extends Canvas implements Runnable {
             case GAME_OVER -> {
                 GameState next = gameOverScreen.update(input, getWidth(), getHeight());
                 if (next == GameState.MAIN_MENU) {
-                    resetarJogoCompleto();
-                    soundManager.playBGM(SoundManager.BGM.MAIN_MENU);
+                    screenTransition.start(this::voltarAoMenuPrincipalImediato);
+                    next = GameState.GAME_OVER;
                 }
                 if (next == GameState.PLAYING) {
                     carregarCheckpoint();
@@ -504,8 +507,8 @@ public class GameCore extends Canvas implements Runnable {
                     optionsMenu.setReturnState(GameState.PAUSED);
                 }
                 if (next == GameState.MAIN_MENU) {
-                    resetarJogoCompleto();
-                    soundManager.playBGM(SoundManager.BGM.MAIN_MENU);
+                    screenTransition.start(this::voltarAoMenuPrincipalImediato);
+                    next = GameState.PAUSED;
                 }
                 if (next == GameState.PLAYING) {
                     player.setShootCooldownTimer(15);
@@ -531,6 +534,25 @@ public class GameCore extends Canvas implements Runnable {
         introPendente = false;
         introDialogoAtiva = false;
         introPreDelayTimer = INTRO_PRE_DELAY_FRAMES;
+    }
+
+    private void iniciarJogoDoMenu() {
+        updateDayNightAnteriorNanos = -1L;
+        elapsedGameSeconds = horarioinicial * fullDaySeconds;
+        dayProgress = horarioinicial;
+        lastProcessedDay = 1;
+        soundManager.playBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP);
+        player.setShootCooldownTimer(30);
+        iniciarSequenciaIntro();
+        camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
+                getWidth(), getHeight());
+        gameState = GameState.PLAYING;
+    }
+
+    private void voltarAoMenuPrincipalImediato() {
+        resetarJogoCompleto();
+        soundManager.playBGM(SoundManager.BGM.MAIN_MENU);
+        gameState = GameState.MAIN_MENU;
     }
 
     public void updatePlayerMovement() {
@@ -647,19 +669,7 @@ public class GameCore extends Canvas implements Runnable {
             if (LoadSave.CASA_VENDEDOR.equals(levelManager.getArquivoNivelAtual())) {
                 sairCasaVendedor();
             } else {
-                levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
-                setCinematicBorderAnimation(Renderer.BorderState.OUT);
-                camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
-                        getWidth(), getHeight());
-                if (soundManager.currentSong() != SoundManager.BGM.LEVEL_1_DAY_LOOP
-                        && soundManager.currentSong() != SoundManager.BGM.LEVEL_1_NIGHT_LOOP
-                        && soundManager.currentSong() != SoundManager.BGM.LEVEL_1_DAY_INTRO
-                        && soundManager.currentSong() != SoundManager.BGM.LEVEL_1_NIGHT_INTRO) {
-                    soundManager.crossfadeBGM(
-                            getLevel1MusicaLoop(),
-                            2000, true);
-                }
-                mapLoadCooldown = 60;
+                screenTransition.start(this::carregarNivel1DebugImediato);
             }
         }
 
@@ -714,6 +724,10 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void entrarCasaVendedor() {
+        screenTransition.start(this::entrarCasaVendedorImediato);
+    }
+
+    private void entrarCasaVendedorImediato() {
         if (LoadSave.LEVEL_1_DATA.equals(levelManager.getArquivoNivelAtual())) {
             estadoLevel1AntesDaLoja = arenaManager.capturarEstadoMapa();
             itensLevel1AntesDaLoja = new ArrayList<>(itemManager.getItems());
@@ -737,6 +751,10 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void sairCasaVendedor() {
+        screenTransition.start(this::sairCasaVendedorImediato);
+    }
+
+    private void sairCasaVendedorImediato() {
         levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
         // System.out.println("Player position levelManager.carregarNivel (" +
         // player.getX() + ", " + player.getY() + ")");
@@ -777,7 +795,10 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void entrarNivelBoss() {
+        screenTransition.start(this::entrarNivelBossImediato);
+    }
 
+    private void entrarNivelBossImediato() {
         levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
         arenaManager.setFirstArenaFlag(false);
         mapLoadCooldown = 60;
@@ -786,11 +807,42 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void entrarNivelTest() {
+        screenTransition.start(this::entrarNivelTestImediato);
+    }
+
+    private void entrarNivelTestImediato() {
         levelManager.carregarNivel(LoadSave.LEVEL_YSORT);
         arenaManager.setFirstArenaFlag(false);
         mapLoadCooldown = 60;
         camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(), getWidth(),
                 getHeight());
+    }
+
+    public void transicionarMapa(String mapaDestino) {
+        if (mapaDestino == null || mapaDestino.isEmpty()) {
+            return;
+        }
+
+        screenTransition.start(() -> {
+            levelManager.carregarNivel(mapaDestino);
+            camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
+                    getWidth(), getHeight());
+            mapLoadCooldown = 60;
+        });
+    }
+
+    private void carregarNivel1DebugImediato() {
+        levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
+        setCinematicBorderAnimation(Renderer.BorderState.OUT);
+        camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
+                getWidth(), getHeight());
+        if (soundManager.currentSong() != SoundManager.BGM.LEVEL_1_DAY_LOOP
+                && soundManager.currentSong() != SoundManager.BGM.LEVEL_1_NIGHT_LOOP
+                && soundManager.currentSong() != SoundManager.BGM.LEVEL_1_DAY_INTRO
+                && soundManager.currentSong() != SoundManager.BGM.LEVEL_1_NIGHT_INTRO) {
+            soundManager.crossfadeBGM(getLevel1MusicaLoop(), 2000, true);
+        }
+        mapLoadCooldown = 60;
     }
 
     public void toggleAntiAliasing() {
@@ -1171,6 +1223,7 @@ public class GameCore extends Canvas implements Runnable {
                     case QUIT -> {
                     }
                 }
+                screenTransition.draw(g2, getWidth(), getHeight());
                 g2.dispose();
             } while (bs.contentsRestored());
             bs.show();

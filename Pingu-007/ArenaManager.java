@@ -679,7 +679,7 @@ public class ArenaManager {
                 gameCore.sairCasaVendedor();
                 return;
             }
-            levelManager.carregarNivel(mapaDestino);
+            gameCore.transicionarMapa(mapaDestino);
         }
     }
 
