@@ -1,5 +1,5 @@
-
 import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 
 public abstract class NPC implements Renderable {
 
@@ -49,6 +49,26 @@ public abstract class NPC implements Renderable {
                 - (y + altura / 2.0);
 
         return Math.hypot(dx, dy) <= INTERACT_RANGE;
+    }
+
+    protected void drawSpriteWithShadow(Graphics2D g2, BufferedImage sprite,
+            int drawX, int drawY, int drawW, int drawH) {
+        if (sprite == null || drawW == 0 || drawH == 0) {
+            return;
+        }
+
+        ProjectedShadow.VisualAnchor anchor = ProjectedShadow.getVisualGroundAnchor(sprite,
+                drawX, drawY, drawW, drawH);
+        double referenceHeight = anchor.hasVisiblePixels()
+                ? Math.max(1.0, anchor.getVisibleHeight())
+                : Math.max(1.0, Math.abs((double) drawH));
+        double feetX = anchor.hasVisiblePixels() ? anchor.getX() : drawX + drawW / 2.0;
+        double feetY = anchor.hasVisiblePixels() ? anchor.getY() : drawY + Math.abs((double) drawH);
+
+        ProjectedShadow.drawAtGroundAnchor(g2, feetX, feetY, referenceHeight,
+                ProjectedShadow.shadowLengthForReferenceHeight(referenceHeight),
+                ProjectedShadow.DEFAULT_SHADOW_OPACITY,
+                new ProjectedShadow.Part(sprite, drawX, drawY, drawW, drawH));
     }
 
     public abstract void update(

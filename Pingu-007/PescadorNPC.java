@@ -155,6 +155,7 @@ public class PescadorNPC extends NPC {
                 y = Yfinal;
             }
         }
+        drawSpriteWithShadow(g2, Sprite, (int) x, (int) y, (int) WIDTH, (int) HEIGHT);
         g2.drawImage(Sprite, (int) x, (int) y, (int) WIDTH, (int) HEIGHT, null);
         if (state == State.IDLE && proximo) {
             g2.setFont(MenuButton.pixelFont.deriveFont(7f));
