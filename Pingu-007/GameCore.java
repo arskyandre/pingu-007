@@ -1157,10 +1157,6 @@ public class GameCore extends Canvas implements Runnable {
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
                                 cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                 true, true);
-                        drawLateHudElements(g2, delta);
-                        if (showFpsCounter) {
-                            drawFpsCounter(g2);
-                        }
 
                     }
                     case SHOP -> {
@@ -1175,7 +1171,6 @@ public class GameCore extends Canvas implements Runnable {
                         if (shop != null) {
                             shop.render(g2, getWidth(), getHeight());
                         }
-                        drawLateHudElements(g2, delta);
                     }
                     case GAME_OVER -> {
                         renderer.renderizar(g2, camera, player, input,
@@ -1186,7 +1181,6 @@ public class GameCore extends Canvas implements Runnable {
                                 true, false);
 
                         gameOverScreen.render(g2, getWidth(), getHeight());
-                        drawLateHudElements(g2, delta);
                     }
                     case PAUSED -> {
                         renderer.renderizar(g2, camera, player, input,
@@ -1198,8 +1192,6 @@ public class GameCore extends Canvas implements Runnable {
 
                         pauseMenu.render(g2, getWidth(), getHeight());
 
-                        drawLateHudElements(g2, delta);
-
                     }
                     case CUTSCENE -> {
                         {
@@ -1210,10 +1202,6 @@ public class GameCore extends Canvas implements Runnable {
                                     cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                     true, false);
 
-                            drawLateHudElements(g2, delta);
-                            if (showFpsCounter) {
-                                drawFpsCounter(g2);
-                            }
                         }
                     }
                     case OPTIONS -> {
@@ -1226,6 +1214,13 @@ public class GameCore extends Canvas implements Runnable {
                     }
                 }
                 screenTransition.draw(g2, getWidth(), getHeight());
+                if (gameState == GameState.PLAYING || gameState == GameState.PAUSED || gameState == GameState.CUTSCENE
+                        || gameState == GameState.GAME_OVER || gameState == GameState.SHOP) {
+                    drawLateHudElements(g2, delta);
+                }
+                if (gameState == GameState.PLAYING && showFpsCounter) {
+                    drawFpsCounter(g2);
+                }
                 g2.dispose();
             } while (bs.contentsRestored());
             bs.show();
