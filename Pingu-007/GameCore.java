@@ -225,7 +225,7 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public static double getSunAngle() {
-        return !estaDentroLoja ? ((dayProgress * Math.PI * 2.0) - (Math.PI / 2.0)) : Math.PI / 2.0;
+        return !estaDentroLoja ? ((dayProgress * Math.PI * 2.0) - (Math.PI / 2.0)) : (5 * Math.PI / 4.0);
     }
 
     private void atualizarMusicaDayNight() {
@@ -1213,11 +1213,11 @@ public class GameCore extends Canvas implements Runnable {
                     case QUIT -> {
                     }
                 }
-                screenTransition.draw(g2, getWidth(), getHeight());
                 if (gameState == GameState.PLAYING || gameState == GameState.PAUSED || gameState == GameState.CUTSCENE
                         || gameState == GameState.GAME_OVER || gameState == GameState.SHOP) {
                     drawLateHudElements(g2, delta);
                 }
+                screenTransition.draw(g2, getWidth(), getHeight());
                 if (gameState == GameState.PLAYING && showFpsCounter) {
                     drawFpsCounter(g2);
                 }
