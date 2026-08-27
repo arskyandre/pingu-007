@@ -627,7 +627,7 @@ public class GameCore extends Canvas implements Runnable {
             debugSpawnCooldown = 15;
         }
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_0) && debugSpawnCooldown <= 0) {
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_F10) && debugSpawnCooldown <= 0) {
             renderer.modoDebug = !renderer.modoDebug;
             toggleFpsCounter();
             if (renderer.modoDebug) {
@@ -642,7 +642,7 @@ public class GameCore extends Canvas implements Runnable {
             mapLoadCooldown--;
         }
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_1) && mapLoadCooldown <= 0) {
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_F1) && mapLoadCooldown <= 0) {
             System.out.println("Voltando para o Mapa 1...");
             if (LoadSave.CASA_VENDEDOR.equals(levelManager.getArquivoNivelAtual())) {
                 sairCasaVendedor();
@@ -663,12 +663,12 @@ public class GameCore extends Canvas implements Runnable {
             }
         }
 
-        if (input.isKeyJustPressed(KeyEvent.VK_6)) {
+        if (input.isKeyJustPressed(KeyEvent.VK_F6)) {
             elapsedGameSeconds = (fullDaySeconds / 24.0) * 18.65;
             dayProgress = 18.65 / 24.0;
         }
 
-        if (input.isKeyJustPressed(KeyEvent.VK_5)) {
+        if (input.isKeyJustPressed(KeyEvent.VK_F5)) {
             elapsedGameSeconds = (fullDaySeconds / 24.0) * 7.65;
             dayProgress = 7.65 / 24.0;
         }
@@ -682,17 +682,17 @@ public class GameCore extends Canvas implements Runnable {
             }
         }
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_2) && mapLoadCooldown <= 0) {
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_F2) && mapLoadCooldown <= 0) {
             System.out.println("Indo para o Mapa 2 de Testes...");
             entrarNivelBoss();
         }
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_4) && mapLoadCooldown <= 0) {
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_F4) && mapLoadCooldown <= 0) {
             System.out.println("Indo para o Mapa 4 de Testes...");
             entrarNivelTest();
         }
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_3) && mapLoadCooldown <= 0) {
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_F3) && mapLoadCooldown <= 0) {
             System.out.println("Indo para o Mapa 3 de Testes...");
             entrarCasaVendedor();
         }
@@ -1328,7 +1328,6 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public static void main(String[] args) {
-        System.out.println("pinto");
         System.out.println("se aparecer algum erro de libusb.dll ignore ");
         GameCore game = new GameCore();
         Toolkit.getDefaultToolkit().setDynamicLayout(false);
