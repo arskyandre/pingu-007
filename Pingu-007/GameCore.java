@@ -223,7 +223,7 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public static double getSunAngle() {
-        return (dayProgress * Math.PI * 2.0) - (Math.PI / 2.0);
+        return !estaDentroLoja ? ((dayProgress * Math.PI * 2.0) - (Math.PI / 2.0)) : Math.PI / 2.0;
     }
 
     private void atualizarMusicaDayNight() {
