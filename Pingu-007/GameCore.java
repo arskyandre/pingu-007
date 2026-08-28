@@ -411,9 +411,9 @@ public class GameCore extends Canvas implements Runnable {
         camera.adjustForViewportResize(getWidth(), getHeight(), calculateBaseZoom(getHeight()));
         updateCursorVisibility();
 
-        if (screenTransition.isActive()) {
+        if (screenTransition.isAtivo()) {
             screenTransition.update();
-            if (screenTransition.shouldBlockSceneUpdate()) {
+            if (screenTransition.deveBloquearAtualizacaoDaCena()) {
                 input.update();
                 updateCursorVisibility();
                 return;
