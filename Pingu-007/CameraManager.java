@@ -301,6 +301,22 @@ public class CameraManager {
         this.zoomFocoAlvo = zoomOverride * (zoomBase / zoomReferencia);
     }
 
+    public void focarEmTeleport(double worldX, double worldY, double zoomOverride, int telaLargura,
+            int telaAltura) {
+        this.foco_indefinido = true;
+        this.focoAlvoX = worldX;
+        this.focoAlvoY = worldY;
+        this.focoTimer = 67;
+        this.focusZoomMode = FocusZoomMode.OVERRIDE;
+        this.zoomOverrideReferencia = zoomOverride;
+        this.zoomFocoAlvo = zoomOverride * (zoomBase / zoomReferencia);
+        this.zoom = this.zoomFocoAlvo;
+        this.x = worldX - (telaLargura / 2.0 / this.zoom);
+        this.y = worldY - (telaAltura / 2.0 / this.zoom);
+        this.shakeOffsetX = 0;
+        this.shakeOffsetY = 0;
+    }
+
     public void focarEmRect(Rectangle2D.Double rect, int duracaoFrames, int telaLargura, int telaAltura,
             boolean tempo_indefinido) {
         this.foco_indefinido = tempo_indefinido;

@@ -747,7 +747,7 @@ public class GameCore extends Canvas implements Runnable {
         // Rectangle2D.Double rect = new Rectangle2D.Double(0, 0, 2 * tiles_size, 1 *
         // tiles_size);
         // camera.focarEmRect(rect, 67, getWidth(), getHeight(), true);
-        camera.focarEm(24 * 16, 13.5 * 16, 1.5); // numeros magicos
+        camera.focarEmTeleport(24 * 16, 13.5 * 16, 1.5, getWidth(), getHeight()); // numeros magicos
         soundManager.crossfadeBGM(SoundManager.BGM.INSIDE_INTRO, SoundManager.BGM.INSIDE_LOOP, 2000, 1.25, false);
         setDentroLoja(true);
     }
