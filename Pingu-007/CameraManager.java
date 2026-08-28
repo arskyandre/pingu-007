@@ -7,7 +7,7 @@ public class CameraManager {
     public double pesoOffset = 0.25;
     public double pesoOffsetControle = 0.2;
 
-    // Margem da tela (em pixels) para o player não chegar perto da borda
+    // Margem da tela (em pixels) para o player nao chegar perto da borda
     public double margemX = 180;
     public double margemY = 120;
 
@@ -301,6 +301,22 @@ public class CameraManager {
         this.zoomFocoAlvo = zoomOverride * (zoomBase / zoomReferencia);
     }
 
+    public void focarEmTeleport(double worldX, double worldY, double zoomOverride, int telaLargura,
+            int telaAltura) {
+        this.foco_indefinido = true;
+        this.focoAlvoX = worldX;
+        this.focoAlvoY = worldY;
+        this.focoTimer = 67;
+        this.focusZoomMode = FocusZoomMode.OVERRIDE;
+        this.zoomOverrideReferencia = zoomOverride;
+        this.zoomFocoAlvo = zoomOverride * (zoomBase / zoomReferencia);
+        this.zoom = this.zoomFocoAlvo;
+        this.x = worldX - (telaLargura / 2.0 / this.zoom);
+        this.y = worldY - (telaAltura / 2.0 / this.zoom);
+        this.shakeOffsetX = 0;
+        this.shakeOffsetY = 0;
+    }
+
     public void focarEmRect(Rectangle2D.Double rect, int duracaoFrames, int telaLargura, int telaAltura,
             boolean tempo_indefinido) {
         this.foco_indefinido = tempo_indefinido;
@@ -393,15 +409,31 @@ public class CameraManager {
     }
 
     public boolean onScreen(double objX, double objY, double objW, double objH, int telaLargura, int telaAltura) {
-        // Calcula os limites reais da visão da câmera no mundo, considerando o zoom
-        // e a tremida atual
         double viewLeft = getX();
         double viewTop = getY();
         double viewRight = viewLeft + (telaLargura / this.zoom);
         double viewBottom = viewTop + (telaAltura / this.zoom);
 
-        // Retorna true se o retângulo do objeto colidir com o retângulo da câmera
-        // Isso cobre tanto objetos totalmente dentro quanto parcialmente dentro
+        return (objX < viewRight
+                && objX + objW > viewLeft
+                && objY < viewBottom
+                && objY + objH > viewTop);
+    }
+
+    public boolean onScreenWithTolerance(double objX, double objY, double objW, double objH,
+            int telaLargura, int telaAltura) {
+        return onScreenWithTolerance(objX, objY, objW, objH, telaLargura, telaAltura,
+                GameCore.tiles_size * 2.0);
+    }
+
+    public boolean onScreenWithTolerance(double objX, double objY, double objW, double objH,
+            int telaLargura, int telaAltura, double tolerance) {
+        double safeTolerance = Math.max(0.0, tolerance);
+        double viewLeft = getX() - safeTolerance;
+        double viewTop = getY() - safeTolerance;
+        double viewRight = getX() + (telaLargura / this.zoom) + safeTolerance;
+        double viewBottom = getY() + (telaAltura / this.zoom) + safeTolerance;
+
         return (objX < viewRight
                 && objX + objW > viewLeft
                 && objY < viewBottom
@@ -432,8 +464,6 @@ public class CameraManager {
         this.zoom = zoom;
     }
 
-    // Atualiza apenas o alvo de zoom. Para mudanças de resolução, use
-    // adjustForViewportResize() para também preservar o centro da câmera.
     public void setBaseZoom(double zoom) {
         this.zoomBase = zoom;
     }

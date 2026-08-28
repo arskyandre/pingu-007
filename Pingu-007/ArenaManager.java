@@ -23,7 +23,7 @@ public class ArenaManager {
     private boolean conflitador = true;
     // public boolean flagArena16Ativada = false;
     private boolean chave14_15_spawnada = false;
-    private boolean cutscene_vendedor = false; // TODO: mudar pra false
+    private boolean cutscene_vendedor = false; 
     private boolean cutsceneBossSolicitada = false;
     private boolean fezCutscene = false;
     private boolean la_ele = false;
@@ -97,7 +97,7 @@ public class ArenaManager {
         triggersESpawnersParaDebug.clear();
         // flagArena16Ativada = false;
         chave14_15_spawnada = false;
-        cutscene_vendedor = false; // TODO: mudar para false
+        cutscene_vendedor = false; 
         cutsceneBossSolicitada = false;
         la_ele = false;
 
@@ -242,8 +242,6 @@ public class ArenaManager {
                     ativarArena(arena.id, player, camera, cutsceneManager, sound);
                     return;
                 }
-                conflitador = conflitador;
-                // xd
             }
             if (arena.ativa && !arena.concluida) {
                 arena.inimigosVivos.removeIf(e -> e.isDead() || e.isCaindo);
@@ -679,7 +677,7 @@ public class ArenaManager {
                 gameCore.sairCasaVendedor();
                 return;
             }
-            levelManager.carregarNivel(mapaDestino);
+            gameCore.transicionarMapa(mapaDestino);
         }
     }
 
@@ -752,7 +750,7 @@ public class ArenaManager {
                     }
                 }
                 if (arena.id == 10) {
-                    cutscene_vendedor = false; // TODO: vc já entendeu
+                    cutscene_vendedor = false;
                 }
                 if (arena.id == 14 || arena.id == 15) {
                     chave14_15_spawnada = false;

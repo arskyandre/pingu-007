@@ -297,7 +297,9 @@ public class Renderer {
         if (enemyManager != null && enemyManager.getEnemies() != null) {
             for (Enemy e : enemyManager.getEnemies()) {
                 if (e != null && !e.isDead()) {
-                    if (camera.onScreen(e.getX(), e.getY(), e.getLargura(), e.getAltura(), telaLargura, telaAltura)) {
+                    if (camera.onScreenWithTolerance(e.getX(), e.getY(), e.getLargura(), e.getAltura(),
+                            telaLargura, telaAltura,
+                            ProjectedShadow.cullingToleranceForReferenceHeight(e.getAltura()))) {
                         renderQueue.add(e);
                     }
                 }
@@ -307,8 +309,9 @@ public class Renderer {
         if (itemManager != null && itemManager.getItems() != null) {
             for (Item item : itemManager.getItems()) {
                 if (item != null && item.isAtivo()) {
-                    if (camera.onScreen(item.getX(), item.getY(), item.getLargura(), item.getAltura(), telaLargura,
-                            telaAltura)) {
+                    if (camera.onScreenWithTolerance(item.getX(), item.getY(), item.getLargura(), item.getAltura(),
+                            telaLargura, telaAltura,
+                            ProjectedShadow.cullingToleranceForReferenceHeight(item.getAltura()))) {
                         renderQueue.add(item);
                     }
                 }
@@ -318,8 +321,8 @@ public class Renderer {
         if (npcManager != null && npcManager.getNpcs() != null) {
             for (NPC npc : npcManager.getNpcs()) {
                 if (npc != null && npc.isActive()) {
-                    if (camera.onScreen(npc.getX(), npc.getY(), npc.getLargura(), npc.getAltura(), telaLargura,
-                            telaAltura)) {
+                    if (camera.onScreenWithTolerance(npc.getX(), npc.getY(), npc.getLargura(), npc.getAltura(),
+                            telaLargura, telaAltura)) {
                         renderQueue.add(npc);
                     }
                 }
@@ -331,7 +334,8 @@ public class Renderer {
                 double w = obj.getLargura() > 0 ? obj.getLargura() : GameCore.tiles_size;
                 double h = obj.getAltura() > 0 ? obj.getAltura() : GameCore.tiles_size;
 
-                if (camera.onScreen(obj.getX(), obj.getY(), w, h, telaLargura, telaAltura)) {
+                if (camera.onScreenWithTolerance(obj.getX(), obj.getY(), w, h,
+                        telaLargura, telaAltura, obj.getCullTolerance())) {
                     renderQueue.add(obj);
                 }
             }

@@ -22,7 +22,6 @@ public class CutsceneManager {
 
     private CutsceneType type = CutsceneType.NONE;
 
-    // --- boss intro state ---
     private enum BossIntroState {
         DIALOGUE, CAMERA_PAN, FINISHED
     }
@@ -33,6 +32,7 @@ public class CutsceneManager {
     private static final int BOSS_BGM_DELAY = 100;
     private static final int TRANSICAO_BORDA = 20;
     private Player bossIntroPlayer;
+
     // desenhar barra preta e nome boss
     private double blackBarProgress = 0.0;
     private double blackBarDuration = 0.5;
@@ -40,7 +40,6 @@ public class CutsceneManager {
     private String nomeBoss = "Morsa Gigante, o terror do Ártico";
     private String[] falasBossIntro;
 
-    // --- wall reveal state ---
     private static final int WALL_REVEAL_DURATION = 150;
     private int wallTimer = 0;
     private Rectangle2D.Double wallFadeRect;
@@ -72,8 +71,6 @@ public class CutsceneManager {
         return DURATION;
     }
 
-    // ---------------- Boss intro ----------------
-
     public void iniciarBossIntro(CameraManager camera, Player player, double focoX, double focoY, EnemyManager EM) {
         GameCore.setGameState(GameState.CUTSCENE);
         player.setTemporarySpriteOverride(14, 2);
@@ -104,13 +101,10 @@ public class CutsceneManager {
         gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
     }
 
-    // ---------------- Wall reveal (fade always, camera focus só na primeira arena)
-    // ----------------
-
     public void iniciarWallFade(Rectangle2D.Double wallRect) {
         this.wallTimer = 0;
         if (type == CutsceneType.BOSS_INTRO) {
-            return; // não interrompe uma cutscene de boss já em andamento
+            return;
         }
         if (type == CutsceneType.WALL_REVEAL && wallRevealPlayer != null) {
             return;
@@ -123,7 +117,7 @@ public class CutsceneManager {
     public void iniciarWallRevealComCamera(Rectangle2D.Double wallRect, CameraManager camera, Player player) {
         this.wallTimer = 0;
         if (type == CutsceneType.BOSS_INTRO) {
-            return; // não interrompe uma cutscene de boss já em andamento
+            return;
         }
         this.type = CutsceneType.WALL_REVEAL;
         this.wallFadeRect = wallRect;
@@ -151,8 +145,6 @@ public class CutsceneManager {
         }
         return Math.min(1f, (float) wallTimer / (float) WALL_REVEAL_DURATION);
     }
-
-    // ---------------- Shared update/draw ----------------
 
     public void update() {
         if (type == CutsceneType.BOSS_INTRO) {
@@ -277,7 +269,6 @@ public class CutsceneManager {
         g2.fillRect(0, y, telaLargura, alturaAtual);
 
         // Nome do Boss
-
         Object antialiasAntigo = g2.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         Font fonteNome = GameCore.pixelFont.deriveFont(Font.PLAIN, telaAltura * 32 / 672);

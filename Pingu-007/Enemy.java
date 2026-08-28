@@ -298,6 +298,7 @@ public abstract class Enemy extends Entity {
 
                 PathFinder.solicitarCaminhoAsync(startCol, startRow, targetCol, targetRow, this.lvlData,
                         this.podePularBuracos ? jumpLinks : null,
+                        arenaManager.getObjetosDeCenario(),
                         (novoCaminho) -> {
                             this.caminhoAStar = novoCaminho;
                             this.currentPathIndex = 0;

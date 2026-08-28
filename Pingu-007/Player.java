@@ -50,7 +50,7 @@ public class Player extends Entity {
     private int maxpente = 15;
     private int municao = 45;
     private int shootCooldownTimer = 0;
-    private final int changeGunCooldown = 30;
+    private final int changeGunCooldown = 20;
     private int changeGunCooldownTimer = 0;
     private final int pistolShootCooldown = 20;
     private final int shotgunShootCooldown = 80;
@@ -643,32 +643,39 @@ public class Player extends Entity {
                     hasShotgun = true;
                     ToastNotifications.RequestNotification("DEBUG 67: habilitou shotgun", 2.0);
                 }
-                if (input.isKeyJustPressed(KeyEvent.VK_G) && hasShotgun && changeGunCooldownTimer == 0) {
-                    if (getGunType() == Player.GunType.SHOTGUN) {
-                        setGunType(Player.GunType.PISTOL);
-                        if (ToastNotifications.getNotifAtual() != null
-                                && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
-                            ToastNotifications.skipNotification();
-                        }
-                        if (ToastNotifications.getNotifAtual() == null
-                                || !ToastNotifications.getNotifAtual().equals("Mudou para Pistola")) {
-                            ToastNotifications.RequestNotification("Mudou para Pistola", 1.0);
-                        }
+
+                boolean pressedG = input.isKeyJustPressed(KeyEvent.VK_G);
+                boolean pressed1 = input.isKeyJustPressed(KeyEvent.VK_1);
+                boolean pressed2 = input.isKeyJustPressed(KeyEvent.VK_2);
+                if ((pressedG || pressed1 || pressed2)
+                        && hasShotgun
+                        && changeGunCooldownTimer <= 0) {
+                    Player.GunType newGunType;
+                    if (pressed1) {
+                        newGunType = Player.GunType.PISTOL;
+                    } else if (pressed2) {
+                        newGunType = Player.GunType.SHOTGUN;
                     } else {
-                        setGunType(Player.GunType.SHOTGUN);
-                        if (ToastNotifications.getNotifAtual() != null
-                                && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                        newGunType = getGunType() == Player.GunType.SHOTGUN
+                                ? Player.GunType.PISTOL
+                                : Player.GunType.SHOTGUN;
+                    }
+                    if (newGunType != getGunType()) {
+                        setGunType(newGunType);
+                        String notification = newGunType == Player.GunType.PISTOL
+                                ? "Mudou para Pistola"
+                                : "Mudou para Shotgun";
+                        String currentNotification = ToastNotifications.getNotifAtual();
+                        if ("Mudou para Shotgun".equals(currentNotification)
+                                || "Mudou para Pistola".equals(currentNotification)) {
                             ToastNotifications.skipNotification();
                         }
-                        if (ToastNotifications.getNotifAtual() == null
-                                || !ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")) {
-                            ToastNotifications.RequestNotification("Mudou para Shotgun", 1.0);
+                        if (!notification.equals(ToastNotifications.getNotifAtual())) {
+                            ToastNotifications.RequestNotification(notification, 1.0);
                         }
+                        shootCooldownTimer = pistolShootCooldown;
+                        changeGunCooldownTimer = changeGunCooldown;
                     }
-                    shootCooldownTimer = pistolShootCooldown;
-                    changeGunCooldownTimer = changeGunCooldown;
                 }
                 if (input.isKeyPressed(KeyEvent.VK_R) && !reloading && pente < maxpente && municao > 0) {
                     reloading = true;

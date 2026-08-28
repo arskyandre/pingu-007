@@ -121,7 +121,7 @@
                         {
                          "name":"destino",
                          "type":"string",
-                         "value":"LEVEL_1_DATA.json"
+                         "value":"LEVEL_1_DATA_converted.json"
                         }, 
                         {
                          "name":"type",

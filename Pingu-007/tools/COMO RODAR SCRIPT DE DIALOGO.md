@@ -1,8 +1,9 @@
 # Como rodar o script de diálogo
 
 O arquivo `dialogue_sequence_gui.py` monta um WAV a partir de uma sequência de
-sons de diálogo. Ele deve permanecer na pasta `Pingu-007`, ao lado da pasta
-`sound`, pois os caminhos dos áudios são relativos a esse local.
+sons de diálogo. Ele fica na pasta `Pingu-007/tools` e localiza os áudios a
+partir da pasta principal `Pingu-007`, independentemente da pasta usada para
+executar o comando.
 
 ## Requisitos
 
@@ -27,6 +28,12 @@ que contém `ffmpeg.exe` ao `PATH` do Windows.
 ## Abrindo o programa
 
 Abra o PowerShell na pasta `Pingu-007` e execute:
+
+```powershell
+python tools/dialogue_sequence_gui.py
+```
+
+Se o PowerShell já estiver em `Pingu-007/tools`, execute:
 
 ```powershell
 python dialogue_sequence_gui.py
@@ -126,5 +133,5 @@ completa compilada com suporte a `librubberband`.
 
 ### Arquivo de som não encontrado
 
-Confirme que `dialogue_sequence_gui.py` continua dentro de `Pingu-007` e que a
-pasta `Pingu-007/sound` não foi movida.
+Confirme que `dialogue_sequence_gui.py` continua dentro de `Pingu-007/tools` e
+que a pasta `Pingu-007/sound` não foi movida.

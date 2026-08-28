@@ -12,6 +12,8 @@ public final class ProjectedShadow {
     private static final double PLAYER_HEIGHT = 48.0;
     private static final double PLAYER_FEET_HEIGHT = 45.0;
     private static final double PLAYER_SHADOW_LENGTH = 42.0;
+    private static final double MAX_LENGTH_MULTIPLIER = 1.60;
+    private static final double CULL_PADDING = 48.0;
     public static final double SHADOW_LENGTH_PER_REFERENCE_HEIGHT =
             PLAYER_SHADOW_LENGTH / PLAYER_FEET_HEIGHT;
     public static final float DEFAULT_SHADOW_OPACITY = 0.42f;
@@ -220,6 +222,12 @@ public final class ProjectedShadow {
 
     public static double shadowLengthForReferenceHeight(double referenceHeight) {
         return Math.max(0.0, referenceHeight) * SHADOW_LENGTH_PER_REFERENCE_HEIGHT;
+    }
+
+    public static double cullingToleranceForReferenceHeight(double referenceHeight) {
+        double minimumTolerance = GameCore.tiles_size * 2.0;
+        double projectedTolerance = Math.max(0.0, referenceHeight) * MAX_LENGTH_MULTIPLIER + CULL_PADDING;
+        return Math.max(minimumTolerance, projectedTolerance);
     }
 
     public static VisualAnchor getVisualGroundAnchor(BufferedImage image,
@@ -491,7 +499,7 @@ public final class ProjectedShadow {
         double shadowDirX = Math.cos(shadowAngle);
         double shadowDirY = Math.sin(shadowAngle);
         double southFactor = Math.max(0.0, Math.min(1.0, (shadowDirY + 1.0) / 2.0));
-        double lengthMultiplier = 0.55 + (1.60 - 0.55) * southFactor;
+        double lengthMultiplier = 0.55 + (MAX_LENGTH_MULTIPLIER - 0.55) * southFactor;
         double widthMultiplier = 0.80 + (1.20 - 0.80) * southFactor;
         double effectiveLength = shadowLength * lengthMultiplier;
         double maximumHeight = Math.max(referenceHeight, sourceFeetY);

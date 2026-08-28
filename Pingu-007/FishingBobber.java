@@ -8,7 +8,7 @@ public class FishingBobber {
     private double x, y;
     private double velX, velY;
     private boolean ativo = false;
-    private boolean waitingForFish = false; // anzol "ancorado" no buraco, aguardando o minigame terminar
+    private boolean waitingForFish = false;
     private Enemy hookedEnemy = null;
     private Player owner;
     private FishingManager fishingManager;
@@ -78,9 +78,6 @@ public class FishingBobber {
             return;
         }
 
-        // Enquanto o minigame de pesca estiver rolando, o anzol fica parado
-        // exatamente onde caiu, só sendo desenhado. Assim que o minigame
-        // terminar (FishingManager volta a IDLE), a linha é recolhida.
         if (waitingForFish) {
             if (fishingManager == null || !fishingManager.isActive()) {
                 reset();
@@ -128,9 +125,6 @@ public class FishingBobber {
                 return; // fisgou um inimigo neste frame, nao processa pouso
             }
 
-            // Captura em pleno voo: assim que a boia sobrevoa uma tile de buraco
-            // de pesca, ela para exatamente ali (mesmo que ainda tivesse
-            // velocidade sobrando, evitando "atravessar" buracos muito próximos).
             int col = (int) (x / GameCore.tiles_size);
             int row = (int) (y / GameCore.tiles_size);
             if (player.getIscas() > 0 && FishingManager.isFishingHoleAt(row, col, lvlData)) {
@@ -165,12 +159,10 @@ public class FishingBobber {
             double centerY = row * GameCore.tiles_size + GameCore.tiles_size / 2.0;
             fishingManager.startFishing(tipo, centerX, centerY);
             owner.addIscas(-1);
-            // fica ancorado e visivel ate o minigame terminar
             waitingForFish = true;
             return;
         }
 
-        // nao caiu num buraco valido, so recolhe a linha
         reset();
     }
 

@@ -1491,7 +1491,7 @@
                  "y":688
                 }, 
                 {
-                 "gid":129,
+                 "gid":130,
                  "height":48,
                  "id":838,
                  "name":"",
@@ -1582,7 +1582,7 @@
                  "y":2688
                 }, 
                 {
-                 "gid":133,
+                 "gid":134,
                  "height":32,
                  "id":847,
                  "name":"",
@@ -15215,7 +15215,7 @@
                  "y":1472
                 }, 
                 {
-                 "gid":131,
+                 "gid":132,
                  "height":47,
                  "id":843,
                  "name":"",
@@ -15258,7 +15258,7 @@
                  "y":2650.66666666667
                 }, 
                 {
-                 "gid":132,
+                 "gid":133,
                  "height":47,
                  "id":844,
                  "name":"",
@@ -15961,15 +15961,15 @@
          "source":"images\/iglus.tsx"
         }, 
         {
-         "firstgid":129,
+         "firstgid":130,
          "source":"images\/portao.tsx"
         }, 
         {
-         "firstgid":131,
+         "firstgid":132,
          "source":"images\/arvore.tsx"
         }, 
         {
-         "firstgid":133,
+         "firstgid":134,
          "source":"images\/loja_pescador.tsx"
         }],
  "tilewidth":16,

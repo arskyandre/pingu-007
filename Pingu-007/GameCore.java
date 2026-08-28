@@ -90,6 +90,7 @@ public class GameCore extends Canvas implements Runnable {
     private final InputManager input;
     private final Renderer renderer;
     private final LevelManager levelManager;
+    private final ScreenTransition screenTransition;
     private ArenaManager arenaManager;
     private DialogueManager dialogueManager;
     private SoundManager soundManager;
@@ -134,6 +135,7 @@ public class GameCore extends Canvas implements Runnable {
         itemManager = new ItemManager();
         input = new InputManager();
         renderer = new Renderer();
+        screenTransition = new ScreenTransition();
         renderer.modoDebug = false;
         levelManager = new LevelManager(this, soundManager);
         dialogueManager = new DialogueManager(soundManager);
@@ -223,7 +225,7 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public static double getSunAngle() {
-        return (dayProgress * Math.PI * 2.0) - (Math.PI / 2.0);
+        return !estaDentroLoja ? ((dayProgress * Math.PI * 2.0) - (Math.PI / 2.0)) : (5 * Math.PI / 4.0);
     }
 
     private void atualizarMusicaDayNight() {
@@ -409,6 +411,15 @@ public class GameCore extends Canvas implements Runnable {
         camera.adjustForViewportResize(getWidth(), getHeight(), calculateBaseZoom(getHeight()));
         updateCursorVisibility();
 
+        if (screenTransition.isAtivo()) {
+            screenTransition.update();
+            if (screenTransition.deveBloquearAtualizacaoDaCena()) {
+                input.update();
+                updateCursorVisibility();
+                return;
+            }
+        }
+
         boolean avancarRelogio = (gameState == GameState.PLAYING
                 || gameState == GameState.CUTSCENE) && !getEstaDentroLoja();
 
@@ -421,16 +432,8 @@ public class GameCore extends Canvas implements Runnable {
                     optionsMenu.setReturnState(GameState.MAIN_MENU);
                 }
                 if (next == GameState.PLAYING) {
-                    updateDayNightAnteriorNanos = -1L;
-                    elapsedGameSeconds = horarioinicial * fullDaySeconds;
-                    dayProgress = horarioinicial;
-                    lastProcessedDay = 1;
-                    soundManager.playBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP);
-                    player.setShootCooldownTimer(30);
-                    iniciarSequenciaIntro();
-
-                    camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
-                            getWidth(), getHeight());
+                    screenTransition.start(this::iniciarJogoDoMenu);
+                    next = GameState.MAIN_MENU;
                 }
                 gameState = next;
             }
@@ -467,6 +470,7 @@ public class GameCore extends Canvas implements Runnable {
                     updateGame();
                 }
                 // DESCOMENTAR BLOCO NO JOGO FINAL
+                // (nao mais, agora eh controlado pela flag de debug)
             }
             case SHOP -> {
                 ShopMenu shop = getShopMenu();
@@ -477,8 +481,8 @@ public class GameCore extends Canvas implements Runnable {
             case GAME_OVER -> {
                 GameState next = gameOverScreen.update(input, getWidth(), getHeight());
                 if (next == GameState.MAIN_MENU) {
-                    resetarJogoCompleto();
-                    soundManager.playBGM(SoundManager.BGM.MAIN_MENU);
+                    screenTransition.start(this::voltarAoMenuPrincipalImediato);
+                    next = GameState.GAME_OVER;
                 }
                 if (next == GameState.PLAYING) {
                     carregarCheckpoint();
@@ -504,8 +508,8 @@ public class GameCore extends Canvas implements Runnable {
                     optionsMenu.setReturnState(GameState.PAUSED);
                 }
                 if (next == GameState.MAIN_MENU) {
-                    resetarJogoCompleto();
-                    soundManager.playBGM(SoundManager.BGM.MAIN_MENU);
+                    screenTransition.start(this::voltarAoMenuPrincipalImediato);
+                    next = GameState.PAUSED;
                 }
                 if (next == GameState.PLAYING) {
                     player.setShootCooldownTimer(15);
@@ -534,6 +538,25 @@ public class GameCore extends Canvas implements Runnable {
         introPendente = false;
         introDialogoAtiva = false;
         introPreDelayTimer = INTRO_PRE_DELAY_FRAMES;
+    }
+
+    private void iniciarJogoDoMenu() {
+        updateDayNightAnteriorNanos = -1L;
+        elapsedGameSeconds = horarioinicial * fullDaySeconds;
+        dayProgress = horarioinicial;
+        lastProcessedDay = 1;
+        soundManager.playBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP);
+        player.setShootCooldownTimer(30);
+        iniciarSequenciaIntro();
+        camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
+                getWidth(), getHeight());
+        gameState = GameState.PLAYING;
+    }
+
+    private void voltarAoMenuPrincipalImediato() {
+        resetarJogoCompleto();
+        soundManager.playBGM(SoundManager.BGM.MAIN_MENU);
+        gameState = GameState.MAIN_MENU;
     }
 
     public void updatePlayerMovement() {
@@ -630,7 +653,7 @@ public class GameCore extends Canvas implements Runnable {
             debugSpawnCooldown = 15;
         }
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_0) && debugSpawnCooldown <= 0) {
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_F10) && debugSpawnCooldown <= 0) {
             renderer.modoDebug = !renderer.modoDebug;
             toggleFpsCounter();
             if (renderer.modoDebug) {
@@ -645,33 +668,21 @@ public class GameCore extends Canvas implements Runnable {
             mapLoadCooldown--;
         }
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_1) && mapLoadCooldown <= 0) {
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_F1) && mapLoadCooldown <= 0) {
             System.out.println("Voltando para o Mapa 1...");
             if (LoadSave.CASA_VENDEDOR.equals(levelManager.getArquivoNivelAtual())) {
                 sairCasaVendedor();
             } else {
-                levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
-                setCinematicBorderAnimation(Renderer.BorderState.OUT);
-                camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
-                        getWidth(), getHeight());
-                if (soundManager.currentSong() != SoundManager.BGM.LEVEL_1_DAY_LOOP
-                        && soundManager.currentSong() != SoundManager.BGM.LEVEL_1_NIGHT_LOOP
-                        && soundManager.currentSong() != SoundManager.BGM.LEVEL_1_DAY_INTRO
-                        && soundManager.currentSong() != SoundManager.BGM.LEVEL_1_NIGHT_INTRO) {
-                    soundManager.crossfadeBGM(
-                            getLevel1MusicaLoop(),
-                            2000, true);
-                }
-                mapLoadCooldown = 60;
+                screenTransition.start(this::carregarNivel1DebugImediato);
             }
         }
 
-        if (input.isKeyJustPressed(KeyEvent.VK_6)) {
+        if (input.isKeyJustPressed(KeyEvent.VK_F6)) {
             elapsedGameSeconds = (fullDaySeconds / 24.0) * 18.65;
             dayProgress = 18.65 / 24.0;
         }
 
-        if (input.isKeyJustPressed(KeyEvent.VK_5)) {
+        if (input.isKeyJustPressed(KeyEvent.VK_F5)) {
             elapsedGameSeconds = (fullDaySeconds / 24.0) * 7.65;
             dayProgress = 7.65 / 24.0;
         }
@@ -685,17 +696,17 @@ public class GameCore extends Canvas implements Runnable {
             }
         }
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_2) && mapLoadCooldown <= 0) {
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_F2) && mapLoadCooldown <= 0) {
             System.out.println("Indo para o Mapa 2 de Testes...");
             entrarNivelBoss();
         }
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_4) && mapLoadCooldown <= 0) {
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_F4) && mapLoadCooldown <= 0) {
             System.out.println("Indo para o Mapa 4 de Testes...");
             entrarNivelTest();
         }
 
-        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_3) && mapLoadCooldown <= 0) {
+        if (input.isKeyPressed(java.awt.event.KeyEvent.VK_F3) && mapLoadCooldown <= 0) {
             System.out.println("Indo para o Mapa 3 de Testes...");
             entrarCasaVendedor();
         }
@@ -717,6 +728,10 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void entrarCasaVendedor() {
+        screenTransition.start(this::entrarCasaVendedorImediato);
+    }
+
+    private void entrarCasaVendedorImediato() {
         if (LoadSave.LEVEL_1_DATA.equals(levelManager.getArquivoNivelAtual())) {
             estadoLevel1AntesDaLoja = arenaManager.capturarEstadoMapa();
             itensLevel1AntesDaLoja = new ArrayList<>(itemManager.getItems());
@@ -730,16 +745,22 @@ public class GameCore extends Canvas implements Runnable {
         }
 
         levelManager.carregarNivel(LoadSave.CASA_VENDEDOR);
+        camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
+                getWidth(), getHeight());
         mapLoadCooldown = 60;
         // Rectangle2D.Double rect = new Rectangle2D.Double(0, 0, 2 * tiles_size, 1 *
         // tiles_size);
         // camera.focarEmRect(rect, 67, getWidth(), getHeight(), true);
-        camera.focarEm(24 * 16, 13.5 * 16, 1.5); // numeros magicos
+        camera.focarEmTeleport(24 * 16, 13.5 * 16, 1.5, getWidth(), getHeight()); // numeros magicos
         soundManager.crossfadeBGM(SoundManager.BGM.INSIDE_INTRO, SoundManager.BGM.INSIDE_LOOP, 2000, 1.25, false);
         setDentroLoja(true);
     }
 
     public void sairCasaVendedor() {
+        screenTransition.start(this::sairCasaVendedorImediato);
+    }
+
+    private void sairCasaVendedorImediato() {
         levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
         // System.out.println("Player position levelManager.carregarNivel (" +
         // player.getX() + ", " + player.getY() + ")");
@@ -780,7 +801,10 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void entrarNivelBoss() {
+        screenTransition.start(this::entrarNivelBossImediato);
+    }
 
+    private void entrarNivelBossImediato() {
         levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
         arenaManager.setFirstArenaFlag(false);
         mapLoadCooldown = 60;
@@ -789,11 +813,42 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void entrarNivelTest() {
+        screenTransition.start(this::entrarNivelTestImediato);
+    }
+
+    private void entrarNivelTestImediato() {
         levelManager.carregarNivel(LoadSave.LEVEL_YSORT);
         arenaManager.setFirstArenaFlag(false);
         mapLoadCooldown = 60;
         camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(), getWidth(),
                 getHeight());
+    }
+
+    public void transicionarMapa(String mapaDestino) {
+        if (mapaDestino == null || mapaDestino.isEmpty()) {
+            return;
+        }
+
+        screenTransition.start(() -> {
+            levelManager.carregarNivel(mapaDestino);
+            camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
+                    getWidth(), getHeight());
+            mapLoadCooldown = 60;
+        });
+    }
+
+    private void carregarNivel1DebugImediato() {
+        levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
+        setCinematicBorderAnimation(Renderer.BorderState.OUT);
+        camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
+                getWidth(), getHeight());
+        if (soundManager.currentSong() != SoundManager.BGM.LEVEL_1_DAY_LOOP
+                && soundManager.currentSong() != SoundManager.BGM.LEVEL_1_NIGHT_LOOP
+                && soundManager.currentSong() != SoundManager.BGM.LEVEL_1_DAY_INTRO
+                && soundManager.currentSong() != SoundManager.BGM.LEVEL_1_NIGHT_INTRO) {
+            soundManager.crossfadeBGM(getLevel1MusicaLoop(), 2000, true);
+        }
+        mapLoadCooldown = 60;
     }
 
     public void toggleAntiAliasing() {
@@ -1106,10 +1161,6 @@ public class GameCore extends Canvas implements Runnable {
                                 enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
                                 cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                 true, true);
-                        drawLateHudElements(g2, delta);
-                        if (showFpsCounter) {
-                            drawFpsCounter(g2);
-                        }
 
                     }
                     case SHOP -> {
@@ -1124,7 +1175,6 @@ public class GameCore extends Canvas implements Runnable {
                         if (shop != null) {
                             shop.render(g2, getWidth(), getHeight());
                         }
-                        drawLateHudElements(g2, delta);
                     }
                     case GAME_OVER -> {
                         renderer.renderizar(g2, camera, player, input,
@@ -1135,7 +1185,6 @@ public class GameCore extends Canvas implements Runnable {
                                 true, false);
 
                         gameOverScreen.render(g2, getWidth(), getHeight());
-                        drawLateHudElements(g2, delta);
                     }
                     case PAUSED -> {
                         renderer.renderizar(g2, camera, player, input,
@@ -1147,8 +1196,6 @@ public class GameCore extends Canvas implements Runnable {
 
                         pauseMenu.render(g2, getWidth(), getHeight());
 
-                        drawLateHudElements(g2, delta);
-
                     }
                     case CUTSCENE -> {
                         {
@@ -1159,10 +1206,6 @@ public class GameCore extends Canvas implements Runnable {
                                     cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                     true, false);
 
-                            drawLateHudElements(g2, delta);
-                            if (showFpsCounter) {
-                                drawFpsCounter(g2);
-                            }
                         }
                     }
                     case OPTIONS -> {
@@ -1173,6 +1216,14 @@ public class GameCore extends Canvas implements Runnable {
                     }
                     case QUIT -> {
                     }
+                }
+                if (gameState == GameState.PLAYING || gameState == GameState.PAUSED || gameState == GameState.CUTSCENE
+                        || gameState == GameState.GAME_OVER || gameState == GameState.SHOP) {
+                    drawLateHudElements(g2, delta);
+                }
+                screenTransition.draw(g2, getWidth(), getHeight());
+                if (gameState == GameState.PLAYING && showFpsCounter) {
+                    drawFpsCounter(g2);
                 }
                 g2.dispose();
             } while (bs.contentsRestored());
@@ -1331,7 +1382,6 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public static void main(String[] args) {
-        System.out.println("pinto");
         System.out.println("se aparecer algum erro de libusb.dll ignore ");
         GameCore game = new GameCore();
         Toolkit.getDefaultToolkit().setDynamicLayout(false);

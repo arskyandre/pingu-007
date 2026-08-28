@@ -36,14 +36,13 @@ public class Hud {
     private BufferedImage iscaSprite[] = null;
     private BufferedImage chaveSprite[] = null;
 
-    // ── Partículas ──────────────────────────────────────────────────────────────
     private static class HeartParticle {
 
-        double x, y; // posição na tela (espaço HUD)
-        double velX, velY; // velocidade em px/frame
-        double life; // frames restantes
+        double x, y;
+        double velX, velY;
+        double life;
         final double maxLife;
-        final float scale; // tamanho da partícula (fator sobre HEART_RENDER)
+        final float scale;
 
         HeartParticle(double x, double y, double velX, double velY, int life, float scale) {
             this.x = x;
@@ -117,7 +116,7 @@ public class Hud {
     public void draw(Graphics2D g2, int telaLargura, int telaAltura,
             CameraManager camera, Player p, EnemyManager em, double delta, int offset) {
 
-        // spawna particulas de dano
+            
         if (p.consumirDanoFlag()) {
             spawnHeartParticles(p);
         }
@@ -155,11 +154,10 @@ public class Hud {
         Composite compositeAnterior = g2.getComposite();
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, AMMO_BAR_OPACITY));
 
-        // A barra clara eh a referencia da capacidade total do pente.
+        // barra clara eh o tamanho do pente total, barra escura eh as balas no pente
         g2.setColor(new Color(137, 137, 137));
         g2.fillRect(barX + AMMO_MAX_BAR_OFFSET_X, barraPenteMaxY, AMMO_BAR_WIDTH, AMMO_BAR_HEIGHT);
 
-        // A barra escura diminui conforme as balas do pente sao consumidas.
         int larguraPente = (int) Math.round(AMMO_BAR_WIDTH * (double) pente / penteMax);
         larguraPente = Math.max(0, Math.min(AMMO_BAR_WIDTH, larguraPente));
         if (larguraPente > 0) {
@@ -252,7 +250,6 @@ public class Hud {
             return;
         }
 
-        // Sprite de meio-coração (índice 1)
         BufferedImage halfHeart = heartSheet.getSubimage(1 * HEART_SIZE, 0, HEART_SIZE, HEART_SIZE);
 
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
@@ -264,7 +261,6 @@ public class Hud {
         while (it.hasNext()) {
             HeartParticle pt = it.next();
 
-            // Física
             pt.velY += 0.014 * timeScale;
             pt.velX *= Math.pow(0.97, timeScale);
             pt.x += pt.velX * timeScale;
@@ -282,7 +278,6 @@ public class Hud {
                     size, size, null);
             g2.setComposite(comp);
 
-            // Remove só depois de desenhar
             if (pt.life <= 0) {
                 it.remove();
             }
@@ -297,21 +292,18 @@ public class Hud {
         int vida = p.getVida();
         int vidaMax = p.getVidaMax();
 
-        // Quantos pontos de vida cada coração representa
-        // Ex: vidaMax=100, HEARTS_MAX=5: cada coração = 20 pontos
         float vidaPorCoracao = (float) vidaMax / HEARTS_MAX;
 
         for (int i = 0; i < HEARTS_MAX; i++) {
-            // Vida restante após os corações anteriores
             float vidaRestante = vida - i * vidaPorCoracao;
 
             int spriteIndex;
             if (vidaRestante >= vidaPorCoracao) {
-                spriteIndex = 0; // coração cheio
+                spriteIndex = 0;
             } else if (vidaRestante >= vidaPorCoracao / 2f) {
-                spriteIndex = 1; // meio coração
+                spriteIndex = 1;
             } else {
-                spriteIndex = 2; // coração vazio
+                spriteIndex = 2;
             }
 
             BufferedImage sprite = heartSheet.getSubimage(spriteIndex * HEART_SIZE, 0, HEART_SIZE, HEART_SIZE);
@@ -375,7 +367,6 @@ public class Hud {
             return;
         }
 
-        // ── Fade das moedas ──
         int moedas = p.getMoedas();
         if (moedas > 0)
             jaPegouMoeda = true;
@@ -388,7 +379,6 @@ public class Hud {
             moedaAlpha = Math.max(moedaAlphaTarget, moedaAlpha - moedaAlphaFadeSpeed * delta);
         }
 
-        // ── Fade das iscas ──
         int iscas = p.getIscas();
         if (iscas > 0)
             jaPegouIsca = true;

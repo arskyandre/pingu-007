@@ -38,14 +38,13 @@ public class DialogueManager {
     void onEscolha(int indiceEscolhido);
   }
 
-  // isEscolha: a fala atual é uma pergunta de escolha (ainda digitando)
-  // modoEscolha: a digitação terminou e as opções estão ativas/interativas
   private boolean isEscolha = false;
   private boolean modoEscolha = false;
   private String[] opcoesEscolha;
   private int escolhaSelecionada = 0;
   private EscolhaListener escolhaListener;
   private Runnable aoTerminarDialogo; // callback opcional, roda quando o diálogo normal termina
+  // para fazer coisas como spawnar item, fazer a camera focar em algmua coisa, etc
   private long modoEscolhaAtivadoEm = 0;
   private static final long DELAY_INPUT_ESCOLHA_MS = 400;
 
@@ -251,7 +250,6 @@ public class DialogueManager {
       shakeY = 0;
       mostrarBocaAberta = false;
 
-      // texto da pergunta terminou de digitar -> ativa as opções automaticamente
       if (isEscolha) {
         modoEscolha = true;
         modoEscolhaAtivadoEm = System.currentTimeMillis();
@@ -273,9 +271,6 @@ public class DialogueManager {
       caractereIndex = falas[falaAtualIndex].length();
       soundManager.stopDialogue();
     } else if (!isEscolha) {
-      // diálogos de escolha nunca avançam falaAtualIndex — a ativação do
-      // modoEscolha acontece automaticamente em atualizar() assim que o
-      // texto terminar de digitar
       falaAtualIndex++;
       if (falaAtualIndex < falas.length) {
         textoExibido = "";

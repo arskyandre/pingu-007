@@ -156,6 +156,13 @@ public class MapObject implements Renderable, DebugRenderable {
         return height;
     }
 
+    public double getCullTolerance() {
+        if (data.castsShadow && hasVisibleVisualAnchor) {
+            return ProjectedShadow.cullingToleranceForReferenceHeight(visibleAlphaHeight);
+        }
+        return GameCore.tiles_size * 2.0;
+    }
+
     private void recalculateVisualAnchorAndDepth() {
         SpriteGeometry geometry = calculateSpriteGeometry();
         if (geometry != null) {

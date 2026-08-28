@@ -123,9 +123,11 @@ public class ShopMenu {
             return;
         }
 
-        if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP)) {
+        if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP) || input.isKeyJustPressed(KeyEvent.VK_W)
+                || input.isKeyJustPressed(KeyEvent.VK_UP)) {
             moverSelecao(-1);
-        } else if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN)) {
+        } else if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN)
+                || input.isKeyJustPressed(KeyEvent.VK_S) || input.isKeyJustPressed(KeyEvent.VK_DOWN)) {
             moverSelecao(1);
         }
 
@@ -149,11 +151,13 @@ public class ShopMenu {
         if (!itemSelecionado.compra_unica) {
             repositionQuantityButtons(telaLargura, itemSelecionado);
 
-            if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_LEFT)) {
+            if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_LEFT)
+                    || input.isKeyJustPressed(KeyEvent.VK_A) || input.isKeyJustPressed(KeyEvent.VK_LEFT)) {
                 alterarQuantidade(-1, itemSelecionado);
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             }
-            if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_RIGHT)) {
+            if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_RIGHT)
+                    || input.isKeyJustPressed(KeyEvent.VK_D) || input.isKeyJustPressed(KeyEvent.VK_RIGHT)) {
                 alterarQuantidade(1, itemSelecionado);
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             }
@@ -167,7 +171,8 @@ public class ShopMenu {
             }
         }
 
-        if (input.isButtonJustPressed(InputManager.GamepadButton.A)) {
+        if (input.isButtonJustPressed(InputManager.GamepadButton.A) || input.isKeyJustPressed(KeyEvent.VK_ENTER)
+                || input.isKeyJustPressed(KeyEvent.VK_SPACE)) {
             comprarItem(selecionado);
         }
     }

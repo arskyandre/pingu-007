@@ -51,6 +51,10 @@ PATTERNS = (
         ("tIglu", 0, -1, 68), ("tIglu", 1, -1, 69), ("tIglu", 2, -1, 70),
         ("bIglu", 0, 0, 82), ("bIglu", 1, 0, 83), ("bIglu", 2, 0, 84),
     ), "bIglu", 82),
+    Pattern("right igloo", "images/iglus.tsx", 2, 48, 32, (
+        ("tIglu", 0, -1, 12), ("tIglu", 1, -1, 13), ("tIglu", 2, -1, 14),
+        ("bIglu", 0, 0, 26), ("bIglu", 1, 0, 27), ("bIglu", 2, 0, 28),
+    ), "bIglu", 26),
     Pattern("small stone", "images/stone1.tsx", 0, 16, 31, (
         ("bStone", 0, 0, 48),
     ), "bStone", 48, -1),
@@ -69,7 +73,8 @@ PATTERNS = (
 FENCE_LOCAL_IDS = {7: 0, 8: 1, 9: 2, 21: 3, 22: 4, 23: 5}
 TILESET_COUNTS = {
     "images/tile_set_pingu.tsx": 126,
-    "images/iglus.tsx": 2,
+    "tile_set_pingu.tsx": 126,
+    "images/iglus.tsx": 3,
     "images/portao.tsx": 2,
     "images/arvore.tsx": 2,
     "images/loja_pescador.tsx": 1,
@@ -137,10 +142,6 @@ def convert(level: dict) -> tuple[dict[str, int], list[str]]:
     tile_w = level["tilewidth"]
     tile_h = level["tileheight"]
     layers = {layer["name"]: layer for layer in level["layers"]}
-    required = {cell[0] for pattern in PATTERNS for cell in pattern.cells} | {"fence"}
-    missing = sorted(required - layers.keys())
-    if missing:
-        raise ValueError(f"Missing legacy layers: {', '.join(missing)}")
 
     object_layer = layers.get("Paredes")
     if not object_layer or object_layer.get("type") != "objectgroup":
@@ -153,10 +154,25 @@ def convert(level: dict) -> tuple[dict[str, int], list[str]]:
     )
     counts: dict[str, int] = {}
     warnings: list[str] = []
+    reported_missing: set[tuple[str, ...]] = set()
 
     for pattern in PATTERNS:
+        required_layers = {cell[0] for cell in pattern.cells}
+        missing_layers = tuple(sorted(required_layers - layers.keys()))
+        if missing_layers:
+            counts[pattern.name] = 0
+            if missing_layers not in reported_missing:
+                warnings.append(
+                    f"Skipped patterns requiring missing layer(s): {', '.join(missing_layers)}"
+                )
+                reported_missing.add(missing_layers)
+            continue
+
         anchor_data = layers[pattern.anchor_layer]["data"]
         anchors = [i for i, gid in enumerate(anchor_data) if gid == pattern.anchor_gid]
+        if not anchors:
+            counts[pattern.name] = 0
+            continue
         firstgid = ensure_tileset(level, pattern.tileset)
         converted = 0
         for index in anchors:
@@ -203,29 +219,34 @@ def convert(level: dict) -> tuple[dict[str, int], list[str]]:
                 )
         counts[pattern.name] = converted
 
-    fence = layers["fence"]["data"]
-    fence_firstgid = ensure_tileset(level, "images/fence.tsx")
     fence_count = 0
-    for index, legacy_gid in enumerate(fence):
-        local_id = FENCE_LOCAL_IDS.get(legacy_gid)
-        if local_id is None:
-            continue
-        col, row = index % width, index // width
-        fence[index] = 0
-        object_layer["objects"].append(tile_object(
-            next_id, fence_firstgid + local_id,
-            col * tile_w, (row + 1) * tile_h,
-            tile_w, tile_h, "fence",
-        ))
-        next_id += 1
-        fence_count += 1
+    fence_layer = layers.get("fence")
+    if fence_layer is None:
+        warnings.append("Skipped fence conversion: missing layer fence")
+    else:
+        fence = fence_layer["data"]
+        fence_indices = [i for i, gid in enumerate(fence) if gid in FENCE_LOCAL_IDS]
+        if fence_indices:
+            fence_firstgid = ensure_tileset(level, "images/fence.tsx")
+            for index in fence_indices:
+                legacy_gid = fence[index]
+                local_id = FENCE_LOCAL_IDS[legacy_gid]
+                col, row = index % width, index // width
+                fence[index] = 0
+                object_layer["objects"].append(tile_object(
+                    next_id, fence_firstgid + local_id,
+                    col * tile_w, (row + 1) * tile_h,
+                    tile_w, tile_h, "fence",
+                ))
+                next_id += 1
+                fence_count += 1
     counts["fence pieces"] = fence_count
 
     # Atlas IDs 12-14/26-28 describe an older igloo that is absent from iglus.png.
-    old_igloos = sum(1 for gid in layers["bIglu"]["data"] if gid == 26)
+    old_igloos = sum(1 for gid in layers.get("bIglu", {}).get("data", []) if gid == 26)
     if old_igloos:
         warnings.append(
-            f"Left {old_igloos} old right-door igloo(s) unchanged: no equivalent MapObject asset exists"
+            f"Left {old_igloos} legacy right-door igloo(s) unchanged"
         )
 
     level["nextobjectid"] = next_id

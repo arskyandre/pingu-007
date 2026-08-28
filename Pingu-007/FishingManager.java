@@ -8,11 +8,6 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.util.Random;
 
-/**
- * Gerencia apenas o minigame de pesca (espera -> fisgada -> resultado).
- * Quem decide QUANDO iniciar é o FishingBobber, ao detectar que assentou
- * sobre um buraco de pesca.
- */
 public class FishingManager {
 
     private enum State {
@@ -38,7 +33,6 @@ public class FishingManager {
     private int biteTimer = 0;
     private int feedbackTimer = 0;
 
-    // ── Mash de puxão durante o BITING ──
     private double pullProgress = 0.0;
 
     private static final double NORMAL_PRESS_GAIN = 0.20;
@@ -357,7 +351,7 @@ public class FishingManager {
         g2.setColor(ringColor);
         g2.drawOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
 
-        // Barra de progresso do puxão
+        
         int barW = 80;
         int barH = 12;
         int barX = centerX - barW / 2;
@@ -374,7 +368,7 @@ public class FishingManager {
         g2.setColor(Color.WHITE);
         g2.drawRect(barX, barY, barW, barH);
 
-        // Texto indicativo
+        
         g2.setFont(MenuButton.pixelFont.deriveFont(hard ? 10f : 12f));
         FontMetrics fm = g2.getFontMetrics();
         String texto = "[E] / [Y]";
