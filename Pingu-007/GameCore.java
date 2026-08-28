@@ -520,6 +520,9 @@ public class GameCore extends Canvas implements Runnable {
                 input.shutdown();
                 System.exit(0);
             }
+            case CREDITS ->{
+
+            }
         }
         updateCursorVisibility();
         input.update();

@@ -7,5 +7,6 @@ public enum GameState {
     PAUSED,
     OPTIONS,
     KEYBINDINGS,
-    QUIT
+    QUIT,
+    CREDITS
 }
