@@ -470,6 +470,7 @@ public class GameCore extends Canvas implements Runnable {
                     updateGame();
                 }
                 // DESCOMENTAR BLOCO NO JOGO FINAL
+                // (nao mais, agora eh controlado pela flag de debug)
             }
             case SHOP -> {
                 ShopMenu shop = getShopMenu();

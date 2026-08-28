@@ -101,11 +101,9 @@ public class GameOverScreen {
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 
-        // dim game behind
         g2.setColor(new Color(0, 0, 0, 160));
         g2.fillRect(0, 0, width, height);
 
-        // panel
         int panelW = 320, panelH = 296;
         int px = (width - panelW) / 2;
         int py = (height - panelH) / 2;
@@ -115,7 +113,6 @@ public class GameOverScreen {
         g2.setStroke(new BasicStroke(2));
         g2.drawRect(px, py, panelW, panelH);
 
-        // title
         g2.setFont(pixelFont);
         String title = "GAME OVER";
         int tw = g2.getFontMetrics().stringWidth(title);
@@ -124,7 +121,6 @@ public class GameOverScreen {
         g2.setColor(Color.RED);
         g2.drawString(title, (width - tw) / 2, py + 55);
 
-        // buttons
         respawnBtn.draw(g2);
         mainMenuBtn.draw(g2);
 

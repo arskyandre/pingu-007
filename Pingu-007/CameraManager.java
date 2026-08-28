@@ -7,7 +7,7 @@ public class CameraManager {
     public double pesoOffset = 0.25;
     public double pesoOffsetControle = 0.2;
 
-    // Margem da tela (em pixels) para o player não chegar perto da borda
+    // Margem da tela (em pixels) para o player nao chegar perto da borda
     public double margemX = 180;
     public double margemY = 120;
 
@@ -409,15 +409,11 @@ public class CameraManager {
     }
 
     public boolean onScreen(double objX, double objY, double objW, double objH, int telaLargura, int telaAltura) {
-        // Calcula os limites reais da visão da câmera no mundo, considerando o zoom
-        // e a tremida atual
         double viewLeft = getX();
         double viewTop = getY();
         double viewRight = viewLeft + (telaLargura / this.zoom);
         double viewBottom = viewTop + (telaAltura / this.zoom);
 
-        // Retorna true se o retângulo do objeto colidir com o retângulo da câmera
-        // Isso cobre tanto objetos totalmente dentro quanto parcialmente dentro
         return (objX < viewRight
                 && objX + objW > viewLeft
                 && objY < viewBottom
@@ -468,8 +464,6 @@ public class CameraManager {
         this.zoom = zoom;
     }
 
-    // Atualiza apenas o alvo de zoom. Para mudanças de resolução, use
-    // adjustForViewportResize() para também preservar o centro da câmera.
     public void setBaseZoom(double zoom) {
         this.zoomBase = zoom;
     }
