@@ -34,6 +34,7 @@ public class LoadSave {
     public static final String CASA_VENDEDOR = "CASA_VENDEDOR.tmj";
 
     public static ArrayList<TilesetData> currentTilesets = new ArrayList<>();
+    private static java.util.HashMap<Integer, java.util.HashMap<String, String>> tsxCache = new java.util.HashMap<>();
 
     public static BufferedImage GetSpriteAtlas(String filename) {
         try (InputStream is = LoadSave.class.getResourceAsStream("/" + filename)) {
@@ -218,6 +219,7 @@ public class LoadSave {
 
         String baseStr = objStr;
         Map<String, String> props = new HashMap<>();
+
         int propsIdx = objStr.indexOf("\"properties\"");
         if (propsIdx != -1) {
             int propsArrayStart = objStr.indexOf("[", propsIdx);
@@ -230,22 +232,39 @@ public class LoadSave {
             }
         }
 
+        long rawGid = (long) extractDouble(baseStr, "\"gid\"");
+        if (rawGid > 0) {
+            tObj.flipH = (rawGid & FLIPPED_HORIZONTALLY_FLAG) != 0;
+            tObj.flipV = (rawGid & FLIPPED_VERTICALLY_FLAG) != 0;
+            tObj.flipDiagonal = (rawGid & FLIPPED_DIAGONALLY_FLAG) != 0;
+            tObj.gid = (int) (rawGid
+                    & ~(FLIPPED_HORIZONTALLY_FLAG | FLIPPED_VERTICALLY_FLAG | FLIPPED_DIAGONALLY_FLAG));
+
+            if (tsxCache.containsKey(tObj.gid)) {
+                java.util.HashMap<String, String> herdadas = tsxCache.get(tObj.gid);
+                for (Map.Entry<String, String> entry : herdadas.entrySet()) {
+                    props.putIfAbsent(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+
         tObj.acao = props.getOrDefault("acao", "");
         tObj.tipo = props.getOrDefault("type", props.getOrDefault("class", ""));
         tObj.inimigo = props.getOrDefault("enemy", "");
         tObj.id_arena = parseIntOr(props.get("id_arena"), -1);
         tObj.horda = parseIntOr(props.get("horda"), 1);
-        tObj.ativa = parseBoolOr(props.get("isActive"), false);
-        tObj.totalHordas = parseIntOr(props.get("totalHordas"), 1);
+        tObj.ativa = parseBoolOr(props.get("isactive"), false);
+        tObj.totalHordas = parseIntOr(props.get("totalhordas"), 1);
         tObj.destino = props.getOrDefault("destino", "");
         tObj.npc_nome = props.getOrDefault("npc_nome", "");
+
         tObj.collision = parseBoolOr(props.get("colisao"), tObj.tipo.equals("colision"));
         tObj.solidoPorPadrao = parseBoolOr(props.get("solido"), true);
-        tObj.isTransparent = parseBoolOr(props.get("isTransparent"), false);
-        tObj.isInteractive = parseBoolOr(props.get("isInteractive"), false);
-        tObj.castsShadow = parseBoolOr(props.get("castsShadow"), false);
+        tObj.isTransparent = parseBoolOr(props.get("istransparent"), false);
+        tObj.isInteractive = parseBoolOr(props.get("isinteractive"), false);
+        tObj.castsShadow = parseBoolOr(props.get("castsshadow"), false);
+        tObj.isToggle = parseBoolOr(props.get("istoggle"), false);
         tObj.id_button = parseIntOr(props.get("id_button"), -1);
-        tObj.isToggle = parseBoolOr(props.get("isToggle"), false);
 
         int polyIdx = baseStr.indexOf("\"polygon\"");
         boolean isPolyline = false;
@@ -297,14 +316,11 @@ public class LoadSave {
             }
         }
 
-        long rawGid = (long) extractDouble(baseStr, "\"gid\"");
         if (rawGid > 0) {
-            tObj.flipH = (rawGid & FLIPPED_HORIZONTALLY_FLAG) != 0;
-            tObj.flipV = (rawGid & FLIPPED_VERTICALLY_FLAG) != 0;
-            tObj.flipDiagonal = (rawGid & FLIPPED_DIAGONALLY_FLAG) != 0;
-            tObj.gid = (int) (rawGid
-                    & ~(FLIPPED_HORIZONTALLY_FLAG | FLIPPED_VERTICALLY_FLAG | FLIPPED_DIAGONALLY_FLAG));
             tObj.y -= tObj.height;
+            if (tObj.tipo.isEmpty()) {
+                tObj.tipo = "map_object";
+            }
         }
 
         if (tObj.gid > 0 && !tObj.isPolygon) {
@@ -322,7 +338,7 @@ public class LoadSave {
                 continue;
             }
             String rawValue = extractRawValue(p, "value");
-            map.put(name, rawValue);
+            map.put(name.toLowerCase(), rawValue);
         }
         return map;
     }
@@ -490,7 +506,7 @@ public class LoadSave {
         int end = idx;
         while (end < text.length()
                 && (Character.isDigit(text.charAt(end)) || text.charAt(end) == '-' || text.charAt(end) == '.'
-                        || text.charAt(end) == 'e' || text.charAt(end) == 'E' || text.charAt(end) == '+')) {
+                || text.charAt(end) == 'e' || text.charAt(end) == 'E' || text.charAt(end) == '+')) {
             end++;
         }
         try {
@@ -611,6 +627,7 @@ public class LoadSave {
         try (Scanner scanner = new Scanner(is, "UTF-8")) {
 
             String xml = scanner.useDelimiter("\\A").next();
+            carregarPropriedadesTSX(xml, firstGid);
 
             double tw = extractXMLDouble(xml, "tilewidth");
             if (tw > 0) {
@@ -744,5 +761,48 @@ public class LoadSave {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    public static void carregarPropriedadesTSX(String tsxContent, int firstGid) {
+        String[] tiles = tsxContent.split("<tile id=\"");
+
+        for (int i = 1; i < tiles.length; i++) {
+            String tileBlock = tiles[i];
+
+            int quoteIdx = tileBlock.indexOf("\"");
+            int localId = Integer.parseInt(tileBlock.substring(0, quoteIdx));
+            int globalGid = firstGid + localId;
+
+            java.util.HashMap<String, String> props = new java.util.HashMap<>();
+
+            String[] linhas = tileBlock.split("<property ");
+            for (int j = 1; j < linhas.length; j++) {
+                String linha = linhas[j];
+                String name = extrairAtributoXML(linha, "name");
+                String value = extrairAtributoXML(linha, "value");
+
+                if (!name.isEmpty() && !value.isEmpty()) {
+                    props.put(name.toLowerCase(), value);
+                }
+            }
+
+            if (!props.isEmpty()) {
+                tsxCache.put(globalGid, props);
+            }
+        }
+    }
+
+    private static String extrairAtributoXML(String linha, String atributo) {
+        String busca = atributo + "=\"";
+        int start = linha.indexOf(busca);
+        if (start == -1) {
+            return "";
+        }
+        start += busca.length();
+        int end = linha.indexOf("\"", start);
+        if (end == -1) {
+            return "";
+        }
+        return linha.substring(start, end);
     }
 }

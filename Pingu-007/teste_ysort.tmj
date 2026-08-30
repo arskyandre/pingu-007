@@ -93,11 +93,11 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":78.7272727272727,
-                 "y":101.818181818182
+                 "x":78.7273,
+                 "y":101.818
                 }, 
                 {
-                 "gid":135,
+                 "gid":149,
                  "height":48,
                  "id":43,
                  "name":"",
@@ -107,6 +107,11 @@
                          "name":"acao",
                          "type":"string",
                          "value":"abrir_portao"
+                        }, 
+                        {
+                         "name":"castsShadow",
+                         "type":"bool",
+                         "value":true
                         }, 
                         {
                          "name":"colisao",
@@ -212,6 +217,104 @@
                  "width":0,
                  "x":32,
                  "y":64
+                }, 
+                {
+                 "gid":152,
+                 "height":32,
+                 "id":46,
+                 "name":"",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"acao",
+                         "type":"string",
+                         "value":"star"
+                        }, 
+                        {
+                         "name":"castsShadow",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"colisao",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"isActive",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"isInteractive",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"isTransparent",
+                         "type":"bool",
+                         "value":false
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"map_object"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":16,
+                 "x":64,
+                 "y":128
+                }, 
+                {
+                 "gid":152,
+                 "height":32,
+                 "id":47,
+                 "name":"",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"acao",
+                         "type":"string",
+                         "value":"star"
+                        }, 
+                        {
+                         "name":"castsShadow",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"colisao",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"isActive",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"isInteractive",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"isTransparent",
+                         "type":"bool",
+                         "value":false
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"map_object"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":16,
+                 "x":112,
+                 "y":96
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -250,7 +353,7 @@
          "y":0
         }],
  "nextlayerid":6,
- "nextobjectid":46,
+ "nextobjectid":48,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",
@@ -258,19 +361,23 @@
  "tilesets":[
         {
          "firstgid":1,
-         "source":"tile_set_pingu.tsx"
+         "source":"images\/tile_set_pingu.tsx"
         }, 
         {
-         "firstgid":127,
+         "firstgid":141,
          "source":"images\/fence.tsx"
         }, 
         {
-         "firstgid":133,
+         "firstgid":147,
          "source":"images\/arvore.tsx"
         }, 
         {
-         "firstgid":135,
+         "firstgid":149,
          "source":"images\/portao.tsx"
+        }, 
+        {
+         "firstgid":151,
+         "source":"images\/star.tsx"
         }],
  "tilewidth":16,
  "type":"map",

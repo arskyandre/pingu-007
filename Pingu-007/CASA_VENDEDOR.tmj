@@ -3,7 +3,7 @@
     {
      "export":
         {
-         "format":"tmx",
+         "format":"json",
          "target":"CASA_VENDEDOR.tmx"
         }
     },
