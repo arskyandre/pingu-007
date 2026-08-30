@@ -12,7 +12,7 @@ O jogo foi inspirado no episódio de pesadelo da série **Pingu**. Nele, o jogad
 
 Ao iniciar o jogo, o menu principal permite começar a jogar, acessar as configurações ou encerrar o programa.
 
-<img src="screenshots/main_menu.gif" alt="Menu Principal" width="700">
+<img src="screenshots/main_menu.webp" alt="Menu Principal" width="700">
 
 ## Gameplay
 
@@ -57,7 +57,7 @@ Cada inimigo possui um comportamento diferente, exigindo estratégias distintas 
 
 Ao final do mapa acontece a batalha contra a Morsa.
 
-<img src="screenshots/morsa_rugido.gif" alt="Boss" width="700">
+<img src="screenshots/morsa_rugido.webp" alt="Boss" width="700">
 
 
 <!-- <img src="screenshots/boss_fight.png" alt="Luta contra a Morsa" width="700"> -->
