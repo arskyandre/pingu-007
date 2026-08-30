@@ -12,13 +12,13 @@ O jogo foi inspirado no episódio de pesadelo da série **Pingu**. Nele, o jogad
 
 Ao iniciar o jogo, o menu principal permite começar a jogar, acessar as configurações ou encerrar o programa.
 
-<img src="screenshots/menu_principal.png" alt="Menu Principal" width="700">
+<img src="screenshots/main_menu.gif" alt="Menu Principal" width="700">
 
 ## Gameplay
 
 O personagem pode se movimentar usando `W`, `A`, `S` e `D`, realizar um dash com `Espaço`, atirar utilizando o botão esquerdo do mouse, recarregar a arma com `R` e interagir com objetos pressionando `E`.
 
-<img src="screenshots/gameplay.png" alt="Gameplay" width="700">
+<img src="screenshots/gamep.png" alt="Gameplay" width="700">
 
 Durante a fase é possível encontrar alguns itens que auxiliam o jogador, como munição, kits de cura e chaves utilizadas para abrir o acesso à sala do chefe.
 
@@ -26,7 +26,7 @@ Durante a fase é possível encontrar alguns itens que auxiliam o jogador, como 
 
 O mapa também possui algumas arenas. Ao entrar em uma delas, a saída é bloqueada e só é liberada após todos os inimigos serem derrotados.
 
-<img src="screenshots/gif_arena.gif" alt="Arenas" width="700">
+<img src="screenshots/arena_gif.gif" alt="Arenas" width="700">
 
 ## Pesca
 
@@ -50,14 +50,14 @@ O jogo possui diversos tipos de inimigos:
 
 Além de inimigos, o jogo possui diversos *NPCs* com os quais o jogador pode interagir para comprar itens, descobrir segredos e receber recompensas.
 
-<img src="screenshots/inimigos.png" alt="Mapa" width="700">
+<img src="screenshots/npcs.png" alt="Mapa" width="700">
 
 Cada inimigo possui um comportamento diferente, exigindo estratégias distintas durante a fase.
 
 
 Ao final do mapa acontece a batalha contra a Morsa.
 
-<img src="screenshots/boss.png" alt="Boss" width="700">
+<img src="screenshots/morsa_rugido.gif" alt="Boss" width="700">
 
 
 <!-- <img src="screenshots/boss_fight.png" alt="Luta contra a Morsa" width="700"> -->
@@ -75,7 +75,7 @@ O menu de configurações pode ser acessado tanto pelo menu principal quanto dur
 
 Nele é possível ajustar o volume da música e dos efeitos sonoros, além de consultar as teclas de ações do jogo e alternar o modo Tela Cheia.
 
-<img src="screenshots/settings.png" alt="Configurações" width="700">
+<img src="screenshots/options_menu.png" alt="Configurações" width="700">
 
 ## Pausa
 
