@@ -122,12 +122,12 @@ public class OptionsMenu {
             gc.toggleRenderShadows();
             return GameState.OPTIONS;
         }));
-        itensFoco.add(new ItemFoco(showFpsButton, gc -> {
-            gc.toggleFpsCounter();
-            return GameState.OPTIONS;
-        }));
         itensFoco.add(new ItemFoco(enableAAButton, gc -> {
             gc.toggleAntiAliasing();
+            return GameState.OPTIONS;
+        }));
+        itensFoco.add(new ItemFoco(showFpsButton, gc -> {
+            gc.toggleFpsCounter();
             return GameState.OPTIONS;
         }));
         itensFoco.add(new ItemFoco(keyBindBtn, gc -> GameState.KEYBINDINGS));
@@ -193,11 +193,11 @@ public class OptionsMenu {
         int shadowsToggleY = cursor.nextRow(BTN_SIZE);
         renderShadowsButton.setPosition(centerX + SLIDER_W / 2 - BTN_SIZE, shadowsToggleY);
 
+        int AAToggleY = cursor.nextRow(BTN_SIZE);
+        enableAAButton.setPosition(centerX + SLIDER_W / 2 - BTN_SIZE, AAToggleY);
+
         int fpsToggleY = cursor.nextRow(BTN_SIZE);
         showFpsButton.setPosition(centerX + SLIDER_W / 2 - BTN_SIZE, fpsToggleY);
-
-        int AATogleY = cursor.nextRow(BTN_SIZE);
-        enableAAButton.setPosition(centerX + SLIDER_W / 2 - BTN_SIZE, AATogleY);
 
         int buttonsY = cursor.nextRow(46);
         layoutButtonRowCentered(buttonsY, centerX, keyBindBtn, backBtn);
@@ -601,8 +601,8 @@ public class OptionsMenu {
                 fpsCapSlider, estaFocado(fpsCapSlider), width, true, false);
 
         drawLabelLeftOf(g2, "RENDERIZAR SOMBRAS", renderShadowsButton.getRect());
-        drawLabelLeftOf(g2, "MOSTRAR FPS", showFpsButton.getRect());
         drawLabelLeftOf(g2, "Habilitar Anti-Aliasing", enableAAButton.getRect());
+        drawLabelLeftOf(g2, "MOSTRAR FPS", showFpsButton.getRect());
         renderShadowsButton.draw(g2);
         enableAAButton.draw(g2);
         toggleMuteBGM.draw(g2);

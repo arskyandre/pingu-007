@@ -26,7 +26,7 @@ Durante a fase é possível encontrar alguns itens que auxiliam o jogador, como 
 
 O mapa também possui algumas arenas. Ao entrar em uma delas, a saída é bloqueada e só é liberada após todos os inimigos serem derrotados.
 
-<img src="screenshots/arena_gif.gif" alt="Arenas" width="700">
+<img src="screenshots/arena_enter.webp" alt="Arenas" width="700">
 
 ## Pesca
 
