@@ -67,6 +67,13 @@ public class InteractiveMapObject extends MapObject {
             return true;
         }
 
+        if ("star".equalsIgnoreCase(acao)) {
+            dialogueManager.iniciarDialogo(new String[]{
+                "PINGU ME AJUDE! ENFIARAM UMA ARVORE NO MEU RABO SOCORRO AAAAAAA"}, null,
+                    new BufferedImage[]{GameCore.cellphone_image});
+            return true;
+        }
+
         if ("abrir_portao".equalsIgnoreCase(acao)) {
             if (chavesDoPlayer >= 3) {
                 isAberto_Concluido = true;

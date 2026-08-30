@@ -11,7 +11,7 @@ public class TileProperties {
             return (tempID >= 45 && tempID <= 50) || (tempID >= 6 && tempID <= 8) || (tempID >= 20 && tempID <= 22)
                     || (tempID >= 118 && tempID <= 124) || (tempID >= 25 && tempID <= 27)
                     || (tempID >= 53 && tempID <= 55)
-                    || (tempID >= 81 && tempID <= 83) || (tempID >= 112 && tempID <= 117);
+                    || (tempID >= 81 && tempID <= 83) || (tempID >= 112 && tempID <= 117) || (tempID >= 126 && tempID <= 138);
         }
         return false;
     }

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="16" height="9" tilewidth="16" tileheight="16" infinite="0" nextlayerid="14" nextobjectid="34">
+ <tileset firstgid="1" source="images/tile_set_pingu.tsx"/>
+ <tileset firstgid="141" source="images/tileset_placeholder.tsx"/>
+ <tileset firstgid="221" source="images/portao.tsx"/>
+ <tileset firstgid="223" source="images/star.tsx"/>
+ <layer id="2" name="sea" width="16" height="9">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="1" name="ground" width="16" height="9">
+  <data encoding="csv">
+131,132,132,132,132,132,132,132,132,132,132,136,132,132,132,133,
+130,16,16,16,16,16,16,16,16,16,16,137,16,16,16,130,
+130,16,16,16,16,16,16,16,16,16,16,137,16,16,16,130,
+130,16,16,16,16,16,16,16,16,16,16,137,16,16,16,130,
+130,16,16,16,16,16,16,16,16,16,16,139,16,16,16,130,
+130,16,16,16,16,16,16,16,16,16,16,137,16,16,16,130,
+130,16,16,16,16,16,16,16,16,16,16,137,16,16,16,130,
+130,16,16,16,16,16,16,16,16,16,16,138,16,16,16,130,
+132,132,132,132,132,132,16,16,134,132,132,132,132,132,132,132
+</data>
+ </layer>
+ <layer id="5" name="fence" width="16" height="9">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <objectgroup id="12" name="bInterativos">
+  <object id="23" x="100.374" y="122.925" width="22.858" height="18.858">
+   <properties>
+    <property name="acao" value="trocar_mapa"/>
+    <property name="destino" value="LEVEL_1_DATA_converted.json"/>
+    <property name="type" value="interativo"/>
+   </properties>
+  </object>
+  <object id="26" gid="224" x="16" y="128" width="16" height="32"/>
+  <object id="27" gid="223" x="16" y="96" width="16" height="32"/>
+  <object id="28" gid="223" x="16" y="64" width="16" height="32"/>
+  <object id="29" gid="223" x="16" y="32" width="16" height="32"/>
+  <object id="30" gid="224" x="96" y="80" width="16" height="32"/>
+ </objectgroup>
+ <objectgroup id="4" name="Spawners">
+  <object id="1" name="PlayerSpawner" x="103.182" y="121.473">
+   <properties>
+    <property name="type" value="spawn_player"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="19" name="NPCSpawner" x="200.583" y="63.25">
+   <properties>
+    <property name="npc_nome" value="vendedor"/>
+    <property name="type" value="spawn_npc"/>
+   </properties>
+   <point/>
+  </object>
+ </objectgroup>
+ <objectgroup id="10" name="Triggers"/>
+ <objectgroup id="11" name="Paredes">
+  <object id="32" gid="224" x="144" y="80" width="16" height="32"/>
+  <object id="33" gid="221" x="80" y="48" width="64" height="48"/>
+ </objectgroup>
+ <layer id="13" name="tStone" width="16" height="9">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+127,128,128,128,128,129,0,0,134,128,128,128,128,128,128,135
+</data>
+ </layer>
+</map>
