@@ -72,7 +72,7 @@ Além de inimigos, o jogo possui diversos *NPCs* com os quais o jogador pode int
 
 O menu de configurações pode ser acessado tanto pelo menu principal quanto durante o jogo.
 
-Nele é possível ajustar o volume da música e dos efeitos sonoros, além de consultar as teclas de ações do jogo e alternar o modo Tela Cheia.
+Nele é possível ajustar o volume da música e dos efeitos sonoros, além de alterar opções de renderização, consultar as teclas de ações do jogo e alternar o modo Tela Cheia.
 
 <img src="screenshots/options_menu.png" alt="Configurações" width="700">
 
