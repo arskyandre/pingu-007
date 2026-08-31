@@ -1,6 +1,8 @@
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Shape;
+import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 
@@ -42,6 +44,24 @@ public class Collider {
             } else {
                 return circleVsRect(otherX, otherY, other, myX, myY, this);
             }
+        }
+    }
+
+    public boolean intersects(double myX, double myY, Shape shape) {
+        if (shape == null) {
+            return false;
+        }
+        if (type == Type.RECTANGLE) {
+            Rectangle2D.Double rect = new Rectangle2D.Double(myX + offsetX, myY + offsetY, width, height);
+            return shape.intersects(rect);
+        } else {
+            Ellipse2D.Double circleBounds = new Ellipse2D.Double(myX + offsetX, myY + offsetY, radius * 2, radius * 2);
+            if (!shape.intersects(circleBounds.getBounds2D())) {
+                return false;
+            }
+            Area area = new Area(shape);
+            area.intersect(new Area(circleBounds));
+            return !area.isEmpty();
         }
     }
 

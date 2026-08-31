@@ -1,9 +1,12 @@
+
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 
 public class BulletManager {
+
     private ArrayList<Bullet> Bullets = new ArrayList<>();
     // Matriz do mapa para as balas baterem nas paredes
     private int[][] lvlData;
@@ -21,18 +24,19 @@ public class BulletManager {
         Bullets.add(new Bullet(startX, startY, dirX, dirY, owner, damageFalloff));
     }
 
-    public void update(CameraManager camera, int telaLargura, int telaAltura, Player player, ArrayList<Enemy> enemies) {
+    public void update(CameraManager camera, int telaLargura, int telaAltura, Player player,
+            ArrayList<Enemy> enemies, ArrayList<MapObject> objetosDeCenario) {
         Bullets.removeIf(b -> !b.isActive());
         for (Bullet b : Bullets) {
             b.update(camera, telaLargura, telaAltura);
             if (!b.isActive()) {
                 continue;
             }
-            // Hit Registration na PAREDE do Mapa
+
+            // Hit Registration na PAREDE do Mapa (tiles)
             if (lvlData != null) {
                 int tileX = (int) (b.getX() / GameCore.tiles_size);
                 int tileY = (int) (b.getY() / GameCore.tiles_size);
-                // Evita OutOfBounds e checa se é parede (ID 1)
                 if (tileX >= 0 && tileX < lvlData[0].length && tileY >= 0 && tileY < lvlData.length) {
                     if (TileProperties.isSolid(lvlData[tileY][tileX])) {
                         b.desativar();
@@ -40,6 +44,29 @@ public class BulletManager {
                     }
                 }
             }
+
+            // Hit Registration nos MapObjects
+            if (objetosDeCenario != null) {
+                boolean atingiuObjeto = false;
+                for (MapObject mo : objetosDeCenario) {
+                    if (mo.isTransparent() || !mo.isSolid()) {
+                        continue;
+                    }
+                    Shape hitbox = mo.getHitbox();
+                    if (hitbox == null) {
+                        continue;
+                    }
+                    if (b.getCollider().intersects(b.getX(), b.getY(), hitbox)) {
+                        b.desativar();
+                        atingiuObjeto = true;
+                        break;
+                    }
+                }
+                if (atingiuObjeto) {
+                    continue;
+                }
+            }
+
             // Hit Registration nos Inimigos / Player
             if (b.getOwner() == BulletOwner.PLAYER) {
                 for (Enemy e : enemies) {
