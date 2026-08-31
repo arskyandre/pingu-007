@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 
 public class VendedorNPC extends NPC {
+    private boolean interactionRequested;
 
     private enum State {
         IDLE, TALKING
@@ -113,13 +114,13 @@ public class VendedorNPC extends NPC {
     }
 
     @Override
-    public void update(Player player, InputManager input,
+    public void update(Player player,
             DialogueManager dialogueManager, SoundManager soundManager, ItemManager itemManager) {
         proximo = playerNearby(player);
         switch (state) {
             case IDLE -> {
-                if (proximo && (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)
-                        || input.isButtonJustPressed(InputManager.GamepadButton.Y))) {
+                if (proximo && interactionRequested) {
+                    interactionRequested = false;
                     if (Player.getDesbloqueouRecompensa()) {
 
                         loopInteracao("VENDEDOR: E aí, Pingu? O que deseja?", DialogueCatalogo.Vendedor_o_que_deseja,
@@ -153,6 +154,17 @@ public class VendedorNPC extends NPC {
             case TALKING -> {
             }
         }
+    }
+
+    @Override
+    public boolean tryInteract(Player player, DialogueManager dialogueManager,
+            SoundManager soundManager, ItemManager itemManager) {
+        if (state != State.IDLE || !playerNearby(player)) {
+            return false;
+        }
+        interactionRequested = true;
+        update(player, dialogueManager, soundManager, itemManager);
+        return true;
     }
 
     @Override

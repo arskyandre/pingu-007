@@ -1,7 +1,5 @@
 
 import java.awt.Graphics2D;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
@@ -257,30 +255,6 @@ public class Player extends Entity {
         fishingBobber.setFishingManager(fishingMgr);
     }
 
-    private int muniCOoldownTimer = 0;
-    private final int muniCooldown = 60;
-
-    // debug
-    /*
-     * public void testemunicao(InputManager input, int telaLargura, int telaAltura,
-     * ItemManager itemManager,
-     * CameraManager camera) {
-     * if (muniCOoldownTimer > 0) {
-     * muniCOoldownTimer--;
-     * }
-     * 
-     * if (input.isMouseButtonPressed(MouseEvent.BUTTON3)) {
-     * if (muniCOoldownTimer == 0) {
-     * double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-     * double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-     * 
-     * itemManager.spawn(new AmmoPackItem(mouseXWorld, mouseYWorld, 32));
-     * muniCOoldownTimer = muniCooldown;
-     * System.out.println("Spawnou municao");
-     * }
-     * }
-     * }
-     */
     @Override
     public void receberDano(int dano) {
         if (no_clip) {
@@ -381,15 +355,13 @@ public class Player extends Entity {
         return gunType;
     }
 
-    public void update(InputManager input, int telaLargura, int telaAltura, CameraManager camera,
-            ArrayList<Enemy> enemies) {
+    public void update(PlayerCommand command, ArrayList<Enemy> enemies) {
         if (!podeDash) {
             dashCooldownTimer--;
             if (dashCooldownTimer <= 0) {
                 podeDash = true;
             }
         }
-
         if (emDash) {
             dashDuracaoTimer--;
             if (dashDuracaoTimer <= 0) {
@@ -398,7 +370,6 @@ public class Player extends Entity {
                 iFramesTimer = iFramesDashGrace;
             }
         }
-
         if (iFramesTimer > 0) {
             iFramesTimer--;
         }
@@ -410,298 +381,154 @@ public class Player extends Entity {
         }
         dmgCheck();
         double controleAtual = emDash ? controleDash : 1.0;
-
         if (no_clip) {
             controleAtual = 4.0;
         }
-
         if (shootCooldownTimer > 0) {
             shootCooldownTimer--;
         }
         if (changeGunCooldownTimer > 0) {
             changeGunCooldownTimer--;
         }
-
         if (reloadOnZeroCooldownTimer > 0) {
             reloadOnZeroCooldownTimer--;
             if (reloadOnZeroCooldownTimer == 0 && penteZeroTimerActive && !reloading && municao > 0) {
                 reloading = true;
-                reloadCooldownTimer = (fasterReload) ? fasterReloadCooldown : defaultReloadCooldown;
+                reloadCooldownTimer = fasterReload ? fasterReloadCooldown : defaultReloadCooldown;
                 penteZeroTimerActive = false;
             }
         }
 
         if (!blockInputs) {
-            Vetor2D analogicoEsquerdo = input.getLeftStick();
-            Vetor2D analogicoDireito = input.getRightStick();
-            boolean controleAtivo = input.isControllerActive();
-            boolean mouseMiraAtiva = camera.isMouseMiraAtiva();
+            applyCommand(command, controleAtual, enemies);
+        }
+        finishReloadAndTimers();
+        updatePlayerMovement();
+    }
 
-            if (controleAtivo) {
-                Vetor2D movimento = analogicoEsquerdo.partiallyNormalized();
-                registrarUltimaDirecaoMovimento(movimento);
-                velX += aceleracao * controleAtual * movimento.x;
-                velY += aceleracao * controleAtual * movimento.y;
+    private void applyCommand(PlayerCommand command, double controleAtual, ArrayList<Enemy> enemies) {
+        Vetor2D movement = command.movement().partiallyNormalized();
+        registrarUltimaDirecaoMovimento(movement);
+        velX += aceleracao * controleAtual * movement.x;
+        velY += aceleracao * controleAtual * movement.y;
+        dirX = movement.x > 0.0 ? 1.0 : movement.x < 0.0 ? -1.0 : 0.0;
+        dirY = movement.y > 0.0 ? 1.0 : movement.y < 0.0 ? -1.0 : 0.0;
 
-                if (analogicoEsquerdo.x > 0) {
-                    dirX = 1;
-                } else if (analogicoEsquerdo.x < 0) {
-                    dirX = -1;
-                } else {
-                    dirX = 0;
-                }
+        double centerX = x + largura / 2.0;
+        double centerY = y + altura / 2.0;
+        double shotDirectionX = Math.cos(angulo);
+        double shotDirectionY = Math.sin(angulo);
+        AimCommand aim = command.aim();
+        Vetor2D controllerAim = aim.controllerAxis();
+        boolean hasControllerAim = controllerAim.x != 0.0 || controllerAim.y != 0.0;
 
-                if (analogicoEsquerdo.y > 0) {
-                    dirY = 1;
-                } else if (analogicoEsquerdo.y < 0) {
-                    dirY = -1;
-                } else {
-                    dirY = 0;
-                }
+        if (aim.usesController()) {
+            if (hasControllerAim) {
+                shotDirectionX = controllerAim.x;
+                shotDirectionY = controllerAim.y;
+                updatePlayerDirection(centerX + shotDirectionX, centerY + shotDirectionY);
+            }
+        } else if (aim.hasMouseWorldTarget()) {
+            shotDirectionX = aim.mouseWorldX() - centerX;
+            shotDirectionY = aim.mouseWorldY() - centerY;
+            updatePlayerDirection(aim.mouseWorldX(), aim.mouseWorldY());
+        }
 
-                double centerX = x + largura / 2.0;
-                double centerY = y + altura / 2.0;
-                double dirTiroX = Math.cos(angulo);
-                double dirTiroY = Math.sin(angulo);
+        if (command.fireHeld() && (aim.usesController() || aim.hasMouseWorldTarget())) {
+            shootIfReady(centerX, centerY, shotDirectionX, shotDirectionY);
+        }
+        applyWeaponSelection(command.weaponSelection());
 
-                if (analogicoDireito.x != 0 || analogicoDireito.y != 0) {
-                    dirTiroX = analogicoDireito.x;
-                    dirTiroY = analogicoDireito.y;
-                    updatePlayerDirection(centerX + dirTiroX, centerY + dirTiroY);
-                }
+        if (command.reloadHeld() && !reloading && pente < maxpente && municao > 0) {
+            reloading = true;
+            reloadCooldownTimer = fasterReload ? fasterReloadCooldown : defaultReloadCooldown;
+            penteZeroTimerActive = false;
+        }
+        if (pente == 0 && !reloading && municao > 0 && !penteZeroTimerActive) {
+            penteZeroTimerActive = true;
+            reloadOnZeroCooldownTimer = reloadOnZeroCooldown;
+        }
+        if (command.dashHeld() && podeDash && !emDash
+                && (movement.x != 0.0 || movement.y != 0.0)) {
+            aplicarDashDirecional(movement);
+        }
 
-                if (input.isButtonPressed(InputManager.GamepadButton.RT)) {
-                    if (shootCooldownTimer == 0 && pente > 0) {
-                        tiroTimer = tiroTimerTime;
+        applyDebugCommand(command);
+        updateFishing(command, enemies);
+    }
 
-                        switch (gunType) {
-                            case PISTOL -> {
-                                bulletmanager.shoot(centerX, centerY, dirTiroX, dirTiroY, BulletOwner.PLAYER);
-                                soundManager.playGunshot();
-                                shootCooldownTimer = pistolShootCooldown;
-                            }
-                            case SHOTGUN -> {
-                                double anguloBase = Math.atan2(dirTiroY, dirTiroX);
-                                double angulo1 = anguloBase;
-                                double angulo2 = anguloBase - Math.toRadians(15);
-                                double angulo3 = anguloBase + Math.toRadians(15);
-
-                                bulletmanager.shoot(centerX, centerY, Math.cos(angulo1), Math.sin(angulo1),
-                                        BulletOwner.PLAYER, true);
-                                bulletmanager.shoot(centerX, centerY, Math.cos(angulo2), Math.sin(angulo2),
-                                        BulletOwner.PLAYER, true);
-                                bulletmanager.shoot(centerX, centerY, Math.cos(angulo3), Math.sin(angulo3),
-                                        BulletOwner.PLAYER, true);
-
-                                soundManager.playSFX(SoundManager.SFX.EXPLOSION);
-                                shootCooldownTimer = shotgunShootCooldown;
-                            }
-                        }
-
-                        pente--;
-                    }
-                }
-
-                if (input.isButtonJustPressed(InputManager.GamepadButton.RB) && hasShotgun
-                        && changeGunCooldownTimer == 0) {
-                    if (getGunType() == Player.GunType.SHOTGUN) {
-                        setGunType(Player.GunType.PISTOL);
-                        if (ToastNotifications.getNotifAtual() != null
-                                && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
-                            ToastNotifications.skipNotification();
-                        }
-                        if (ToastNotifications.getNotifAtual() == null
-                                || !ToastNotifications.getNotifAtual().equals("Mudou para Pistola")) {
-                            ToastNotifications.RequestNotification("Mudou para Pistola", 1.0);
-                        }
-                    } else {
-                        setGunType(Player.GunType.SHOTGUN);
-                        if (ToastNotifications.getNotifAtual() != null
-                                && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
-                            ToastNotifications.skipNotification();
-                        }
-                        if (ToastNotifications.getNotifAtual() == null
-                                || !ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")) {
-                            ToastNotifications.RequestNotification("Mudou para Shotgun", 1.0);
-                        }
-                    }
-                    shootCooldownTimer = pistolShootCooldown;
-                    changeGunCooldownTimer = changeGunCooldown;
-                }
-
-                if (input.isButtonPressed(InputManager.GamepadButton.X) && !reloading && pente < maxpente
-                        && municao > 0) {
-                    reloading = true;
-                    reloadCooldownTimer = (fasterReload) ? fasterReloadCooldown : defaultReloadCooldown;
-                    penteZeroTimerActive = false;
-                }
-
-                if (pente == 0 && !reloading && municao > 0 && !penteZeroTimerActive) {
-                    penteZeroTimerActive = true;
-                    reloadOnZeroCooldownTimer = reloadOnZeroCooldown;
-                }
-
-                if ((input.isButtonPressed(InputManager.GamepadButton.A)
-                        || input.isButtonPressed(InputManager.GamepadButton.LB)) && podeDash && !emDash) {
-                    if (analogicoEsquerdo.x != 0 || analogicoEsquerdo.y != 0) {
-                        aplicarDashDirecional(analogicoEsquerdo.partiallyNormalized());
-                    }
-                }
-
-                updateFishing(input, camera, enemies);
-            } else {
-                boolean andaX = false;
-                boolean andaY = false;
-                Vetor2D movimento = new Vetor2D(0, 0);
-
-                if (input.isKeyPressed(KeyEvent.VK_D)) {
-                    movimento.x += 1;
-                    dirX = 1;
-                    andaX = true;
-                }
-                if (input.isKeyPressed(KeyEvent.VK_A)) {
-                    movimento.x -= 1;
-                    dirX = -1;
-                    andaX = true;
-                }
-                if (!andaX || (input.isKeyPressed(KeyEvent.VK_D) && input.isKeyPressed(KeyEvent.VK_A))) {
-                    dirX = 0;
-                }
-
-                if (input.isKeyPressed(KeyEvent.VK_S)) {
-                    movimento.y += 1;
-                    dirY = 1;
-                    andaY = true;
-                }
-                if (input.isKeyPressed(KeyEvent.VK_W)) {
-                    movimento.y -= 1;
-                    dirY = -1;
-                    andaY = true;
-                }
-                if (!andaY || (input.isKeyPressed(KeyEvent.VK_W) && input.isKeyPressed(KeyEvent.VK_S))) {
-                    dirY = 0;
-                }
-
-                Vetor2D movimentoNormalizado = movimento.partiallyNormalized();
-                registrarUltimaDirecaoMovimento(movimentoNormalizado);
-                velX += aceleracao * controleAtual * movimentoNormalizado.x;
-                velY += aceleracao * controleAtual * movimentoNormalizado.y;
-
-                if (mouseMiraAtiva) {
-                    double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-                    double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-
-                    if (input.isMouseButtonPressed(MouseEvent.BUTTON1)) {
-                        if (shootCooldownTimer == 0 && pente > 0) {
-                            double centerX = x + largura / 2.0;
-                            double centerY = y + altura / 2.0;
-                            double dirToMouseX = mouseXWorld - centerX;
-                            double dirToMouseY = mouseYWorld - centerY;
-                            tiroTimer = tiroTimerTime;
-
-                            switch (gunType) {
-                                case PISTOL -> {
-                                    bulletmanager.shoot(centerX, centerY, dirToMouseX, dirToMouseY, BulletOwner.PLAYER);
-                                    soundManager.playGunshot();
-                                    shootCooldownTimer = pistolShootCooldown;
-                                }
-                                case SHOTGUN -> {
-                                    double anguloBase = Math.atan2(dirToMouseY, dirToMouseX);
-                                    double angulo1 = anguloBase;
-                                    double angulo2 = anguloBase - Math.toRadians(15);
-                                    double angulo3 = anguloBase + Math.toRadians(15);
-
-                                    bulletmanager.shoot(centerX, centerY, Math.cos(angulo1), Math.sin(angulo1),
-                                            BulletOwner.PLAYER, true);
-                                    bulletmanager.shoot(centerX, centerY, Math.cos(angulo2), Math.sin(angulo2),
-                                            BulletOwner.PLAYER, true);
-                                    bulletmanager.shoot(centerX, centerY, Math.cos(angulo3), Math.sin(angulo3),
-                                            BulletOwner.PLAYER, true);
-
-                                    soundManager.playSFX(SoundManager.SFX.EXPLOSION);
-                                    shootCooldownTimer = shotgunShootCooldown;
-                                }
-                            }
-
-                            pente--;
-                        }
-                    }
-                }
-
-                if (GameCore.getDebug() && input.isKeyJustPressed(KeyEvent.VK_J)) {
-                    setFasterFishing(true);
-                    ToastNotifications.RequestNotification("FasterFishing = true");
-                }
-                if (GameCore.getDebug() && input.isKeyJustPressed(KeyEvent.VK_T)) {
-                    setX((double) (250.5 * GameCore.tiles_size));
-                    setY((double) (60 * GameCore.tiles_size));
-                }
-
-                if (GameCore.getDebug() && input.isKeyPressed(KeyEvent.VK_6) && input.isKeyJustPressed(KeyEvent.VK_7)) {
-                    hasShotgun = true;
-                    ToastNotifications.RequestNotification("DEBUG 67: habilitou shotgun", 2.0);
-                }
-
-                boolean pressedG = input.isKeyJustPressed(KeyEvent.VK_G);
-                boolean pressed1 = input.isKeyJustPressed(KeyEvent.VK_1);
-                boolean pressed2 = input.isKeyJustPressed(KeyEvent.VK_2);
-                if ((pressedG || pressed1 || pressed2)
-                        && hasShotgun
-                        && changeGunCooldownTimer <= 0) {
-                    Player.GunType newGunType;
-                    if (pressed1) {
-                        newGunType = Player.GunType.PISTOL;
-                    } else if (pressed2) {
-                        newGunType = Player.GunType.SHOTGUN;
-                    } else {
-                        newGunType = getGunType() == Player.GunType.SHOTGUN
-                                ? Player.GunType.PISTOL
-                                : Player.GunType.SHOTGUN;
-                    }
-                    if (newGunType != getGunType()) {
-                        setGunType(newGunType);
-                        String notification = newGunType == Player.GunType.PISTOL
-                                ? "Mudou para Pistola"
-                                : "Mudou para Shotgun";
-                        String currentNotification = ToastNotifications.getNotifAtual();
-                        if ("Mudou para Shotgun".equals(currentNotification)
-                                || "Mudou para Pistola".equals(currentNotification)) {
-                            ToastNotifications.skipNotification();
-                        }
-                        if (!notification.equals(ToastNotifications.getNotifAtual())) {
-                            ToastNotifications.RequestNotification(notification, 1.0);
-                        }
-                        shootCooldownTimer = pistolShootCooldown;
-                        changeGunCooldownTimer = changeGunCooldown;
-                    }
-                }
-                if (input.isKeyPressed(KeyEvent.VK_R) && !reloading && pente < maxpente && municao > 0) {
-                    reloading = true;
-                    reloadCooldownTimer = (fasterReload) ? fasterReloadCooldown : defaultReloadCooldown;
-                    penteZeroTimerActive = false;
-                }
-                if (pente == 0 && !reloading && municao > 0 && !penteZeroTimerActive) {
-                    penteZeroTimerActive = true;
-                    reloadOnZeroCooldownTimer = reloadOnZeroCooldown;
-                }
-
-                if (input.isKeyPressed(KeyEvent.VK_SPACE) && podeDash && !emDash) {
-                    if (dirX != 0 || dirY != 0) {
-                        Vetor2D direcaoMovimento = movimento.partiallyNormalized();
-                        aplicarDashDirecional(direcaoMovimento);
-                    }
-                }
-
-                if (mouseMiraAtiva) {
-                    double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-                    double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-                    updatePlayerDirection(mouseXWorld, mouseYWorld);
-                }
-                updateFishing(input, camera, enemies);
+    private void shootIfReady(double centerX, double centerY, double dirX, double dirY) {
+        if (shootCooldownTimer != 0 || pente <= 0) {
+            return;
+        }
+        tiroTimer = tiroTimerTime;
+        switch (gunType) {
+            case PISTOL -> {
+                bulletmanager.shoot(centerX, centerY, dirX, dirY, BulletOwner.PLAYER);
+                soundManager.playGunshot();
+                shootCooldownTimer = pistolShootCooldown;
+            }
+            case SHOTGUN -> {
+                double baseAngle = Math.atan2(dirY, dirX);
+                bulletmanager.shoot(centerX, centerY, Math.cos(baseAngle), Math.sin(baseAngle),
+                        BulletOwner.PLAYER, true);
+                bulletmanager.shoot(centerX, centerY, Math.cos(baseAngle - Math.toRadians(15)),
+                        Math.sin(baseAngle - Math.toRadians(15)), BulletOwner.PLAYER, true);
+                bulletmanager.shoot(centerX, centerY, Math.cos(baseAngle + Math.toRadians(15)),
+                        Math.sin(baseAngle + Math.toRadians(15)), BulletOwner.PLAYER, true);
+                soundManager.playSFX(SoundManager.SFX.EXPLOSION);
+                shootCooldownTimer = shotgunShootCooldown;
             }
         }
+        pente--;
+    }
+
+    private void applyWeaponSelection(WeaponSelection selection) {
+        if (selection == WeaponSelection.NONE || !hasShotgun || changeGunCooldownTimer > 0) {
+            return;
+        }
+        GunType next = switch (selection) {
+            case TOGGLE -> gunType == GunType.SHOTGUN ? GunType.PISTOL : GunType.SHOTGUN;
+            case PISTOL -> GunType.PISTOL;
+            case SHOTGUN -> GunType.SHOTGUN;
+            case NONE -> gunType;
+        };
+        if (next == gunType) {
+            return;
+        }
+        setGunType(next);
+        String notification = next == GunType.PISTOL ? "Mudou para Pistola" : "Mudou para Shotgun";
+        String currentNotification = ToastNotifications.getNotifAtual();
+        if ("Mudou para Shotgun".equals(currentNotification)
+                || "Mudou para Pistola".equals(currentNotification)) {
+            ToastNotifications.skipNotification();
+        }
+        if (!notification.equals(ToastNotifications.getNotifAtual())) {
+            ToastNotifications.RequestNotification(notification, 1.0);
+        }
+        shootCooldownTimer = pistolShootCooldown;
+        changeGunCooldownTimer = changeGunCooldown;
+    }
+
+    private void applyDebugCommand(PlayerCommand command) {
+        if (!GameCore.getDebug()) {
+            return;
+        }
+        if (command.debugFasterFishing()) {
+            setFasterFishing(true);
+            ToastNotifications.RequestNotification("FasterFishing = true");
+        }
+        if (command.debugTeleport()) {
+            setX(250.5 * GameCore.tiles_size);
+            setY(60.0 * GameCore.tiles_size);
+        }
+        if (command.debugUnlockShotgun()) {
+            hasShotgun = true;
+            ToastNotifications.RequestNotification("DEBUG 67: habilitou shotgun", 2.0);
+        }
+    }
+
+    private void finishReloadAndTimers() {
         if (reloading) {
             reloadCooldownTimer--;
             if (reloadCooldownTimer <= 0) {
@@ -720,8 +547,6 @@ public class Player extends Entity {
         if (tiroTimer > 0) {
             tiroTimer--;
         }
-
-        updatePlayerMovement();
     }
 
     private void updatePlayerDirection(double mouseX, double mouseY) {
@@ -748,45 +573,31 @@ public class Player extends Entity {
         // System.out.println(angulo);
     }
 
-    public void updateFishing(InputManager input, CameraManager camera, ArrayList<Enemy> enemies) {
+    private void updateFishing(PlayerCommand command, ArrayList<Enemy> enemies) {
         if (!hasFishingRod) {
             return;
         }
-
         if (fishingCooldown > 0) {
             fishingCooldown--;
         }
-
-        Vetor2D analogicoEsquerdo = input.getLeftStick();
-        Vetor2D analogicoDireito = input.getRightStick();
-        boolean controleAtivo = input.isControllerActive();
-        boolean mouseMiraAtiva = camera.isMouseMiraAtiva();
-        boolean pescar = controleAtivo
-                ? input.isButtonJustPressed(InputManager.GamepadButton.LT)
-                : input.isMouseButtonJustPressed(MouseEvent.BUTTON3);
-
-        if (pescar && fishingCooldown == 0) {
-            System.out.println(">>> CLIQUE DIREITO PROCESSADO COM SUCESSO! <<<");
-
+        if (command.castPressed() && fishingCooldown == 0) {
             if (fishingBobber.isAtivo()) {
                 fishingBobber.pull();
-            } else if (controleAtivo) {
-                double direcaoX = Math.cos(angulo);
-                double direcaoY = Math.sin(angulo);
-
-                if (analogicoDireito.x != 0 || analogicoDireito.y != 0) {
-                    direcaoX = analogicoDireito.x;
-                    direcaoY = analogicoDireito.y;
+            } else if (command.aim().usesController()) {
+                Vetor2D controllerAim = command.aim().controllerAxis();
+                double directionX = Math.cos(angulo);
+                double directionY = Math.sin(angulo);
+                if (controllerAim.x != 0.0 || controllerAim.y != 0.0) {
+                    directionX = controllerAim.x;
+                    directionY = controllerAim.y;
                 }
-
-                double distanciaMira = Math.max(largura, altura) * 10.0;
-                double alvoX = x + largura / 2.0 + direcaoX * distanciaMira;
-                double alvoY = y + altura / 2.0 + direcaoY * distanciaMira;
-                fishingBobber.cast(this, soundManager, alvoX, alvoY);
-            } else if (mouseMiraAtiva) {
-                double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-                double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-                fishingBobber.cast(this, soundManager, mouseXWorld, mouseYWorld);
+                double aimDistance = Math.max(largura, altura) * 10.0;
+                double targetX = x + largura / 2.0 + directionX * aimDistance;
+                double targetY = y + altura / 2.0 + directionY * aimDistance;
+                fishingBobber.cast(this, soundManager, targetX, targetY);
+            } else if (command.aim().hasMouseWorldTarget()) {
+                fishingBobber.cast(this, soundManager,
+                        command.aim().mouseWorldX(), command.aim().mouseWorldY());
             }
             fishingCooldown = 20;
         }

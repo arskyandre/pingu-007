@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -230,6 +229,7 @@ public class OptionsMenu {
 
     public GameState update(InputManager input, int width, int height, GameCore GC) {
         repositionElements(width, height, GC);
+        MenuInputController menuInput = new MenuInputController(input);
 
         if (!fpsSliderInitialized) {
             int limiteFps = GC.getTargetFps();
@@ -258,30 +258,31 @@ public class OptionsMenu {
             showFpsButton.setIcon(IconIndex.RED_X);
         }
 
-        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE) || input.isButtonJustPressed(InputManager.GamepadButton.B)) {
+        if (menuInput.wasPressed(InputAction.CANCEL)) {
             return returnTo;
         }
 
-        boolean mouseAceito = !input.isMouseBloqueado();
+        atualizarNavegacaoControle(menuInput, GC);
+        PointerSnapshot pointer = menuInput.pointer();
+        boolean mouseAceito = pointer.isActive();
         if (mouseAceito) {
-            updateMusicSlider(input);
-            updateSfxSlider(input);
-            updateFpsCapSlider(input, GC);
-            GameState acaoMouse = atualizarBotoesMouse(input, GC);
+            updateMusicSlider(pointer);
+            updateSfxSlider(pointer);
+            updateFpsCapSlider(pointer, GC);
+            GameState acaoMouse = atualizarBotoesMouse(pointer, GC);
             if (acaoMouse != GameState.OPTIONS) {
                 return acaoMouse;
             }
-            atualizarFocoPeloMouse(input);
+            atualizarFocoPeloMouse(pointer);
         } else {
             limparEstadoHoverBotoes();
         }
 
-        atualizarNavegacaoControle(input, GC);
-        if ((input.isControllerActive() || input.isMouseBloqueado()) && !mouseAceito) {
+        if ((menuInput.usesController() || input.isMouseBloqueado()) && !mouseAceito) {
             aplicarVisualFoco();
         }
 
-        GameState acao = ativarItemFocado(input, GC);
+        GameState acao = ativarItemFocado(menuInput, GC);
         if (acao != GameState.OPTIONS) {
             return acao;
         }
@@ -289,12 +290,12 @@ public class OptionsMenu {
         return GameState.OPTIONS;
     }
 
-    private GameState atualizarBotoesMouse(InputManager input, GameCore GC) {
+    private GameState atualizarBotoesMouse(PointerSnapshot pointer, GameCore GC) {
         for (ItemFoco item : itensFoco) {
             if (item.botao == null) {
                 continue;
             }
-            if (item.botao.update(input) == MenuButton.CLICKED) {
+            if (item.botao.update(pointer) == MenuButton.CLICKED) {
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
                 return item.acao.apply(GC);
             }
@@ -302,7 +303,7 @@ public class OptionsMenu {
         return GameState.OPTIONS;
     }
 
-    private void atualizarFocoPeloMouse(InputManager input) {
+    private void atualizarFocoPeloMouse(PointerSnapshot pointer) {
         for (ItemFoco item : itensFoco) {
             if (item.botao != null && item.botao.isHovered()) {
                 itemFocado = item;
@@ -322,8 +323,8 @@ public class OptionsMenu {
         }
     }
 
-    private void updateMusicSlider(InputManager input) {
-        int state = musicSlider.update(input);
+    private void updateMusicSlider(PointerSnapshot pointer) {
+        int state = musicSlider.update(pointer);
         if (state == MenuSlider.DRAGGING || state == MenuSlider.CLICKED) {
             itemFocado = encontrarItemFoco(musicSlider);
             if (state == MenuSlider.CLICKED)
@@ -340,8 +341,8 @@ public class OptionsMenu {
         }
     }
 
-    private void updateSfxSlider(InputManager input) {
-        int state = sfxSlider.update(input);
+    private void updateSfxSlider(PointerSnapshot pointer) {
+        int state = sfxSlider.update(pointer);
         if (state == MenuSlider.DRAGGING || state == MenuSlider.CLICKED) {
             itemFocado = encontrarItemFoco(sfxSlider);
             if (state == MenuSlider.CLICKED)
@@ -358,8 +359,8 @@ public class OptionsMenu {
         }
     }
 
-    private void updateFpsCapSlider(InputManager input, GameCore GC) {
-        int state = fpsCapSlider.update(input);
+    private void updateFpsCapSlider(PointerSnapshot pointer, GameCore GC) {
+        int state = fpsCapSlider.update(pointer);
         if (state == MenuSlider.DRAGGING || state == MenuSlider.CLICKED) {
             itemFocado = encontrarItemFoco(fpsCapSlider);
             if (state == MenuSlider.CLICKED)
@@ -376,26 +377,20 @@ public class OptionsMenu {
         return Math.clamp((fps - MIN_FPS) / (float) (MAX_FPS - MIN_FPS), 0f, 1f);
     }
 
-    private void atualizarNavegacaoControle(InputManager input, GameCore GC) {
-        boolean up = input.isKeyJustPressed(KeyEvent.VK_UP)
-                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP);
-        boolean down = input.isKeyJustPressed(KeyEvent.VK_DOWN)
-                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN);
-        boolean left = input.isKeyJustPressed(KeyEvent.VK_LEFT)
-                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_LEFT);
-        boolean right = input.isKeyJustPressed(KeyEvent.VK_RIGHT)
-                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_RIGHT);
+    private void atualizarNavegacaoControle(MenuInputController input, GameCore GC) {
+        boolean up = input.navigate(InputAction.MENU_UP);
+        boolean down = input.navigate(InputAction.MENU_DOWN);
+        boolean left = input.navigate(InputAction.MENU_LEFT);
+        boolean right = input.navigate(InputAction.MENU_RIGHT);
 
         if (up || down) {
             moverVerticalmente(up ? -1 : 1);
-            input.iniciarBloqueioMouse();
         } else if (left || right) {
             if (itemFocado.deslizador != null) {
                 ajustarDeslizadorFocado(left ? -0.05f : 0.05f, GC);
             } else {
                 moverHorizontalmente(right ? 1 : -1);
             }
-            input.iniciarBloqueioMouse();
         }
     }
 
@@ -529,8 +524,8 @@ public class OptionsMenu {
         return true;
     }
 
-    private GameState ativarItemFocado(InputManager input, GameCore GC) {
-        if (!input.isButtonJustPressed(InputManager.GamepadButton.A)) {
+    private GameState ativarItemFocado(MenuInputController input, GameCore GC) {
+        if (!input.wasPressed(InputAction.CONFIRM)) {
             return GameState.OPTIONS;
         }
         soundManager.playSFX(SoundManager.SFX.HUD_CLICK);

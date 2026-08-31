@@ -1,0 +1,19 @@
+public enum GamepadButton {
+    A,
+    B,
+    X,
+    Y,
+    LB,
+    RB,
+    LT,
+    RT,
+    START,
+    BACK,
+    GUIDE,
+    DPAD_UP,
+    DPAD_DOWN,
+    DPAD_LEFT,
+    DPAD_RIGHT,
+    LEFT_STICK,
+    RIGHT_STICK
+}

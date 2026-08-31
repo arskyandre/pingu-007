@@ -61,26 +61,26 @@ public class MainMenu {
     public GameState update(InputManager input, int width, int height) {
         repositionButtons(width, height);
         bobTime += BOB_SPEED;
-        boolean controleAtivo = input.isControllerActive();
+        MenuInputController menuInput = new MenuInputController(input);
+        boolean controleAtivo = menuInput.usesController();
 
-        if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP)) {
+        if (menuInput.navigate(InputAction.MENU_UP)) {
             moverSelecao(-1);
-            input.iniciarBloqueioMouse();
-        } else if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN)) {
+        } else if (menuInput.navigate(InputAction.MENU_DOWN)) {
             moverSelecao(1);
-            input.iniciarBloqueioMouse();
         }
 
-        boolean mouseAceito = !input.isMouseBloqueado();
+        PointerSnapshot pointer = menuInput.pointer();
+        boolean mouseAceito = pointer.isActive();
 
         int playState;
         int optionsState;
         int quitState;
 
         if (mouseAceito) {
-            playState = playBtn.update(input);
-            optionsState = optionsBtn.update(input);
-            quitState = quitBtn.update(input);
+            playState = playBtn.update(pointer);
+            optionsState = optionsBtn.update(pointer);
+            quitState = quitBtn.update(pointer);
         } else {
             playBtn.hovered = false;
             optionsBtn.hovered = false;
@@ -108,7 +108,7 @@ public class MainMenu {
             aplicarSelecaoVisual();
         }
 
-        if (input.isButtonJustPressed(InputManager.GamepadButton.A)) {
+        if (menuInput.wasPressed(InputAction.CONFIRM)) {
             return ativarSelecionado();
         }
 

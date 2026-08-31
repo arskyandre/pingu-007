@@ -65,15 +65,15 @@ public class CameraManager {
         combatModeAtivo = set;
     }
 
-    public void update(Player player, InputManager input, int telaLargura, int telaAltura) {
-        updateInterno(player, input, telaLargura, telaAltura, true);
+    public void update(Player player, AimCommand aim, int telaLargura, int telaAltura) {
+        updateInterno(player, aim, telaLargura, telaAltura, true);
     }
 
     public void updateSemNovoInput(Player player, int telaLargura, int telaAltura) {
         updateInterno(player, null, telaLargura, telaAltura, false);
     }
 
-    private void updateInterno(Player player, InputManager input, int telaLargura, int telaAltura,
+    private void updateInterno(Player player, AimCommand aim, int telaLargura, int telaAltura,
             boolean lerNovoInputMouse) {
         double centroTelaX = telaLargura / 2.0;
         double centroTelaY = telaAltura / 2.0;
@@ -124,31 +124,27 @@ public class CameraManager {
             double maxOffsetY = Math.max(0, centroTelaY - margemY);
 
             if (lerNovoInputMouse) {
-                boolean controleAtivo = input != null && input.isControllerActive();
-                Vetor2D analogicoDireito = controleAtivo ? input.getRightStick().partiallyNormalized()
+                boolean controleAtivo = aim != null && aim.usesController();
+                Vetor2D analogicoDireito = controleAtivo ? aim.controllerAxis().partiallyNormalized()
                         : new Vetor2D(0, 0);
 
                 if (controleAtivo && (analogicoDireito.x != 0.0 || analogicoDireito.y != 0.0)) {
                     miraComControleAtiva = true;
-                    input.iniciarBloqueioMouse();
 
                     ultimoOffsetMouseX = analogicoDireito.x * maxOffsetX * pesoOffsetControle;
                     ultimoOffsetMouseY = analogicoDireito.y * maxOffsetY * pesoOffsetControle;
                 } else if (miraComControleAtiva) {
 
                     miraComControleAtiva = false;
-                    if (input != null) {
-                        input.iniciarBloqueioMouse();
-                    }
                     ultimoOffsetMouseX = 0;
                     ultimoOffsetMouseY = 0;
-                } else if (input != null && input.isMouseBloqueado()) {
+                } else if (aim != null && aim.pointerLocked()) {
                     ultimoOffsetMouseX = 0;
                     ultimoOffsetMouseY = 0;
                 } else {
 
-                    double distMouseX = input.getMouseX() - centroTelaX;
-                    double distMouseY = input.getMouseY() - centroTelaY;
+                    double distMouseX = aim.pointerX() - centroTelaX;
+                    double distMouseY = aim.pointerY() - centroTelaY;
                     ultimoOffsetMouseX = distMouseX * pesoOffset;
                     ultimoOffsetMouseY = distMouseY * pesoOffset;
                 }
@@ -157,8 +153,8 @@ public class CameraManager {
                 ultimoOffsetMouseY = Math.max(-maxOffsetY, Math.min(ultimoOffsetMouseY, maxOffsetY));
             }
 
-            if (input != null) {
-                mouseMiraAtiva = !miraComControleAtiva && !input.isMouseBloqueado();
+            if (aim != null) {
+                mouseMiraAtiva = !miraComControleAtiva && !aim.pointerLocked();
             }
 
             double telaOffsetX = Math.max(-maxOffsetX, Math.min(ultimoOffsetMouseX, maxOffsetX));

@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -76,11 +75,11 @@ public class MenuButton {
         return lines;
     }
 
-    public int update(InputManager input) {
-        hovered = rect.contains(input.getMouseX(), input.getMouseY());
-        if (hovered && input.isMouseButtonJustPressed(MouseEvent.BUTTON1))
+    public int update(PointerSnapshot pointer) {
+        hovered = pointer.isActive() && rect.contains(pointer.x(), pointer.y());
+        if (hovered && pointer.wasPressed(java.awt.event.MouseEvent.BUTTON1))
             return CLICKED;
-        else if (hovered && input.isMouseButtonPressed(MouseEvent.BUTTON1)) {
+        else if (hovered && pointer.isDown(java.awt.event.MouseEvent.BUTTON1)) {
             held = true;
         }
         held = false;

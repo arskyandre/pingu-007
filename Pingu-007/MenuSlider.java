@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.awt.event.MouseEvent;
 
 public class MenuSlider {
 
@@ -20,14 +19,14 @@ public class MenuSlider {
     public static final int CLICKED = 2;
     public static final int DRAGGING = 3;
 
-    public int update(InputManager input) {
-        int mx = input.getMouseX();
-        int my = input.getMouseY();
-        boolean clicking = input.isMouseButtonPressed(MouseEvent.BUTTON1);
+    public int update(PointerSnapshot pointer) {
+        int mx = pointer.x();
+        int my = pointer.y();
+        boolean clicking = pointer.isDown(java.awt.event.MouseEvent.BUTTON1);
 
         Rectangle hitArea = new Rectangle(rect.x, rect.y - 8, rect.width, rect.height + 16);
 
-        if (input.isMouseButtonJustPressed(MouseEvent.BUTTON1) && hitArea.contains(mx, my)) {
+        if (pointer.wasPressed(java.awt.event.MouseEvent.BUTTON1) && hitArea.contains(mx, my)) {
             dragging = true;
             value = Math.clamp((float) (mx - rect.x) / rect.width, 0f, 1f);
             return CLICKED;
@@ -41,7 +40,7 @@ public class MenuSlider {
             return DRAGGING;
         }
 
-        if (hitArea.contains(mx, my))
+        if (pointer.isActive() && hitArea.contains(mx, my))
             return HOVERED;
         return IDLE;
     }

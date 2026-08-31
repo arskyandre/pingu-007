@@ -253,7 +253,7 @@ public class Renderer {
         g2.setColor(originalColor);
     }
 
-    public void renderizar(Graphics2D g2, CameraManager camera, Player player, InputManager input, int telaLargura,
+    public void renderizar(Graphics2D g2, CameraManager camera, Player player, PointerSnapshot pointer, int telaLargura,
             int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager,
             EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager,
             FishingManager fishingManager, NPCManager npcManager, CutsceneManager cutsceneManager,
@@ -350,7 +350,7 @@ public class Renderer {
         lm.drawForeground(g2, camera, telaLargura, telaAltura);
 
         if (modoDebug) {
-            renderDebug(g2, camera, player, input);
+            renderDebug(g2, camera, player, pointer);
 
             drawDebugColliders(g2, player);
             if (enemyManager != null && enemyManager.getEnemies() != null) {
@@ -417,7 +417,7 @@ public class Renderer {
         }
 
         if (mouseCircleAlpha > 0.0) {
-            renderMouse(g2, input, mouseCircleAlpha, telaAltura);
+            renderMouse(g2, pointer, mouseCircleAlpha, telaAltura);
         }
         if (GameCore.getGameState() == GameState.CUTSCENE) {
             cutsceneManager.draw(g2, telaLargura, telaAltura, delta);
@@ -624,11 +624,11 @@ public class Renderer {
     }
 
     private void renderDebug(Graphics2D g2, CameraManager camera,
-            Player quadrado, InputManager input) {
+            Player quadrado, PointerSnapshot pointer) {
         double centerX = quadrado.getX() + quadrado.getLargura() / 2.0;
         double centerY = quadrado.getY() + quadrado.getAltura() / 2.0;
-        double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-        double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+        double mouseXWorld = (pointer.x() / camera.getZoom()) + camera.getX();
+        double mouseYWorld = (pointer.y() / camera.getZoom()) + camera.getY();
         g2.setColor(Color.WHITE);
         g2.drawLine((int) centerX, (int) centerY,
                 (int) mouseXWorld, (int) mouseYWorld);
@@ -636,7 +636,7 @@ public class Renderer {
 
     private void renderMouse(
             Graphics2D g2,
-            InputManager input,
+            PointerSnapshot pointer,
             double alpha,
             int telaAltura) {
         Composite originalComposite = g2.getComposite();
@@ -667,8 +667,8 @@ public class Renderer {
 
         int size = (int) Math.round(32 * dampenedScale);
 
-        int mouseX = input.getMouseX() - size / 2;
-        int mouseY = input.getMouseY() - size / 2;
+        int mouseX = pointer.x() - size / 2;
+        int mouseY = pointer.y() - size / 2;
 
         g2.drawImage(
                 crosshair,

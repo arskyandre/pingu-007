@@ -1,5 +1,4 @@
 import java.awt.Graphics2D;
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
 public class NPCManager {
@@ -23,13 +22,23 @@ public class NPCManager {
         npcs.clear();
     }
 
-    public void update(Player player, InputManager input) {
+    public void update(Player player) {
 
         for (NPC npc : npcs) {
             if (npc.isActive()) {
-                npc.update(player, input, dialogueManager, soundManager, itemManager);
+                npc.update(player, dialogueManager, soundManager, itemManager);
             }
         }
+    }
+
+    public boolean tryInteract(Player player) {
+        for (NPC npc : npcs) {
+            if (npc.isActive()
+                    && npc.tryInteract(player, dialogueManager, soundManager, itemManager)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public ArrayList<NPC> getNpcs() {

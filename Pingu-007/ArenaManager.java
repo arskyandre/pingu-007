@@ -335,7 +335,7 @@ public class ArenaManager {
         return false;
     }
 
-    public void interagir(Player player, int chavesDoPlayer) {
+    public boolean interagir(Player player, int chavesDoPlayer) {
         for (InteractiveMapObject interactive : interactives) {
             if (interactive.tryInteract(player, chavesDoPlayer)) {
                 TiledObject data = interactive.getData();
@@ -344,9 +344,10 @@ public class ArenaManager {
                     System.out.println(data.destino);
                     iniciarTransicaoDeFase(data.destino);
                 }
-                return;
+                return true;
             }
         }
+        return false;
     }
 
     public void drawOverlays(java.awt.Graphics2D g2) {

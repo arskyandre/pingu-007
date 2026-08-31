@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.io.File;
 
 public class KeyBindingsMenu {
@@ -44,25 +43,22 @@ public class KeyBindingsMenu {
 
     public GameState update(InputManager input, int width, int height) {
         repositionElements(width, height);
+        MenuInputController menuInput = new MenuInputController(input);
 
-        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE)
-                || input.isButtonJustPressed(InputManager.GamepadButton.B))
+        if (menuInput.wasPressed(InputAction.CANCEL))
             return returnTo;
 
-        boolean controleAcionado = input.isButtonJustPressed(InputManager.GamepadButton.A)
-                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP)
-                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN)
-                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_LEFT)
-                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_RIGHT);
+        boolean controleAcionado = menuInput.wasPressed(InputAction.MENU_ACTIVITY);
 
         if (controleAcionado) {
-            input.iniciarBloqueioMouse();
+            input.lockPointer();
         }
 
-        boolean mouseAceito = !input.isMouseBloqueado();
-        boolean controleAtivo = input.isControllerActive();
+        PointerSnapshot pointer = menuInput.pointer();
+        boolean mouseAceito = pointer.isActive();
+        boolean controleAtivo = menuInput.usesController();
 
-        if (mouseAceito && backBtn.update(input) == MenuButton.CLICKED) {
+        if (mouseAceito && backBtn.update(pointer) == MenuButton.CLICKED) {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             return returnTo;
         }
@@ -75,7 +71,7 @@ public class KeyBindingsMenu {
                 && (!mouseAceito || !backBtn.isHovered())) {
             backBtn.hovered = true;
 
-            if (input.isButtonJustPressed(InputManager.GamepadButton.A)) {
+            if (menuInput.wasPressed(InputAction.CONFIRM)) {
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
                 return returnTo;
             }

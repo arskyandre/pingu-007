@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -107,13 +106,13 @@ public class ShopMenu {
 
         repositionButtons();
         garantirSelecaoDisponivel(1);
+        MenuInputController menuInput = new MenuInputController(input);
 
         if (feedbackTimer > 0) {
             feedbackTimer--;
         }
 
-        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE) || input.isButtonJustPressed(InputManager.GamepadButton.B)
-                || input.isButtonJustPressed(InputManager.GamepadButton.START)) {
+        if (menuInput.wasPressed(InputAction.CANCEL)) {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             fechar();
             return;
@@ -123,16 +122,15 @@ public class ShopMenu {
             return;
         }
 
-        if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP) || input.isKeyJustPressed(KeyEvent.VK_W)
-                || input.isKeyJustPressed(KeyEvent.VK_UP)) {
+        if (menuInput.navigate(InputAction.MENU_UP)) {
             moverSelecao(-1);
-        } else if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN)
-                || input.isKeyJustPressed(KeyEvent.VK_S) || input.isKeyJustPressed(KeyEvent.VK_DOWN)) {
+        } else if (menuInput.navigate(InputAction.MENU_DOWN)) {
             moverSelecao(1);
         }
 
+        PointerSnapshot pointer = menuInput.pointer();
         for (int i = 0; i < botoes.size(); i++) {
-            int resultado = botoes.get(i).update(input);
+            int resultado = botoes.get(i).update(pointer);
             if (botoes.get(i).isHovered()) {
                 if (selecionado != i) {
                     quantidadeSelecionada = 1;
@@ -141,6 +139,7 @@ public class ShopMenu {
             }
             if (resultado == MenuButton.CLICKED) {
                 comprarItem(i);
+                return;
             }
         }
 
@@ -151,28 +150,28 @@ public class ShopMenu {
         if (!itemSelecionado.compra_unica) {
             repositionQuantityButtons(telaLargura, itemSelecionado);
 
-            if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_LEFT)
-                    || input.isKeyJustPressed(KeyEvent.VK_A) || input.isKeyJustPressed(KeyEvent.VK_LEFT)) {
+            if (menuInput.navigate(InputAction.MENU_LEFT)) {
                 alterarQuantidade(-1, itemSelecionado);
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             }
-            if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_RIGHT)
-                    || input.isKeyJustPressed(KeyEvent.VK_D) || input.isKeyJustPressed(KeyEvent.VK_RIGHT)) {
+            if (menuInput.navigate(InputAction.MENU_RIGHT)) {
                 alterarQuantidade(1, itemSelecionado);
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             }
-            if (setaQuantidadeEsquerda.update(input) == MenuButton.CLICKED) {
+            pointer = menuInput.pointer();
+            if (setaQuantidadeEsquerda.update(pointer) == MenuButton.CLICKED) {
                 alterarQuantidade(-1, itemSelecionado);
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
+                return;
             }
-            if (setaQuantidadeDireita.update(input) == MenuButton.CLICKED) {
+            if (setaQuantidadeDireita.update(pointer) == MenuButton.CLICKED) {
                 alterarQuantidade(1, itemSelecionado);
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
+                return;
             }
         }
 
-        if (input.isButtonJustPressed(InputManager.GamepadButton.A) || input.isKeyJustPressed(KeyEvent.VK_ENTER)
-                || input.isKeyJustPressed(KeyEvent.VK_SPACE)) {
+        if (menuInput.wasPressed(InputAction.CONFIRM)) {
             comprarItem(selecionado);
         }
     }

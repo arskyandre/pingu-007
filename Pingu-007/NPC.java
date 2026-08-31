@@ -73,7 +73,12 @@ public abstract class NPC implements Renderable {
 
     public abstract void update(
             Player player,
-            InputManager input,
+            DialogueManager dialogueManager,
+            SoundManager soundManager,
+            ItemManager itemManager);
+
+    public abstract boolean tryInteract(
+            Player player,
             DialogueManager dialogueManager,
             SoundManager soundManager,
             ItemManager itemManager);

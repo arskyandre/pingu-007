@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 
 public class PescadorNPC extends NPC {
+    private boolean interactionRequested;
 
     private enum State {
         IDLE, TALKING
@@ -77,7 +78,7 @@ public class PescadorNPC extends NPC {
     }
 
     @Override
-    public void update(Player player, InputManager input,
+    public void update(Player player,
             DialogueManager dialogueManager, SoundManager soundManager, ItemManager itemManager) {
         if (Yfinal != y) {
             return;
@@ -85,8 +86,8 @@ public class PescadorNPC extends NPC {
         proximo = playerNearby(player);
         switch (state) {
             case IDLE -> {
-                if (proximo && (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)
-                        || input.isButtonJustPressed(InputManager.GamepadButton.Y))) {
+                if (proximo && interactionRequested) {
+                    interactionRequested = false;
                     if (laEle || player.hasFishingRod()) {
                         if (FishingManager.isPlayerHasKey())
                             dialogueManager.iniciarDialogo(dialogo2_hasKey, DialogueCatalogo.PescadorFala2_hasKey,
@@ -141,6 +142,17 @@ public class PescadorNPC extends NPC {
             case TALKING -> {
             }
         }
+    }
+
+    @Override
+    public boolean tryInteract(Player player, DialogueManager dialogueManager,
+            SoundManager soundManager, ItemManager itemManager) {
+        if (Yfinal != y || state != State.IDLE || !playerNearby(player)) {
+            return false;
+        }
+        interactionRequested = true;
+        update(player, dialogueManager, soundManager, itemManager);
+        return true;
     }
 
     @Override

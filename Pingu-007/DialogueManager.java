@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.util.Random;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -184,19 +183,16 @@ public class DialogueManager {
       return;
     }
 
-    if (input.isKeyJustPressed(KeyEvent.VK_UP) || input.isKeyJustPressed(KeyEvent.VK_W)
-        || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP)) {
+    if (input.frame().wasPressed(InputAction.MENU_UP)) {
       if (escolhaSelecionada > 0)
         escolhaSelecionada--;
     }
-    if (input.isKeyJustPressed(KeyEvent.VK_DOWN) || input.isKeyJustPressed(KeyEvent.VK_S)
-        || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN)) {
+    if (input.frame().wasPressed(InputAction.MENU_DOWN)) {
       if (escolhaSelecionada < opcoesEscolha.length - 1)
         escolhaSelecionada++;
     }
 
-    boolean confirmar = input.isKeyJustPressed(KeyEvent.VK_SPACE) || input.isKeyJustPressed(KeyEvent.VK_ENTER)
-        || input.isButtonJustPressed(InputManager.GamepadButton.A);
+    boolean confirmar = input.frame().wasPressed(InputAction.CONFIRM);
     if (confirmar) {
       soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
       int escolhido = escolhaSelecionada;
@@ -257,8 +253,7 @@ public class DialogueManager {
       }
     }
 
-    boolean teclaApertada = input.isKeyJustPressed(KeyEvent.VK_SPACE) || input.isKeyJustPressed(KeyEvent.VK_ENTER)
-        || input.isButtonJustPressed(InputManager.GamepadButton.A);
+    boolean teclaApertada = input.frame().wasPressed(InputAction.CONFIRM);
 
     if (teclaApertada) {
       avancarFala();

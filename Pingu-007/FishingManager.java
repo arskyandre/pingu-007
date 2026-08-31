@@ -3,8 +3,6 @@ import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.util.Random;
 
@@ -90,12 +88,12 @@ public class FishingManager {
         }
 
         repositionButton(camera, screenWidth, screenHeight);
-        boolean triggered = fishingButton.update(input) == MenuButton.CLICKED
-                || isPullLinePressed(input);
+        boolean triggered = fishingButton.update(input.pointer()) == MenuButton.CLICKED
+                || input.frame().wasPressed(InputAction.CAST_OR_PULL);
 
         switch (state) {
             case WAITING ->
-                updateWaiting(input);
+                updateWaiting(triggered);
             case BITING -> {
                 updateBite(triggered);
 
@@ -182,8 +180,8 @@ public class FishingManager {
         System.out.println("Fishing cancelled.");
     }
 
-    private void updateWaiting(InputManager input) {
-        if (input.isMouseButtonJustPressed(MouseEvent.BUTTON3) || isPullLinePressed(input)) {
+    private void updateWaiting(boolean triggered) {
+        if (triggered) {
             cancelFishing();
             return;
         }
@@ -231,11 +229,6 @@ public class FishingManager {
         if (biteTimer <= 0) {
             fishEscaped();
         }
-    }
-
-    private boolean isPullLinePressed(InputManager input) {
-        return input.isKeyJustPressed(KeyEvent.VK_E)
-                || input.isButtonJustPressed(InputManager.GamepadButton.Y);
     }
 
     private void fishCaught() {

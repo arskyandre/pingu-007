@@ -40,25 +40,25 @@ public class GameOverScreen {
 
     public GameState update(InputManager input, int width, int height) {
         repositionButtons(width, height);
+        MenuInputController menuInput = new MenuInputController(input);
 
-        boolean controleAtivo = input.isControllerActive();
+        boolean controleAtivo = menuInput.usesController();
 
-        if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP)) {
+        if (menuInput.navigate(InputAction.MENU_UP)) {
             moverSelecao(-1);
-            input.iniciarBloqueioMouse();
-        } else if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN)) {
+        } else if (menuInput.navigate(InputAction.MENU_DOWN)) {
             moverSelecao(1);
-            input.iniciarBloqueioMouse();
         }
 
-        boolean mouseAceito = !input.isMouseBloqueado();
+        PointerSnapshot pointer = menuInput.pointer();
+        boolean mouseAceito = pointer.isActive();
 
         int respawnState;
         int mainMenuState;
 
         if (mouseAceito) {
-            respawnState = respawnBtn.update(input);
-            mainMenuState = mainMenuBtn.update(input);
+            respawnState = respawnBtn.update(pointer);
+            mainMenuState = mainMenuBtn.update(pointer);
         } else {
             respawnBtn.hovered = false;
             mainMenuBtn.hovered = false;
@@ -81,7 +81,7 @@ public class GameOverScreen {
             aplicarSelecaoVisual();
         }
 
-        if (input.isButtonJustPressed(InputManager.GamepadButton.A)) {
+        if (menuInput.wasPressed(InputAction.CONFIRM)) {
             return ativarSelecionado();
         }
 

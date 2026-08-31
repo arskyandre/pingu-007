@@ -44,32 +44,30 @@ public class PauseMenu {
 
     public GameState update(InputManager input, int width, int height) {
         repositionButtons(width, height);
+        MenuInputController menuInput = new MenuInputController(input);
 
-        if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_ESCAPE)
-                || input.isButtonJustPressed(InputManager.GamepadButton.B)
-                || input.isButtonJustPressed(InputManager.GamepadButton.START))
+        if (menuInput.wasPressed(InputAction.CANCEL))
             return GameState.PLAYING;
 
-        boolean controleAtivo = input.isControllerActive();
+        boolean controleAtivo = menuInput.usesController();
 
-        if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP)) {
+        if (menuInput.navigate(InputAction.MENU_UP)) {
             moverSelecao(-1);
-            input.iniciarBloqueioMouse();
-        } else if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN)) {
+        } else if (menuInput.navigate(InputAction.MENU_DOWN)) {
             moverSelecao(1);
-            input.iniciarBloqueioMouse();
         }
 
-        boolean mouseAceito = !input.isMouseBloqueado();
+        PointerSnapshot pointer = menuInput.pointer();
+        boolean mouseAceito = pointer.isActive();
 
         int resumeState;
         int optionsState;
         int mainMenuState;
 
         if (mouseAceito) {
-            resumeState = resumeBtn.update(input);
-            optionsState = optionsBtn.update(input);
-            mainMenuState = mainMenuBtn.update(input);
+            resumeState = resumeBtn.update(pointer);
+            optionsState = optionsBtn.update(pointer);
+            mainMenuState = mainMenuBtn.update(pointer);
         } else {
             resumeBtn.hovered = false;
             optionsBtn.hovered = false;
@@ -97,7 +95,7 @@ public class PauseMenu {
             aplicarSelecaoVisual();
         }
 
-        if (input.isButtonJustPressed(InputManager.GamepadButton.A)) {
+        if (menuInput.wasPressed(InputAction.CONFIRM)) {
             return ativarSelecionado();
         }
 
