@@ -548,8 +548,7 @@ public class GameCore extends Canvas implements Runnable {
         soundManager.playBGM(SoundManager.BGM.LEVEL_1_DAY_INTRO, SoundManager.BGM.LEVEL_1_DAY_LOOP);
         player.setShootCooldownTimer(30);
         iniciarSequenciaIntro();
-        camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
-                getWidth(), getHeight());
+        configurarCameraDoMapaAtual();
         gameState = GameState.PLAYING;
     }
 
@@ -746,10 +745,7 @@ public class GameCore extends Canvas implements Runnable {
 
         levelManager.carregarNivel(LoadSave.CASA_VENDEDOR);
         mapLoadCooldown = 60;
-        // Rectangle2D.Double rect = new Rectangle2D.Double(0, 0, 2 * tiles_size, 1 *
-        // tiles_size);
-        // camera.focarEmRect(rect, 67, getWidth(), getHeight(), true);
-        camera.focarEmTeleport(24 * 16, 13.5 * 16, 1.5, getWidth(), getHeight()); // numeros magicos
+        configurarCameraDoMapaAtual();
         soundManager.crossfadeBGM(SoundManager.BGM.INSIDE_INTRO, SoundManager.BGM.INSIDE_LOOP, 2000, 1.25, false);
         setDentroLoja(true);
     }
@@ -780,8 +776,7 @@ public class GameCore extends Canvas implements Runnable {
 
         // System.out.println("Player position retorno (" + player.getX() + ", " +
         // player.getY() + ")");
-        camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
-                getWidth(), getHeight());
+        configurarCameraDoMapaAtual();
         setCinematicBorderAnimation(Renderer.BorderState.OUT);
         if (isDia()) {
             alternarParaMusicaDia(2.5);
@@ -806,8 +801,7 @@ public class GameCore extends Canvas implements Runnable {
         levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
         arenaManager.setFirstArenaFlag(false);
         mapLoadCooldown = 60;
-        camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(), getWidth(),
-                getHeight());
+        configurarCameraDoMapaAtual();
     }
 
     public void entrarNivelTest() {
@@ -818,8 +812,7 @@ public class GameCore extends Canvas implements Runnable {
         levelManager.carregarNivel(LoadSave.LEVEL_YSORT);
         arenaManager.setFirstArenaFlag(false);
         mapLoadCooldown = 60;
-        camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(), getWidth(),
-                getHeight());
+        configurarCameraDoMapaAtual();
     }
 
     public void transicionarMapa(String mapaDestino) {
@@ -829,8 +822,7 @@ public class GameCore extends Canvas implements Runnable {
 
         screenTransition.start(() -> {
             levelManager.carregarNivel(mapaDestino);
-            camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
-                    getWidth(), getHeight());
+            configurarCameraDoMapaAtual();
             mapLoadCooldown = 60;
         });
     }
@@ -838,8 +830,7 @@ public class GameCore extends Canvas implements Runnable {
     private void carregarNivel1DebugImediato() {
         levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
         setCinematicBorderAnimation(Renderer.BorderState.OUT);
-        camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
-                getWidth(), getHeight());
+        configurarCameraDoMapaAtual();
         if (soundManager.currentSong() != SoundManager.BGM.LEVEL_1_DAY_LOOP
                 && soundManager.currentSong() != SoundManager.BGM.LEVEL_1_NIGHT_LOOP
                 && soundManager.currentSong() != SoundManager.BGM.LEVEL_1_DAY_INTRO
@@ -983,6 +974,19 @@ public class GameCore extends Canvas implements Runnable {
         return BASE_ZOOM * (height / (double) BASE_HEIGHT);
     }
 
+    private void configurarCameraDoMapaAtual() {
+        int telaLargura = getWidth();
+        int telaAltura = getHeight();
+
+        camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
+                telaLargura, telaAltura);
+
+        Rectangle2D.Double cameraFocus = levelManager.getCameraFocus();
+        if (cameraFocus != null) {
+            camera.focarEmRectTeleport(cameraFocus, telaLargura, telaAltura);
+        }
+    }
+
     public static void setGameState(GameState state) {
         gameState = state;
     }
@@ -1106,8 +1110,7 @@ public class GameCore extends Canvas implements Runnable {
         introDialogoAtiva = false;
         introTimer = 0;
         levelManager.carregarNivel(LoadSave.LEVEL_1_DATA);
-        camera.resetCameraState(player.getX(), player.getY(), player.getLargura(), player.getAltura(),
-                getWidth(), getHeight());
+        configurarCameraDoMapaAtual();
     }
 
     private void drawFpsCounter(Graphics2D g2) {

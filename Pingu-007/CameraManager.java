@@ -37,6 +37,8 @@ public class CameraManager {
     private double zoomOverrideReferencia = 1.0;
     private double focusRectWidth;
     private double focusRectHeight;
+    private double focusRectPadding = GameCore.tiles_size * 2.0;
+    private boolean focusRectLimitarAoZoomBase = true;
 
     private int viewportWidth = -1;
     private int viewportHeight = -1;
@@ -226,10 +228,10 @@ public class CameraManager {
             case OVERRIDE -> zoomFocoAlvo = zoomOverrideReferencia * (zoomBase / zoomReferencia);
             case NORMAL -> zoomFocoAlvo = zoomBase;
             case RECT -> {
-                double padding = GameCore.tiles_size * 2;
-                double neededZoomW = telaLargura / (focusRectWidth + padding * 2);
-                double neededZoomH = telaAltura / (focusRectHeight + padding * 2);
-                zoomFocoAlvo = Math.min(Math.min(neededZoomW, neededZoomH), zoomBase);
+                double neededZoomW = telaLargura / (focusRectWidth + focusRectPadding * 2);
+                double neededZoomH = telaAltura / (focusRectHeight + focusRectPadding * 2);
+                double fitZoom = Math.min(neededZoomW, neededZoomH);
+                zoomFocoAlvo = focusRectLimitarAoZoomBase ? Math.min(fitZoom, zoomBase) : fitZoom;
             }
         }
     }
@@ -319,6 +321,7 @@ public class CameraManager {
 
     public void focarEmRect(Rectangle2D.Double rect, int duracaoFrames, int telaLargura, int telaAltura,
             boolean tempo_indefinido) {
+        validarRectDeFoco(rect);
         this.foco_indefinido = tempo_indefinido;
         double centerX = rect.x + rect.width / 2.0;
         double centerY = rect.y + rect.height / 2.0;
@@ -329,7 +332,45 @@ public class CameraManager {
         this.focusZoomMode = FocusZoomMode.RECT;
         this.focusRectWidth = rect.width;
         this.focusRectHeight = rect.height;
+        this.focusRectPadding = GameCore.tiles_size * 2.0;
+        this.focusRectLimitarAoZoomBase = true;
         recalcularZoomFocoAlvo(telaLargura, telaAltura);
+    }
+
+    /**
+     * Enquadra imediatamente uma regiao do mapa e mantem o foco ate
+     * desfocarCamera() ou resetCameraState() ser chamado.
+     */
+    public void focarEmRectTeleport(Rectangle2D.Double rect, int telaLargura, int telaAltura) {
+        validarRectDeFoco(rect);
+
+        double centerX = rect.x + rect.width / 2.0;
+        double centerY = rect.y + rect.height / 2.0;
+
+        this.foco_indefinido = true;
+        this.focoAlvoX = centerX;
+        this.focoAlvoY = centerY;
+        this.focoTimer = 67;
+        this.focusZoomMode = FocusZoomMode.RECT;
+        this.focusRectWidth = rect.width;
+        this.focusRectHeight = rect.height;
+
+        // O retangulo criado no Tiled ja representa toda a area visivel desejada.
+        this.focusRectPadding = 0.0;
+        this.focusRectLimitarAoZoomBase = false;
+        recalcularZoomFocoAlvo(telaLargura, telaAltura);
+
+        this.zoom = this.zoomFocoAlvo;
+        this.x = centerX - telaLargura / (2.0 * this.zoom);
+        this.y = centerY - telaAltura / (2.0 * this.zoom);
+        this.shakeOffsetX = 0;
+        this.shakeOffsetY = 0;
+    }
+
+    private void validarRectDeFoco(Rectangle2D.Double rect) {
+        if (rect == null || rect.width <= 0 || rect.height <= 0) {
+            throw new IllegalArgumentException("O retangulo de foco da camera deve ter largura e altura positivas.");
+        }
     }
 
     public void desfocarCamera() {
@@ -352,6 +393,8 @@ public class CameraManager {
         miraComControleAtiva = false;
         mouseMiraAtiva = true;
         focusZoomMode = FocusZoomMode.NORMAL;
+        focusRectPadding = GameCore.tiles_size * 2.0;
+        focusRectLimitarAoZoomBase = true;
         clearCombatTarget();
         zoom = zoomBase;
         zoomFocoAlvo = zoomBase;

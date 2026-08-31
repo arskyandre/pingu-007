@@ -7,6 +7,8 @@ import java.util.ArrayList;
 
 public class LevelManager {
 
+    private static final String TIPO_CAMERA_FOCUS = "camera_focus";
+
     private GameCore Game;
     private BufferedImage[] levelSprite;
     private Level level_1;
@@ -172,6 +174,39 @@ public class LevelManager {
 
     public String getArquivoNivelAtual() {
         return arquivoNivelAtual;
+    }
+
+    /**
+     * Retorna o enquadramento inicial definido no Tiled, ja convertido para
+     * coordenadas do mundo pelo processamento dos objetos do mapa.
+     */
+    public Rectangle2D.Double getCameraFocus() {
+        if (mapDataAtual == null || mapDataAtual.objects == null) {
+            return null;
+        }
+
+        Rectangle2D.Double cameraFocus = null;
+        for (TiledObject obj : mapDataAtual.objects) {
+            String tipo = obj.tipo != null ? obj.tipo.trim().toLowerCase() : "";
+            if (!TIPO_CAMERA_FOCUS.equals(tipo)) {
+                continue;
+            }
+
+            if (obj.width <= 0 || obj.height <= 0) {
+                System.err.println("[CAMERA] camera_focus invalido no mapa '" + arquivoNivelAtual
+                        + "': largura e altura devem ser positivas.");
+                continue;
+            }
+
+            if (cameraFocus != null) {
+                System.err.println("[CAMERA] Mais de um camera_focus encontrado no mapa '" + arquivoNivelAtual
+                        + "'. Usando o primeiro.");
+                continue;
+            }
+
+            cameraFocus = new Rectangle2D.Double(obj.x, obj.y, obj.width, obj.height);
+        }
+        return cameraFocus;
     }
 
     public void update() {
