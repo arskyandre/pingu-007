@@ -21,6 +21,10 @@ public class Player extends Entity {
     private double dirY = 0;
 
     private boolean blockInputs = false;
+    private static final double UPDATES_PER_SECOND = 60.0;
+    private double velocityOverrideX = 0;
+    private double velocityOverrideY = 0;
+    private double velocityOverrideUpdatesRemaining = 0;
 
     private boolean podeDash = true;
     private boolean emDash = false;
@@ -318,14 +322,28 @@ public class Player extends Entity {
     }
 
     public void updatePlayerMovement() {
-        double atritoSalvo = this.atritoAtual;
-        if (emDash) {
-            this.atritoAtual = atritoDash;
+        boolean velocityOverrideActive = hasVelocityOverride();
+        double velocidadeMaxSalva = this.velocidadeMax;
+
+        if (velocityOverrideActive) {
+            velX = velocityOverrideX;
+            velY = velocityOverrideY;
+            this.velocidadeMax = Math.max(velocidadeMaxSalva, Math.hypot(velX, velY));
+        } else {
+            double atritoSalvo = this.atritoAtual;
+            if (emDash) {
+                this.atritoAtual = atritoDash;
+            }
+            aplicarFisicaBasica();
+            this.atritoAtual = atritoSalvo;
         }
-        aplicarFisicaBasica();
-        this.atritoAtual = atritoSalvo;
 
         moveAndCollideWithMap(lvlData, arenaManager.getObjetosDeCenario());
+        this.velocidadeMax = velocidadeMaxSalva;
+
+        if (velocityOverrideActive) {
+            velocityOverrideUpdatesRemaining = Math.max(0, velocityOverrideUpdatesRemaining - 1);
+        }
 
         int mapaLargura = lvlData[0].length * GameCore.tiles_size;
         int mapaAltura = lvlData.length * GameCore.tiles_size;
@@ -440,8 +458,10 @@ public class Player extends Entity {
             if (controleAtivo) {
                 Vetor2D movimento = analogicoEsquerdo.partiallyNormalized();
                 registrarUltimaDirecaoMovimento(movimento);
-                velX += aceleracao * controleAtual * movimento.x;
-                velY += aceleracao * controleAtual * movimento.y;
+                if (!hasVelocityOverride()) {
+                    velX += aceleracao * controleAtual * movimento.x;
+                    velY += aceleracao * controleAtual * movimento.y;
+                }
 
                 if (analogicoEsquerdo.x > 0) {
                     dirX = 1;
@@ -543,7 +563,8 @@ public class Player extends Entity {
                     reloadOnZeroCooldownTimer = reloadOnZeroCooldown;
                 }
 
-                if ((input.isButtonPressed(InputManager.GamepadButton.A)
+                if (!hasVelocityOverride()
+                        && (input.isButtonPressed(InputManager.GamepadButton.A)
                         || input.isButtonPressed(InputManager.GamepadButton.LB)) && podeDash && !emDash) {
                     if (analogicoEsquerdo.x != 0 || analogicoEsquerdo.y != 0) {
                         aplicarDashDirecional(analogicoEsquerdo.partiallyNormalized());
@@ -586,8 +607,10 @@ public class Player extends Entity {
 
                 Vetor2D movimentoNormalizado = movimento.partiallyNormalized();
                 registrarUltimaDirecaoMovimento(movimentoNormalizado);
-                velX += aceleracao * controleAtual * movimentoNormalizado.x;
-                velY += aceleracao * controleAtual * movimentoNormalizado.y;
+                if (!hasVelocityOverride()) {
+                    velX += aceleracao * controleAtual * movimentoNormalizado.x;
+                    velY += aceleracao * controleAtual * movimentoNormalizado.y;
+                }
 
                 if (mouseMiraAtiva) {
                     double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
@@ -687,7 +710,7 @@ public class Player extends Entity {
                     reloadOnZeroCooldownTimer = reloadOnZeroCooldown;
                 }
 
-                if (input.isKeyPressed(KeyEvent.VK_SPACE) && podeDash && !emDash) {
+                if (!hasVelocityOverride() && input.isKeyPressed(KeyEvent.VK_SPACE) && podeDash && !emDash) {
                     if (dirX != 0 || dirY != 0) {
                         Vetor2D direcaoMovimento = movimento.partiallyNormalized();
                         aplicarDashDirecional(direcaoMovimento);
@@ -951,6 +974,7 @@ public class Player extends Entity {
         this.isDead = false;
         this.velX = 0;
         this.velY = 0;
+        this.velocityOverrideUpdatesRemaining = 0;
         this.emDash = false;
         this.isAirborne = false;
         this.isCaindo = false;
@@ -1074,6 +1098,26 @@ public class Player extends Entity {
 
     public void setBlockInputs(boolean valor) {
         this.blockInputs = valor;
+    }
+
+    /**
+     * Sets an exact velocity and keeps it unchanged by player input and friction
+     * for the requested duration in seconds. Map collisions can still stop it.
+     */
+    public void setVelocity(double velocityX, double velocityY, double duration) {
+        if (!Double.isFinite(velocityX) || !Double.isFinite(velocityY) || !Double.isFinite(duration)) {
+            throw new IllegalArgumentException("Velocity and duration must be finite numbers");
+        }
+
+        this.velX = velocityX;
+        this.velY = velocityY;
+        this.velocityOverrideX = velocityX;
+        this.velocityOverrideY = velocityY;
+        this.velocityOverrideUpdatesRemaining = Math.max(0, duration) * UPDATES_PER_SECOND;
+    }
+
+    private boolean hasVelocityOverride() {
+        return velocityOverrideUpdatesRemaining > 0;
     }
 
     public boolean isBlockInputs() {

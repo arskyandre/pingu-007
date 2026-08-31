@@ -744,6 +744,7 @@ public class GameCore extends Canvas implements Runnable {
         }
 
         levelManager.carregarNivel(LoadSave.CASA_VENDEDOR);
+        player.setVelocity(0, -4.25, 0.2);
         mapLoadCooldown = 60;
         configurarCameraDoMapaAtual();
         soundManager.crossfadeBGM(SoundManager.BGM.INSIDE_INTRO, SoundManager.BGM.INSIDE_LOOP, 2000, 1.25, false);
