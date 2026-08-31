@@ -225,7 +225,7 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public static double getSunAngle() {
-        return !estaDentroLoja ? ((dayProgress * Math.PI * 2.0) - (Math.PI / 2.0)) : (5 * Math.PI / 4.0);
+        return !estaDentroLoja ? ((dayProgress * Math.PI * 2.0) - (Math.PI / 2.0)) : (1.3 * Math.PI / 2.0);
     }
 
     private void atualizarMusicaDayNight() {
@@ -524,7 +524,7 @@ public class GameCore extends Canvas implements Runnable {
                 input.shutdown();
                 System.exit(0);
             }
-            case CREDITS ->{
+            case CREDITS -> {
 
             }
         }

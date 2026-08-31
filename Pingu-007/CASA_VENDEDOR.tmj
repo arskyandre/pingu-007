@@ -271,6 +271,28 @@
                  "width":64,
                  "x":144,
                  "y":80
+                }, 
+                {
+                 "height":19,
+                 "id":35,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"colisao",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"map_object"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":62.3333333333333,
+                 "x":145.333333333333,
+                 "y":172.333333333333
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -301,22 +323,22 @@
          "width":24,
          "x":0,
          "y":0
-        },
+        }, 
         {
          "draworder":"topdown",
          "id":14,
          "name":"Camera",
          "objects":[
                 {
-                 "height":162,
+                 "height":144,
                  "id":34,
                  "name":"camera_focus",
                  "rotation":0,
                  "type":"camera_focus",
                  "visible":true,
-                 "width":288,
-                 "x":48,
-                 "y":23
+                 "width":256,
+                 "x":64,
+                 "y":32
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -325,7 +347,7 @@
          "y":0
         }],
  "nextlayerid":15,
- "nextobjectid":35,
+ "nextobjectid":36,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
