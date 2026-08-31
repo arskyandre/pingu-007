@@ -33,6 +33,25 @@ public class LoadSave {
     public static final String LEVEL_YSORT = "teste_ysort.tmj";
     public static final String CASA_VENDEDOR = "CASA_VENDEDOR.tmj";
 
+    // Chaves de custom properties
+    private static final String PROP_ACAO = "acao";
+    private static final String PROP_TYPE = "type";
+    private static final String PROP_CLASS = "class";
+    private static final String PROP_ENEMY = "enemy";
+    private static final String PROP_ID_ARENA = "id_arena";
+    private static final String PROP_HORDA = "horda";
+    private static final String PROP_IS_ACTIVE = "isactive";
+    private static final String PROP_TOTAL_HORDAS = "totalhordas";
+    private static final String PROP_DESTINO = "destino";
+    private static final String PROP_NPC_NOME = "npc_nome";
+    private static final String PROP_COLISAO = "colisao";
+    private static final String PROP_SOLIDO = "solido";
+    private static final String PROP_IS_TRANSPARENT = "istransparent";
+    private static final String PROP_IS_INTERACTIVE = "isinteractive";
+    private static final String PROP_CASTS_SHADOW = "castsshadow";
+    private static final String PROP_IS_TOGGLE = "istoggle";
+    private static final String PROP_ID_BUTTON = "id_button";
+
     public static ArrayList<TilesetData> currentTilesets = new ArrayList<>();
     private static java.util.HashMap<Integer, java.util.HashMap<String, String>> tsxCache = new java.util.HashMap<>();
 
@@ -69,6 +88,7 @@ public class LoadSave {
             }
 
             currentTilesets.clear();
+            tsxCache.clear();
             int tsIdx = findJsonArrayStart(json, "tilesets", 0);
             if (tsIdx != -1) {
                 int tsEnd = json.indexOf("],", tsIdx);
@@ -88,20 +108,10 @@ public class LoadSave {
                         TilesetData embeddedData = new TilesetData();
                         embeddedData.firstGid = firstGid;
 
-                        double tw = extractDouble(tsBlocks[i], "\"tilewidth\"");
-                        if (tw > 0) {
-                            embeddedData.tileWidth = (int) tw;
-                        }
-
-                        double th = extractDouble(tsBlocks[i], "\"tileheight\"");
-                        if (th > 0) {
-                            embeddedData.tileHeight = (int) th;
-                        }
-
-                        double cols = extractDouble(tsBlocks[i], "\"columns\"");
-                        if (cols > 0) {
-                            embeddedData.columns = (int) cols;
-                        }
+                        applyCommonTilesetFields(embeddedData,
+                                extractDouble(tsBlocks[i], "\"tilewidth\""),
+                                extractDouble(tsBlocks[i], "\"tileheight\""),
+                                extractDouble(tsBlocks[i], "\"columns\""));
 
                         String imgPath = extractRootString(tsBlocks[i], "image");
                         if (imgPath.isEmpty()) {
@@ -217,8 +227,37 @@ public class LoadSave {
     private static TiledObject parseObjeto(String objStr) {
         TiledObject tObj = new TiledObject();
 
-        String baseStr = objStr;
-        Map<String, String> props = new HashMap<>();
+        ExtractedProperties extracted = extractProperties(objStr);
+        String baseStr = extracted.baseStr;
+        Map<String, String> props = extracted.props;
+
+        long rawGid = parseGidAndFlags(baseStr, tObj);
+        mergeTsxDefaults(tObj.gid, props);
+        applyPropertyFields(props, tObj);
+
+        baseStr = parsePolygonIfPresent(baseStr, tObj);
+        parseBaseGeometry(baseStr, tObj);
+        resolveTipoFallback(baseStr, tObj);
+        resolvePointFlag(baseStr, tObj);
+        applyGidOffset(rawGid, tObj);
+
+        if (tObj.gid > 0 && !tObj.isPolygon) {
+            applyGidData(tObj);
+        }
+
+        return tObj;
+    }
+
+    private static class ExtractedProperties {
+
+        String baseStr;
+        Map<String, String> props;
+    }
+
+    private static ExtractedProperties extractProperties(String objStr) {
+        ExtractedProperties result = new ExtractedProperties();
+        result.baseStr = objStr;
+        result.props = new HashMap<>();
 
         int propsIdx = objStr.indexOf("\"properties\"");
         if (propsIdx != -1) {
@@ -226,12 +265,15 @@ public class LoadSave {
             if (propsArrayStart != -1) {
                 int propsEnd = findClosingBracket(objStr, propsArrayStart, '[', ']');
                 if (propsEnd != -1) {
-                    baseStr = objStr.substring(0, propsIdx) + objStr.substring(propsEnd + 1);
-                    props = parsePropertiesMap(objStr.substring(propsArrayStart, propsEnd + 1));
+                    result.baseStr = objStr.substring(0, propsIdx) + objStr.substring(propsEnd + 1);
+                    result.props = parsePropertiesMap(objStr.substring(propsArrayStart, propsEnd + 1));
                 }
             }
         }
+        return result;
+    }
 
+    private static long parseGidAndFlags(String baseStr, TiledObject tObj) {
         long rawGid = (long) extractDouble(baseStr, "\"gid\"");
         if (rawGid > 0) {
             tObj.flipH = (rawGid & FLIPPED_HORIZONTALLY_FLAG) != 0;
@@ -239,95 +281,110 @@ public class LoadSave {
             tObj.flipDiagonal = (rawGid & FLIPPED_DIAGONALLY_FLAG) != 0;
             tObj.gid = (int) (rawGid
                     & ~(FLIPPED_HORIZONTALLY_FLAG | FLIPPED_VERTICALLY_FLAG | FLIPPED_DIAGONALLY_FLAG));
-
-            if (tsxCache.containsKey(tObj.gid)) {
-                java.util.HashMap<String, String> herdadas = tsxCache.get(tObj.gid);
-                for (Map.Entry<String, String> entry : herdadas.entrySet()) {
-                    props.putIfAbsent(entry.getKey(), entry.getValue());
-                }
-            }
         }
+        return rawGid;
+    }
 
-        tObj.acao = props.getOrDefault("acao", "");
-        tObj.tipo = props.getOrDefault("type", props.getOrDefault("class", ""));
-        tObj.inimigo = props.getOrDefault("enemy", "");
-        tObj.id_arena = parseIntOr(props.get("id_arena"), -1);
-        tObj.horda = parseIntOr(props.get("horda"), 1);
-        tObj.ativa = parseBoolOr(props.get("isactive"), false);
-        tObj.totalHordas = parseIntOr(props.get("totalhordas"), 1);
-        tObj.destino = props.getOrDefault("destino", "");
-        tObj.npc_nome = props.getOrDefault("npc_nome", "");
+    private static void mergeTsxDefaults(int gid, Map<String, String> props) {
+        if (gid <= 0 || !tsxCache.containsKey(gid)) {
+            return;
+        }
+        java.util.HashMap<String, String> herdadas = tsxCache.get(gid);
+        for (Map.Entry<String, String> entry : herdadas.entrySet()) {
+            props.putIfAbsent(entry.getKey(), entry.getValue());
+        }
+    }
 
-        tObj.collision = parseBoolOr(props.get("colisao"), tObj.tipo.equals("colision"));
-        tObj.solidoPorPadrao = parseBoolOr(props.get("solido"), true);
-        tObj.isTransparent = parseBoolOr(props.get("istransparent"), false);
-        tObj.isInteractive = parseBoolOr(props.get("isinteractive"), false);
-        tObj.castsShadow = parseBoolOr(props.get("castsshadow"), false);
-        tObj.isToggle = parseBoolOr(props.get("istoggle"), false);
-        tObj.id_button = parseIntOr(props.get("id_button"), -1);
+    private static void applyPropertyFields(Map<String, String> props, TiledObject tObj) {
+        tObj.acao = props.getOrDefault(PROP_ACAO, "");
+        tObj.tipo = props.getOrDefault(PROP_TYPE, props.getOrDefault(PROP_CLASS, ""));
+        tObj.inimigo = props.getOrDefault(PROP_ENEMY, "");
+        tObj.id_arena = parseIntOr(props.get(PROP_ID_ARENA), -1);
+        tObj.horda = parseIntOr(props.get(PROP_HORDA), 1);
+        tObj.ativa = parseBoolOr(props.get(PROP_IS_ACTIVE), false);
+        tObj.totalHordas = parseIntOr(props.get(PROP_TOTAL_HORDAS), 1);
+        tObj.destino = props.getOrDefault(PROP_DESTINO, "");
+        tObj.npc_nome = props.getOrDefault(PROP_NPC_NOME, "");
 
+        tObj.collision = parseBoolOr(props.get(PROP_COLISAO), tObj.tipo.equals("colision"));
+        tObj.solidoPorPadrao = parseBoolOr(props.get(PROP_SOLIDO), true);
+        tObj.isTransparent = parseBoolOr(props.get(PROP_IS_TRANSPARENT), false);
+        tObj.isInteractive = parseBoolOr(props.get(PROP_IS_INTERACTIVE), false);
+        tObj.castsShadow = parseBoolOr(props.get(PROP_CASTS_SHADOW), false);
+        tObj.isToggle = parseBoolOr(props.get(PROP_IS_TOGGLE), false);
+        tObj.id_button = parseIntOr(props.get(PROP_ID_BUTTON), -1);
+    }
+
+    private static String parsePolygonIfPresent(String baseStr, TiledObject tObj) {
         int polyIdx = baseStr.indexOf("\"polygon\"");
         boolean isPolyline = false;
         if (polyIdx == -1) {
             polyIdx = baseStr.indexOf("\"polyline\"");
             isPolyline = polyIdx != -1;
         }
-        if (polyIdx != -1) {
-            int polyArrayStart = baseStr.indexOf("[", polyIdx);
-            if (polyArrayStart != -1) {
-                int polyEnd = findClosingBracket(baseStr, polyArrayStart, '[', ']');
-                if (polyEnd != -1) {
-                    tObj.isPolygon = true;
-                    String polyStr = baseStr.substring(polyArrayStart, polyEnd + 1);
-
-                    ArrayList<String> pointsStr = extractJsonObjects(polyStr);
-                    tObj.polygonXs = new double[pointsStr.size()];
-                    tObj.polygonYs = new double[pointsStr.size()];
-                    for (int i = 0; i < pointsStr.size(); i++) {
-                        String pt = pointsStr.get(i);
-                        tObj.polygonXs[i] = extractDouble(pt, "\"x\"");
-                        tObj.polygonYs[i] = extractDouble(pt, "\"y\"");
-                    }
-
-                    int keyStart = isPolyline ? baseStr.indexOf("\"polyline\"") : baseStr.indexOf("\"polygon\"");
-                    baseStr = baseStr.substring(0, keyStart) + baseStr.substring(polyEnd + 1);
-                }
-            }
+        if (polyIdx == -1) {
+            return baseStr;
         }
 
+        int polyArrayStart = baseStr.indexOf("[", polyIdx);
+        if (polyArrayStart == -1) {
+            return baseStr;
+        }
+        int polyEnd = findClosingBracket(baseStr, polyArrayStart, '[', ']');
+        if (polyEnd == -1) {
+            return baseStr;
+        }
+
+        tObj.isPolygon = true;
+        String polyStr = baseStr.substring(polyArrayStart, polyEnd + 1);
+
+        ArrayList<String> pointsStr = extractJsonObjects(polyStr);
+        tObj.polygonXs = new double[pointsStr.size()];
+        tObj.polygonYs = new double[pointsStr.size()];
+        for (int i = 0; i < pointsStr.size(); i++) {
+            String pt = pointsStr.get(i);
+            tObj.polygonXs[i] = extractDouble(pt, "\"x\"");
+            tObj.polygonYs[i] = extractDouble(pt, "\"y\"");
+        }
+
+        int keyStart = isPolyline ? baseStr.indexOf("\"polyline\"") : baseStr.indexOf("\"polygon\"");
+        return baseStr.substring(0, keyStart) + baseStr.substring(polyEnd + 1);
+    }
+
+    private static void parseBaseGeometry(String baseStr, TiledObject tObj) {
         tObj.id = (int) extractDouble(baseStr, "\"id\"");
         tObj.x = extractDouble(baseStr, "\"x\"");
         tObj.y = extractDouble(baseStr, "\"y\"");
         tObj.width = extractDouble(baseStr, "\"width\"");
         tObj.height = extractDouble(baseStr, "\"height\"");
         tObj.rotation = extractDouble(baseStr, "\"rotation\"");
+    }
 
+    private static void resolveTipoFallback(String baseStr, TiledObject tObj) {
         if (tObj.tipo.isEmpty()) {
             tObj.tipo = extractRootString(baseStr, "type");
         }
         if (tObj.tipo.isEmpty()) {
             tObj.tipo = extractRootString(baseStr, "class");
         }
+    }
 
+    private static void resolvePointFlag(String baseStr, TiledObject tObj) {
         if (baseStr.contains("\"point\":true") || baseStr.contains("\"point\": true")) {
             tObj.isPoint = true;
             if (tObj.tipo.isEmpty()) {
                 tObj.tipo = "spawner";
             }
         }
+    }
 
+    private static void applyGidOffset(long rawGid, TiledObject tObj) {
         if (rawGid > 0) {
             tObj.y -= tObj.height;
             if (tObj.tipo.isEmpty()) {
                 tObj.tipo = "map_object";
             }
         }
-
-        if (tObj.gid > 0 && !tObj.isPolygon) {
-            applyGidData(tObj);
-        }
-
-        return tObj;
     }
 
     private static Map<String, String> parsePropertiesMap(String propsArrayStr) {
@@ -609,6 +666,18 @@ public class LoadSave {
         public Map<Integer, BufferedImage> sprites = new HashMap<>();
     }
 
+    private static void applyCommonTilesetFields(TilesetData data, double tileWidth, double tileHeight, double columns) {
+        if (tileWidth > 0) {
+            data.tileWidth = (int) tileWidth;
+        }
+        if (tileHeight > 0) {
+            data.tileHeight = (int) tileHeight;
+        }
+        if (columns > 0) {
+            data.columns = (int) columns;
+        }
+    }
+
     private static TilesetData loadTSX(String tsxName, int firstGid) {
         TilesetData data = new TilesetData();
         data.firstGid = firstGid;
@@ -629,18 +698,10 @@ public class LoadSave {
             String xml = scanner.useDelimiter("\\A").next();
             carregarPropriedadesTSX(xml, firstGid);
 
-            double tw = extractXMLDouble(xml, "tilewidth");
-            if (tw > 0) {
-                data.tileWidth = (int) tw;
-            }
-            double th = extractXMLDouble(xml, "tileheight");
-            if (th > 0) {
-                data.tileHeight = (int) th;
-            }
-            double cols = extractXMLDouble(xml, "columns");
-            if (cols > 0) {
-                data.columns = (int) cols;
-            }
+            applyCommonTilesetFields(data,
+                    extractXMLDouble(xml, "tilewidth"),
+                    extractXMLDouble(xml, "tileheight"),
+                    extractXMLDouble(xml, "columns"));
 
             int imgIdx = xml.indexOf("<image source=\"");
             if (imgIdx != -1) {
