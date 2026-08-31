@@ -100,33 +100,6 @@
          "name":"bInterativos",
          "objects":[
                 {
-                 "height":18.8579545454545,
-                 "id":23,
-                 "name":"",
-                 "properties":[
-                        {
-                         "name":"acao",
-                         "type":"string",
-                         "value":"trocar_mapa"
-                        }, 
-                        {
-                         "name":"destino",
-                         "type":"string",
-                         "value":"LEVEL_1_DATA_converted.json"
-                        }, 
-                        {
-                         "name":"type",
-                         "type":"string",
-                         "value":"interativo"
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":22.8579545454545,
-                 "x":196.373921740218,
-                 "y":186.925487134756
-                }, 
-                {
                  "gid":224,
                  "height":32,
                  "id":26,
@@ -290,14 +263,29 @@
                  "name":"",
                  "properties":[
                         {
-                         "name":"colisao",
+                         "name":"destino",
+                         "type":"string",
+                         "value":"LEVEL_1_DATA_converted.json"
+                        },
+                        {
+                         "name":"id_arena",
+                         "type":"int",
+                         "value":999
+                        },
+                        {
+                         "name":"isActive",
                          "type":"bool",
                          "value":true
+                        },
+                        {
+                         "name":"totalHordas",
+                         "type":"int",
+                         "value":0
                         }, 
                         {
                          "name":"type",
                          "type":"string",
-                         "value":"map_object"
+                         "value":"level_trigger"
                         }],
                  "rotation":0,
                  "type":"",
