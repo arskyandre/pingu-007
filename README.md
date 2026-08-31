@@ -46,12 +46,6 @@ O jogo possui diversos tipos de inimigos:
 
 <img src="screenshots/inimigos.png" alt="Inimigos" width="600">
 
-## *NPCs*
-
-Além de inimigos, o jogo possui diversos *NPCs* com os quais o jogador pode interagir para comprar itens, descobrir segredos e receber recompensas.
-
-<img src="screenshots/npcs.png" alt="Mapa" width="700">
-
 Cada inimigo possui um comportamento diferente, exigindo estratégias distintas durante a fase.
 
 
@@ -68,6 +62,11 @@ O mapa é composto por diferentes tipos de terreno. Além da neve comum, existem
 
 <img src="screenshots/map.png" alt="Mapa" width="700">
 
+## *NPCs*
+
+Além de inimigos, o jogo possui diversos *NPCs* com os quais o jogador pode interagir para comprar itens, descobrir segredos e receber recompensas.
+
+<img src="screenshots/npcs.png" alt="Mapa" width="700">
 
 ## Configurações
 
