@@ -7,9 +7,7 @@ import java.awt.image.BufferedImage;
 public class ScreenTransition {
 
     private static final int UPDATES_PER_SECOND = 60;
-    private static final double TOTAL_DURATION = 0.6;
-    private static final int PHASE_TICKS = Math.max(1,
-            (int) Math.round(TOTAL_DURATION * UPDATES_PER_SECOND / 2.0));
+    private static final double DEFAULT_TOTAL_DURATION_SECONDS = 0.6;
     private static final String BORDER_IMG = "images/hud/transition_border.png";
 
     private enum Phase {
@@ -21,6 +19,7 @@ public class ScreenTransition {
     private final BufferedImage borderImg;
     private Phase phase = Phase.IDLE;
     private int tick;
+    private int phaseTicks;
     private Runnable actionOnCover;
 
     public ScreenTransition() {
@@ -34,11 +33,18 @@ public class ScreenTransition {
     }
 
     public void start(Runnable action) {
+        start(action, DEFAULT_TOTAL_DURATION_SECONDS);
+    }
+
+    public void start(Runnable action, double totalDurationSeconds) {
         if (isAtivo()) {
             return;
         }
 
+        validarDuracao(totalDurationSeconds);
+
         actionOnCover = action;
+        phaseTicks = calcularTicksPorFase(totalDurationSeconds);
         tick = 0;
         phase = Phase.COVERING;
     }
@@ -49,7 +55,7 @@ public class ScreenTransition {
         }
 
         tick++;
-        if (tick < PHASE_TICKS) {
+        if (tick < phaseTicks) {
             return;
         }
 
@@ -72,7 +78,7 @@ public class ScreenTransition {
             return;
         }
 
-        double progress = suavizarEntradaESaida(tick / (double) PHASE_TICKS);
+        double progress = suavizarEntradaESaida(tick / (double) phaseTicks);
         int edgeW = obterLarguraDaBordaRedimensionada(height);
         int edgeX = (int) Math.round(-edgeW + (width + edgeW) * progress);
 
@@ -151,6 +157,24 @@ public class ScreenTransition {
         return clamped < 0.5
                 ? 4.0 * clamped * clamped * clamped
                 : 1.0 - Math.pow(-2.0 * clamped + 2.0, 3.0) / 2.0;
+    }
+
+    private void validarDuracao(double totalDurationSeconds) {
+        if (!Double.isFinite(totalDurationSeconds) || totalDurationSeconds <= 0.0) {
+            throw new IllegalArgumentException(
+                    "A duracao total da transicao deve ser finita e maior que zero.");
+        }
+
+        double ticksPorFase = totalDurationSeconds * UPDATES_PER_SECOND / 2.0;
+        if (ticksPorFase > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException(
+                    "A duracao total da transicao e grande demais.");
+        }
+    }
+
+    private int calcularTicksPorFase(double totalDurationSeconds) {
+        return Math.max(1, (int) Math.round(
+                totalDurationSeconds * UPDATES_PER_SECOND / 2.0));
     }
 
     public boolean isAtivo() {
