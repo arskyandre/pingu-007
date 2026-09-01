@@ -19,6 +19,7 @@ public class VendedorNPC extends NPC {
     private CameraManager camera;
     private BufferedImage portrait = LoadSave.GetSpriteAtlas("images/portrait/vendedor_portrait.png");
     private BufferedImage portrait2 = LoadSave.GetSpriteAtlas("images/portrait/vendedor_portrait2.png");
+    private BufferedImage nao_implementado = LoadSave.GetSpriteAtlas("images/portrait/Corinthians_simbolo.png");
 
     public VendedorNPC(double x, double y, CameraManager cameraMgr, SoundManager soundManager) {
         super(x, y, WIDTH, HEIGHT);
@@ -57,11 +58,28 @@ public class VendedorNPC extends NPC {
                 }, !player.getHasShotgun(), true);
     }
 
+    private void encerrarDialogo(DialogueManager dialogueManager) {
+        dialogueManager.iniciarDialogo(new String[] {
+                "VENDEDOR: Estou aqui sempre que precisar!"
+        }, DialogueCatalogo.VendedorTchau, new BufferedImage[] { portrait2 });
+        state = State.IDLE;
+    }
+
+    private void comoPossoAjudar(DialogueManager dialogueManager) {
+        dialogueManager.iniciarDialogo(new String[] {
+                "Sou um time fraco!"
+        }, new BufferedImage[] { nao_implementado });
+        dialogueManager.setAoTerminarDialogo(() -> {
+            encerrarDialogo(dialogueManager);
+        });
+    }
+
     private void loopInteracao(String pergunta, SoundManager.SFX[] fala, Player player, DialogueManager dialogueManager,
             SoundManager soundManager) {
 
         dialogueManager.iniciarEscolha(pergunta, new String[] {
                 "Quero comprar algo.",
+                "Como posso ajudar?(NÃO IMPLEMENTADO)",
                 "Me dê minha recompensa!",
                 "Deixa pra lá."
         }, fala,
@@ -80,6 +98,9 @@ public class VendedorNPC extends NPC {
                             GameCore.setShopMenu(shopMenu);
                         }
                         case 1 -> {
+                            comoPossoAjudar(dialogueManager);
+                        }
+                        case 2 -> {
                             int moedas = (int) (player.getCurrentEnemyCount()
                                     * inimigosPorMoeda);
                             if (moedas == 0) {
@@ -102,11 +123,8 @@ public class VendedorNPC extends NPC {
                                         soundManager);
                             });
                         }
-                        case 2 -> {
-                            dialogueManager.iniciarDialogo(new String[] {
-                                    "VENDEDOR: Estou aqui sempre que precisar!"
-                            }, DialogueCatalogo.VendedorTchau, new BufferedImage[] { portrait2 });
-                            state = State.IDLE;
+                        case 3 -> {
+                            encerrarDialogo(dialogueManager);
                         }
                     }
                 });
