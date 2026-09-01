@@ -5,11 +5,12 @@ import java.io.File;
 public class CreditsScreen {
     // Edite livremente estes textos para colocar os creditos definitivos.
     private static final String[][] CREDITOS = {
-            { "DIRECAO E DESIGN", "O grupo" },
+            { "DIRECAO E DESIGN", "Japonets" },
             { "PROGRAMACAO", "Leonardo Lima Silva", "Kaua Victor Menezes Ferraz", "André Arsky", "Alexander Enzo Açano" },
             { "ARTE E ANIMACAO", "Alexander Enzo Açano" },
             { "MUSICA E SOM", "Roubados" },
-            { "AGRADECIMENTOS ESPECIAIS", "Codex e Claude" }
+            { "AGRADECIMENTOS ESPECIAIS", "Codex e Claude",
+                    "Corinthians - Paiola - Como fazer pudim de chocolate 2026" }
     };
 
     private static final int ESCURECER_FRAMES = 100;
@@ -19,7 +20,7 @@ public class CreditsScreen {
 
     // Coloque a imagem dentro da pasta Pingu-007 e edite estes dois caminhos.
     private static final String CAMINHO_IMAGEM_ESQUERDA = "images/portrait/pingu_portrait_close.jpg";
-    private static final String CAMINHO_IMAGEM_DIREITA = "images/portrait/morsa_portrait.png";
+    private static final String CAMINHO_IMAGEM_DIREITA = "images/portrait/Corinthians_simbolo.png";
 
     private int timer;
     private Font fonte;

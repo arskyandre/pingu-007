@@ -2,11 +2,16 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.awt.Composite;
+import java.awt.Stroke;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Random;
 
 public class MorsaBoss extends Enemy {
 
@@ -51,6 +56,8 @@ public class MorsaBoss extends Enemy {
     private int timerMorte = 0;
     private static final int MORTE_BRANCA_FRAMES = 75;
     private static final int MORTE_RUGIDO_FRAMES = 180;
+    private final ArrayList<ParticulaMorte> particulasMorte = new ArrayList<>();
+    private final Random randomMorte = new Random();
 
     public MorsaBoss(double startX, double startY, int[][] lvlData, BulletManager bulmgr, SoundManager sound,
             GameCore GC, ArenaManager am) {
@@ -295,6 +302,8 @@ public class MorsaBoss extends Enemy {
         podeRugir = false;
         isInvulneravel = true;
         podeDropar = false;
+        particulasMorte.clear();
+        criarExplosaoDeParticulas(30, 2.0, 5.2, 75);
         if (maoEsquerda != null) maoEsquerda.receberDano(99999);
         if (maoDireita != null) maoDireita.receberDano(99999);
         if (gameCore != null) {
@@ -307,10 +316,59 @@ public class MorsaBoss extends Enemy {
         if (timerMorte == MORTE_BRANCA_FRAMES) {
             if (soundManager != null) soundManager.playSFX(SoundManager.SFX.MORSA_ROAR);
             if (gameCore != null) gameCore.shakeCamera(10, MORTE_RUGIDO_FRAMES);
+            criarExplosaoDeParticulas(46, 2.5, 7.0, 150);
+        }
+        if (timerMorte > MORTE_BRANCA_FRAMES && timerMorte % 7 == 0
+                && timerMorte < MORTE_BRANCA_FRAMES + MORTE_RUGIDO_FRAMES - 20) {
+            criarParticulaFlutuante();
+        }
+
+        Iterator<ParticulaMorte> iterator = particulasMorte.iterator();
+        while (iterator.hasNext()) {
+            ParticulaMorte particula = iterator.next();
+            particula.atualizar();
+            if (particula.terminou()) iterator.remove();
         }
         if (timerMorte >= MORTE_BRANCA_FRAMES + MORTE_RUGIDO_FRAMES) {
             if (gameCore != null) gameCore.iniciarFinalDoJogo();
         }
+    }
+
+    private void criarExplosaoDeParticulas(int quantidade, double velocidadeMinima,
+            double velocidadeMaxima, int vidaBase) {
+        double centroX = getCenterX();
+        double centroY = getCenterY();
+        for (int i = 0; i < quantidade; i++) {
+            double angulo = randomMorte.nextDouble() * Math.PI * 2.0;
+            double velocidade = velocidadeMinima
+                    + randomMorte.nextDouble() * (velocidadeMaxima - velocidadeMinima);
+            int vidaParticula = vidaBase + randomMorte.nextInt(Math.max(1, vidaBase / 2));
+            int tamanho = 4 + randomMorte.nextInt(8);
+            Color cor = randomMorte.nextBoolean()
+                    ? new Color(225, 250, 255)
+                    : new Color(105, 205, 245);
+            particulasMorte.add(new ParticulaMorte(
+                    centroX, centroY,
+                    Math.cos(angulo) * velocidade,
+                    Math.sin(angulo) * velocidade,
+                    vidaParticula, tamanho, cor,
+                    randomMorte.nextDouble() * Math.PI,
+                    (randomMorte.nextDouble() - 0.5) * 0.22));
+        }
+    }
+
+    private void criarParticulaFlutuante() {
+        double px = x + width * (0.15 + randomMorte.nextDouble() * 0.7);
+        double py = y + height * (0.15 + randomMorte.nextDouble() * 0.7);
+        particulasMorte.add(new ParticulaMorte(
+                px, py,
+                (randomMorte.nextDouble() - 0.5) * 1.2,
+                -0.8 - randomMorte.nextDouble() * 1.4,
+                50 + randomMorte.nextInt(30),
+                3 + randomMorte.nextInt(5),
+                new Color(235, 252, 255),
+                randomMorte.nextDouble() * Math.PI,
+                (randomMorte.nextDouble() - 0.5) * 0.12));
     }
 
     private void escolherAtaque(Player player) {
@@ -462,8 +520,11 @@ public class MorsaBoss extends Enemy {
             int yy = (int) y + (int) Math.round(Math.cos(timerMorte * 2.9) * intensidade * 0.55);
             if (dirS == 0) { xx += (int) width; inv = -1; }
             Composite anterior = g.getComposite();
+            desenharAuraMorte(g);
+            desenharOndasMorte(g);
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) alpha));
             g.drawImage(spritesBrancos[index], xx, yy, inv * (int) width, (int) height, null);
+            desenharParticulasMorte(g);
             g.setComposite(anterior);
             return;
         }
@@ -522,6 +583,110 @@ public class MorsaBoss extends Enemy {
         }
 
         desenharBarradevida(g);
+    }
+
+    private void desenharAuraMorte(Graphics2D g) {
+        double progresso = timerMorte / (double) (MORTE_BRANCA_FRAMES + MORTE_RUGIDO_FRAMES);
+        double pulso = 0.5 + 0.5 * Math.sin(timerMorte * 0.18);
+        double fade = progresso < 0.72 ? 1.0 : Math.max(0.0, (1.0 - progresso) / 0.28);
+        int centroX = (int) getCenterX();
+        int centroY = (int) getCenterY();
+
+        for (int camada = 4; camada >= 1; camada--) {
+            double escala = 1.0 + camada * 0.13 + pulso * 0.07;
+            int auraW = (int) (width * escala);
+            int auraH = (int) (height * escala);
+            float alpha = (float) Math.min(0.20, fade * (0.035 + (5 - camada) * 0.018));
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+            g.setColor(camada % 2 == 0 ? new Color(125, 215, 255) : Color.WHITE);
+            g.fillOval(centroX - auraW / 2, centroY - auraH / 2, auraW, auraH);
+        }
+    }
+
+    private void desenharOndasMorte(Graphics2D g) {
+        desenharOndaMorte(g, timerMorte, 0, 58, 0.65f, new Color(235, 252, 255));
+        desenharOndaMorte(g, timerMorte, MORTE_BRANCA_FRAMES, 80, 0.8f, Color.WHITE);
+        desenharOndaMorte(g, timerMorte, MORTE_BRANCA_FRAMES + 18, 90, 0.55f,
+                new Color(90, 200, 245));
+    }
+
+    private void desenharOndaMorte(Graphics2D g, int tempoAtual, int inicio,
+            int duracao, float alphaMaximo, Color cor) {
+        int tempo = tempoAtual - inicio;
+        if (tempo < 0 || tempo > duracao) return;
+
+        double progresso = tempo / (double) duracao;
+        double suavizado = 1.0 - Math.pow(1.0 - progresso, 2.0);
+        int raio = (int) (width * (0.22 + suavizado * 1.25));
+        float alpha = (float) ((1.0 - progresso) * alphaMaximo);
+        float grossura = (float) Math.max(2.0, 9.0 * (1.0 - progresso));
+        Stroke strokeAnterior = g.getStroke();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+        g.setStroke(new BasicStroke(grossura));
+        g.setColor(cor);
+        g.drawOval((int) getCenterX() - raio, (int) getCenterY() - raio,
+                raio * 2, raio * 2);
+        g.setStroke(strokeAnterior);
+    }
+
+    private void desenharParticulasMorte(Graphics2D g) {
+        AffineTransform transformAnterior = g.getTransform();
+        for (ParticulaMorte particula : particulasMorte) {
+            float alpha = particula.getAlpha();
+            if (alpha <= 0f) continue;
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+            g.setColor(particula.cor);
+            g.setTransform(transformAnterior);
+            g.translate(particula.x, particula.y);
+            g.rotate(particula.rotacao);
+            int tamanho = particula.tamanho;
+            g.fillRect(-tamanho / 2, -tamanho / 2, tamanho, tamanho);
+            g.setColor(new Color(255, 255, 255, 180));
+            g.fillRect(-Math.max(1, tamanho / 5), -tamanho / 2,
+                    Math.max(1, tamanho / 3), Math.max(2, tamanho / 2));
+        }
+        g.setTransform(transformAnterior);
+    }
+
+    private static class ParticulaMorte {
+        double x, y, velX, velY, rotacao, giro;
+        final int vidaMaxima;
+        int vida;
+        final int tamanho;
+        final Color cor;
+
+        ParticulaMorte(double x, double y, double velX, double velY,
+                int vida, int tamanho, Color cor, double rotacao, double giro) {
+            this.x = x;
+            this.y = y;
+            this.velX = velX;
+            this.velY = velY;
+            this.vida = vida;
+            this.vidaMaxima = vida;
+            this.tamanho = tamanho;
+            this.cor = cor;
+            this.rotacao = rotacao;
+            this.giro = giro;
+        }
+
+        void atualizar() {
+            x += velX;
+            y += velY;
+            velX *= 0.982;
+            velY *= 0.982;
+            velY -= 0.012;
+            rotacao += giro;
+            vida--;
+        }
+
+        boolean terminou() {
+            return vida <= 0;
+        }
+
+        float getAlpha() {
+            double progresso = vida / (double) vidaMaxima;
+            return (float) Math.max(0.0, Math.min(1.0, progresso * 1.8));
+        }
     }
 
     private void desenharBarradevida(Graphics2D g) {
