@@ -719,7 +719,7 @@ public class ArenaManager {
         for (Arena arena : arenas) {
             for (Enemy e : arena.inimigosVivos) {
                 e.marcarLootProcessado();
-                e.receberDano(99999);
+                enemyManager.removerSemEfeitos(e);
             }
             arena.inimigosVivos.clear();
 

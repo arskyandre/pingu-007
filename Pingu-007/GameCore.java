@@ -875,17 +875,19 @@ public class GameCore extends Canvas implements Runnable {
         }
         cutsceneManager.update();
 
+        // Intercepta a morte e carrega o save
+        // Esta verificacao vem antes da sequencia final para o player vencer apenas
+        // se ainda estiver vivo quando o boss morrer.
+        if (player.isDead()) {
+            gameState = GameState.GAME_OVER;
+            return;
+        }
+
         MorsaBoss bossFinal = enemyManager.getMorsaBoss();
         if (bossFinal != null && bossFinal.isEmSequenciaMorte()) {
             bossFinal.update(player, levelManager.getJumpLinks());
             atualizarCameraSemInput();
             if (getDebug()) debugInputProcessing();
-            return;
-        }
-
-        // Intercepta a morte e carrega o save
-        if (player.isDead()) {
-            gameState = GameState.GAME_OVER;
             return;
         }
 
@@ -1114,7 +1116,11 @@ public class GameCore extends Canvas implements Runnable {
         }
         System.out.println(">>> CARREGANDO CHECKPOINT... <<<");
         player.respawn(checkX, checkY, checkVida, checkMunicao, checkPente, checkChaves);
+        player.setBlockInputs(false);
         player.setFishingRod(checkVaraDePesca);
+        camera.desfocarCamera();
+        camera.clearCombatTarget();
+        camera.setModoCombate(false);
         bulletmanager.limparTudo();
         itemManager.limparConsumiveis();
         arenaManager.restaurarArenas(checkArenas, player, itemManager);
