@@ -278,12 +278,15 @@ public class MorsaBoss extends Enemy {
 
         if (this.vida <= 0) {
             iniciarSequenciaMorte();
+
             for (Enemy minion : minionsSpawnados) {
                 if (minion != null && !minion.isDead()) {
-                    minion.marcarLootProcessado();
-                    minion.receberDano(99999);
+                    if (enemyManager != null) {
+                        enemyManager.removerSemEfeitos(minion);
+                    }
                 }
             }
+            minionsSpawnados.clear();
         }
     }
 
@@ -304,12 +307,16 @@ public class MorsaBoss extends Enemy {
         podeDropar = false;
         particulasMorte.clear();
         criarExplosaoDeParticulas(30, 2.0, 5.2, 75);
-        if (maoEsquerda != null) {
-            maoEsquerda.receberDano(99999);
+
+        if (enemyManager != null) {
+            if (maoEsquerda != null) {
+                enemyManager.removerSemEfeitos(maoEsquerda);
+            }
+            if (maoDireita != null) {
+                enemyManager.removerSemEfeitos(maoDireita);
+            }
         }
-        if (maoDireita != null) {
-            maoDireita.receberDano(99999);
-        }
+
         if (gameCore != null) {
             gameCore.iniciarMorteDoBoss(getCenterX(), getCenterY());
         }
