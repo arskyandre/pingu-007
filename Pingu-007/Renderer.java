@@ -291,6 +291,14 @@ public class Renderer {
             arenaManager.drawOverlays(g2);
         }
 
+        if (enemyManager != null && enemyManager.getEnemies() != null) {
+            for (Enemy enemy : enemyManager.getEnemies()) {
+                if (enemy != null && !enemy.isDead()) {
+                    enemy.drawGroundTelegraph(g2, delta);
+                }
+            }
+        }
+
         renderQueue.clear();
         renderQueue.add(player);
 

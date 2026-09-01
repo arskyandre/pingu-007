@@ -745,6 +745,12 @@ class BossMao extends Enemy {
     private double sombraX, sombraY;
     private double sombraScale = 0.0;
 
+    // Marcador de impacto, separado da sombra decorativa.
+    private boolean mostrarMarcadorPouso = false;
+    private double marcadorPousoX, marcadorPousoY;
+    private double marcadorPousoProgresso = 0.0;
+    private double tremorVisualX = 0.0;
+
     // Física do Estilingue e Controle de Dano
     private double slingshotDirX = 0;
     private double slingshotDirY = 0;
@@ -833,6 +839,8 @@ class BossMao extends Enemy {
             return;
         }
         mostrarSombra = false;
+        mostrarMarcadorPouso = false;
+        tremorVisualX = 0.0;
 
         if (cooldownDano > 0) {
             cooldownDano--;
@@ -971,25 +979,37 @@ class BossMao extends Enemy {
                 sombraY = player.getY() + player.getAltura();
                 sombraScale = 0.3;
 
+                mostrarMarcadorPouso = true;
+                marcadorPousoX = player.getX() + this.width / 2.0;
+                marcadorPousoY = player.getY() - (GameCore.tiles_size * 0.5) + this.height / 2.0;
+                marcadorPousoProgresso = Math.min(0.35, (timerEstado / 50.0) * 0.35);
+
                 if (timerEstado > 50) {
                     status = MaoState.HOVER_WINDUP;
                     timerEstado = 0;
                     slamTargetX = player.getX();
                     slamTargetY = player.getY() - (GameCore.tiles_size * 0.5);
+                    this.x = slamTargetX;
                 }
                 break;
 
             case HOVER_WINDUP:
                 timerEstado += 1;
+                this.x = slamTargetX;
                 this.y -= 1.5;
-                this.x += (Math.random() > 0.5 ? 4 : -4);
+                tremorVisualX = Math.random() > 0.5 ? 4 : -4;
 
                 mostrarSombra = true;
-                sombraX = this.x + (this.width / 2.0);
+                sombraX = slamTargetX + (this.width / 2.0);
                 sombraY = slamTargetY + this.height;
                 sombraScale = 0.45;
 
                 int limiteHoverWindup = corpoPrincipal.isFase2() ? 18 : 25;
+                mostrarMarcadorPouso = true;
+                marcadorPousoX = slamTargetX + this.width / 2.0;
+                marcadorPousoY = slamTargetY + this.height / 2.0;
+                marcadorPousoProgresso = 0.35
+                        + Math.min(1.0, timerEstado / limiteHoverWindup) * 0.25;
                 if (timerEstado > limiteHoverWindup) {
                     status = MaoState.HOVER_SLAM;
                     timerEstado = 0;
@@ -998,10 +1018,11 @@ class BossMao extends Enemy {
 
             case HOVER_SLAM:
                 double slamFallSpeed = corpoPrincipal.isFase2() ? 36.0 : 28.0;
+                this.x = slamTargetX;
                 this.y += slamFallSpeed;
 
                 mostrarSombra = true;
-                sombraX = this.x + (this.width / 2.0);
+                sombraX = slamTargetX + (this.width / 2.0);
                 sombraY = slamTargetY + this.height;
 
                 double distCaindo = slamTargetY - this.y;
@@ -1010,6 +1031,11 @@ class BossMao extends Enemy {
                 progressoQueda = Math.max(0.0, Math.min(1.0, progressoQueda));
 
                 sombraScale = 0.45 + (progressoQueda * 0.55);
+
+                mostrarMarcadorPouso = true;
+                marcadorPousoX = slamTargetX + this.width / 2.0;
+                marcadorPousoY = slamTargetY + this.height / 2.0;
+                marcadorPousoProgresso = 0.60 + progressoQueda * 0.40;
 
                 if (this.y >= slamTargetY) {
                     this.y = slamTargetY;
@@ -1183,6 +1209,14 @@ class BossMao extends Enemy {
     }
 
     @Override
+    public void drawGroundTelegraph(Graphics2D g, double delta) {
+        if (mostrarMarcadorPouso) {
+            LandingMarker.draw(g, marcadorPousoX, marcadorPousoY,
+                    width, height, marcadorPousoProgresso);
+        }
+    }
+
+    @Override
     public void draw(Graphics2D g, double delta) {
         if (mostrarSombra) {
             double maxShadowWidth = this.width * 1.3;
@@ -1195,7 +1229,7 @@ class BossMao extends Enemy {
         }
 
         g.setColor(this.cor);
-        g.fillRect((int) x, (int) y, (int) width, (int) height);
+        g.fillRect((int) (x + tremorVisualX), (int) y, (int) width, (int) height);
     }
 
     @Override

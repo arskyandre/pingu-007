@@ -112,6 +112,9 @@ public abstract class Enemy extends Entity {
 
     public abstract void update(Player player, ArrayList<JumpLink> jumpLinks);
 
+    public void drawGroundTelegraph(Graphics2D g2, double delta) {
+    }
+
     protected boolean temLinhaDeVisaoLivre(Player player) {
         double x0 = this.x + this.width / 2.0;
         double y0 = this.y + this.height / 2.0;

@@ -27,6 +27,7 @@ public class Jumper extends Enemy {
     private BufferedImage[] Sprites;
     private double alt = 0;
     private double squash = 0;
+    private boolean saltoTerminaFlutuando = false;
 
     public Jumper(double startX, double startY, double width, double height, int[][] lvlData, BulletManager bulmgr,
             SoundManager soundManager, ArenaManager arenaManager) {
@@ -122,6 +123,8 @@ public class Jumper extends Enemy {
                             estadoAtual = Status.PULANDO;
                             timer = tempoPulo;
                             this.isAirborne = true;
+                            saltoTerminaFlutuando = pulosDados >= pulosParaAtirar - 1
+                                    && dist <= distAtivacao && temAggro();
 
                             if (dist > 0) {
                                 double atritoNoAr = 0.94;
@@ -164,20 +167,17 @@ public class Jumper extends Enemy {
                         timer--;
 
                         if (timer <= 0) {
-                            if (pulosDados >= pulosParaAtirar - 1) {
-                                if (dist <= distAtivacao && temAggro()) {
-                                    estadoAtual = Status.FLUTUANDO;
-                                    timer = tempoFlutuando;
-                                } else {
-                                    estadoAtual = Status.PREPARANDO;
-                                    timer = tempoPreparo;
-                                    this.isAirborne = false;
-                                }
+                            if (saltoTerminaFlutuando) {
+                                estadoAtual = Status.FLUTUANDO;
+                                timer = tempoFlutuando;
                             } else {
-                                pulosDados++;
+                                if (pulosDados < pulosParaAtirar - 1) {
+                                    pulosDados++;
+                                }
                                 estadoAtual = Status.PREPARANDO;
                                 timer = tempoPreparo;
                                 this.isAirborne = false;
+                                saltoTerminaFlutuando = false;
                             }
                         }
                     }
@@ -200,6 +200,7 @@ public class Jumper extends Enemy {
                     estadoAtual = Status.COOLDOWN;
                     timer = tempoCooldown;
                     this.isAirborne = false;
+                    saltoTerminaFlutuando = false;
                 }
                 case COOLDOWN -> {
                     this.velocidadeMax = 0.8;
@@ -228,13 +229,41 @@ public class Jumper extends Enemy {
             updateFootsteps(soundManager, lvlData);
         }
 
-        if (!isHooked && !isPuxado && !isDead && !isCaindo) {
+        if (!isHooked && !isPuxado && !isDead && !isCaindo && !isAirborne) {
             if (this.hitbox != null && player.getHurtbox() != null) {
                 if (this.hitbox.intersects(this.x, this.y, player.getHurtbox(), player.getX(), player.getY())) {
                     player.receberDano(danoContato);
                 }
             }
         }
+    }
+
+    @Override
+    public void drawGroundTelegraph(Graphics2D g2, double delta) {
+        double progress;
+
+        if (estadoAtual == Status.PULANDO) {
+            if (emSaltoCinematico) {
+                progress = lerpFramesMax > 0
+                        ? (double) lerpFrameAtual / lerpFramesMax
+                        : 0.0;
+            } else if (saltoTerminaFlutuando) {
+                double totalDuration = tempoPulo + tempoFlutuando;
+                progress = (tempoPulo - timer) / totalDuration;
+            } else {
+                progress = (double) (tempoPulo - timer) / tempoPulo;
+            }
+        } else if (estadoAtual == Status.FLUTUANDO) {
+            double totalDuration = tempoPulo + tempoFlutuando;
+            progress = (tempoPulo + (tempoFlutuando - timer)) / totalDuration;
+        } else if (estadoAtual == Status.ATIRANDO) {
+            progress = 1.0;
+        } else {
+            return;
+        }
+
+        LandingMarker.draw(g2, x + width / 2.0, y + height,
+                width, height, progress);
     }
 
     @Override
