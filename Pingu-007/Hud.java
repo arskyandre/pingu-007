@@ -1,13 +1,15 @@
 
 import java.awt.*;
-import java.awt.geom.RoundRectangle2D;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 public class Hud {
+
     private Font pixelFont;
     private static final int HEART_SIZE = 9;
     private static final int HEART_SCALE = 3;
@@ -25,6 +27,15 @@ public class Hud {
     private static final float AMMO_BAR_OPACITY = 0.5f;
     private static final float AMMO_TEXT_SIZE = 16f;
     private static final float AMMO_RELOADING_TEXT_SIZE = AMMO_TEXT_SIZE - 4f;
+
+    private static final Polygon SETA_POLYGON = new Polygon(
+            new int[]{10, -8, -8},
+            new int[]{0, -8, 8},
+            3
+    );
+    private static final BasicStroke SETA_STROKE = new BasicStroke(4f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+    private static final Color COR_SETA_BORDA = new Color(0, 0, 0, 180);
+    private static final Color COR_SETA_INTERIOR = new Color(220, 20, 60);
 
     private boolean animateChave = false;
     private boolean jaPegouChave = false;
@@ -55,6 +66,7 @@ public class Hud {
     }
 
     private final ArrayList<HeartParticle> particles = new ArrayList<>();
+
     static {
         BufferedImage[] temp;
         try {
@@ -116,7 +128,6 @@ public class Hud {
     public void draw(Graphics2D g2, int telaLargura, int telaAltura,
             CameraManager camera, Player p, EnemyManager em, double delta, int offset) {
 
-            
         if (p.consumirDanoFlag()) {
             spawnHeartParticles(p);
         }
@@ -126,7 +137,103 @@ public class Hud {
 
         updateAndDrawParticles(g2, delta, offset);
         healthbar_inimigos(g2, telaLargura, telaAltura, camera, em);
-        
+        if (GameCore.getGameState() != GameState.CUTSCENE) {
+            indicadores_inimigos(g2, telaLargura, telaAltura, camera, em, offset);
+        }
+    }
+
+    private void drawSeta(Graphics2D g2, double x, double y, double angle, boolean isOffScreen) {
+        Composite oldComposite = g2.getComposite();
+
+        if (isOffScreen) {
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f));
+        }
+
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        AffineTransform oldTransform = g2.getTransform();
+        AffineTransform transform = new AffineTransform(oldTransform);
+        transform.translate(x, y);
+        transform.rotate(angle);
+        g2.setTransform(transform);
+
+        g2.setColor(COR_SETA_BORDA);
+        g2.setStroke(SETA_STROKE);
+        g2.drawPolygon(SETA_POLYGON);
+
+        g2.setColor(COR_SETA_INTERIOR);
+        g2.fillPolygon(SETA_POLYGON);
+
+        g2.setTransform(oldTransform);
+        g2.setComposite(oldComposite);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+    }
+
+    private void indicadores_inimigos(Graphics2D g2, int telaLargura, int telaAltura, CameraManager camera, EnemyManager em, int offset) {
+        double camX = camera.getX();
+        double camY = camera.getY();
+        double camzoom = camera.getZoom();
+
+        double centerX = telaLargura / 2.0;
+        double centerY = telaAltura / 2.0;
+
+        int marginX = 35;
+        int marginY = 35 + offset;
+
+        double limitW = centerX - marginX;
+        double limitH = centerY - marginY;
+
+        ArrayList<Enemy> enemies = em.getEnemies();
+        for (Enemy enemy : enemies) {
+            if (enemy.getVida() <= 0) {
+                continue;
+            }
+
+            double enCentroX = enemy.getX() + (enemy.getLargura() / 2.0);
+            double enCentroY = enemy.getY() + (enemy.getAltura() / 2.0);
+
+            double screenX = (enCentroX - camX) * camzoom;
+            double screenY = (enCentroY - camY) * camzoom;
+
+            double leftX = (enemy.getX() - camX) * camzoom;
+            double rightX = ((enemy.getX() + enemy.getLargura()) - camX) * camzoom;
+            double topY = (enemy.getY() - camY) * camzoom;
+            double bottomY = ((enemy.getY() + enemy.getAltura()) - camY) * camzoom;
+
+            boolean isOffScreenVisual = rightX < 0 || leftX > telaLargura
+                    || bottomY < offset || topY > (telaAltura - offset);
+
+            if (isOffScreenVisual) {
+                double dx = screenX - centerX;
+                double dy = screenY - centerY;
+
+                if (dx == 0 && dy == 0) {
+                    continue;
+                }
+
+                double scaleX = limitW / Math.abs(dx);
+                double scaleY = limitH / Math.abs(dy);
+                double scale = Math.min(scaleX, scaleY);
+
+                double drawX = centerX + (dx * scale);
+                double drawY = centerY + (dy * scale);
+
+                double angle = Math.atan2(dy, dx);
+
+                drawSeta(g2, drawX, drawY, angle, true);
+            } else {
+                double drawX = screenX;
+                double drawY = topY - (20 * camzoom);
+
+                if (drawY < offset + 15) {
+                    drawY = offset + 15;
+                }
+
+                double angle = Math.PI / 2;
+
+                drawSeta(g2, drawX, drawY, angle, false);
+            }
+        }
     }
 
     public void resetJaPegou() {
@@ -323,8 +430,9 @@ public class Hud {
         }
 
         int chaves = p.getChaves();
-        if (chaves > 0)
+        if (chaves > 0) {
             jaPegouChave = true;
+        }
         double chaveAlphaTarget = (jaPegouChave && !GameCore.isLevel2()) ? 1.0 : 0.0;
         double chave_fade_duracao = 0.75;
         double chaveAlphaFadeSpeed = 1.0 / chave_fade_duracao;
@@ -333,8 +441,9 @@ public class Hud {
         } else if (chaveAlpha > chaveAlphaTarget) {
             chaveAlpha = Math.max(chaveAlphaTarget, chaveAlpha - chaveAlphaFadeSpeed * delta);
         }
-        if (chaveAlpha <= 0.0)
+        if (chaveAlpha <= 0.0) {
             return;
+        }
         int chavesMax = 3; // mudar caso exista mais chave no jogo
         int iconSize = 32;
         Composite oldComposite = g2.getComposite();
@@ -368,8 +477,9 @@ public class Hud {
         }
 
         int moedas = p.getMoedas();
-        if (moedas > 0)
+        if (moedas > 0) {
             jaPegouMoeda = true;
+        }
         double moedaAlphaTarget = (jaPegouMoeda && !GameCore.isLevel2()) ? 1.0 : 0.0;
         double moeda_fade_duracao = 0.75;
         double moedaAlphaFadeSpeed = 1.0 / moeda_fade_duracao;
@@ -380,8 +490,9 @@ public class Hud {
         }
 
         int iscas = p.getIscas();
-        if (iscas > 0)
+        if (iscas > 0) {
             jaPegouIsca = true;
+        }
         double iscaAlphaTarget = (jaPegouIsca && !GameCore.isLevel2()) ? 1.0 : 0.0;
         double isca_fade_duracao = 0.75;
         double iscaAlphaFadeSpeed = 1.0 / isca_fade_duracao;
@@ -391,8 +502,9 @@ public class Hud {
             iscaAlpha = Math.max(iscaAlphaTarget, iscaAlpha - iscaAlphaFadeSpeed * delta);
         }
 
-        if (moedaAlpha <= 0.0 && iscaAlpha <= 0.0)
+        if (moedaAlpha <= 0.0 && iscaAlpha <= 0.0) {
             return;
+        }
 
         int iconSize = 32;
         int margin = 16;

@@ -1,9 +1,9 @@
 
-import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Composite;
+import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -304,8 +304,12 @@ public class MorsaBoss extends Enemy {
         podeDropar = false;
         particulasMorte.clear();
         criarExplosaoDeParticulas(30, 2.0, 5.2, 75);
-        if (maoEsquerda != null) maoEsquerda.receberDano(99999);
-        if (maoDireita != null) maoDireita.receberDano(99999);
+        if (maoEsquerda != null) {
+            maoEsquerda.receberDano(99999);
+        }
+        if (maoDireita != null) {
+            maoDireita.receberDano(99999);
+        }
         if (gameCore != null) {
             gameCore.iniciarMorteDoBoss(getCenterX(), getCenterY());
         }
@@ -314,8 +318,12 @@ public class MorsaBoss extends Enemy {
     private void atualizarSequenciaMorte() {
         timerMorte++;
         if (timerMorte == MORTE_BRANCA_FRAMES) {
-            if (soundManager != null) soundManager.playSFX(SoundManager.SFX.MORSA_ROAR);
-            if (gameCore != null) gameCore.shakeCamera(10, MORTE_RUGIDO_FRAMES);
+            if (soundManager != null) {
+                soundManager.playSFX(SoundManager.SFX.MORSA_ROAR);
+            }
+            if (gameCore != null) {
+                gameCore.shakeCamera(10, MORTE_RUGIDO_FRAMES);
+            }
             criarExplosaoDeParticulas(46, 2.5, 7.0, 150);
         }
         if (timerMorte > MORTE_BRANCA_FRAMES && timerMorte % 7 == 0
@@ -327,10 +335,14 @@ public class MorsaBoss extends Enemy {
         while (iterator.hasNext()) {
             ParticulaMorte particula = iterator.next();
             particula.atualizar();
-            if (particula.terminou()) iterator.remove();
+            if (particula.terminou()) {
+                iterator.remove();
+            }
         }
         if (timerMorte >= MORTE_BRANCA_FRAMES + MORTE_RUGIDO_FRAMES) {
-            if (gameCore != null) gameCore.iniciarFinalDoJogo();
+            if (gameCore != null) {
+                gameCore.iniciarFinalDoJogo();
+            }
         }
     }
 
@@ -518,7 +530,10 @@ public class MorsaBoss extends Enemy {
             double intensidade = timerMorte < MORTE_BRANCA_FRAMES ? 0.0 : Math.min(8.0, 2.0 + timerMorte / 35.0);
             xx += (int) Math.round(Math.sin(timerMorte * 2.4) * intensidade);
             int yy = (int) y + (int) Math.round(Math.cos(timerMorte * 2.9) * intensidade * 0.55);
-            if (dirS == 0) { xx += (int) width; inv = -1; }
+            if (dirS == 0) {
+                xx += (int) width;
+                inv = -1;
+            }
             Composite anterior = g.getComposite();
             desenharAuraMorte(g);
             desenharOndasMorte(g);
@@ -613,7 +628,9 @@ public class MorsaBoss extends Enemy {
     private void desenharOndaMorte(Graphics2D g, int tempoAtual, int inicio,
             int duracao, float alphaMaximo, Color cor) {
         int tempo = tempoAtual - inicio;
-        if (tempo < 0 || tempo > duracao) return;
+        if (tempo < 0 || tempo > duracao) {
+            return;
+        }
 
         double progresso = tempo / (double) duracao;
         double suavizado = 1.0 - Math.pow(1.0 - progresso, 2.0);
@@ -633,7 +650,9 @@ public class MorsaBoss extends Enemy {
         AffineTransform transformAnterior = g.getTransform();
         for (ParticulaMorte particula : particulasMorte) {
             float alpha = particula.getAlpha();
-            if (alpha <= 0f) continue;
+            if (alpha <= 0f) {
+                continue;
+            }
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
             g.setColor(particula.cor);
             g.setTransform(transformAnterior);
@@ -649,6 +668,7 @@ public class MorsaBoss extends Enemy {
     }
 
     private static class ParticulaMorte {
+
         double x, y, velX, velY, rotacao, giro;
         final int vidaMaxima;
         int vida;
@@ -832,6 +852,16 @@ class BossMao extends Enemy {
     }
 
     @Override
+    public void receberDano(int dano) {
+        // Mão imortal a tiros
+    }
+
+    @Override
+    public void receberDano(int dano, double sourceX, double sourceY, double knockbackForce) {
+        // Ignora dano e knockback
+    }
+
+    @Override
     public void update(Player player, ArrayList<JumpLink> jumpLinks) {
         if (corpoPrincipal == null || corpoPrincipal.isDead()) {
             this.receberDano(99999);
@@ -861,6 +891,7 @@ class BossMao extends Enemy {
             }
         }
         // BLINDAGEM DA VARA DE PESCA
+        this.podeSerPuxado = (status == MaoState.HOVER_RECOVERY);
         if (status != MaoState.HOVER_SLAM && status != MaoState.HOVER_RECOVERY && status != MaoState.FISHED
                 && status != MaoState.PULLED_TO_PLAYER && status != MaoState.SLINGSHOT
                 && status != MaoState.STUNNED) {
@@ -869,14 +900,14 @@ class BossMao extends Enemy {
         }
 
         switch (status) {
-            case IDLE:
+            case IDLE -> {
                 timerEstado += 0.05;
                 double swayMult = corpoPrincipal.isFase2() ? 10 : 6;
                 this.y = yHome + Math.sin(timerEstado) * swayMult;
                 this.x = xHome;
-                break;
+            }
 
-            case BOTE_WINDUP:
+            case BOTE_WINDUP -> {
                 if (timerEstado == 0) {
                     targetX = player.getX();
                     targetY = player.getY();
@@ -918,9 +949,9 @@ class BossMao extends Enemy {
                         targetY = pY;
                     }
                 }
-                break;
+            }
 
-            case BOTE_DASH:
+            case BOTE_DASH -> {
                 timerEstado += 1;
                 double dxBote = targetX - this.x;
                 double dyBote = targetY - this.y;
@@ -935,17 +966,17 @@ class BossMao extends Enemy {
                     status = MaoState.BOTE_RECOVERY;
                     timerEstado = 0;
                 }
-                break;
+            }
 
-            case BOTE_RECOVERY:
+            case BOTE_RECOVERY -> {
                 timerEstado += 1;
                 if (timerEstado > 15) {
                     status = MaoState.RETURNING;
                     timerEstado = 0;
                 }
-                break;
+            }
 
-            case RETURNING:
+            case RETURNING -> {
                 double dxHome = xHome - this.x;
                 double dyHome = yHome - this.y;
                 double distHome = Math.hypot(dxHome, dyHome);
@@ -960,9 +991,9 @@ class BossMao extends Enemy {
                     this.y = yHome;
                     status = MaoState.IDLE;
                 }
-                break;
+            }
 
-            case HOVER_CHASE:
+            case HOVER_CHASE -> {
                 timerEstado += 1;
                 targetX = player.getX();
                 targetY = player.getY() - (GameCore.tiles_size * 3.5);
@@ -991,9 +1022,9 @@ class BossMao extends Enemy {
                     slamTargetY = player.getY() - (GameCore.tiles_size * 0.5);
                     this.x = slamTargetX;
                 }
-                break;
+            }
 
-            case HOVER_WINDUP:
+            case HOVER_WINDUP -> {
                 timerEstado += 1;
                 this.x = slamTargetX;
                 this.y -= 1.5;
@@ -1014,9 +1045,9 @@ class BossMao extends Enemy {
                     status = MaoState.HOVER_SLAM;
                     timerEstado = 0;
                 }
-                break;
+            }
 
-            case HOVER_SLAM:
+            case HOVER_SLAM -> {
                 double slamFallSpeed = corpoPrincipal.isFase2() ? 36.0 : 28.0;
                 this.x = slamTargetX;
                 this.y += slamFallSpeed;
@@ -1063,9 +1094,9 @@ class BossMao extends Enemy {
                         }
                     }
                 }
-                break;
+            }
 
-            case HOVER_RECOVERY:
+            case HOVER_RECOVERY -> {
                 timerEstado += 1;
                 mostrarSombra = true;
                 sombraX = this.x + (this.width / 2.0);
@@ -1086,9 +1117,9 @@ class BossMao extends Enemy {
                     status = MaoState.RETURNING;
                     timerEstado = 0;
                 }
-                break;
+            }
 
-            case FISHED:
+            case FISHED -> {
                 mostrarSombra = true;
                 sombraX = this.x + (this.width / 2.0);
                 sombraY = this.y + this.height;
@@ -1104,9 +1135,9 @@ class BossMao extends Enemy {
                     timerEstado = 0;
                     this.isPuxado = false;
                 }
-                break;
+            }
 
-            case PULLED_TO_PLAYER:
+            case PULLED_TO_PLAYER -> {
                 timerEstado += 1;
                 mostrarSombra = true;
                 sombraX = this.x + (this.width / 2.0);
@@ -1147,9 +1178,9 @@ class BossMao extends Enemy {
                         // soundManager.playSFX(SoundManager.SFX.SWOOSH);
                     }
                 }
-                break;
+            }
 
-            case SLINGSHOT:
+            case SLINGSHOT -> {
                 timerEstado += 1;
                 mostrarSombra = true;
                 sombraX = this.x + (this.width / 2.0);
@@ -1191,9 +1222,9 @@ class BossMao extends Enemy {
                         soundManager.playSFX(SoundManager.SFX.EXPLOSION);
                     }
                 }
-                break;
+            }
 
-            case STUNNED:
+            case STUNNED -> {
                 timerEstado += 1;
                 mostrarSombra = true;
                 sombraX = this.x + (this.width / 2.0);
@@ -1204,7 +1235,7 @@ class BossMao extends Enemy {
                     status = MaoState.RETURNING;
                     timerEstado = 0;
                 }
-                break;
+            }
         }
     }
 
@@ -1234,6 +1265,9 @@ class BossMao extends Enemy {
 
     @Override
     public Collider getHurtbox() {
-        return this.bodyCollider;
+        if (status == MaoState.HOVER_RECOVERY || status == MaoState.FISHED || status == MaoState.PULLED_TO_PLAYER) {
+            return this.bodyCollider;
+        }
+        return null;
     }
 }

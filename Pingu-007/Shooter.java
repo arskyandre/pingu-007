@@ -47,6 +47,8 @@ public class Shooter extends Enemy {
         this.peso = 1.0;
         this.raioDeteccao = GameCore.tiles_size * 10.0;
 
+        this.modoShotgun = Math.random() < 0.45;
+
         this.bodyCollider = new Collider(0, height / 2.0, width, height / 2.0);
         this.hurtbox = new Collider(0, 0, width, height);
         this.hitbox = new Collider(4, 4, width - 8, height - 8);

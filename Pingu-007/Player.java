@@ -57,7 +57,7 @@ public class Player extends Entity {
     private final int changeGunCooldown = 20;
     private int changeGunCooldownTimer = 0;
     private final int pistolShootCooldown = 20;
-    private final int shotgunShootCooldown = 80;
+    private final int shotgunShootCooldown = 65;
     private int reloadCooldownTimer = 0;
     private final int defaultReloadCooldown = 30;
     private final int fasterReloadCooldown = 15;
@@ -139,6 +139,7 @@ public class Player extends Entity {
     }
 
     private static final class PlayerVisualState {
+
         private final BufferedImage playerFrame;
         private final int playerX, playerY, playerWidth;
         private final BufferedImage gunFrame;
@@ -528,7 +529,7 @@ public class Player extends Entity {
                         setGunType(Player.GunType.PISTOL);
                         if (ToastNotifications.getNotifAtual() != null
                                 && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                             ToastNotifications.skipNotification();
                         }
                         if (ToastNotifications.getNotifAtual() == null
@@ -539,7 +540,7 @@ public class Player extends Entity {
                         setGunType(Player.GunType.SHOTGUN);
                         if (ToastNotifications.getNotifAtual() != null
                                 && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                             ToastNotifications.skipNotification();
                         }
                         if (ToastNotifications.getNotifAtual() == null
@@ -1103,8 +1104,9 @@ public class Player extends Entity {
     }
 
     /**
-     * Sets an exact velocity and keeps it unchanged by player input and friction
-     * for the requested duration in seconds. Map collisions can still stop it.
+     * Sets an exact velocity and keeps it unchanged by player input and
+     * friction for the requested duration in seconds. Map collisions can still
+     * stop it.
      */
     public void setVelocity(double velocityX, double velocityY, double duration) {
         if (!Double.isFinite(velocityX) || !Double.isFinite(velocityY) || !Double.isFinite(duration)) {

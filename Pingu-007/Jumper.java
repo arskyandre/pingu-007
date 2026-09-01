@@ -229,7 +229,8 @@ public class Jumper extends Enemy {
             updateFootsteps(soundManager, lvlData);
         }
 
-        if (!isHooked && !isPuxado && !isDead && !isCaindo && !isAirborne) {
+        if (!isHooked && !isPuxado && !isDead && !isCaindo && !isAirborne
+                && estadoAtual != Status.PULANDO && estadoAtual != Status.FLUTUANDO) {
             if (this.hitbox != null && player.getHurtbox() != null) {
                 if (this.hitbox.intersects(this.x, this.y, player.getHurtbox(), player.getX(), player.getY())) {
                     player.receberDano(danoContato);
@@ -242,24 +243,32 @@ public class Jumper extends Enemy {
     public void drawGroundTelegraph(Graphics2D g2, double delta) {
         double progress;
 
-        if (estadoAtual == Status.PULANDO) {
-            if (emSaltoCinematico) {
-                progress = lerpFramesMax > 0
-                        ? (double) lerpFrameAtual / lerpFramesMax
-                        : 0.0;
-            } else if (saltoTerminaFlutuando) {
-                double totalDuration = tempoPulo + tempoFlutuando;
-                progress = (tempoPulo - timer) / totalDuration;
-            } else {
-                progress = (double) (tempoPulo - timer) / tempoPulo;
-            }
-        } else if (estadoAtual == Status.FLUTUANDO) {
-            double totalDuration = tempoPulo + tempoFlutuando;
-            progress = (tempoPulo + (tempoFlutuando - timer)) / totalDuration;
-        } else if (estadoAtual == Status.ATIRANDO) {
-            progress = 1.0;
-        } else {
+        if (null == estadoAtual) {
             return;
+        } else {
+            switch (estadoAtual) {
+                case PULANDO -> {
+                    if (emSaltoCinematico) {
+                        progress = lerpFramesMax > 0
+                                ? (double) lerpFrameAtual / lerpFramesMax
+                                : 0.0;
+                    } else if (saltoTerminaFlutuando) {
+                        double totalDuration = tempoPulo + tempoFlutuando;
+                        progress = (tempoPulo - timer) / totalDuration;
+                    } else {
+                        progress = (double) (tempoPulo - timer) / tempoPulo;
+                    }
+                }
+                case FLUTUANDO -> {
+                    double totalDuration = tempoPulo + tempoFlutuando;
+                    progress = (tempoPulo + (tempoFlutuando - timer)) / totalDuration;
+                }
+                case ATIRANDO ->
+                    progress = 1.0;
+                default -> {
+                    return;
+                }
+            }
         }
 
         LandingMarker.draw(g2, x + width / 2.0, y + height,
