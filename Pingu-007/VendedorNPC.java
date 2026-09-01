@@ -19,6 +19,7 @@ public class VendedorNPC extends NPC {
     private CameraManager camera;
     private BufferedImage portrait = LoadSave.GetSpriteAtlas("images/portrait/vendedor_portrait.png");
     private BufferedImage portrait2 = LoadSave.GetSpriteAtlas("images/portrait/vendedor_portrait2.png");
+    private BufferedImage nao_implementado = LoadSave.GetSpriteAtlas("images/portrait/Corinthians_simbolo.png");
 
     public VendedorNPC(double x, double y, CameraManager cameraMgr, SoundManager soundManager) {
         super(x, y, WIDTH, HEIGHT);
@@ -65,7 +66,12 @@ public class VendedorNPC extends NPC {
     }
 
     private void comoPossoAjudar(DialogueManager dialogueManager) {
-        encerrarDialogo(dialogueManager);
+        dialogueManager.iniciarDialogo(new String[] {
+                "Sou um time fraco!"
+        }, new BufferedImage[] { nao_implementado });
+        dialogueManager.setAoTerminarDialogo(() -> {
+            encerrarDialogo(dialogueManager);
+        });
     }
 
     private void loopInteracao(String pergunta, SoundManager.SFX[] fala, Player player, DialogueManager dialogueManager,
