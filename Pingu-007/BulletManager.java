@@ -73,16 +73,21 @@ public class BulletManager {
                     if (e.isInvulneravel) {
                         continue;
                     }
-                    if (b.getCollider().intersects(b.getX(), b.getY(), e.getHurtbox(), e.getX(), e.getY())) {
-                        e.receberDano(b.getDano(), b.getX(), b.getY(), b.getKnockback());
-                        b.desativar();
-                        break;
+
+                    if (e.getHurtbox() != null) {
+                        if (b.getCollider().intersects(b.getX(), b.getY(), e.getHurtbox(), e.getX(), e.getY())) {
+                            e.receberDano(b.getDano(), b.getX(), b.getY(), b.getKnockback());
+                            b.desativar();
+                            break;
+                        }
                     }
                 }
             } else if (b.getOwner() == BulletOwner.ENEMY) {
-                if (b.getCollider().intersects(b.getX(), b.getY(), player.getHurtbox(), player.getX(), player.getY())) {
-                    player.receberDano(b.getDano());
-                    b.desativar();
+                if (player.getHurtbox() != null) {
+                    if (b.getCollider().intersects(b.getX(), b.getY(), player.getHurtbox(), player.getX(), player.getY())) {
+                        player.receberDano(b.getDano());
+                        b.desativar();
+                    }
                 }
             }
         }

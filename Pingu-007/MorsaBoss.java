@@ -898,7 +898,7 @@ class BossMao extends Enemy {
             }
         }
         // BLINDAGEM DA VARA DE PESCA
-        this.podeSerPuxado = (status == MaoState.HOVER_RECOVERY);
+        this.podeSerPuxado = (status == MaoState.HOVER_RECOVERY || status == MaoState.FISHED);
         if (status != MaoState.HOVER_SLAM && status != MaoState.HOVER_RECOVERY && status != MaoState.FISHED
                 && status != MaoState.PULLED_TO_PLAYER && status != MaoState.SLINGSHOT
                 && status != MaoState.STUNNED) {
@@ -1116,9 +1116,8 @@ class BossMao extends Enemy {
                     timerEstado = 0;
                     this.velX = 0;
                     this.velY = 0;
-                    break;
                 }
-
+                // Velocidade estilingue
                 int limiteHoverRecovery = corpoPrincipal.isFase2() ? 50 : 90;
                 if (timerEstado > limiteHoverRecovery) {
                     status = MaoState.RETURNING;
@@ -1193,19 +1192,16 @@ class BossMao extends Enemy {
                 sombraX = this.x + (this.width / 2.0);
                 sombraY = this.y + this.height;
                 sombraScale = 0.5;
-
                 // Velocidade estilingue
                 this.x += slingshotDirX * 45.0;
                 this.y += slingshotDirY * 45.0;
 
                 boolean impacto = false;
 
-                // Colisão Boss
-                if (timerEstado > 3 && colideCom(corpoPrincipal)) {
+                if (colideCom(corpoPrincipal)) {
                     corpoPrincipal.receberDano(100);
                     impacto = true;
                 }
-
                 // Colisão Mobs
                 EnemyManager em = corpoPrincipal.getEnemyManager();
                 if (em != null) {
@@ -1219,7 +1215,7 @@ class BossMao extends Enemy {
                     }
                 }
 
-                if (impacto || timerEstado > 45) {
+                if (impacto || timerEstado > 35) {
                     status = MaoState.STUNNED;
                     timerEstado = 0;
                     if (corpoPrincipal.getCamera() != null) {
@@ -1237,7 +1233,9 @@ class BossMao extends Enemy {
                 sombraX = this.x + (this.width / 2.0);
                 sombraY = this.y + this.height;
                 sombraScale = 1.0;
-                this.x += (Math.random() > 0.5 ? 2 : -2);
+
+                tremorVisualX = (Math.random() > 0.5 ? 4 : -4);
+
                 if (timerEstado > 15) {
                     status = MaoState.RETURNING;
                     timerEstado = 0;
