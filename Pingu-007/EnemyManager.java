@@ -49,6 +49,17 @@ public class EnemyManager {
                     itemManager.gerarDropDeInimigo(e1);
                 }
                 player.addEnemyCount(1);
+                if (e1 instanceof Shooter) {
+                    player.addShooterEnemyCount(1);
+                } else if (e1 instanceof BasicEnemy) {
+                    player.addLoboEnemyCount(1);
+                } else if (e1 instanceof Jumper) {
+                    player.addJumperEnemyCount(1);
+                } else if (e1 instanceof Dasher) {
+                    player.addDasherEnemyCount(1);
+                } else if (e1 instanceof Bomber) {
+                    player.addBomberEnemyCount(1);
+                }
                 enemies.remove(i);
                 continue;
             }

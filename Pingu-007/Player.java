@@ -42,6 +42,11 @@ public class Player extends Entity {
 
     private int totalEnemyCount = 0;
     private int currentEnemyCount = 0;
+    private int shooterEnemyCount = 0;
+    private int loboEnemyCount = 0;
+    private int jumperEnemyCount = 0;
+    private int dasherEnemyCount = 0;
+    private int bomberEnemyCount = 0;
     private final BulletManager bulletmanager;
     private static boolean desbloqueouRecompensa = false;
     private boolean extendedMag = false;
@@ -255,6 +260,50 @@ public class Player extends Entity {
     public void addEnemyCount(int count) {
         totalEnemyCount += count;
         currentEnemyCount += count;
+    }
+
+    public int getShooterEnemyCount() {
+        return shooterEnemyCount;
+    }
+
+    public void addShooterEnemyCount(int count) {
+        shooterEnemyCount += count;
+    }
+
+    public int getLoboEnemyCount() {
+        return loboEnemyCount;
+    }
+
+    public void setLoboEnemyCount(int count) {
+        loboEnemyCount = count;
+    }
+
+    public void addLoboEnemyCount(int count) {
+        loboEnemyCount += count;
+    }
+
+    public int getJumperEnemyCount() {
+        return jumperEnemyCount;
+    }
+
+    public void addJumperEnemyCount(int count) {
+        jumperEnemyCount += count;
+    }
+
+    public int getDasherEnemyCount() {
+        return dasherEnemyCount;
+    }
+
+    public void addDasherEnemyCount(int count) {
+        dasherEnemyCount += count;
+    }
+
+    public int getBomberEnemyCount() {
+        return bomberEnemyCount;
+    }
+
+    public void addBomberEnemyCount(int count) {
+        bomberEnemyCount += count;
     }
 
     public void setFishingManager(FishingManager fishingMgr) {
@@ -996,6 +1045,11 @@ public class Player extends Entity {
         this.municao = 45;
         this.totalEnemyCount = 0;
         this.currentEnemyCount = 0;
+        this.shooterEnemyCount = 0;
+        this.loboEnemyCount = 0;
+        this.jumperEnemyCount = 0;
+        this.dasherEnemyCount = 0;
+        this.bomberEnemyCount = 0;
         this.fasterFishing = false;
         this.pente = 15;
         iscas = 0;

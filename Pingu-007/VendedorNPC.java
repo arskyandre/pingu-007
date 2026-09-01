@@ -57,11 +57,23 @@ public class VendedorNPC extends NPC {
                 }, !player.getHasShotgun(), true);
     }
 
+    private void encerrarDialogo(DialogueManager dialogueManager) {
+        dialogueManager.iniciarDialogo(new String[] {
+                "VENDEDOR: Estou aqui sempre que precisar!"
+        }, DialogueCatalogo.VendedorTchau, new BufferedImage[] { portrait2 });
+        state = State.IDLE;
+    }
+
+    private void comoPossoAjudar(DialogueManager dialogueManager) {
+        encerrarDialogo(dialogueManager);
+    }
+
     private void loopInteracao(String pergunta, SoundManager.SFX[] fala, Player player, DialogueManager dialogueManager,
             SoundManager soundManager) {
 
         dialogueManager.iniciarEscolha(pergunta, new String[] {
                 "Quero comprar algo.",
+                "Como posso ajudar?(NÃO IMPLEMENTADO)",
                 "Me dê minha recompensa!",
                 "Deixa pra lá."
         }, fala,
@@ -80,6 +92,9 @@ public class VendedorNPC extends NPC {
                             GameCore.setShopMenu(shopMenu);
                         }
                         case 1 -> {
+                            comoPossoAjudar(dialogueManager);
+                        }
+                        case 2 -> {
                             int moedas = (int) (player.getCurrentEnemyCount()
                                     * inimigosPorMoeda);
                             if (moedas == 0) {
@@ -102,11 +117,8 @@ public class VendedorNPC extends NPC {
                                         soundManager);
                             });
                         }
-                        case 2 -> {
-                            dialogueManager.iniciarDialogo(new String[] {
-                                    "VENDEDOR: Estou aqui sempre que precisar!"
-                            }, DialogueCatalogo.VendedorTchau, new BufferedImage[] { portrait2 });
-                            state = State.IDLE;
+                        case 3 -> {
+                            encerrarDialogo(dialogueManager);
                         }
                     }
                 });
