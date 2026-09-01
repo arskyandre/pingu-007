@@ -242,20 +242,8 @@
                  "type":"",
                  "visible":true,
                  "width":16,
-                 "x":240,
-                 "y":144
-                }, 
-                {
-                 "gid":221,
-                 "height":48,
-                 "id":33,
-                 "name":"",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":64,
-                 "x":176,
-                 "y":112
+                 "x":192,
+                 "y":96
                 }, 
                 {
                  "height":19,
@@ -266,17 +254,17 @@
                          "name":"destino",
                          "type":"string",
                          "value":"LEVEL_1_DATA_converted.json"
-                        },
+                        }, 
                         {
                          "name":"id_arena",
                          "type":"int",
                          "value":999
-                        },
+                        }, 
                         {
                          "name":"isActive",
                          "type":"bool",
                          "value":true
-                        },
+                        }, 
                         {
                          "name":"totalHordas",
                          "type":"int",
@@ -346,7 +334,7 @@
                 }],
          "opacity":1,
          "type":"objectgroup",
-         "visible":true,
+         "visible":false,
          "x":0,
          "y":0
         }],
