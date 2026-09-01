@@ -34,16 +34,17 @@ public class VendedorNPC extends NPC {
         shopMenu.limparItens();
 
         shopMenu.addItem("10 Balas", "Está sem munição? Você pode comprar balas para a sua jornada aqui!",
-                GameCore.missing_image, 10, () -> {
+                LoadSave.GetSpriteAtlas("images/hud/balas.png"), 10, () -> {
                     player.addMunicao(10);
                 }, true, false);
-        shopMenu.addItem("Peixe", "Um delicioso peixe para curar um coração.", GameCore.missing_image, 15,
+        shopMenu.addItem("Peixe", "Um delicioso peixe para curar um coração.",
+                LoadSave.GetSpriteAtlas("images/tile_set.png").getSubimage(144, 33, 16, 16), 15,
                 () -> {
                     player.curar(10);
                 }, true, false);
         shopMenu.addItem("Recarga Rápida",
                 "Reduz o tempo necessário para recarregar a arma. ENDL (0.5s -> 0.25s)",
-                GameCore.missing_image, 50, () -> {
+                LoadSave.GetSpriteAtlas("images/hud/clock.png"), 50, () -> {
                     player.setFasterReload(true);
                 }, !player.getFasterReload(), true);
         shopMenu.addItem("Pente Estendido",

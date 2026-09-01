@@ -21,6 +21,7 @@ public class HealthPackItem extends ConsumableItem {
 
         if (atlas != null) {
             sprite = atlas.getSubimage(col * 16, row * 16, 16, 16);
+            System.out.println(col * 16 + " " + row * 16 + " ");
         }
     }
 
