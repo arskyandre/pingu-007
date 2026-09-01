@@ -922,7 +922,9 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)
                 || input.isButtonJustPressed(InputManager.GamepadButton.Y)) {
             arenaManager.interagir(player, player.getChaves());
-            System.out.println("Apertou E");
+            if (getDebug()) {
+                System.out.println("Apertou E");
+            }
         }
         if (getDebug()) {
             debugInputProcessing();

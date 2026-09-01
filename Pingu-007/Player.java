@@ -789,7 +789,9 @@ public class Player extends Entity {
                 : input.isMouseButtonJustPressed(MouseEvent.BUTTON3);
 
         if (pescar && fishingCooldown == 0) {
-            System.out.println(">>> CLIQUE DIREITO PROCESSADO COM SUCESSO! <<<");
+            if (GameCore.getDebug()) {
+                System.out.println(">>> CLIQUE DIREITO PROCESSADO COM SUCESSO! <<<");
+            }
 
             if (fishingBobber.isAtivo()) {
                 fishingBobber.pull();

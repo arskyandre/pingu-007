@@ -1228,7 +1228,6 @@
         {
          "draworder":"topdown",
          "id":19,
-         "locked":true,
          "name":"bInterativos",
          "objects":[
                 {
@@ -1372,17 +1371,12 @@
                         {
                          "name":"acao",
                          "type":"string",
-                         "value":"trocar_mapa"
+                         "value":"none"
                         }, 
                         {
                          "name":"colisao",
                          "type":"bool",
                          "value":false
-                        }, 
-                        {
-                         "name":"destino",
-                         "type":"string",
-                         "value":"CASA_VENDEDOR.tmj"
                         }, 
                         {
                          "name":"isActive",
@@ -1392,7 +1386,7 @@
                         {
                          "name":"isInteractive",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }, 
                         {
                          "name":"isTransparent",

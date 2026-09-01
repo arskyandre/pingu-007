@@ -145,7 +145,9 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
         if (btn >= 0 && btn < botoes.length) {
             botoes[btn] = true;
             cliquesRapidos[btn] = true;
-            System.out.println("DEBUG INPUT: Botão do mouse pressionado -> " + btn);
+            if (GameCore.getDebug()) {
+                System.out.println("DEBUG INPUT: Botão do mouse pressionado -> " + btn);
+            }
         }
     }
 
