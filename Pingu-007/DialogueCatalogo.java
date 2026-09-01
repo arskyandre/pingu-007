@@ -76,6 +76,10 @@ public class DialogueCatalogo {
 
                         "RADIO: Isso é tudo, agente. Boa sorte. A colônia está contando com você."
         };
+        public static final String[] TextoBossFinal = new String[] {
+          "MORSA: Não acredito...um pinguim com duas pistolas de meia tigela...me derrotou.",
+          "MORSA: Isso não vai ficar assim, eu vou me vingar!"
+        };
         public static final SoundManager.SFX[] FalaInicialRadio = new SoundManager.SFX[] {
                         SoundManager.SFX.NOOT_NOOT,
                         null,

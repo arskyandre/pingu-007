@@ -3,6 +3,7 @@
 
 # Log file
 *.log
+.nvimlog
 
 # BlueJ files
 *.ctxt

@@ -1,6 +1,8 @@
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.AlphaComposite;
+import java.awt.Composite;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -13,6 +15,7 @@ public class MorsaBoss extends Enemy {
 
     private double xHome, yHome;
     private BufferedImage[] Sprites;
+    private BufferedImage[] spritesBrancos;
     private int Direita = 1;
     private int dirS = 1;
     private int[] idle = {0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 4, 5};
@@ -43,6 +46,12 @@ public class MorsaBoss extends Enemy {
     private BossMao maoEsmagandoAtiva = null;
     private int contadorBote = 0;
 
+    // Sequencia final (medida em frames, como o restante da IA do boss)
+    private boolean sequenciaMorte = false;
+    private int timerMorte = 0;
+    private static final int MORTE_BRANCA_FRAMES = 75;
+    private static final int MORTE_RUGIDO_FRAMES = 180;
+
     public MorsaBoss(double startX, double startY, int[][] lvlData, BulletManager bulmgr, SoundManager sound,
             GameCore GC, ArenaManager am) {
         super(startX, startY, GameCore.tiles_size * 6, GameCore.tiles_size * 6, lvlData, sound, am);
@@ -59,9 +68,22 @@ public class MorsaBoss extends Enemy {
 
         BufferedImage img = LoadSave.GetSpriteAtlas("images/enemy/MorsaBoss-Sheet.png");
         Sprites = new BufferedImage[10];
+        spritesBrancos = new BufferedImage[10];
         for (int j = 0; j < 10; j++) {
             Sprites[j] = img.getSubimage(j * 96, 0, 96, 96);
+            spritesBrancos[j] = criarSilhuetaBranca(Sprites[j]);
         }
+    }
+
+    private BufferedImage criarSilhuetaBranca(BufferedImage sprite) {
+        BufferedImage branca = new BufferedImage(sprite.getWidth(), sprite.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = branca.createGraphics();
+        g.drawImage(sprite, 0, 0, null);
+        g.setComposite(AlphaComposite.SrcAtop);
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, branca.getWidth(), branca.getHeight());
+        g.dispose();
+        return branca;
     }
 
     // MÉTODOS DE SPAWN E MANAGERS
@@ -152,6 +174,10 @@ public class MorsaBoss extends Enemy {
 
     @Override
     public void update(Player player, ArrayList<JumpLink> jumpLinks) {
+        if (sequenciaMorte) {
+            atualizarSequenciaMorte();
+            return;
+        }
         velX = 0;
         velY = 0;
         this.x = xHome;
@@ -237,15 +263,53 @@ public class MorsaBoss extends Enemy {
 
     @Override
     public void receberDano(int dano) {
-        super.receberDano(dano);
+        if (sequenciaMorte) {
+            return;
+        }
+        this.vida = Math.max(0, this.vida - dano);
+        this.timerDano = this.tempoDano;
 
-        if (this.isDead || this.vida <= 0) {
+        if (this.vida <= 0) {
+            iniciarSequenciaMorte();
             for (Enemy minion : minionsSpawnados) {
                 if (minion != null && !minion.isDead()) {
                     minion.marcarLootProcessado();
                     minion.receberDano(99999);
                 }
             }
+        }
+    }
+
+    public boolean isEmSequenciaMorte() {
+        return sequenciaMorte;
+    }
+
+    public void matarParaTeste() {
+        receberDano(Math.max(1, vida));
+    }
+
+    private void iniciarSequenciaMorte() {
+        sequenciaMorte = true;
+        timerMorte = 0;
+        rugindo = false;
+        podeRugir = false;
+        isInvulneravel = true;
+        podeDropar = false;
+        if (maoEsquerda != null) maoEsquerda.receberDano(99999);
+        if (maoDireita != null) maoDireita.receberDano(99999);
+        if (gameCore != null) {
+            gameCore.iniciarMorteDoBoss(getCenterX(), getCenterY());
+        }
+    }
+
+    private void atualizarSequenciaMorte() {
+        timerMorte++;
+        if (timerMorte == MORTE_BRANCA_FRAMES) {
+            if (soundManager != null) soundManager.playSFX(SoundManager.SFX.MORSA_ROAR);
+            if (gameCore != null) gameCore.shakeCamera(10, MORTE_RUGIDO_FRAMES);
+        }
+        if (timerMorte >= MORTE_BRANCA_FRAMES + MORTE_RUGIDO_FRAMES) {
+            if (gameCore != null) gameCore.iniciarFinalDoJogo();
         }
     }
 
@@ -388,6 +452,21 @@ public class MorsaBoss extends Enemy {
         int index = 0;
         int xx = (int) x;
         int inv = 1;
+
+        if (sequenciaMorte) {
+            index = timerMorte < MORTE_BRANCA_FRAMES ? 0 : rugidoSprites[(timerMorte / 8) % rugidoSprites.length];
+            double alpha = timerMorte < MORTE_BRANCA_FRAMES ? 1.0
+                    : Math.max(0.0, 1.0 - (timerMorte - MORTE_BRANCA_FRAMES) / (double) MORTE_RUGIDO_FRAMES);
+            double intensidade = timerMorte < MORTE_BRANCA_FRAMES ? 0.0 : Math.min(8.0, 2.0 + timerMorte / 35.0);
+            xx += (int) Math.round(Math.sin(timerMorte * 2.4) * intensidade);
+            int yy = (int) y + (int) Math.round(Math.cos(timerMorte * 2.9) * intensidade * 0.55);
+            if (dirS == 0) { xx += (int) width; inv = -1; }
+            Composite anterior = g.getComposite();
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) alpha));
+            g.drawImage(spritesBrancos[index], xx, yy, inv * (int) width, (int) height, null);
+            g.setComposite(anterior);
+            return;
+        }
 
         if (dirS != Direita && timerVirar <= 0 && !rugindo) {
             timerVirar = 40;

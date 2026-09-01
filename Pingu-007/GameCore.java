@@ -22,6 +22,7 @@ public class GameCore extends Canvas implements Runnable {
     private final PauseMenu pauseMenu;
     private final OptionsMenu optionsMenu;
     private final GameOverScreen gameOverScreen;
+    private final CreditsScreen creditsScreen;
     private final KeyBindingsMenu keyBindingsMenu;
 
     // permite os botoes de teste(debuginputprocessing() e outros). se colocar false
@@ -142,6 +143,7 @@ public class GameCore extends Canvas implements Runnable {
         hud = new Hud();
 
         gameOverScreen = new GameOverScreen(soundManager);
+        creditsScreen = new CreditsScreen();
         mainMenu = new MainMenu(soundManager);
         pauseMenu = new PauseMenu(soundManager);
         optionsMenu = new OptionsMenu(soundManager);
@@ -525,7 +527,10 @@ public class GameCore extends Canvas implements Runnable {
                 System.exit(0);
             }
             case CREDITS -> {
-
+                creditsScreen.update();
+                if (creditsScreen.querVoltarAoMenu(input)) {
+                    screenTransition.start(this::voltarAoMenuPrincipalImediato);
+                }
             }
         }
         updateCursorVisibility();
@@ -710,6 +715,14 @@ public class GameCore extends Canvas implements Runnable {
             entrarCasaVendedor();
         }
 
+        if (input.isKeyJustPressed(KeyEvent.VK_F9)) {
+            MorsaBoss morsa = enemyManager.getMorsaBoss();
+            if (morsa != null && !morsa.isEmSequenciaMorte()) {
+                System.out.println("DEBUG: vida do boss zerada (F9).");
+                morsa.matarParaTeste();
+            }
+        }
+
     }
 
     public SoundManager.BGM getLevel1MusicaIntro() {
@@ -862,6 +875,14 @@ public class GameCore extends Canvas implements Runnable {
         }
         cutsceneManager.update();
 
+        MorsaBoss bossFinal = enemyManager.getMorsaBoss();
+        if (bossFinal != null && bossFinal.isEmSequenciaMorte()) {
+            bossFinal.update(player, levelManager.getJumpLinks());
+            atualizarCameraSemInput();
+            if (getDebug()) debugInputProcessing();
+            return;
+        }
+
         // Intercepta a morte e carrega o save
         if (player.isDead()) {
             gameState = GameState.GAME_OVER;
@@ -992,6 +1013,22 @@ public class GameCore extends Canvas implements Runnable {
         gameState = state;
     }
 
+    public void iniciarMorteDoBoss(double bossCenterX, double bossCenterY) {
+        player.setBlockInputs(true);
+        bulletmanager.limparTudo();
+        soundManager.BGMfadeOut(1800);
+        camera.clearCombatTarget();
+        camera.setModoCombate(false);
+        camera.focarEm(bossCenterX, bossCenterY);
+        setCinematicBorderAnimation(Renderer.BorderState.IN);
+    }
+
+    public void iniciarFinalDoJogo() {
+        if (gameState == GameState.CREDITS) return;
+        creditsScreen.reset();
+        gameState = GameState.CREDITS;
+    }
+
     public void processarNovoMapa(ArrayList<TiledObject> objetosDoMapa) {
         enemyManager.limparTudo();
         bulletmanager.limparTudo();
@@ -1102,6 +1139,7 @@ public class GameCore extends Canvas implements Runnable {
         npcManager.clearAll();
         chavesColetadasCheckpoint = 0;
         player.resetarProgresso();
+        player.setBlockInputs(false);
         hud.resetJaPegou();
         renderer.setBorderProgress(0.0);
         setCinematicBorderAnimation(Renderer.BorderState.IDLE);
@@ -1215,6 +1253,13 @@ public class GameCore extends Canvas implements Runnable {
                     }
                     case KEYBINDINGS -> {
                         keyBindingsMenu.render(g2, getWidth(), getHeight());
+                    }
+                    case CREDITS -> {
+                        renderer.renderizar(g2, camera, player, input,
+                                getWidth(), getHeight(), levelManager, bulletmanager, itemManager,
+                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
+                                cutsceneManager, !estaDentroLoja, dayProgress, delta, false, false);
+                        creditsScreen.render(g2, getWidth(), getHeight());
                     }
                     case QUIT -> {
                     }
