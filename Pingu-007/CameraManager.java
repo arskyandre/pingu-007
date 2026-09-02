@@ -283,7 +283,7 @@ public class CameraManager {
         this.zoomFocoAlvo = zoomBase;
     }
 
-    /** overload, foca com tempo indefinido ate rodar desfocarCamera() */
+    /** foca com tempo indefinido ate rodar desfocarCamera() */
     public void focarEm(double worldX, double worldY) {
         this.foco_indefinido = true;
         this.focoAlvoX = worldX;
@@ -337,10 +337,6 @@ public class CameraManager {
         recalcularZoomFocoAlvo(telaLargura, telaAltura);
     }
 
-    /**
-     * Enquadra imediatamente uma regiao do mapa e mantem o foco ate
-     * desfocarCamera() ou resetCameraState() ser chamado.
-     */
     public void focarEmRectTeleport(Rectangle2D.Double rect, int telaLargura, int telaAltura) {
         validarRectDeFoco(rect);
 

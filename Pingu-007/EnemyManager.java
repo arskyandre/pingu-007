@@ -129,10 +129,6 @@ public class EnemyManager {
         morsaAtual = null;
     }
 
-    /**
-     * Remove um inimigo durante restauracoes de estado, sem som, loot,
-     * contagem de abate ou animacao de morte.
-     */
     public void removerSemEfeitos(Enemy enemy) {
         if (enemy == null) {
             return;

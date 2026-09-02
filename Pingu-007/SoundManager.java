@@ -9,6 +9,7 @@ public class SoundManager {
 
     /**
      * @param path caminho para o arquivo de som, WAV 16-bit PCM
+     * 
      */
     public enum BGM {
         MAIN_MENU("sound/bgm/main_menu.wav"),
@@ -31,8 +32,7 @@ public class SoundManager {
     }
 
     /**
-     * @param path     caminho para o arquivo de som, WAV 16-bit PCM nao funciona
-     *                 mp3
+     * @param path     caminho para o arquivo de som, WAV 16-bit,nao funciona MP3
      * @param poolSize quantidade maxima de copias simultaneas desse som(quantas
      *                 explosoes podem tocar ao mesmo tempo, por exemplo)
      */

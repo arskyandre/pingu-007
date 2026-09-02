@@ -896,7 +896,7 @@ public class GameCore extends Canvas implements Runnable {
             return;
         }
 
-        // Cria o save se pegou chave nova OU passou em um trigger de checkpoint
+        // Cria o save se pegou chave nova ou passou num checkpoint
         if (player.getTotalChavesColetadas() > chavesColetadasCheckpoint || player.isCheckpointSolicitado()) {
             salvarCheckpoint();
             chavesColetadasCheckpoint = player.getTotalChavesColetadas();
@@ -944,7 +944,7 @@ public class GameCore extends Canvas implements Runnable {
         if (cutsceneManager.isBossIntroAtiva()) {
             MorsaBoss morsa = enemyManager.getMorsaBoss();
             if (morsa != null) {
-                morsa.atualizarCutsceneIntro(); // só cuida do rugido/tremida — sem alvo, sem ataque, sem BossMao
+                morsa.atualizarCutsceneIntro();
             }
         }
         if (dialogueManager.isAtivo()) {

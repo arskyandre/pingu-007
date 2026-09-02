@@ -34,7 +34,7 @@ public class LevelManager {
             GameCore.setLevel2(true);
         } else
             GameCore.setLevel2(false);
-        
+
         System.out.println(filename + " loaded");
         carregarMapData(filename);
         Game.processarNovoMapa(mapDataAtual.objects);
@@ -176,10 +176,6 @@ public class LevelManager {
         return arquivoNivelAtual;
     }
 
-    /**
-     * Retorna o enquadramento inicial definido no Tiled, ja convertido para
-     * coordenadas do mundo pelo processamento dos objetos do mapa.
-     */
     public Rectangle2D.Double getCameraFocus() {
         if (mapDataAtual == null || mapDataAtual.objects == null) {
             return null;

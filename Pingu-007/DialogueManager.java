@@ -139,11 +139,6 @@ public class DialogueManager {
     }
   }
 
-  /**
-   * Se a fala atual comeca com um prefixo tipo "NOME: ", esse prefixo
-   * (nome + ":") e escrito instantaneamente, pulando a animacao de
-   * digitacao apenas para essa parte.
-   */
   private void aplicarPrefixoInstantaneo() {
     int prefixLen = tamanhoPrefixoNome(falas[falaAtualIndex]);
     if (prefixLen > 0) {
@@ -152,12 +147,6 @@ public class DialogueManager {
     }
   }
 
-  /**
-   * Detecta a primeira ocorrencia de ":" na string. Se tudo antes dela for
-   * maiusculo (ignorando espacos), retorna o indice logo apos o ":" (e o
-   * espaco seguinte, se houver) — ou seja, o tamanho do prefixo "NOME: ".
-   * Retorna 0 se nao houver prefixo valido.
-   */
   private int tamanhoPrefixoNome(String texto) {
     int colonIndex = texto.indexOf(':');
     if (colonIndex <= 0) {

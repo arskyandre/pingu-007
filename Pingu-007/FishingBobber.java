@@ -13,9 +13,9 @@ public class FishingBobber {
     private Player owner;
     private FishingManager fishingManager;
 
-    private final double MAX_DIST = 350.0; // Distância máxima antes da linha quebrar
-    private final double BASE_PULL_FORCE = 40.0; // Força base do puxão
-    private static final double LANDING_SPEED_THRESHOLD = 0.5; // abaixo disso, a boia "assentou" naturalmente
+    private final double MAX_DIST = 350.0;
+    private final double FORCA_BASE = 40.0;
+    private static final double SPEED_THRESHOLD = 0.5;
 
     public void setFishingManager(FishingManager fishingManager) {
         this.fishingManager = fishingManager;
@@ -56,10 +56,10 @@ public class FishingBobber {
             double dist = Math.hypot(hookedEnemy.getX() + hookedEnemy.getLargura() / 2.0 - originX,
                     hookedEnemy.getY() + hookedEnemy.getAltura() / 2.0 - originY);
 
-            double distanceFactor = Math.min(Math.max(dist / MAX_DIST, 0.1), 1.0);
-            double finalForce = BASE_PULL_FORCE * distanceFactor;
+            double factor = Math.min(Math.max(dist / MAX_DIST, 0.1), 1.0);
+            double forca_final = FORCA_BASE * factor;
 
-            hookedEnemy.serPuxado(originX, originY, finalForce);
+            hookedEnemy.serPuxado(originX, originY, forca_final);
         }
         reset();
     }
@@ -122,7 +122,7 @@ public class FishingBobber {
             }
 
             if (hookedEnemy != null) {
-                return; // fisgou um inimigo neste frame, nao processa pouso
+                return;
             }
 
             int col = (int) (x / GameCore.tiles_size);
@@ -145,8 +145,7 @@ public class FishingBobber {
                 }
             }
 
-            // pouso "natural" (agua comum, parede, etc.) por perda de velocidade
-            if (Math.hypot(velX, velY) < LANDING_SPEED_THRESHOLD) {
+            if (Math.hypot(velX, velY) < SPEED_THRESHOLD) {
                 onLanded(lvlData, row, col);
             }
         }

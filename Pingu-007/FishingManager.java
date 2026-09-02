@@ -14,7 +14,6 @@ public class FishingManager {
         IDLE, WAITING, BITING, SUCCESS, MISSED
     }
 
-    // tipo do buraco de pesca sendo trabalhado no momento
     public enum HoleType {
         NONE, NORMAL, KEY
     }
@@ -199,12 +198,6 @@ public class FishingManager {
         }
     }
 
-    /**
-     * Retorna true se esse buraco esta na dificuldade "dificil" —
-     * ou seja, e um buraco KEY e o player ainda nao possui a chave dele.
-     * Assim que a chave e obtida (onFishCaught), esse mesmo buraco
-     * volta a dificuldade normal em futuras pescarias.
-     */
     private boolean isHardBite() {
         return currentHoleType == HoleType.KEY && !playerHasKey;
     }
@@ -264,7 +257,6 @@ public class FishingManager {
         player.setBlockInputs(false);
     }
 
-    /** Quando o player pesca */
     private void onFishCaught() {
         if (firstFlag) {
             firstFlag = false;
@@ -351,7 +343,6 @@ public class FishingManager {
         g2.setColor(ringColor);
         g2.drawOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
 
-        
         int barW = 80;
         int barH = 12;
         int barX = centerX - barW / 2;
@@ -368,7 +359,6 @@ public class FishingManager {
         g2.setColor(Color.WHITE);
         g2.drawRect(barX, barY, barW, barH);
 
-        
         g2.setFont(MenuButton.pixelFont.deriveFont(hard ? 10f : 12f));
         FontMetrics fm = g2.getFontMetrics();
         String texto = "[E] / [Y]";

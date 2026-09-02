@@ -40,7 +40,7 @@ public abstract class Enemy extends Entity {
     protected int timerPuxado = 0;
 
     /**
-     * atribuir efeito sonoro de morte do inimigo pelo enum SFX do SoundManager,
+     * TODO: atribuir efeito sonoro de morte do inimigo pelo enum SFX do SoundManager(falta: Jumper, Dasher, Shooter, Maos da Morsa(?))
      * o som toca para todo inimigo morto pelo EnemyManager
      */
     protected SoundManager.SFX deathSFX = null;

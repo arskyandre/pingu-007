@@ -33,25 +33,25 @@ public class MorsaBoss extends Enemy {
     private CameraManager camera;
     private EnemyManager enemyManager;
 
-    // Controle do Rugido e Fase 2
+    
     private boolean rugindo = false;
     private double timerRugido = 0;
     private double cooldownRugido = 30;
     private boolean podeRugir = false;
 
-    // Lógica de Spawn (Mobs)
+    
     private int contadorRugidos = 0;
     private int rugidosParaSpawn = 3;
     private ArrayList<Enemy> minionsSpawnados = new ArrayList<>();
     private ArrayList<Point2D.Double> pontosDeSpawn = new ArrayList<>();
 
-    // Controle de Ataques
+    
     private double timerAtaque = 120;
     private int ataqueSorteio = 0;
     private BossMao maoEsmagandoAtiva = null;
     private int contadorBote = 0;
 
-    // Sequencia final (medida em frames, como o restante da IA do boss)
+    
     private boolean sequenciaMorte = false;
     private int timerMorte = 0;
     private static final int MORTE_BRANCA_FRAMES = 75;
@@ -93,7 +93,7 @@ public class MorsaBoss extends Enemy {
         return branca;
     }
 
-    // MÉTODOS DE SPAWN E MANAGERS
+    
     public void setEnemyManager(EnemyManager em) {
         this.enemyManager = em;
     }
@@ -767,18 +767,15 @@ class BossMao extends Enemy {
 
     private double slamTargetX, slamTargetY;
 
-    // Sombra
     private boolean mostrarSombra = false;
     private double sombraX, sombraY;
     private double sombraScale = 0.0;
 
-    // Marcador de impacto, separado da sombra decorativa.
     private boolean mostrarMarcadorPouso = false;
     private double marcadorPousoX, marcadorPousoY;
     private double marcadorPousoProgresso = 0.0;
     private double tremorVisualX = 0.0;
 
-    // Física do Estilingue e Controle de Dano
     private double slingshotDirX = 0;
     private double slingshotDirY = 0;
     private int cooldownDano = 0;
@@ -860,12 +857,12 @@ class BossMao extends Enemy {
 
     @Override
     public void receberDano(int dano) {
-        // Mão imortal a tiros
+        // mao imortal a tiros
     }
 
     @Override
     public void receberDano(int dano, double sourceX, double sourceY, double knockbackForce) {
-        // Ignora dano e knockback
+        // ignora dano e knockback
     }
 
     @Override
@@ -1117,6 +1114,7 @@ class BossMao extends Enemy {
                     this.velX = 0;
                     this.velY = 0;
                 }
+
                 // Velocidade estilingue
                 int limiteHoverRecovery = corpoPrincipal.isFase2() ? 50 : 90;
                 if (timerEstado > limiteHoverRecovery) {
@@ -1131,11 +1129,10 @@ class BossMao extends Enemy {
                 sombraY = this.y + this.height;
                 sombraScale = 1.0;
 
-                // Jogador puxa (botão direito)
                 if (this.isPuxado || Math.abs(this.velX) > 2 || Math.abs(this.velY) > 2) {
                     status = MaoState.PULLED_TO_PLAYER;
                     timerEstado = 0;
-                } // Linha quebra
+                }
                 else if (!this.isHooked) {
                     status = MaoState.RETURNING;
                     timerEstado = 0;
@@ -1202,7 +1199,7 @@ class BossMao extends Enemy {
                     corpoPrincipal.receberDano(100);
                     impacto = true;
                 }
-                // Colisão Mobs
+                // Colisão mobs
                 EnemyManager em = corpoPrincipal.getEnemyManager();
                 if (em != null) {
                     for (Enemy e : em.getEnemies()) {

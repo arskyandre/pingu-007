@@ -15,7 +15,7 @@ public class ShopItemButton extends MenuButton {
     private static final int ICON_TEXT_GAP = 14;
     private static final int PRICE_ICON_SIZE = 16;
     private static final int PRICE_RIGHT_MARGIN = 16;
-    // espaço reservado pro preço + icone de moeda, independente do valor exato
+
     private static final int PRICE_RESERVED_WIDTH = 90;
     private static final int VERTICAL_PADDING = 16;
 
@@ -23,16 +23,12 @@ public class ShopItemButton extends MenuButton {
         super(item.nome, x, y, width, height);
         this.item = item;
         this.coinIcon = coinIcon;
-        // Nao pode ser feito dentro de adjustHeight(): esse metodo e chamado
-        // pelo construtor de MenuButton, ANTES dos campos desta subclasse
-        // (como "item") serem atribuidos. Por isso o calculo real acontece
-        // aqui, apos os campos ja estarem prontos.
+
         ajustarAlturaPeloNome(height);
     }
 
     @Override
     protected void adjustHeight() {
-        // no-op de propósito — ver comentário no construtor acima.
     }
 
     @Override
@@ -182,7 +178,6 @@ public class ShopItemButton extends MenuButton {
         }
         drawTextWithShadow(g2, precoTexto, precoX, precoBaselineY, new Color(255, 215, 80));
 
-        // linha pontilhada guia so faz sentido com o nome em uma unica linha
         if (nomeLines.size() == 1) {
             int lineStartX = nameX + fmNome.stringWidth(nomeLines.get(0)) + 10;
             int lineEndX = iconPriceX - 10;
