@@ -21,10 +21,9 @@ public class Player extends Entity {
     private double dirY = 0;
 
     private boolean blockInputs = false;
-    private static final double UPDATES_PER_SECOND = 60.0;
     private double velocityOverrideX = 0;
     private double velocityOverrideY = 0;
-    private double velocityOverrideUpdatesRemaining = 0;
+    private int velocityOverrideUpdatesRemaining = 0;
 
     private boolean podeDash = true;
     private boolean emDash = false;
@@ -472,9 +471,8 @@ public class Player extends Entity {
         }
         if (spriteOverrideTimer > 0) {
             spriteOverrideTimer--;
-            if (spriteOverrideTimer <= 0) {
-                spriteOverrideIndex = -1;
-            }
+        } else {
+            spriteOverrideIndex = -1;
         }
         dmgCheck();
         double controleAtual = emDash ? controleDash : 1.0;
@@ -578,7 +576,7 @@ public class Player extends Entity {
                         setGunType(Player.GunType.PISTOL);
                         if (ToastNotifications.getNotifAtual() != null
                                 && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                             ToastNotifications.skipNotification();
                         }
                         if (ToastNotifications.getNotifAtual() == null
@@ -589,7 +587,7 @@ public class Player extends Entity {
                         setGunType(Player.GunType.SHOTGUN);
                         if (ToastNotifications.getNotifAtual() != null
                                 && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                             ToastNotifications.skipNotification();
                         }
                         if (ToastNotifications.getNotifAtual() == null
@@ -615,7 +613,8 @@ public class Player extends Entity {
 
                 if (!hasVelocityOverride()
                         && (input.isButtonPressed(InputManager.GamepadButton.A)
-                        || input.isButtonPressed(InputManager.GamepadButton.LB)) && podeDash && !emDash) {
+                                || input.isButtonPressed(InputManager.GamepadButton.LB))
+                        && podeDash && !emDash) {
                     if (analogicoEsquerdo.x != 0 || analogicoEsquerdo.y != 0) {
                         aplicarDashDirecional(analogicoEsquerdo.partiallyNormalized());
                     }
@@ -868,9 +867,9 @@ public class Player extends Entity {
         fishingBobber.update(enemies, lvlData, this);
     }
 
-    public void setTemporarySpriteOverride(int spriteIndex, int durationFrames) {
+    public void setTemporarySpriteOverride(int spriteIndex, int durationUpdates) {
         this.spriteOverrideIndex = spriteIndex;
-        this.spriteOverrideTimer = durationFrames;
+        this.spriteOverrideTimer = durationUpdates;
     }
 
     @Override
@@ -944,7 +943,7 @@ public class Player extends Entity {
                 animSp = 22;
             }
         }
-        boolean overrideAtivo = spriteOverrideTimer > 0 && spriteOverrideIndex >= 0
+        boolean overrideAtivo = spriteOverrideIndex >= 0
                 && spriteOverrideIndex < Sprites.length;
         int spriteFinal = overrideAtivo ? spriteOverrideIndex : (animSp + animIndex);
 
@@ -1157,21 +1156,16 @@ public class Player extends Entity {
         this.blockInputs = valor;
     }
 
-    /**
-     * Sets an exact velocity and keeps it unchanged by player input and
-     * friction for the requested duration in seconds. Map collisions can still
-     * stop it.
-     */
-    public void setVelocity(double velocityX, double velocityY, double duration) {
-        if (!Double.isFinite(velocityX) || !Double.isFinite(velocityY) || !Double.isFinite(duration)) {
-            throw new IllegalArgumentException("Velocity and duration must be finite numbers");
+    public void setVelocity(double velocityX, double velocityY, int durationUpdates) {
+        if (!Double.isFinite(velocityX) || !Double.isFinite(velocityY)) {
+            throw new IllegalArgumentException("Velocity must contain finite numbers");
         }
 
         this.velX = velocityX;
         this.velY = velocityY;
         this.velocityOverrideX = velocityX;
         this.velocityOverrideY = velocityY;
-        this.velocityOverrideUpdatesRemaining = Math.max(0, duration) * UPDATES_PER_SECOND;
+        this.velocityOverrideUpdatesRemaining = Math.max(0, durationUpdates);
     }
 
     private boolean hasVelocityOverride() {

@@ -676,6 +676,10 @@ public class ArenaManager {
                 gameCore.sairCasaVendedor();
                 return;
             }
+            if (LoadSave.LEVEL_2_DATA.equals(mapaDestino)) {
+                gameCore.entrarNivelBoss();
+                return;
+            }
             gameCore.transicionarMapa(mapaDestino);
         }
     }

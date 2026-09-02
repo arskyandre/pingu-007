@@ -580,11 +580,11 @@ public class GameCore extends Canvas implements Runnable {
     public void triggerDialogoInicial() {
         if (!dialogueManager.isAtivo()) {
             dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadio, DialogueCatalogo.FalaInicialRadio,
-                    new BufferedImage[]{
-                        pingu_portrait,
-                        cellphone_image,
-                        pingu_portrait,
-                        cellphone_image
+                    new BufferedImage[] {
+                            pingu_portrait,
+                            cellphone_image,
+                            pingu_portrait,
+                            cellphone_image
                     });
             dialogueManager.setAoTerminarDialogo(() -> {
                 ToastNotifications.RequestNotification("Use as setas para selecionar a opção e ENTER para confirmar.",
@@ -757,7 +757,7 @@ public class GameCore extends Canvas implements Runnable {
         }
 
         levelManager.carregarNivel(LoadSave.CASA_VENDEDOR);
-        player.setVelocity(0, -4.25, 0.2);
+        player.setVelocity(0, -4.25, 12);
         mapLoadCooldown = 60;
         configurarCameraDoMapaAtual();
         soundManager.crossfadeBGM(SoundManager.BGM.INSIDE_INTRO, SoundManager.BGM.INSIDE_LOOP, 2000, 1.25, false);
@@ -816,10 +816,14 @@ public class GameCore extends Canvas implements Runnable {
         arenaManager.setFirstArenaFlag(false);
         mapLoadCooldown = 60;
         configurarCameraDoMapaAtual();
+        System.out.println("Entrou nivel boss");
+        player.setTemporarySpriteOverride(14, 40);
+        player.setVelocity(0, -4.25, 40);
     }
 
     public void entrarNivelTest() {
-        screenTransition.start(this::entrarNivelTestImediato);
+        entrarNivelTestImediato();
+        // screenTransition.start(this::entrarNivelTestImediato);
     }
 
     private void entrarNivelTestImediato() {
@@ -887,7 +891,8 @@ public class GameCore extends Canvas implements Runnable {
         if (bossFinal != null && bossFinal.isEmSequenciaMorte()) {
             bossFinal.update(player, levelManager.getJumpLinks());
             atualizarCameraSemInput();
-            if (getDebug()) debugInputProcessing();
+            if (getDebug())
+                debugInputProcessing();
             return;
         }
 
@@ -1028,7 +1033,8 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void iniciarFinalDoJogo() {
-        if (gameState == GameState.CREDITS) return;
+        if (gameState == GameState.CREDITS)
+            return;
         creditsScreen.reset();
         gameState = GameState.CREDITS;
     }
