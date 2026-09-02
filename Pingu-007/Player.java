@@ -39,6 +39,10 @@ public class Player extends Entity {
     private double ultimaDirecaoMovimentoX = 0;
     private double ultimaDirecaoMovimentoY = 0;
 
+    private boolean hasPoderSixSeven = false;
+    private final int sixSevenCooldown = 60;
+    private int sixSevenCooldownTimer = 0;
+
     private int totalEnemyCount = 0;
     private int currentEnemyCount = 0;
     private int shooterEnemyCount = 0;
@@ -469,6 +473,9 @@ public class Player extends Entity {
         if (iFramesTimer > 0) {
             iFramesTimer--;
         }
+        if (sixSevenCooldownTimer > 0) {
+            sixSevenCooldownTimer--;
+        }
         if (spriteOverrideTimer > 0) {
             spriteOverrideTimer--;
         } else {
@@ -711,9 +718,19 @@ public class Player extends Entity {
                     setY((double) (60 * GameCore.tiles_size));
                 }
 
-                if (GameCore.getDebug() && input.isKeyPressed(KeyEvent.VK_6) && input.isKeyJustPressed(KeyEvent.VK_7)) {
+                if (GameCore.getDebug() && input.isKeyPressed(KeyEvent.VK_S) && input.isKeyJustPressed(KeyEvent.VK_H)) {
                     hasShotgun = true;
                     ToastNotifications.RequestNotification("DEBUG 67: habilitou shotgun", 2.0);
+                }
+
+                // poder do six seben
+                if (sixSeven(input) && sixSevenCooldownTimer <= 0) {
+                    if (consumeSixSeven()) {
+                        soundManager.playSFX(SoundManager.SFX.SIX_SEVEN);
+                    } else {
+                        soundManager.playSFX(SoundManager.SFX.SEM_AURA);
+                    }
+                    sixSevenCooldownTimer = sixSevenCooldown;
                 }
 
                 boolean pressedG = input.isKeyJustPressed(KeyEvent.VK_G);
@@ -794,6 +811,26 @@ public class Player extends Entity {
         }
 
         updatePlayerMovement();
+    }
+
+    public boolean getHasPoderSixSeven() {
+        return hasPoderSixSeven;
+    }
+
+    public void setHasPoderSixSeven(boolean set) {
+        hasPoderSixSeven = set;
+    }
+
+    public boolean consumeSixSeven() {
+        if (getHasPoderSixSeven()) {
+            setHasPoderSixSeven(false);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean sixSeven(InputManager input) {
+        return input.isKeyPressed(KeyEvent.VK_6) && input.isKeyJustPressed(KeyEvent.VK_7);
     }
 
     private void updatePlayerDirection(double mouseX, double mouseY) {
@@ -1051,6 +1088,8 @@ public class Player extends Entity {
         this.dasherEnemyCount = 0;
         this.bomberEnemyCount = 0;
         this.fasterFishing = false;
+        this.hasPoderSixSeven = false;
+        this.sixSevenCooldownTimer = 0;
         this.pente = 15;
         iscas = 0;
         moedas = 0;
@@ -1238,7 +1277,8 @@ public class Player extends Entity {
         return chavesColetadasTotal;
     }
 
-    public void metodoInutil(){
+    public void metodoInutil() {
+        setHasPoderSixSeven(true);
         soundManager.playSFX(SoundManager.SFX.SCREAM);
     }
 }
