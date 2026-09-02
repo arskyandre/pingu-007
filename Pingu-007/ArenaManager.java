@@ -124,7 +124,7 @@ public class ArenaManager {
                     boolean isInteract = obj.isInteractive || "interativo".equals(tipo) || "pescar".equals(acao) || "trocar_mapa".equalsIgnoreCase(acao);
 
                     if (isInteract) {
-                        InteractiveMapObject interativo = new InteractiveMapObject(obj, gameCore.getDialogueManager());
+                        InteractiveMapObject interativo = new InteractiveMapObject(obj, gameCore.getDialogueManager(),gameCore);
                         objetosDeCenario.add(interativo);
                         interactives.add(interativo);
                     } else if ("colision".equals(tipo)) {

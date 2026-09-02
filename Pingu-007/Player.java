@@ -1237,4 +1237,8 @@ public class Player extends Entity {
     public int getTotalChavesColetadas() {
         return chavesColetadasTotal;
     }
+
+    public void metodoInutil(){
+        soundManager.playSFX(SoundManager.SFX.SCREAM);
+    }
 }

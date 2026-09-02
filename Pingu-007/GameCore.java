@@ -53,6 +53,7 @@ public class GameCore extends Canvas implements Runnable {
     public static BufferedImage cellphone_image = LoadSave.GetSpriteAtlas("images/portrait/cellphone.png");
     public static BufferedImage pingu_portrait = LoadSave.GetSpriteAtlas("images/portrait/pingu_portrait_close.jpg");
     public static BufferedImage pescador_portrait = LoadSave.GetSpriteAtlas("images/portrait/pescador_portrait.png");
+    public static BufferedImage star_portrait = LoadSave.GetSpriteAtlas("images/portrait/star_portrait.png");
 
     public static Font pixelFont;
 
@@ -1436,6 +1437,7 @@ public class GameCore extends Canvas implements Runnable {
             }
         }
     }
+
 
     public void start() {
         new Thread(this).start();

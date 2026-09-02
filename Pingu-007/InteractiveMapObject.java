@@ -5,17 +5,21 @@ import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.util.concurrent.TimeUnit;
 
 public class InteractiveMapObject extends MapObject {
 
     private boolean playerCanInteract = false;
     private DialogueManager dialogueManager;
+    private GameCore gameCore;
     private String acao;
     private boolean isAberto_Concluido = false;
+    private boolean starEvent = false;
 
-    public InteractiveMapObject(TiledObject tObj, DialogueManager dm) {
+    public InteractiveMapObject(TiledObject tObj, DialogueManager dm, GameCore GC) {
         super(tObj);
         this.dialogueManager = dm;
+        this.gameCore = GC;
         this.acao = tObj.acao != null ? tObj.acao.trim() : "";
         // if ("abrir_portao".equalsIgnoreCase(this.acao)) {
         //     System.out.println("\n=== DEBUG PORTÃO: NASCIMENTO ===");
@@ -67,10 +71,30 @@ public class InteractiveMapObject extends MapObject {
             return true;
         }
 
-        if ("star".equalsIgnoreCase(acao)) {
+        if ("star".equalsIgnoreCase(acao) && !starEvent) {
+            starEvent = true;
             dialogueManager.iniciarDialogo(new String[]{
-                "PINGU ME AJUDE! ENFIARAM UMA ARVORE NO MEU RABO SOCORRO AAAAAAA"}, null,
-                    new BufferedImage[]{GameCore.cellphone_image});
+                "PINGU ME AJUDE! ENFIARAM UMA ARVORE NO MEU BUTICO SOCORRO AAAAAAA"}, null,
+                    new BufferedImage[]{GameCore.star_portrait});
+                this.data.gid += 1;
+                LoadSave.applyGidData(this.data);
+                this.setSprite(this.data.sprite);
+            dialogueManager.setAoTerminarDialogo(()->{
+                player.metodoInutil();
+                this.data.gid += 1;
+                LoadSave.applyGidData(this.data);
+                this.setSprite(this.data.sprite);
+                dialogueManager.iniciarDialogo(new String[]{
+                    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}, null,
+                        new BufferedImage[]{GameCore.star_portrait});
+                dialogueManager.setAoTerminarDialogo(()->{
+                    this.data.gid -= 3;
+                LoadSave.applyGidData(this.data);
+                this.setSprite(this.data.sprite);
+                });
+                //grita e muda pra uma arvore normal
+            });
+            
             return true;
         }
 

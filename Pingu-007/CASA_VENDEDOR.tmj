@@ -104,6 +104,7 @@
                  "height":32,
                  "id":26,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -116,6 +117,7 @@
                  "height":32,
                  "id":27,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -128,6 +130,7 @@
                  "height":32,
                  "id":28,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -140,24 +143,13 @@
                  "height":32,
                  "id":29,
                  "name":"",
+                 "opacity":1,
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":16,
                  "x":112,
                  "y":96
-                }, 
-                {
-                 "gid":224,
-                 "height":32,
-                 "id":30,
-                 "name":"",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":16,
-                 "x":192,
-                 "y":144
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -174,6 +166,7 @@
                  "height":0,
                  "id":1,
                  "name":"PlayerSpawner",
+                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -192,6 +185,7 @@
                  "height":0,
                  "id":19,
                  "name":"NPCSpawner",
+                 "opacity":1,
                  "point":true,
                  "properties":[
                         {
@@ -234,21 +228,10 @@
          "name":"Paredes",
          "objects":[
                 {
-                 "gid":224,
-                 "height":32,
-                 "id":32,
-                 "name":"",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":16,
-                 "x":192,
-                 "y":96
-                }, 
-                {
                  "height":19,
                  "id":35,
                  "name":"",
+                 "opacity":1,
                  "properties":[
                         {
                          "name":"destino",
@@ -325,6 +308,7 @@
                  "height":144,
                  "id":34,
                  "name":"camera_focus",
+                 "opacity":1,
                  "rotation":0,
                  "type":"camera_focus",
                  "visible":true,
@@ -342,7 +326,7 @@
  "nextobjectid":36,
  "orientation":"orthogonal",
  "renderorder":"right-down",
- "tiledversion":"1.11.2",
+ "tiledversion":"1.12.2",
  "tileheight":16,
  "tilesets":[
         {
