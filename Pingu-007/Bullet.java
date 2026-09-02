@@ -1,3 +1,5 @@
+import java.awt.image.BufferedImage;
+
 public class Bullet {
 
     private double x, y;
@@ -17,6 +19,7 @@ public class Bullet {
     private final boolean damageFalloff;
     private static final double DANO_MINIMO_FRACAO = 0.15;
     private double distanciaPercorrida = 0;
+    private BufferedImage sprite;
 
     Bullet(double x, double y, double dirX, double dirY, BulletOwner owner) {
         this(x, y, dirX, dirY, owner, false);
@@ -42,6 +45,9 @@ public class Bullet {
             this.velX = (dirX / len) * speed;
             this.velY = (dirY / len) * speed;
         }
+
+        sprite = LoadSave.GetSpriteAtlas("images/bala.png");
+
     }
 
     public void update(CameraManager camera, int telaLargura, int telaAltura) {
@@ -97,5 +103,9 @@ public class Bullet {
 
     public double getKnockback() {
         return KnockbackForce;
+    }
+
+    public BufferedImage getSprite(){
+        return sprite;
     }
 }

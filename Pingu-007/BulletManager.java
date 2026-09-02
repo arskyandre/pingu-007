@@ -84,7 +84,8 @@ public class BulletManager {
                 }
             } else if (b.getOwner() == BulletOwner.ENEMY) {
                 if (player.getHurtbox() != null) {
-                    if (b.getCollider().intersects(b.getX(), b.getY(), player.getHurtbox(), player.getX(), player.getY())) {
+                    if (b.getCollider().intersects(b.getX(), b.getY(), player.getHurtbox(), player.getX(),
+                            player.getY())) {
                         player.receberDano(b.getDano());
                         b.desativar();
                     }
@@ -98,7 +99,9 @@ public class BulletManager {
         for (Bullet b : Bullets) {
             if (camera.onScreen(b.getX(), b.getY(), b.getLargura(), b.getAltura(), telaLargura, telaAltura)) {
                 g2.fill(new Ellipse2D.Double(b.getX() - 4, b.getY() - 4, 8, 8));
+                g2.drawImage(b.getSprite(), (int) b.getX() - 24, (int) b.getY() - 24, 48, 48, null);
             }
+
         }
     }
 
