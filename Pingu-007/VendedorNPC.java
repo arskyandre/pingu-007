@@ -13,7 +13,7 @@ public class VendedorNPC extends NPC {
     private final ShopMenu shopMenu;
     private static final double WIDTH = GameCore.tiles_size;
     private static final double HEIGHT = GameCore.tiles_size;
-    private final double inimigosPorMoeda = 25 /* inimigos */ / 10 /* moedas */;
+    private final double inimigosPorMoeda = 25.0 /* inimigos */ / 15.0 /* moedas */;
     private boolean proximo = false;
     private BufferedImage Sprite;
     private CameraManager camera;
