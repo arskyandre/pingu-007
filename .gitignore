@@ -25,3 +25,6 @@ replay_pid*
 
 *.mp4
 review.md
+
+find_todos.py
+TODOs.txt

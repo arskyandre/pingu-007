@@ -1228,6 +1228,7 @@
         {
          "draworder":"topdown",
          "id":19,
+         "locked":true,
          "name":"bInterativos",
          "objects":[
                 {
@@ -1680,7 +1681,6 @@
         {
          "draworder":"topdown",
          "id":16,
-         "locked":true,
          "name":"Spawners",
          "objects":[
                 {
@@ -1908,7 +1908,7 @@
                         {
                          "name":"enemy",
                          "type":"string",
-                         "value":"lobo"
+                         "value":"jumper"
                         }, 
                         {
                          "name":"horda",
@@ -2040,7 +2040,7 @@
                         {
                          "name":"enemy",
                          "type":"string",
-                         "value":"dasher"
+                         "value":"shooter"
                         }, 
                         {
                          "name":"horda",
@@ -3546,8 +3546,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":4077,
-                 "y":820
+                 "x":4079,
+                 "y":832
                 }, 
                 {
                  "height":0,
@@ -3612,8 +3612,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":4036,
-                 "y":640
+                 "x":4040,
+                 "y":705
                 }, 
                 {
                  "height":0,
@@ -3645,8 +3645,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":4146,
-                 "y":901
+                 "x":4115,
+                 "y":891
                 }, 
                 {
                  "height":0,
@@ -3975,8 +3975,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":4101,
-                 "y":889
+                 "x":4171,
+                 "y":927
                 }, 
                 {
                  "height":0,
@@ -4008,8 +4008,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":4056,
-                 "y":738
+                 "x":4070,
+                 "y":769
                 }, 
                 {
                  "height":0,
@@ -4833,8 +4833,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":4149,
-                 "y":1526
+                 "x":4176,
+                 "y":1511
                 }, 
                 {
                  "height":0,
@@ -4866,8 +4866,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":4046,
-                 "y":1536
+                 "x":4075,
+                 "y":1520
                 }, 
                 {
                  "height":0,
@@ -4944,8 +4944,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":4073,
-                 "y":1503
+                 "x":4030,
+                 "y":1484
                 }, 
                 {
                  "height":0,
@@ -5175,8 +5175,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":4110,
-                 "y":1542
+                 "x":4113,
+                 "y":1550
                 }, 
                 {
                  "height":0,
@@ -5274,8 +5274,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":4036,
-                 "y":1574
+                 "x":4039,
+                 "y":1561
                 }, 
                 {
                  "height":0,
@@ -5373,8 +5373,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":3926,
-                 "y":1663
+                 "x":3961,
+                 "y":1696
                 }, 
                 {
                  "height":0,
@@ -5670,8 +5670,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":4199,
-                 "y":1510
+                 "x":4212,
+                 "y":1508
                 }, 
                 {
                  "height":0,

@@ -54,6 +54,7 @@ public class Player extends Entity {
     private static boolean desbloqueouRecompensa = false;
     private boolean extendedMag = false;
     private boolean fasterReload = false;
+    private boolean temCapacete = false;
     private int moedas = 0;
     private int iscas = 0;
     private int armas = 1;
@@ -228,6 +229,14 @@ public class Player extends Entity {
         return fasterReload;
     }
 
+    public void setTemCapacete(boolean set) {
+        temCapacete = set;
+    }
+
+    public boolean getTemCapacete() {
+        return temCapacete;
+    }
+
     public void setExtendedMag(boolean set) {
         extendedMag = set;
         if (extendedMag) {
@@ -345,7 +354,8 @@ public class Player extends Entity {
         }
         if ((iFramesTimer == 0 && !emDash) || isCaindo) {
             soundManager.playSFX(SoundManager.SFX.PLAYER_DAMAGE);
-            super.receberDano(dano);
+            int dmg = (!getTemCapacete()) ? dano : (int) (dano * 0.667);
+            super.receberDano(dmg);
             iFramesTimer = iFramesDanoDuration;
             danoRecebidoFlag = true;
             System.out.println("Player tomou dano! Vida: " + vida);

@@ -42,6 +42,11 @@ public class VendedorNPC extends NPC {
                 () -> {
                     player.curar(10);
                 }, true, false);
+        shopMenu.addItem("Capacete",
+                "Se proteja de balas dos inimigos com esse capacete! Esse item oferece uma redução do dano recebido por inimigos. ENDL (-33%)",
+                LoadSave.GetSpriteAtlas("images/hud/helmet.png"), 50, () -> {
+                    player.setTemCapacete(true);
+                }, !player.getTemCapacete(), true);
         shopMenu.addItem("Recarga Rápida",
                 "Reduz o tempo necessário para recarregar a arma. ENDL (0.5s -> 0.25s)",
                 LoadSave.GetSpriteAtlas("images/hud/clock.png"), 50, () -> {
