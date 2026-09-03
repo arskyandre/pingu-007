@@ -37,7 +37,6 @@ public class Hud {
     private static final Color COR_SETA_BORDA = new Color(0, 0, 0, 180);
     private static final Color COR_SETA_INTERIOR = new Color(220, 20, 60);
 
-    private boolean animateChave = false;
     private boolean jaPegouChave = false;
     private boolean jaPegouMoeda = false;
     private boolean jaPegouIsca = false;
@@ -131,10 +130,6 @@ public class Hud {
         if (p.consumirDanoFlag()) {
             spawnHeartParticles(p);
         }
-        if (p.consumirNovaChave()) {
-            animateChave = true;
-        }
-
         updateAndDrawParticles(g2, delta, offset);
         healthbar_inimigos(g2, telaLargura, telaAltura, camera, em);
         if (GameCore.getGameState() != GameState.CUTSCENE) {

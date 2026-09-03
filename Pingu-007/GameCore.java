@@ -906,7 +906,7 @@ public class GameCore extends Canvas implements Runnable {
 
         fishingManager.update(input, camera, levelManager.getCurLevelData(), getWidth(), getHeight());
 
-        player.update(input, getWidth(), getHeight(), camera, enemyManager.getEnemies());
+        player.update(input, camera, enemyManager.getEnemies());
         npcManager.update(player, input);
         itemManager.update(player);
 

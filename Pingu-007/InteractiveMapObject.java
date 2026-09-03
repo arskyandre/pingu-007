@@ -80,7 +80,7 @@ public class InteractiveMapObject extends MapObject {
                 LoadSave.applyGidData(this.data);
                 this.setSprite(this.data.sprite);
             dialogueManager.setAoTerminarDialogo(()->{
-                player.metodoInutil();
+                player.concederPoderSixSeven();
                 this.data.gid += 1;
                 LoadSave.applyGidData(this.data);
                 this.setSprite(this.data.sprite);
