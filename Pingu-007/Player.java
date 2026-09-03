@@ -106,6 +106,22 @@ public class Player extends Entity {
 
     private int[][] lvlData;
 
+    private void dispararShotgun(double centerX, double centerY, double dirX, double dirY) {
+        double anguloBase = Math.atan2(dirY, dirX);
+        double anguloEsquerda = anguloBase - Math.toRadians(15);
+        double anguloDireita = anguloBase + Math.toRadians(15);
+
+        bulletmanager.shoot(centerX, centerY, Math.cos(anguloBase), Math.sin(anguloBase),
+                BulletOwner.PLAYER, true);
+        bulletmanager.shoot(centerX, centerY, Math.cos(anguloEsquerda), Math.sin(anguloEsquerda),
+                BulletOwner.PLAYER, true);
+        bulletmanager.shoot(centerX, centerY, Math.cos(anguloDireita), Math.sin(anguloDireita),
+                BulletOwner.PLAYER, true);
+
+        soundManager.playSFX(SoundManager.SFX.EXPLOSION);
+        shootCooldownTimer = shotgunShootCooldown;
+    }
+
     public Player(double startX, double startY, double largura, double altura, BulletManager bulmgr,
             SoundManager soundManager, ArenaManager arenaManager) {
         super(arenaManager, soundManager);
@@ -566,20 +582,7 @@ public class Player extends Entity {
                                 shootCooldownTimer = pistolShootCooldown;
                             }
                             case SHOTGUN -> {
-                                double anguloBase = Math.atan2(dirTiroY, dirTiroX);
-                                double angulo1 = anguloBase;
-                                double angulo2 = anguloBase - Math.toRadians(15);
-                                double angulo3 = anguloBase + Math.toRadians(15);
-
-                                bulletmanager.shoot(centerX, centerY, Math.cos(angulo1), Math.sin(angulo1),
-                                        BulletOwner.PLAYER, true);
-                                bulletmanager.shoot(centerX, centerY, Math.cos(angulo2), Math.sin(angulo2),
-                                        BulletOwner.PLAYER, true);
-                                bulletmanager.shoot(centerX, centerY, Math.cos(angulo3), Math.sin(angulo3),
-                                        BulletOwner.PLAYER, true);
-
-                                soundManager.playSFX(SoundManager.SFX.EXPLOSION);
-                                shootCooldownTimer = shotgunShootCooldown;
+                                dispararShotgun(centerX, centerY, dirTiroX, dirTiroY);
                             }
                         }
 
@@ -697,20 +700,7 @@ public class Player extends Entity {
                                     shootCooldownTimer = pistolShootCooldown;
                                 }
                                 case SHOTGUN -> {
-                                    double anguloBase = Math.atan2(dirToMouseY, dirToMouseX);
-                                    double angulo1 = anguloBase;
-                                    double angulo2 = anguloBase - Math.toRadians(15);
-                                    double angulo3 = anguloBase + Math.toRadians(15);
-
-                                    bulletmanager.shoot(centerX, centerY, Math.cos(angulo1), Math.sin(angulo1),
-                                            BulletOwner.PLAYER, true);
-                                    bulletmanager.shoot(centerX, centerY, Math.cos(angulo2), Math.sin(angulo2),
-                                            BulletOwner.PLAYER, true);
-                                    bulletmanager.shoot(centerX, centerY, Math.cos(angulo3), Math.sin(angulo3),
-                                            BulletOwner.PLAYER, true);
-
-                                    soundManager.playSFX(SoundManager.SFX.EXPLOSION);
-                                    shootCooldownTimer = shotgunShootCooldown;
+                                    dispararShotgun(centerX, centerY, dirToMouseX, dirToMouseY);
                                 }
                             }
 

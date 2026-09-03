@@ -140,9 +140,12 @@ public class Shooter extends Enemy {
                         double angulo2 = lockedAngle - Math.toRadians(15);
                         double angulo3 = lockedAngle + Math.toRadians(15);
 
-                        bulletManager.shoot(centerX, centerY, Math.cos(angulo1), Math.sin(angulo1), BulletOwner.ENEMY);
-                        bulletManager.shoot(centerX, centerY, Math.cos(angulo2), Math.sin(angulo2), BulletOwner.ENEMY);
-                        bulletManager.shoot(centerX, centerY, Math.cos(angulo3), Math.sin(angulo3), BulletOwner.ENEMY);
+                        bulletManager.shoot(centerX, centerY, Math.cos(angulo1), Math.sin(angulo1), BulletOwner.ENEMY,
+                                true);
+                        bulletManager.shoot(centerX, centerY, Math.cos(angulo2), Math.sin(angulo2), BulletOwner.ENEMY,
+                                true);
+                        bulletManager.shoot(centerX, centerY, Math.cos(angulo3), Math.sin(angulo3), BulletOwner.ENEMY,
+                                true);
 
                         estadoAtual = Status.COOLDOWN;
                         timer = tempoCooldown;
