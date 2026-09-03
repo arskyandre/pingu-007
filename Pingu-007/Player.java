@@ -354,7 +354,7 @@ public class Player extends Entity {
         }
         if ((iFramesTimer == 0 && !emDash) || isCaindo) {
             soundManager.playSFX(SoundManager.SFX.PLAYER_DAMAGE);
-            int dmg = (!getTemCapacete()) ? dano : (int) (dano * 0.667);
+            int dmg = (getTemCapacete() && !isCaindo) ? (int) Math.round(dano * (2.0 / 3.0)) : dano;
             super.receberDano(dmg);
             iFramesTimer = iFramesDanoDuration;
             danoRecebidoFlag = true;
