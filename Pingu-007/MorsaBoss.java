@@ -290,6 +290,11 @@ public class MorsaBoss extends Enemy {
         }
     }
 
+    @Override
+    public void receberDano(int dano, double sourceX, double sourceY, double knockbackForce) {
+        receberDano(dano);
+    }
+
     public boolean isEmSequenciaMorte() {
         return sequenciaMorte;
     }
