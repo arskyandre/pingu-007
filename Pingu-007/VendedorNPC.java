@@ -44,7 +44,7 @@ public class VendedorNPC extends NPC {
                 }, true, false);
         shopMenu.addItem("Capacete",
                 "Se proteja de balas dos inimigos com esse capacete! Esse item oferece uma redução do dano recebido por inimigos. ENDL (-33%)",
-                LoadSave.GetSpriteAtlas("images/hud/helmet.png"), 50, () -> {
+                LoadSave.GetSpriteAtlas("images/hud/helmet.png"), 40, () -> {
                     player.setTemCapacete(true);
                 }, !player.getTemCapacete(), true);
         shopMenu.addItem("Recarga Rápida",
@@ -54,7 +54,7 @@ public class VendedorNPC extends NPC {
                 }, !player.getFasterReload(), true);
         shopMenu.addItem("Pente Estendido",
                 "Aumenta a capacidade do pente da sua arma. ENDL (15 tiros -> 30 tiros)",
-                GameCore.missing_image, 75, () -> {
+                GameCore.missing_image, 50, () -> {
                     player.setExtendedMag(true);
                 }, !player.getExtendedMag(), true);
         shopMenu.addItem("Espingarda (Shotgun)",
