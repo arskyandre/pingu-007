@@ -72,6 +72,14 @@ public class VendedorNPC extends NPC {
     }
 
     private void comoPossoAjudar(DialogueManager dialogueManager) {
+        boolean missaoArena = Math.random() < 0.5;
+        if (missaoArena) {
+            // TODO: implementar reabertura de arena, olhando as que ja foram concluidas.
+            // dar algum tipo de dica ao jogador de qual arena que vai ser reaberta.
+            // adicionar dialogo etc
+        } else {
+
+        }
         dialogueManager.iniciarDialogo(new String[] {
                 "Sou um time fraco!"
         }, new BufferedImage[] { nao_implementado });
