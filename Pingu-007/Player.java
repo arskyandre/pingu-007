@@ -45,11 +45,16 @@ public class Player extends Entity {
 
     private int totalEnemyCount = 0;
     private int currentEnemyCount = 0;
-    private int shooterEnemyCount = 0;
-    private int loboEnemyCount = 0;
-    private int jumperEnemyCount = 0;
-    private int dasherEnemyCount = 0;
-    private int bomberEnemyCount = 0;
+    private int totalShooterEnemyCount = 0;
+    private int currentShooterEnemyCount = 0;
+    private int totalLoboEnemyCount = 0;
+    private int currentLoboEnemyCount = 0;
+    private int totalJumperEnemyCount = 0;
+    private int currentJumperEnemyCount = 0;
+    private int totalDasherEnemyCount = 0;
+    private int currentDasherEnemyCount = 0;
+    private int totalBomberEnemyCount = 0;
+    private int currentBomberEnemyCount = 0;
     private final BulletManager bulletmanager;
     private static boolean desbloqueouRecompensa = false;
     private boolean extendedMag = false;
@@ -131,6 +136,16 @@ public class Player extends Entity {
         this.aceleracao = 1.0;
         this.totalEnemyCount = 0;
         this.currentEnemyCount = 0;
+        this.totalShooterEnemyCount = 0;
+        this.currentShooterEnemyCount = 0;
+        this.totalLoboEnemyCount = 0;
+        this.currentLoboEnemyCount = 0;
+        this.totalJumperEnemyCount = 0;
+        this.currentJumperEnemyCount = 0;
+        this.totalDasherEnemyCount = 0;
+        this.currentDasherEnemyCount = 0;
+        this.totalBomberEnemyCount = 0;
+        this.currentBomberEnemyCount = 0;
         this.atritoAtual = 0.85;
         this.velocidadeMax = 30;
         this.largura = largura;
@@ -291,48 +306,109 @@ public class Player extends Entity {
         currentEnemyCount += count;
     }
 
-    public int getShooterEnemyCount() {
-        return shooterEnemyCount;
+    public int getTotalShooterEnemyCount() {
+        return totalShooterEnemyCount;
+    }
+
+    public int getCurrentShooterEnemyCount() {
+        return currentShooterEnemyCount;
+    }
+
+    public void setCurrentShooterEnemyCount(int count) {
+        currentShooterEnemyCount = count;
+    }
+
+    public void setShooterEnemyCount(int count) {
+        totalShooterEnemyCount = count;
     }
 
     public void addShooterEnemyCount(int count) {
-        shooterEnemyCount += count;
+        totalShooterEnemyCount += count;
+        currentShooterEnemyCount += count;
     }
 
-    public int getLoboEnemyCount() {
-        return loboEnemyCount;
+    public int getTotalLoboEnemyCount() {
+        return totalLoboEnemyCount;
+    }
+
+    public int getCurrentLoboEnemyCount() {
+        return currentLoboEnemyCount;
+    }
+
+    public void setCurrentLoboEnemyCount(int count) {
+        currentLoboEnemyCount = count;
     }
 
     public void setLoboEnemyCount(int count) {
-        loboEnemyCount = count;
+        totalLoboEnemyCount = count;
     }
 
     public void addLoboEnemyCount(int count) {
-        loboEnemyCount += count;
+        totalLoboEnemyCount += count;
+        currentLoboEnemyCount += count;
     }
 
-    public int getJumperEnemyCount() {
-        return jumperEnemyCount;
+    public int getTotalJumperEnemyCount() {
+        return totalJumperEnemyCount;
+    }
+
+    public int getCurrentJumperEnemyCount() {
+        return currentJumperEnemyCount;
+    }
+
+    public void setCurrentJumperEnemyCount(int count) {
+        currentJumperEnemyCount = count;
+    }
+
+    public void setJumperEnemyCount(int count) {
+        totalJumperEnemyCount = count;
     }
 
     public void addJumperEnemyCount(int count) {
-        jumperEnemyCount += count;
+        totalJumperEnemyCount += count;
+        currentJumperEnemyCount += count;
     }
 
-    public int getDasherEnemyCount() {
-        return dasherEnemyCount;
+    public int getTotalDasherEnemyCount() {
+        return totalDasherEnemyCount;
+    }
+
+    public int getCurrentDasherEnemyCount() {
+        return currentDasherEnemyCount;
+    }
+
+    public void setCurrentDasherEnemyCount(int count) {
+        currentDasherEnemyCount = count;
+    }
+
+    public void setDasherEnemyCount(int count) {
+        totalDasherEnemyCount = count;
     }
 
     public void addDasherEnemyCount(int count) {
-        dasherEnemyCount += count;
+        totalDasherEnemyCount += count;
+        currentDasherEnemyCount += count;
     }
 
-    public int getBomberEnemyCount() {
-        return bomberEnemyCount;
+    public int getTotalBomberEnemyCount() {
+        return totalBomberEnemyCount;
+    }
+
+    public int getCurrentBomberEnemyCount() {
+        return currentBomberEnemyCount;
+    }
+
+    public void setCurrentBomberEnemyCount(int count) {
+        currentBomberEnemyCount = count;
+    }
+
+    public void setBomberEnemyCount(int count) {
+        totalBomberEnemyCount = count;
     }
 
     public void addBomberEnemyCount(int count) {
-        bomberEnemyCount += count;
+        totalBomberEnemyCount += count;
+        currentBomberEnemyCount += count;
     }
 
     public void setFishingManager(FishingManager fishingMgr) {
@@ -1082,11 +1158,16 @@ public class Player extends Entity {
         this.municao = 45;
         this.totalEnemyCount = 0;
         this.currentEnemyCount = 0;
-        this.shooterEnemyCount = 0;
-        this.loboEnemyCount = 0;
-        this.jumperEnemyCount = 0;
-        this.dasherEnemyCount = 0;
-        this.bomberEnemyCount = 0;
+        this.totalShooterEnemyCount = 0;
+        this.currentShooterEnemyCount = 0;
+        this.totalLoboEnemyCount = 0;
+        this.currentLoboEnemyCount = 0;
+        this.totalJumperEnemyCount = 0;
+        this.currentJumperEnemyCount = 0;
+        this.totalDasherEnemyCount = 0;
+        this.currentDasherEnemyCount = 0;
+        this.totalBomberEnemyCount = 0;
+        this.currentBomberEnemyCount = 0;
         this.fasterFishing = false;
         this.hasPoderSixSeven = false;
         this.sixSevenCooldownTimer = 0;
