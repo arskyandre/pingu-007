@@ -133,7 +133,7 @@ public class CreditsScreen {
         int xEsquerda = Math.max(18, centroX - meiaLarguraTextos - espaco - tamanho);
         int xDireita = Math.min(width - tamanho - 18, centroX + meiaLarguraTextos + espaco);
         int centroBlocoY = (int) Math.round(y + alturaBloco / 2.0);
-        int imagemY = centroBlocoY - tamanho / 2;Exercícios - Coleta e Compactação.pdf
+        int imagemY = centroBlocoY - tamanho / 2;
 
         desenharImagemQuadrada(g, imagemEsquerda, xEsquerda, imagemY, tamanho);
         desenharImagemQuadrada(g, imagemDireita, xDireita, imagemY, tamanho);
