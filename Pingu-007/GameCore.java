@@ -25,6 +25,8 @@ public class GameCore extends Canvas implements Runnable {
     // permite os botoes de teste(debuginputprocessing() e outros). se colocar false
     // o jogo se comporta como versao de "usuario"
     private static boolean debugInputs = true;
+    private static boolean MunicaoMinimaNoCheckpoint = true;
+    private static final int MUNICAO_MINIMA_NO_CHECKPOINT = 35;
 
     private double checkX, checkY;
     private int checkVida, checkMunicao, checkPente, checkChaves, checkIscas;
@@ -1129,6 +1131,10 @@ public class GameCore extends Canvas implements Runnable {
         checkVida = player.getVida();
         checkMunicao = player.getMunicao();
         checkPente = player.getPente();
+        if (MunicaoMinimaNoCheckpoint
+                && checkMunicao + checkPente < MUNICAO_MINIMA_NO_CHECKPOINT) {
+            checkMunicao = MUNICAO_MINIMA_NO_CHECKPOINT - checkPente;
+        }
         checkChaves = player.getChaves();
         checkIscas = player.getIscas();
         // A lista usada pelo vendedor passa a representar exatamente o estado
