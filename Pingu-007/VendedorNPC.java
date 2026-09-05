@@ -13,7 +13,7 @@ public class VendedorNPC extends NPC {
     private final ShopMenu shopMenu;
     private static final double WIDTH = GameCore.tiles_size;
     private static final double HEIGHT = GameCore.tiles_size;
-    private final double inimigosPorMoeda = 25.0 /* inimigos */ / 15.0 /* moedas */;
+    private final double moedasPorInimigo = 3.0 /* moedas */ / 5.0 /* inimigos */;
     private boolean proximo = false;
     private BufferedImage Sprite;
     private CameraManager camera;
@@ -140,7 +140,7 @@ public class VendedorNPC extends NPC {
                             comoPossoAjudar(dialogueManager, player, soundManager);
                         }
                         case 2 -> {
-                            int moedas = (int) (player.getCurrentEnemyCount() * inimigosPorMoeda);
+                            int moedas = (int) Math.ceil(player.getCurrentEnemyCount() * moedasPorInimigo);
                             if (moedas == 0) {
                                 dialogueManager.iniciarDialogo(new String[]{
                             "VENDEDOR: Elimine mais inimigos para resgatar sua recompensa."
@@ -177,7 +177,7 @@ public class VendedorNPC extends NPC {
                         loopInteracao("VENDEDOR: E aí, Pingu? O que deseja?", DialogueCatalogo.Vendedor_o_que_deseja,
                                 player, dialogueManager, soundManager);
                     } else {
-                        int moedas = (int) (player.getCurrentEnemyCount() * inimigosPorMoeda);
+                        int moedas = (int) Math.ceil(player.getCurrentEnemyCount() * moedasPorInimigo);
                         dialogueManager.iniciarDialogo(new String[]{
                             "VENDEDOR: E aí Pingu, beleza?",
                             "VENDEDOR: Obrigado por salvar o nosso bairro, os soldados da Morsa estavam aterrorizando a nossa região!",

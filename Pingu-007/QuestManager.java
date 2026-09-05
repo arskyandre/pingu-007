@@ -165,7 +165,7 @@ public final class QuestManager implements ArenaManager.ObservadorArenas {
 
     public boolean entregarQuest(Player player) {
         if (questState == QuestState.PRONTA_PARA_ENTREGAR) {
-            player.addMoedas(75);
+            player.addMoedas(50);
             player.addIscas(2);
 
             if (idArenaQuestAtual != -1) {
