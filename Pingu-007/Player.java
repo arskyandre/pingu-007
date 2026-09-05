@@ -42,6 +42,7 @@ public class Player extends Entity {
     private boolean hasPoderSixSeven = false;
     private final int sixSevenCooldown = 60;
     private int sixSevenCooldownTimer = 0;
+    private static final int SIX_SEVEN_BULLET_COUNT = 8;
 
     private int totalEnemyCount = 0;
     private int currentEnemyCount = 0;
@@ -125,6 +126,13 @@ public class Player extends Entity {
 
         soundManager.playSFX(SoundManager.SFX.EXPLOSION);
         shootCooldownTimer = shotgunShootCooldown;
+    }
+
+    private void dispararSixSeven(double centerX, double centerY) {
+        for (int i = 0; i < SIX_SEVEN_BULLET_COUNT; i++) {
+            double angulo = Math.toRadians(i * (360.0 / SIX_SEVEN_BULLET_COUNT));
+            bulletmanager.shoot(centerX, centerY, Math.cos(angulo), Math.sin(angulo), BulletOwner.PLAYER);
+        }
     }
 
     public Player(double startX, double startY, double largura, double altura, BulletManager bulmgr,
@@ -803,6 +811,9 @@ public class Player extends Entity {
                 if (sixSeven(input) && sixSevenCooldownTimer <= 0) {
                     if (consumeSixSeven()) {
                         soundManager.playSFX(SoundManager.SFX.SIX_SEVEN);
+                        double centerX = x + largura / 2.0;
+                        double centerY = y + altura / 2.0;
+                        dispararSixSeven(centerX, centerY);
                     } else {
                         soundManager.playSFX(SoundManager.SFX.SEM_AURA);
                     }
