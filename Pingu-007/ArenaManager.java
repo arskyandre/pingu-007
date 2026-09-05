@@ -1,23 +1,9 @@
 
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class ArenaManager {
-    // TODO: separar essa lógica de quest (QuestState, idArenaQuestAtual,
-    // gerarQuestArenaAleatoria, entregarQuest, checarConclusaoQuest, QUEST_BLACKLIST)
-    // pra uma classe QuestManager própria, que converse com o ArenaManager via
-    // getArenasConcluidas()/getOuCriarArena() em vez de viver dentro dele.
-
-    public enum QuestState {
-        NENHUMA, ATIVA, PRONTA_PARA_ENTREGAR
-    }
-    private QuestState questState = QuestState.NENHUMA;
-    private int idArenaQuestAtual = -1;
-    private static final Set<Integer> QUEST_BLACKLIST = Set.of(0, 2, 3, 4, 5, 9, 10, 14, 15, 67, 101, 102, 999);
-
     private final LevelManager levelManager;
     private final EnemyManager enemyManager;
     private final ItemManager itemManager;
@@ -52,7 +38,7 @@ public class ArenaManager {
         ArrayList<Enemy> inimigosVivos = new ArrayList<>();
         TiledObject trigger;
 
-        boolean isQuest = false;
+        boolean geraRecompensaPadrao = true;
         boolean randomSpawns = false;
     }
 
@@ -87,9 +73,7 @@ public class ArenaManager {
     private final ArrayList<DoorObject> doors = new ArrayList<>();
     private final ArrayList<PressureButton> buttons = new ArrayList<>();
     private final ArrayList<ArenaObject> allObjects = new ArrayList<>();
-    private final java.util.Set<Integer> arenasConcluidasConhecidas = new java.util.HashSet<>();
-    private final java.util.Set<Integer> arenasValidasParaQuest = new java.util.HashSet<>();
-    private final java.util.Map<Integer, Integer> hordasConhecidasPorArena = new java.util.HashMap<>();
+    private final java.util.Set<Integer> arenasConcluidas = new java.util.HashSet<>();
 
     public ArenaManager(EnemyManager enemyManager, LevelManager levelManager, ItemManager itemManager,
             NPCManager npcm, CutsceneManager CM, GameCore gc, CameraManager cameraMgr, SoundManager soundMgr) {
@@ -104,168 +88,59 @@ public class ArenaManager {
         this.gameCore = gc;
     }
 
-    private void marcarArenaConcluida(Arena arena) {
-        arena.concluida = true;
-        arenasConcluidasConhecidas.add(arena.id);
+    public interface ObservadorArenas {
+        void arenaCriada(Arena arena);
+        void hordasCarregadas(int idArena, int totalHordas);
+        void combateConcluido(int idArena);
     }
 
-    private void desmarcarArenaConcluida(Arena arena) {
-        arena.concluida = false;
-        arenasConcluidasConhecidas.remove(arena.id);
+    private ObservadorArenas observadorArenas;
+
+    void observarArenas(ObservadorArenas observador) {
+        this.observadorArenas = observador;
     }
 
-    // MISSÕES
-    public QuestState getQuestState() {
-        return questState;
+    java.util.Set<Integer> getHistoricoArenasConcluidas() {
+        return java.util.Collections.unmodifiableSet(arenasConcluidas);
     }
 
-    public void resetarProgressoDeQuests() {
-        questState = QuestState.NENHUMA;
-        idArenaQuestAtual = -1;
-        arenasConcluidasConhecidas.clear();
-        arenasValidasParaQuest.clear();
-        hordasConhecidasPorArena.clear();
+    public void limparHistoricoArenasConcluidas() {
+        arenasConcluidas.clear();
     }
 
-    public void atualizarArenasValidasParaQuest() {
-        arenasValidasParaQuest.clear();
-
-        for (int id : arenasConcluidasConhecidas) {
-            Integer totalHordas = hordasConhecidasPorArena.get(id);
-
-            if (totalHordas != null && totalHordas > 0 && !QUEST_BLACKLIST.contains(id)) {
-                arenasValidasParaQuest.add(id);
-            }
-        }
-
-        System.out.println("[DEBUG QUEST] Arenas validas no checkpoint: "
-                + getArenasValidasParaQuest());
+    public void configurarSpawns(Arena arena, boolean aleatorios, boolean recompensaPadrao) {
+        arena.randomSpawns = aleatorios;
+        arena.geraRecompensaPadrao = recompensaPadrao;
     }
 
-    public ArrayList<Integer> getArenasValidasParaQuest() {
-        ArrayList<Integer> ids = new ArrayList<>(arenasValidasParaQuest);
-        ids.sort(Integer::compareTo);
-        return ids;
-    }
-
-    public Point2D.Double getQuestTargetPoint() {
-        Rectangle2D.Double bounds = getQuestTargetBounds();
-
-        if (bounds != null) {
-            return new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
-        }
-
-        return null;
-    }
-
-    public Rectangle2D.Double getQuestTargetBounds() {
-        if (questState == QuestState.ATIVA && idArenaQuestAtual != -1) {
-            Arena a = getOuCriarArena(idArenaQuestAtual);
-            if (a.trigger != null) {
-                java.awt.Shape triggerShape = null;
-
-                if (a.trigger.isPolygon) {
-                    triggerShape = a.trigger.getPolygonShape();
-                }
-
-                if (triggerShape == null && a.trigger.hitbox != null) {
-                    triggerShape = a.trigger.hitbox;
-                }
-
-                if (triggerShape != null) {
-                    Rectangle2D bounds = triggerShape.getBounds2D();
-                    return new Rectangle2D.Double(
-                            bounds.getX(),
-                            bounds.getY(),
-                            bounds.getWidth(),
-                            bounds.getHeight());
-                }
-
-                return new Rectangle2D.Double(
-                        a.trigger.x,
-                        a.trigger.y,
-                        a.trigger.width,
-                        a.trigger.height);
-            }
-        }
-        return null;
-    }
-
-    public boolean isQuestArenaAtiva() {
-        if (questState == QuestState.ATIVA && idArenaQuestAtual != -1) {
-            Arena a = getOuCriarArena(idArenaQuestAtual);
-            return a.ativa && !a.concluida;
-        }
-        return false;
-    }
-
-    public boolean gerarQuestArenaAleatoria(Player player) {
-        System.out.println("\n--- [DEBUG ARENA] GERANDO QUEST ALEATÓRIA ---");
-        System.out.println("Estado atual da Quest: " + questState);
-
-        if (questState != QuestState.NENHUMA) {
-            System.out.println("-> Falha: Já existe uma quest ativa ou pronta.");
-            return false;
-        }
-
-        ArrayList<Integer> validas = getArenasValidasParaQuest();
-        System.out.println("Arenas concluidas conhecidas: " + arenasConcluidasConhecidas);
-        System.out.println("Hordas mapeadas: " + hordasConhecidasPorArena);
-        System.out.println("Blacklist (Proibidas): " + QUEST_BLACKLIST);
-        System.out.println("Arenas validas no ultimo checkpoint: " + validas);
-
-        if (validas.isEmpty()) {
-            System.out.println("-> Falha: Nenhuma arena válida encontrada para gerar a missão.");
-            return false;
-        }
-
-        int arenaEscolhida = validas.get((int) (Math.random() * validas.size()));
-        System.out.println("-> SUCESSO! Arena sorteada: " + arenaEscolhida);
-
-        this.idArenaQuestAtual = arenaEscolhida;
-        this.questState = QuestState.ATIVA;
-        arenasConcluidasConhecidas.remove(arenaEscolhida);
-
+    public void prepararArenaParaRepeticao(int id) {
+        arenasConcluidas.remove(id);
         for (Arena arena : arenas) {
-            if (arena.id == arenaEscolhida) {
-                arena.isQuest = true;
-                arena.randomSpawns = true;
+            if (arena.id == id) {
+                configurarSpawns(arena, true, false);
                 desmarcarArenaConcluida(arena);
                 arena.ativa = false;
                 arena.hordaAtual = 0;
             }
         }
-
-        player.solicitarCheckpoint();
-
-        return true;
     }
 
-    private void checarConclusaoQuest(int idArena) {
-        if (questState == QuestState.ATIVA && idArenaQuestAtual == idArena) {
-            questState = QuestState.PRONTA_PARA_ENTREGAR;
-            ToastNotifications.RequestNotification("Missão concluída! Volte ao vendedor para receber o prêmio.", 3.0);
-        }
+    public void restaurarArenaParaRepeticao(int id, Player player) {
+        Arena arena = getOuCriarArena(id);
+        arena.concluida = false;
+        arena.ativa = false;
+        configurarSpawns(arena, true, false);
+        setWallState(id, false, player);
     }
 
-    public boolean entregarQuest(Player player) {
-        if (questState == QuestState.PRONTA_PARA_ENTREGAR) {
-            player.addMoedas(75);
-            player.addIscas(2);
+    private void marcarArenaConcluida(Arena arena) {
+        arena.concluida = true;
+        arenasConcluidas.add(arena.id);
+    }
 
-            if (idArenaQuestAtual != -1) {
-                Arena arenaQuest = getOuCriarArena(idArenaQuestAtual);
-                arenaQuest.isQuest = false;
-                arenaQuest.randomSpawns = false;
-            }
-
-            questState = QuestState.NENHUMA;
-            idArenaQuestAtual = -1;
-            player.solicitarCheckpoint();
-
-            return true;
-        }
-        return false;
+    private void desmarcarArenaConcluida(Arena arena) {
+        arena.concluida = false;
+        arenasConcluidas.remove(arena.id);
     }
 
     public void carregarObjetos(ArrayList<TiledObject> objetos) {
@@ -293,7 +168,9 @@ public class ArenaManager {
                     arena.trigger = obj;
                     arena.totalHordas = obj.totalHordas > 0 ? obj.totalHordas : obj.horda;
                     if (arena.totalHordas > 0) {
-                        hordasConhecidasPorArena.put(arena.id, arena.totalHordas);
+                        if (observadorArenas != null) {
+                            observadorArenas.hordasCarregadas(arena.id, arena.totalHordas);
+                        }
                     }
                     if (tipo.equals("level_trigger")) {
                         arena.trigger.destino = obj.destino;
@@ -373,17 +250,6 @@ public class ArenaManager {
         la_ele = estado.la_ele;
     }
 
-    public void reaplicarQuestFisica(Player player) {
-        if (questState == QuestState.ATIVA && idArenaQuestAtual != -1) {
-            Arena arenaQuest = getOuCriarArena(idArenaQuestAtual);
-            arenaQuest.concluida = false;
-            arenaQuest.ativa = false;
-            arenaQuest.isQuest = true;
-            arenaQuest.randomSpawns = true;
-            setWallState(idArenaQuestAtual, false, player);
-        }
-    }
-
     private Rectangle2D.Double getCombinedWallRect(int idArena) {
         Rectangle2D.Double combined = null;
         for (DoorObject door : doors) {
@@ -448,7 +314,9 @@ public class ArenaManager {
                     } else {
                         marcarArenaConcluida(arena);
                         verificarDesativacaoParedes(arena.id, player);
-                        checarConclusaoQuest(arena.id);
+                        if (observadorArenas != null) {
+                            observadorArenas.combateConcluido(arena.id);
+                        }
 
                         if (!existeCombateAtivo()) {
                             gameCore.setCinematicBorderAnimation(Renderer.BorderState.OUT);
@@ -893,9 +761,9 @@ public class ArenaManager {
                     spawnY -= GameCore.tiles_size;
                 }
 
-                // Se for uma missão aleatória, substitui o tipo de inimigo!
+                // Aplica a configuração de spawns da arena.
                 String tipoSorteado = spawner.inimigo;
-                if (arena.isQuest && arena.randomSpawns) {
+                if (!arena.geraRecompensaPadrao && arena.randomSpawns) {
                     String[] inimigosPossiveis = {"lobo", "shooter", "bomber", "jumper"};
                     tipoSorteado = inimigosPossiveis[(int) (Math.random() * inimigosPossiveis.length)];
                 }
@@ -910,7 +778,7 @@ public class ArenaManager {
                      * }
                      */
 
-                    if (arena.isQuest) {
+                    if (!arena.geraRecompensaPadrao) {
                         inimigo.geraRecompensaPadrao = false;
                         // inimigo.podeDropar = false;
                     }
@@ -938,8 +806,8 @@ public class ArenaManager {
     public void restaurarArenas(ArrayList<Integer> salvas, Player player, ItemManager itemManager) {
         System.out.println("[DEBUG ARENA] Restaurando arenas. Salvas no Checkpoint: " + salvas);
         boolean rebobinouAlgumPuzzle = false;
-        arenasConcluidasConhecidas.clear();
-        arenasConcluidasConhecidas.addAll(salvas);
+        arenasConcluidas.clear();
+        arenasConcluidas.addAll(salvas);
         // impedindo de spawnar varas infinitamente (vixi la ele)
         la_ele = false;
         if (npcManager != null) {
@@ -996,7 +864,7 @@ public class ArenaManager {
         }
     }
 
-    private Arena getOuCriarArena(int id) {
+    public Arena getOuCriarArena(int id) {
         for (Arena arena : arenas) {
             if (arena.id == id) {
                 return arena;
@@ -1004,9 +872,8 @@ public class ArenaManager {
         }
         Arena nova = new Arena();
         nova.id = id;
-        if (this.questState == QuestState.ATIVA && id == this.idArenaQuestAtual) {
-            nova.isQuest = true;
-            nova.randomSpawns = true;
+        if (observadorArenas != null) {
+            observadorArenas.arenaCriada(nova);
         }
         arenas.add(nova);
         return nova;
@@ -1031,7 +898,7 @@ public class ArenaManager {
     }
 
     public ArrayList<Integer> getArenasConcluidas() {
-        ArrayList<Integer> ids = new ArrayList<>(arenasConcluidasConhecidas);
+        ArrayList<Integer> ids = new ArrayList<>(arenasConcluidas);
         ids.sort(Integer::compareTo);
         return ids;
     }

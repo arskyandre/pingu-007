@@ -1,7 +1,7 @@
 
 public class NPCRegistry {
 
-    public static NPC create(TiledObject obj, CameraManager camera, SoundManager soundManager, ArenaManager arenaManager) {
+    public static NPC create(TiledObject obj, CameraManager camera, SoundManager soundManager, QuestManager questManager) {
         if (obj.npc_nome == null || obj.npc_nome.isEmpty()) {
             return null;
         }
@@ -12,7 +12,7 @@ public class NPCRegistry {
             }
             case "vendedor" -> {
                 System.out.println("Spawnou npc VENDEDOR");
-                yield new VendedorNPC(obj.x, obj.y, camera, soundManager, arenaManager);
+                yield new VendedorNPC(obj.x, obj.y, camera, soundManager, questManager);
             }
             default -> {
                 System.out.println("AVISO: npc_nome desconhecido no Tiled: " + obj.npc_nome);

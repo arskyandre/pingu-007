@@ -17,17 +17,17 @@ public class VendedorNPC extends NPC {
     private boolean proximo = false;
     private BufferedImage Sprite;
     private CameraManager camera;
-    private ArenaManager arenaManager;
+    private final QuestManager questManager;
 
     private BufferedImage portrait = LoadSave.GetSpriteAtlas("images/portrait/vendedor_portrait.png");
     private BufferedImage portrait2 = LoadSave.GetSpriteAtlas("images/portrait/vendedor_portrait2.png");
     // private BufferedImage nao_implementado = LoadSave.GetSpriteAtlas("images/portrait/Corinthians_simbolo.png");
 
-    public VendedorNPC(double x, double y, CameraManager cameraMgr, SoundManager soundManager, ArenaManager arenaManager) {
+    public VendedorNPC(double x, double y, CameraManager cameraMgr, SoundManager soundManager, QuestManager questManager) {
         super(x, y, WIDTH, HEIGHT);
         INTERACT_RANGE = GameCore.tiles_size * 3.5;
         this.camera = cameraMgr;
-        this.arenaManager = arenaManager;
+        this.questManager = questManager;
         Sprite = LoadSave.GetSpriteAtlas("images/npc/vendedorFoca.png");
         shopMenu = new ShopMenu(soundManager);
     }
@@ -74,11 +74,11 @@ public class VendedorNPC extends NPC {
     }
 
     private void comoPossoAjudar(DialogueManager dialogueManager, Player player) {
-        ArenaManager.QuestState qs = this.arenaManager.getQuestState();
+        QuestManager.QuestState qs = this.questManager.getQuestState();
         System.out.println("[DEBUG VENDEDOR] Jogador pediu missão. Status da quest no ArenaManager: " + qs);
         switch (qs) {
             case PRONTA_PARA_ENTREGAR -> {
-                this.arenaManager.entregarQuest(player);
+                this.questManager.entregarQuest(player);
                 dialogueManager.iniciarDialogo(new String[]{
                     "VENDEDOR: Excelente trabalho limpando aquela área de novo, Pingu!",
                     "VENDEDOR: Aqui está sua recompensa. Volte mais tarde se quiser outro serviço."
@@ -90,7 +90,7 @@ public class VendedorNPC extends NPC {
                     "VENDEDOR: Siga a seta amarela no seu capacete (mudar dps), acabe com os inimigos e volte aqui."
                 }, new BufferedImage[]{portrait});
             case NENHUMA -> {
-                boolean questGerada = this.arenaManager.gerarQuestArenaAleatoria(player);
+                boolean questGerada = this.questManager.gerarQuestArenaAleatoria(player);
                 if (questGerada) {
                     dialogueManager.iniciarDialogo(new String[]{
                         "VENDEDOR: Eu tenho um trabalho pra você.",

@@ -255,7 +255,7 @@ public class Renderer {
 
     public void renderizar(Graphics2D g2, CameraManager camera, Player player, InputManager input, int telaLargura,
             int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager,
-            EnemyManager enemyManager, ArenaManager arenaManager, Hud HUD, DialogueManager dialogueManager,
+            EnemyManager enemyManager, ArenaManager arenaManager, QuestManager questManager, Hud HUD, DialogueManager dialogueManager,
             FishingManager fishingManager, NPCManager npcManager, CutsceneManager cutsceneManager,
             boolean renderizarDayNightOverlay, double dayProgress,
             double delta,
@@ -413,7 +413,7 @@ public class Renderer {
         if (renderizarDayNightOverlay) {
             drawDayNightOverlay(g2, dayProgress, telaLargura, telaAltura);
         }
-        HUD.draw(g2, telaLargura, telaAltura, camera, player, enemyManager, delta, (int) cinematicBorder);
+        HUD.draw(g2, telaLargura, telaAltura, camera, player, enemyManager, questManager, delta, (int) cinematicBorder);
         fishingManager.render(g2, camera, telaLargura, telaAltura, delta);
         double mouseCircleTarget = (mouseCircle && camera.isMouseMiraAtiva()) ? 1.0 : 0.0;
         double mouseCircleFadeSpeed = 1.0 / MOUSE_CIRCLE_FADE_DURATION;

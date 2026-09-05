@@ -127,7 +127,7 @@ public class Hud {
     }
 
     public void draw(Graphics2D g2, int telaLargura, int telaAltura,
-            CameraManager camera, Player p, EnemyManager em, double delta, int offset) {
+            CameraManager camera, Player p, EnemyManager em, QuestManager questManager, double delta, int offset) {
         if (p.consumirDanoFlag()) {
             spawnHeartParticles(p);
         }
@@ -139,7 +139,7 @@ public class Hud {
         healthbar_inimigos(g2, telaLargura, telaAltura, camera, em);
         if (GameCore.getGameState() != GameState.CUTSCENE) {
             indicadores_inimigos(g2, telaLargura, telaAltura, camera, em, offset);
-            indicador_missao(g2, telaLargura, telaAltura, camera, p, offset);
+            indicador_missao(g2, telaLargura, telaAltura, camera, p, questManager, offset);
         }
     }
 
@@ -166,15 +166,15 @@ public class Hud {
     }
 
     private void indicador_missao(Graphics2D g2, int telaLargura, int telaAltura,
-            CameraManager camera, Player p, int offset) {
+            CameraManager camera, Player p, QuestManager questManager, int offset) {
         if (p.getArenaManager() == null
-                || p.getArenaManager().getQuestState() != ArenaManager.QuestState.ATIVA
-                || p.getArenaManager().isQuestArenaAtiva()) {
+                || questManager.getQuestState() != QuestManager.QuestState.ATIVA
+                || questManager.isQuestArenaAtiva()) {
             return;
         }
 
         java.awt.geom.Point2D.Double pontoAlvo
-                = p.getArenaManager().getQuestTargetPoint();
+                = questManager.getQuestTargetPoint();
 
         if (pontoAlvo == null) {
             return;

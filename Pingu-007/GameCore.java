@@ -13,9 +13,6 @@ public class GameCore extends Canvas implements Runnable {
 
     // VARIÁVEL DO FPS CAP (0 para ilimitado)
     public int targetFps = 120;
-    // TODO: consertar o checkpoint para que a arena ative e desative corretamente
-    // TODO: Terminar de converter os objetos do cenario de tiles para objetos
-    // TODO: nerfar o jumper
     private static GameState gameState = GameState.MAIN_MENU;
     private static ShopMenu currentShopMenu = null;
     private final MainMenu mainMenu;
@@ -94,6 +91,7 @@ public class GameCore extends Canvas implements Runnable {
     private final LevelManager levelManager;
     private final ScreenTransition screenTransition;
     private ArenaManager arenaManager;
+    private QuestManager questManager;
     private DialogueManager dialogueManager;
     private SoundManager soundManager;
     private NPCManager npcManager;
@@ -162,6 +160,7 @@ public class GameCore extends Canvas implements Runnable {
 
         arenaManager = new ArenaManager(enemyManager, levelManager, itemManager, npcManager, cutsceneManager, this,
                 camera, soundManager);
+        questManager = new QuestManager(arenaManager);
 
         player.arenaManager = this.arenaManager;
         enemyManager.arenaManager = this.arenaManager;
@@ -776,7 +775,7 @@ public class GameCore extends Canvas implements Runnable {
 
         if (estadoLevel1AntesDaLoja != null) {
             arenaManager.restaurarEstadoMapa(estadoLevel1AntesDaLoja, player, itemManager);
-            arenaManager.reaplicarQuestFisica(player);
+            questManager.reaplicarQuestFisica(player);
         }
         // System.out.println("Player position arenaManager.restaurarEstadoMapa (" +
         // player.getX() + ", " + player.getY() + ")");
@@ -1081,7 +1080,7 @@ public class GameCore extends Canvas implements Runnable {
                     player.setY(obj.y);
                 }
                 case "spawn_npc" -> {
-                    NPC npc = NPCRegistry.create(obj, camera, soundManager, arenaManager);
+                    NPC npc = NPCRegistry.create(obj, camera, soundManager, questManager);
                     if (npc != null) {
                         npcManager.spawn(npc);
                         System.out.println("Spawnou NPC '" + obj.npc_nome + "' em: " + obj.x + ", " + obj.y);
@@ -1116,11 +1115,11 @@ public class GameCore extends Canvas implements Runnable {
         checkChaves = player.getChaves();
         // A lista usada pelo vendedor passa a representar exatamente o estado
         // deste checkpoint, e nao um estado recalculado apenas ao falar com ele.
-        arenaManager.atualizarArenasValidasParaQuest();
+        questManager.atualizarArenasValidasParaQuest();
         checkArenas = arenaManager.getArenasConcluidas();
         System.out.println("[DEBUG CHECKPOINT] IDs de arenas concluidas: " + checkArenas);
         System.out.println("[DEBUG CHECKPOINT] IDs validos para o vendedor: "
-                + arenaManager.getArenasValidasParaQuest());
+                + questManager.getArenasValidasParaQuest());
         hasCheckpoint = true;
         checkVaraDePesca = player.hasFishingRod();
         System.out.println(">>> CHECKPOINT SALVO! <<<");
@@ -1140,8 +1139,8 @@ public class GameCore extends Canvas implements Runnable {
         bulletmanager.limparTudo();
         itemManager.limparConsumiveis();
         arenaManager.restaurarArenas(checkArenas, player, itemManager);
-        arenaManager.reaplicarQuestFisica(player);
-        arenaManager.atualizarArenasValidasParaQuest();
+        questManager.reaplicarQuestFisica(player);
+        questManager.atualizarArenasValidasParaQuest();
     }
 
     public void resetarJogoCompleto() {
@@ -1159,7 +1158,7 @@ public class GameCore extends Canvas implements Runnable {
         camera.desfocarCamera();
         arenaManager.setFirstArenaFlag(true);
         arenaManager.setFezCutscene(false);
-        arenaManager.resetarProgressoDeQuests();
+        questManager.resetarProgressoDeQuests();
         FishingManager.setPlayerHasKey(false);
         fishingManager.cancelFishing();
         fishingManager.setfirstFlag(true);
@@ -1225,7 +1224,7 @@ public class GameCore extends Canvas implements Runnable {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
+                                enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager, npcManager,
                                 cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                 true, true);
 
@@ -1234,7 +1233,7 @@ public class GameCore extends Canvas implements Runnable {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
+                                enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager, npcManager,
                                 cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                 false, false);
                         // renderizar os elementos de venda por cima
@@ -1247,7 +1246,7 @@ public class GameCore extends Canvas implements Runnable {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
+                                enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager, npcManager,
                                 cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                 true, false);
 
@@ -1257,7 +1256,7 @@ public class GameCore extends Canvas implements Runnable {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
+                                enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager, npcManager,
                                 cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                 true, false);
 
@@ -1269,7 +1268,7 @@ public class GameCore extends Canvas implements Runnable {
                             renderer.renderizar(g2, camera, player, input,
                                     getWidth(), getHeight(),
                                     levelManager, bulletmanager, itemManager,
-                                    enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
+                                    enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager, npcManager,
                                     cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                     true, false);
 
@@ -1284,7 +1283,7 @@ public class GameCore extends Canvas implements Runnable {
                     case CREDITS -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(), levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, hud, dialogueManager, fishingManager, npcManager,
+                                enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager, npcManager,
                                 cutsceneManager, !estaDentroLoja, dayProgress, delta, false, false);
                         creditsScreen.render(g2, getWidth(), getHeight());
                     }
