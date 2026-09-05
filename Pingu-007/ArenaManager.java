@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ArenaManager {
+
+    private static final int ID_PUZZLE_BOTOES = 101;
+
     private final LevelManager levelManager;
     private final EnemyManager enemyManager;
     private final ItemManager itemManager;
@@ -21,6 +24,7 @@ public class ArenaManager {
 
     // public boolean flagArena16Ativada = false;
     private boolean chave14_15_spawnada = false;
+    private boolean puzzleBotoesConcluido = false;
     private boolean cutscene_vendedor = false;
     private boolean cutsceneBossSolicitada = false;
     private boolean fezCutscene = false;
@@ -46,6 +50,7 @@ public class ArenaManager {
 
         private final ArrayList<Integer> arenasConcluidas;
         private final boolean chave14_15_spawnada;
+        private final boolean puzzleBotoesConcluido;
         private final boolean cutscene_vendedor;
         private final boolean cutsceneBossSolicitada;
         private final boolean fezCutscene;
@@ -54,6 +59,7 @@ public class ArenaManager {
 
         private EstadoMapa(ArrayList<Integer> arenasConcluidas,
                 boolean chave14_15_spawnada,
+                boolean puzzleBotoesConcluido,
                 boolean cutscene_vendedor,
                 boolean cutsceneBossSolicitada,
                 boolean fezCutscene,
@@ -61,6 +67,7 @@ public class ArenaManager {
                 boolean isFirstArena) {
             this.arenasConcluidas = new ArrayList<>(arenasConcluidas);
             this.chave14_15_spawnada = chave14_15_spawnada;
+            this.puzzleBotoesConcluido = puzzleBotoesConcluido;
             this.cutscene_vendedor = cutscene_vendedor;
             this.cutsceneBossSolicitada = cutsceneBossSolicitada;
             this.fezCutscene = fezCutscene;
@@ -89,8 +96,11 @@ public class ArenaManager {
     }
 
     public interface ObservadorArenas {
+
         void arenaCriada(Arena arena);
+
         void hordasCarregadas(int idArena, int totalHordas);
+
         void combateConcluido(int idArena);
     }
 
@@ -127,7 +137,7 @@ public class ArenaManager {
 
     public void restaurarArenaParaRepeticao(int id, Player player) {
         Arena arena = getOuCriarArena(id);
-        arena.concluida = false;
+        desmarcarArenaConcluida(arena);
         arena.ativa = false;
         configurarSpawns(arena, true, false);
         setWallState(id, false, player);
@@ -154,6 +164,7 @@ public class ArenaManager {
         triggersESpawnersParaDebug.clear();
         // flagArena16Ativada = false;
         chave14_15_spawnada = false;
+        puzzleBotoesConcluido = false;
         cutscene_vendedor = false;
         cutsceneBossSolicitada = false;
         la_ele = false;
@@ -226,6 +237,7 @@ public class ArenaManager {
         return new EstadoMapa(
                 getArenasConcluidas(),
                 chave14_15_spawnada,
+                puzzleBotoesConcluido,
                 cutscene_vendedor,
                 cutsceneBossSolicitada,
                 fezCutscene,
@@ -241,12 +253,13 @@ public class ArenaManager {
         // Estas flags precisam ser restauradas antes das arenas para que
         // verificarDesativacaoParedes nao repita cutscenes nem recompensas.
         chave14_15_spawnada = estado.chave14_15_spawnada;
+        puzzleBotoesConcluido = estado.puzzleBotoesConcluido;
         cutscene_vendedor = estado.cutscene_vendedor;
         // cutsceneBossSolicitada = estado.cutsceneBossSolicitada;
         fezCutscene = estado.fezCutscene;
         isFirstArena = estado.isFirstArena;
 
-        restaurarArenas(getArenasConcluidas(), player, itemManager);
+        restaurarArenas(estado.arenasConcluidas, player, itemManager);
         la_ele = estado.la_ele;
     }
 
@@ -489,6 +502,11 @@ public class ArenaManager {
     }
 
     private void verificarVitoriaLightsOut(int idArena, Player player) {
+        if (idArena == ID_PUZZLE_BOTOES && puzzleBotoesConcluido) {
+            setWallState(ID_PUZZLE_BOTOES, false, player);
+            return;
+        }
+
         Arena arena = getOuCriarArena(idArena);
         if (arena.concluida) {
             return;
@@ -509,6 +527,9 @@ public class ArenaManager {
 
         if (temBotaoLightsOut && todosLightsOutAtivados) {
             System.out.println("=== PUZZLE LIGHTS OUT DA ARENA " + idArena + " CONCLUÍDO! ===");
+            if (idArena == ID_PUZZLE_BOTOES) {
+                puzzleBotoesConcluido = true;
+            }
             marcarArenaConcluida(arena);
             setWallState(idArena, false, player);
             camera.focarEm(5029 + 16, 4200 + 16, 90, false);
@@ -523,6 +544,17 @@ public class ArenaManager {
                 door.setClosed(context, closed, player);
             }
         }
+    }
+
+    private void aplicarEstadoPuzzleBotoes(Player player) {
+        if (!puzzleBotoesConcluido) {
+            return;
+        }
+
+        Arena arenaPuzzle = getOuCriarArena(ID_PUZZLE_BOTOES);
+        marcarArenaConcluida(arenaPuzzle);
+        arenaPuzzle.ativa = false;
+        setWallState(ID_PUZZLE_BOTOES, false, player);
     }
 
     private void ativarArena(int id, Player player, CameraManager camera, CutsceneManager cutsceneManager,
@@ -857,6 +889,8 @@ public class ArenaManager {
                 }
             }
         }
+
+        aplicarEstadoPuzzleBotoes(player);
 
         if (rebobinouAlgumPuzzle) {
             itemManager.getItems().removeIf(item -> item instanceof KeyItem);

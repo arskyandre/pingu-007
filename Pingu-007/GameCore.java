@@ -25,11 +25,14 @@ public class GameCore extends Canvas implements Runnable {
     // permite os botoes de teste(debuginputprocessing() e outros). se colocar false
     // o jogo se comporta como versao de "usuario"
     private static boolean debugInputs = true;
+    private static boolean MunicaoMinimaNoCheckpoint = true;
+    private static final int MUNICAO_MINIMA_NO_CHECKPOINT = 35;
 
     private double checkX, checkY;
-    private int checkVida, checkMunicao, checkPente, checkChaves;
+    private int checkVida, checkMunicao, checkPente, checkChaves, checkIscas;
     private int chavesColetadasCheckpoint = 0;
     private ArrayList<Integer> checkArenas = new ArrayList<>();
+    private ArenaManager.EstadoMapa checkEstadoMapa;
     private boolean hasCheckpoint = false;
     private boolean checkVaraDePesca = false;
     private ArenaManager.EstadoMapa estadoLevel1AntesDaLoja;
@@ -715,6 +718,22 @@ public class GameCore extends Canvas implements Runnable {
             entrarCasaVendedor();
         }
 
+        if (input.isKeyJustPressed(KeyEvent.VK_F8)) {
+            int inimigosDerrotados = 0;
+            for (Enemy enemy : new ArrayList<>(enemyManager.getEnemies())) {
+                if (enemy == null || enemy.isDead() || enemy instanceof BossMao) {
+                    continue;
+                }
+                if (enemy instanceof MorsaBoss morsa && morsa.isEmSequenciaMorte()) {
+                    continue;
+                }
+
+                enemy.receberDano(Math.max(1, enemy.getVida()));
+                inimigosDerrotados++;
+            }
+            System.out.println("DEBUG: F8 derrotou " + inimigosDerrotados + " inimigo(s) spawnado(s).");
+        }
+
         if (input.isKeyJustPressed(KeyEvent.VK_F9)) {
             MorsaBoss morsa = enemyManager.getMorsaBoss();
             if (morsa != null && !morsa.isEmSequenciaMorte()) {
@@ -1112,11 +1131,17 @@ public class GameCore extends Canvas implements Runnable {
         checkVida = player.getVida();
         checkMunicao = player.getMunicao();
         checkPente = player.getPente();
+        if (MunicaoMinimaNoCheckpoint
+                && checkMunicao + checkPente < MUNICAO_MINIMA_NO_CHECKPOINT) {
+            checkMunicao = MUNICAO_MINIMA_NO_CHECKPOINT - checkPente;
+        }
         checkChaves = player.getChaves();
+        checkIscas = player.getIscas();
         // A lista usada pelo vendedor passa a representar exatamente o estado
         // deste checkpoint, e nao um estado recalculado apenas ao falar com ele.
         questManager.atualizarArenasValidasParaQuest();
         checkArenas = arenaManager.getArenasConcluidas();
+        checkEstadoMapa = arenaManager.capturarEstadoMapa();
         System.out.println("[DEBUG CHECKPOINT] IDs de arenas concluidas: " + checkArenas);
         System.out.println("[DEBUG CHECKPOINT] IDs validos para o vendedor: "
                 + questManager.getArenasValidasParaQuest());
@@ -1131,6 +1156,10 @@ public class GameCore extends Canvas implements Runnable {
         }
         System.out.println(">>> CARREGANDO CHECKPOINT... <<<");
         player.respawn(checkX, checkY, checkVida, checkMunicao, checkPente, checkChaves);
+        int diferencaIscas = checkIscas - player.getIscas();
+        if (diferencaIscas != 0) {
+            player.addIscas(diferencaIscas);
+        }
         player.setBlockInputs(false);
         player.setFishingRod(checkVaraDePesca);
         camera.desfocarCamera();
@@ -1138,7 +1167,11 @@ public class GameCore extends Canvas implements Runnable {
         camera.setModoCombate(false);
         bulletmanager.limparTudo();
         itemManager.limparConsumiveis();
-        arenaManager.restaurarArenas(checkArenas, player, itemManager);
+        if (checkEstadoMapa != null) {
+            arenaManager.restaurarEstadoMapa(checkEstadoMapa, player, itemManager);
+        } else {
+            arenaManager.restaurarArenas(checkArenas, player, itemManager);
+        }
         questManager.reaplicarQuestFisica(player);
         questManager.atualizarArenasValidasParaQuest();
     }
@@ -1151,6 +1184,8 @@ public class GameCore extends Canvas implements Runnable {
         dayProgress = horarioinicial;
         hasCheckpoint = false;
         checkArenas.clear();
+        checkEstadoMapa = null;
+        checkIscas = 0;
         estadoLevel1AntesDaLoja = null;
         itensLevel1AntesDaLoja.clear();
         temRetornoDaLoja = false;
