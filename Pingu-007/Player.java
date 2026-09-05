@@ -1374,6 +1374,7 @@ public class Player extends Entity {
     }
 
     public void metodoInutil() {
+        ToastNotifications.RequestNotification("!neves xis o açaF", 5.0);
         setHasPoderSixSeven(true);
         soundManager.playSFX(SoundManager.SFX.SCREAM);
     }
