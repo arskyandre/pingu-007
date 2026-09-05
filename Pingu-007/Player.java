@@ -680,7 +680,7 @@ public class Player extends Entity {
                         setGunType(Player.GunType.PISTOL);
                         if (ToastNotifications.getNotifAtual() != null
                                 && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                             ToastNotifications.skipNotification();
                         }
                         if (ToastNotifications.getNotifAtual() == null
@@ -691,7 +691,7 @@ public class Player extends Entity {
                         setGunType(Player.GunType.SHOTGUN);
                         if (ToastNotifications.getNotifAtual() != null
                                 && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                             ToastNotifications.skipNotification();
                         }
                         if (ToastNotifications.getNotifAtual() == null
@@ -717,7 +717,7 @@ public class Player extends Entity {
 
                 if (!hasVelocityOverride()
                         && (input.isButtonPressed(InputManager.GamepadButton.A)
-                        || input.isButtonPressed(InputManager.GamepadButton.LB))
+                                || input.isButtonPressed(InputManager.GamepadButton.LB))
                         && podeDash && !emDash) {
                     if (analogicoEsquerdo.x != 0 || analogicoEsquerdo.y != 0) {
                         aplicarDashDirecional(analogicoEsquerdo.partiallyNormalized());
@@ -1374,7 +1374,7 @@ public class Player extends Entity {
     }
 
     public void metodoInutil() {
-        ToastNotifications.RequestNotification("!neves xis o açaF", 5.0);
+        ToastNotifications.RequestNotification("!neves xis o açaF", 10.0);
         setHasPoderSixSeven(true);
         soundManager.playSFX(SoundManager.SFX.SCREAM);
     }
