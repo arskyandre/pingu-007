@@ -6,6 +6,7 @@ import java.util.List;
 public class ArenaManager {
 
     private static final int ID_PUZZLE_BOTOES = 101;
+    private static final int ID_ARENA_BACKTRACKING = 102;
 
     private final LevelManager levelManager;
     private final EnemyManager enemyManager;
@@ -25,6 +26,7 @@ public class ArenaManager {
     // public boolean flagArena16Ativada = false;
     private boolean chave14_15_spawnada = false;
     private boolean puzzleBotoesConcluido = false;
+    private boolean paredeArena102Aberta = false;
     private boolean cutscene_vendedor = false;
     private boolean cutsceneBossSolicitada = false;
     private boolean fezCutscene = false;
@@ -51,6 +53,7 @@ public class ArenaManager {
         private final ArrayList<Integer> arenasConcluidas;
         private final boolean chave14_15_spawnada;
         private final boolean puzzleBotoesConcluido;
+        private final boolean paredeArena102Aberta;
         private final boolean cutscene_vendedor;
         private final boolean cutsceneBossSolicitada;
         private final boolean fezCutscene;
@@ -60,6 +63,7 @@ public class ArenaManager {
         private EstadoMapa(ArrayList<Integer> arenasConcluidas,
                 boolean chave14_15_spawnada,
                 boolean puzzleBotoesConcluido,
+                boolean paredeArena102Aberta,
                 boolean cutscene_vendedor,
                 boolean cutsceneBossSolicitada,
                 boolean fezCutscene,
@@ -68,6 +72,7 @@ public class ArenaManager {
             this.arenasConcluidas = new ArrayList<>(arenasConcluidas);
             this.chave14_15_spawnada = chave14_15_spawnada;
             this.puzzleBotoesConcluido = puzzleBotoesConcluido;
+            this.paredeArena102Aberta = paredeArena102Aberta;
             this.cutscene_vendedor = cutscene_vendedor;
             this.cutsceneBossSolicitada = cutsceneBossSolicitada;
             this.fezCutscene = fezCutscene;
@@ -165,6 +170,7 @@ public class ArenaManager {
         // flagArena16Ativada = false;
         chave14_15_spawnada = false;
         puzzleBotoesConcluido = false;
+        paredeArena102Aberta = false;
         cutscene_vendedor = false;
         cutsceneBossSolicitada = false;
         la_ele = false;
@@ -221,8 +227,8 @@ public class ArenaManager {
         }
 
         setWallState(3, true, null);
-        setWallState(101, true, null);
-        setWallState(102, true, null);
+        setWallState(ID_PUZZLE_BOTOES, true, null);
+        setWallState(ID_ARENA_BACKTRACKING, true, null);
     }
 
     public void setFezCutscene(boolean set) {
@@ -238,6 +244,7 @@ public class ArenaManager {
                 getArenasConcluidas(),
                 chave14_15_spawnada,
                 puzzleBotoesConcluido,
+                paredeArena102Aberta,
                 cutscene_vendedor,
                 cutsceneBossSolicitada,
                 fezCutscene,
@@ -254,6 +261,7 @@ public class ArenaManager {
         // verificarDesativacaoParedes nao repita cutscenes nem recompensas.
         chave14_15_spawnada = estado.chave14_15_spawnada;
         puzzleBotoesConcluido = estado.puzzleBotoesConcluido;
+        paredeArena102Aberta = estado.paredeArena102Aberta;
         cutscene_vendedor = estado.cutscene_vendedor;
         // cutsceneBossSolicitada = estado.cutsceneBossSolicitada;
         fezCutscene = estado.fezCutscene;
@@ -557,6 +565,17 @@ public class ArenaManager {
         setWallState(ID_PUZZLE_BOTOES, false, player);
     }
 
+    private void aplicarEstadoParedeArena102(Player player) {
+        if (!paredeArena102Aberta) {
+            return;
+        }
+
+        Arena arena = getOuCriarArena(ID_ARENA_BACKTRACKING);
+        marcarArenaConcluida(arena);
+        arena.ativa = false;
+        setWallState(ID_ARENA_BACKTRACKING, false, player);
+    }
+
     private void ativarArena(int id, Player player, CameraManager camera, CutsceneManager cutsceneManager,
             SoundManager sound) {
         System.out.println("Ativou arena: " + id);
@@ -573,11 +592,11 @@ public class ArenaManager {
         if (id == 0) {
             player.setTemporarySpriteOverride(7, 2);
         }
-        if (id != 67 && id != 102) {
+        if (id != 67 && id != ID_ARENA_BACKTRACKING) {
             System.out.println("CUTSCENE setado em ArenaManager, id = " + id);
             GameCore.setGameState(GameState.CUTSCENE);
         }
-        if (id != 102) {
+        if (id != ID_ARENA_BACKTRACKING) {
             sound.playSFX(SoundManager.SFX.ARENA_ENTER);
             gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
         }
@@ -586,7 +605,7 @@ public class ArenaManager {
             arena.hordaAtual = 1;
             spawnHorda(arena);
         }
-
+        // TODO: Adicionar mais Checkpoints
         switch (id) {
             case 0 -> {
                 setWallState(0, true, player);
@@ -671,8 +690,9 @@ public class ArenaManager {
                     System.out.println("ERRO: Morsa não encontrada na Arena 67!");
                 }
             }
-            case 102 -> {
-                setWallState(102, false, player);
+            case ID_ARENA_BACKTRACKING -> {
+                paredeArena102Aberta = true;
+                setWallState(ID_ARENA_BACKTRACKING, false, player);
                 marcarArenaConcluida(arena);
                 player.solicitarCheckpoint();
             }
@@ -753,7 +773,7 @@ public class ArenaManager {
                     }
                 }
             }
-            case 16, 101, 102, 999 -> {
+            case 16, ID_PUZZLE_BOTOES, ID_ARENA_BACKTRACKING, 999 -> {
             }
             default ->
                 setWallState(id, false, player);
@@ -869,7 +889,7 @@ public class ArenaManager {
                 arena.ativa = false;
                 arena.hordaAtual = 0;
 
-                if (arena.id == 3 || arena.id == 101 || arena.id == 102) {
+                if (arena.id == 3 || arena.id == ID_PUZZLE_BOTOES || arena.id == ID_ARENA_BACKTRACKING) {
                     setWallState(arena.id, true, player);
                 } else {
                     setWallState(arena.id, false, player);
@@ -891,6 +911,7 @@ public class ArenaManager {
         }
 
         aplicarEstadoPuzzleBotoes(player);
+        aplicarEstadoParedeArena102(player);
 
         if (rebobinouAlgumPuzzle) {
             itemManager.getItems().removeIf(item -> item instanceof KeyItem);

@@ -1,3 +1,4 @@
+
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -11,11 +12,18 @@ public final class QuestManager implements ArenaManager.ObservadorArenas {
     private QuestState questState = QuestState.NENHUMA;
     private int idArenaQuestAtual = -1;
     private static final Set<Integer> QUEST_BLACKLIST = Set.of(0, 2, 3, 4, 5, 9, 10, 14, 15, 67, 101, 102, 999);
+    // Mude para false para manter somente o bonus por quantidade de hordas
+    private static final boolean BonusDistanciaNaRecompensa = true;
+    private static final int ID_TRIGGER_LOJA = 9;
+    private static final int RECOMPENSA_BASE_MOEDAS = 50;
+    private static final double BONUS_HORDA_EXTRA = 0.5;
+    private static final double TILES_BONUS_DISTANCIA = 100.0;
 
     private final ArenaManager arenaManager;
     private final java.util.Set<Integer> arenasConcluidasConhecidas;
     private final java.util.Set<Integer> arenasValidasParaQuest = new java.util.HashSet<>();
     private final java.util.Map<Integer, Integer> hordasConhecidasPorArena = new java.util.HashMap<>();
+    private final java.util.Map<Integer, Point2D.Double> centrosTriggersConhecidos = new java.util.HashMap<>();
 
     public QuestManager(ArenaManager arenaManager) {
         this.arenaManager = arenaManager;
@@ -33,6 +41,12 @@ public final class QuestManager implements ArenaManager.ObservadorArenas {
     @Override
     public void hordasCarregadas(int idArena, int totalHordas) {
         hordasConhecidasPorArena.put(idArena, totalHordas);
+
+        Rectangle2D.Double bounds = getArenaTriggerBounds(idArena);
+        if (bounds != null) {
+            centrosTriggersConhecidos.put(idArena,
+                    new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()));
+        }
     }
 
     @Override
@@ -50,6 +64,7 @@ public final class QuestManager implements ArenaManager.ObservadorArenas {
         arenaManager.limparHistoricoArenasConcluidas();
         arenasValidasParaQuest.clear();
         hordasConhecidasPorArena.clear();
+        centrosTriggersConhecidos.clear();
     }
 
     public void atualizarArenasValidasParaQuest() {
@@ -85,35 +100,32 @@ public final class QuestManager implements ArenaManager.ObservadorArenas {
 
     public Rectangle2D.Double getQuestTargetBounds() {
         if (questState == QuestState.ATIVA && idArenaQuestAtual != -1) {
-            ArenaManager.Arena a = arenaManager.getOuCriarArena(idArenaQuestAtual);
-            if (a.trigger != null) {
-                java.awt.Shape triggerShape = null;
-
-                if (a.trigger.isPolygon) {
-                    triggerShape = a.trigger.getPolygonShape();
-                }
-
-                if (triggerShape == null && a.trigger.hitbox != null) {
-                    triggerShape = a.trigger.hitbox;
-                }
-
-                if (triggerShape != null) {
-                    Rectangle2D bounds = triggerShape.getBounds2D();
-                    return new Rectangle2D.Double(
-                            bounds.getX(),
-                            bounds.getY(),
-                            bounds.getWidth(),
-                            bounds.getHeight());
-                }
-
-                return new Rectangle2D.Double(
-                        a.trigger.x,
-                        a.trigger.y,
-                        a.trigger.width,
-                        a.trigger.height);
-            }
+            return getArenaTriggerBounds(idArenaQuestAtual);
         }
         return null;
+    }
+
+    private Rectangle2D.Double getArenaTriggerBounds(int idArena) {
+        ArenaManager.Arena arena = arenaManager.getOuCriarArena(idArena);
+        if (arena.trigger == null) {
+            return null;
+        }
+
+        java.awt.Shape triggerShape = null;
+        if (arena.trigger.isPolygon) {
+            triggerShape = arena.trigger.getPolygonShape();
+        }
+        if (triggerShape == null && arena.trigger.hitbox != null) {
+            triggerShape = arena.trigger.hitbox;
+        }
+        if (triggerShape != null) {
+            Rectangle2D bounds = triggerShape.getBounds2D();
+            return new Rectangle2D.Double(
+                    bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+        }
+
+        return new Rectangle2D.Double(
+                arena.trigger.x, arena.trigger.y, arena.trigger.width, arena.trigger.height);
     }
 
     public boolean isQuestArenaAtiva() {
@@ -165,7 +177,8 @@ public final class QuestManager implements ArenaManager.ObservadorArenas {
 
     public boolean entregarQuest(Player player) {
         if (questState == QuestState.PRONTA_PARA_ENTREGAR) {
-            player.addMoedas(50);
+            int recompensaMoedas = calcularRecompensaMoedas();
+            player.addMoedas(recompensaMoedas);
             player.addIscas(2);
 
             if (idArenaQuestAtual != -1) {
@@ -180,6 +193,31 @@ public final class QuestManager implements ArenaManager.ObservadorArenas {
             return true;
         }
         return false;
+    }
+
+    private int calcularRecompensaMoedas() {
+        int totalHordas = Math.max(1, hordasConhecidasPorArena.getOrDefault(idArenaQuestAtual, 1));
+        double multiplicadorHordas = 1.0 + (totalHordas - 1) * BONUS_HORDA_EXTRA;
+        double distanciaEmTiles = calcularDistanciaDaLojaEmTiles();
+        double multiplicadorDistancia = BonusDistanciaNaRecompensa
+                ? 1.0 + distanciaEmTiles / TILES_BONUS_DISTANCIA
+                : 1.0;
+
+        int recompensa = (int) Math.round(
+                RECOMPENSA_BASE_MOEDAS * multiplicadorHordas * multiplicadorDistancia);
+        System.out.printf("[DEBUG QUEST] Recompensa da arena %d: %d moedas (%d horda(s), distância %.1f tiles, bônus de distância %s).%n",
+                idArenaQuestAtual, recompensa, totalHordas, distanciaEmTiles,
+                BonusDistanciaNaRecompensa ? "ativo" : "inativo");
+        return recompensa;
+    }
+
+    private double calcularDistanciaDaLojaEmTiles() {
+        Point2D.Double centroLoja = centrosTriggersConhecidos.get(ID_TRIGGER_LOJA);
+        Point2D.Double centroQuest = centrosTriggersConhecidos.get(idArenaQuestAtual);
+        if (centroLoja == null || centroQuest == null) {
+            return 0.0;
+        }
+        return centroLoja.distance(centroQuest) / GameCore.tiles_size;
     }
 
     public void reaplicarQuestFisica(Player player) {

@@ -33,25 +33,21 @@ public class MorsaBoss extends Enemy {
     private CameraManager camera;
     private EnemyManager enemyManager;
 
-    
     private boolean rugindo = false;
     private double timerRugido = 0;
     private double cooldownRugido = 30;
     private boolean podeRugir = false;
 
-    
     private int contadorRugidos = 0;
     private int rugidosParaSpawn = 3;
     private ArrayList<Enemy> minionsSpawnados = new ArrayList<>();
     private ArrayList<Point2D.Double> pontosDeSpawn = new ArrayList<>();
 
-    
     private double timerAtaque = 120;
     private int ataqueSorteio = 0;
     private BossMao maoEsmagandoAtiva = null;
     private int contadorBote = 0;
 
-    
     private boolean sequenciaMorte = false;
     private int timerMorte = 0;
     private static final int MORTE_BRANCA_FRAMES = 75;
@@ -93,7 +89,6 @@ public class MorsaBoss extends Enemy {
         return branca;
     }
 
-    
     public void setEnemyManager(EnemyManager em) {
         this.enemyManager = em;
     }
@@ -221,17 +216,19 @@ public class MorsaBoss extends Enemy {
                                 double tempoSalvo = maoDireita.getTimerEstado();
                                 double tempoComDesconto = Math.max(0, tempoSalvo - 20);
 
-                                maoDireita.cancelarAtaque();
-                                maoEsquerda.iniciarHoverSlam(tempoComDesconto);
-                                maoEsmagandoAtiva = maoEsquerda;
+                                if (maoEsquerda.iniciarHoverSlam(tempoComDesconto)) {
+                                    maoDireita.cancelarAtaque();
+                                    maoEsmagandoAtiva = maoEsquerda;
+                                }
 
                             } else if (playerNaDireita && maoEsmagandoAtiva == maoEsquerda && maoDireita != null) {
                                 double tempoSalvo = maoEsquerda.getTimerEstado();
                                 double tempoComDesconto = Math.max(0, tempoSalvo - 20);
 
-                                maoEsquerda.cancelarAtaque();
-                                maoDireita.iniciarHoverSlam(tempoComDesconto);
-                                maoEsmagandoAtiva = maoDireita;
+                                if (maoDireita.iniciarHoverSlam(tempoComDesconto)) {
+                                    maoEsquerda.cancelarAtaque();
+                                    maoEsmagandoAtiva = maoDireita;
+                                }
                             }
                         }
                     }
@@ -431,11 +428,13 @@ public class MorsaBoss extends Enemy {
             }
         } else {
             if (playerNaEsquerda && maoEsquerda != null) {
-                maoEsquerda.iniciarHoverSlam();
-                maoEsmagandoAtiva = maoEsquerda;
+                if (maoEsquerda.iniciarHoverSlam()) {
+                    maoEsmagandoAtiva = maoEsquerda;
+                }
             } else if (!playerNaEsquerda && maoDireita != null) {
-                maoDireita.iniciarHoverSlam();
-                maoEsmagandoAtiva = maoDireita;
+                if (maoDireita.iniciarHoverSlam()) {
+                    maoEsmagandoAtiva = maoDireita;
+                }
             }
         }
     }
@@ -761,6 +760,9 @@ enum MaoState {
 
 class BossMao extends Enemy {
 
+    private static final int LIMITE_FISGADA_FRAMES = 180;
+    private static final int LIMITE_RETORNO_FRAMES = 180;
+
     private MorsaBoss corpoPrincipal;
     private double xHome, yHome;
     private MaoState status = MaoState.IDLE;
@@ -811,6 +813,10 @@ class BossMao extends Enemy {
             timerEstado = 0;
             isBoteDuplo = duplo;
             isSegundaMao = segundaMao;
+            isHooked = false;
+            isPuxado = false;
+            velX = 0;
+            velY = 0;
         }
     }
 
@@ -818,20 +824,46 @@ class BossMao extends Enemy {
         return this.timerEstado;
     }
 
-    public void iniciarHoverSlam() {
-        iniciarHoverSlam(0);
+    public boolean iniciarHoverSlam() {
+        return iniciarHoverSlam(0);
     }
 
-    public void iniciarHoverSlam(double tempoHerdado) {
-        if (status == MaoState.IDLE || status == MaoState.RETURNING) {
-            status = MaoState.HOVER_CHASE;
-            timerEstado = tempoHerdado;
+    public boolean iniciarHoverSlam(double tempoHerdado) {
+        if (status != MaoState.IDLE && status != MaoState.RETURNING) {
+            return false;
         }
+
+        status = MaoState.HOVER_CHASE;
+        timerEstado = Math.max(0, tempoHerdado);
+        isHooked = false;
+        isPuxado = false;
+        velX = 0;
+        velY = 0;
+        return true;
     }
 
     public void cancelarAtaque() {
+        iniciarRetorno();
+    }
+
+    private void iniciarRetorno() {
         status = MaoState.RETURNING;
         timerEstado = 0;
+        isHooked = false;
+        isPuxado = false;
+        velX = 0;
+        velY = 0;
+    }
+
+    private void finalizarRetorno() {
+        this.x = xHome;
+        this.y = yHome;
+        status = MaoState.IDLE;
+        timerEstado = 0;
+        isHooked = false;
+        isPuxado = false;
+        velX = 0;
+        velY = 0;
     }
 
     public boolean isEsmagando() {
@@ -980,25 +1012,33 @@ class BossMao extends Enemy {
             case BOTE_RECOVERY -> {
                 timerEstado += 1;
                 if (timerEstado > 15) {
-                    status = MaoState.RETURNING;
-                    timerEstado = 0;
+                    iniciarRetorno();
                 }
             }
 
             case RETURNING -> {
+                timerEstado += 1;
+
+                if (!Double.isFinite(this.x) || !Double.isFinite(this.y)
+                        || timerEstado > LIMITE_RETORNO_FRAMES) {
+                    if (GameCore.getDebug()) {
+                        System.out.println("[DEBUG BOSS] Mão recuperada pelo limite de retorno.");
+                    }
+                    finalizarRetorno();
+                    break;
+                }
+
                 double dxHome = xHome - this.x;
                 double dyHome = yHome - this.y;
                 double distHome = Math.hypot(dxHome, dyHome);
 
                 double retSpeed = corpoPrincipal.isFase2() ? 11.0 : 8.0;
 
-                if (distHome > 5) {
+                if (distHome > retSpeed) {
                     this.x += (dxHome / distHome) * retSpeed;
                     this.y += (dyHome / distHome) * retSpeed;
                 } else {
-                    this.x = xHome;
-                    this.y = yHome;
-                    status = MaoState.IDLE;
+                    finalizarRetorno();
                 }
             }
 
@@ -1118,17 +1158,16 @@ class BossMao extends Enemy {
                     timerEstado = 0;
                     this.velX = 0;
                     this.velY = 0;
-                }
-
-                // Velocidade estilingue
-                int limiteHoverRecovery = corpoPrincipal.isFase2() ? 50 : 90;
-                if (timerEstado > limiteHoverRecovery) {
-                    status = MaoState.RETURNING;
-                    timerEstado = 0;
+                } else {
+                    int limiteHoverRecovery = corpoPrincipal.isFase2() ? 50 : 90;
+                    if (timerEstado > limiteHoverRecovery) {
+                        iniciarRetorno();
+                    }
                 }
             }
 
             case FISHED -> {
+                timerEstado += 1;
                 mostrarSombra = true;
                 sombraX = this.x + (this.width / 2.0);
                 sombraY = this.y + this.height;
@@ -1137,11 +1176,11 @@ class BossMao extends Enemy {
                 if (this.isPuxado || Math.abs(this.velX) > 2 || Math.abs(this.velY) > 2) {
                     status = MaoState.PULLED_TO_PLAYER;
                     timerEstado = 0;
-                }
-                else if (!this.isHooked) {
-                    status = MaoState.RETURNING;
-                    timerEstado = 0;
-                    this.isPuxado = false;
+                } else if (!this.isHooked || timerEstado > LIMITE_FISGADA_FRAMES) {
+                    if (this.isHooked && GameCore.getDebug()) {
+                        System.out.println("[DEBUG BOSS] Mão liberada pelo limite de fisgada.");
+                    }
+                    iniciarRetorno();
                 }
             }
 
@@ -1239,8 +1278,7 @@ class BossMao extends Enemy {
                 tremorVisualX = (Math.random() > 0.5 ? 4 : -4);
 
                 if (timerEstado > 15) {
-                    status = MaoState.RETURNING;
-                    timerEstado = 0;
+                    iniciarRetorno();
                 }
             }
         }
