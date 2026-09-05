@@ -73,7 +73,7 @@ public class VendedorNPC extends NPC {
         state = State.IDLE;
     }
 
-    private void comoPossoAjudar(DialogueManager dialogueManager, Player player) {
+    private void comoPossoAjudar(DialogueManager dialogueManager, Player player, SoundManager soundManager) {
         QuestManager.QuestState qs = this.questManager.getQuestState();
         System.out.println("[DEBUG VENDEDOR] Jogador pediu missão. Status da quest no ArenaManager: " + qs);
         switch (qs) {
@@ -112,7 +112,8 @@ public class VendedorNPC extends NPC {
         //     encerrarDialogo(dialogueManager);
         // });
         dialogueManager.setAoTerminarDialogo(() -> {
-            encerrarDialogo(dialogueManager);
+            loopInteracao("VENDEDOR: Algo a mais, Pingu?", DialogueCatalogo.Vendedor_algo_a_mais,
+                    player, dialogueManager, soundManager);
         });
     }
 
@@ -136,7 +137,7 @@ public class VendedorNPC extends NPC {
                             GameCore.setShopMenu(shopMenu);
                         }
                         case 1 -> {
-                            comoPossoAjudar(dialogueManager, player);
+                            comoPossoAjudar(dialogueManager, player, soundManager);
                         }
                         case 2 -> {
                             int moedas = (int) (player.getCurrentEnemyCount() * inimigosPorMoeda);
