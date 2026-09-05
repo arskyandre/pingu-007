@@ -20,8 +20,14 @@ public class PathFinder {
             ArrayList<MapObject> objetosCenario,
             Consumer<ArrayList<Node>> callback) {
 
+        ArrayList<MapObject> snapshotObjetos = objetosCenario == null
+                ? null
+                : new ArrayList<>(objetosCenario);
+
         aiThreadPool.submit(() -> {
-            ArrayList<Node> caminhoPronto = encontrarCaminho(startCol, startRow, targetCol, targetRow, lvlData, jumpLinks, objetosCenario);
+            ArrayList<Node> caminhoPronto = encontrarCaminho(
+                    startCol, startRow, targetCol, targetRow,
+                    lvlData, jumpLinks, snapshotObjetos);
             callback.accept(caminhoPronto);
         });
     }
@@ -42,6 +48,7 @@ public class PathFinder {
 
         // Otimização : cria uma matriz para pre calcular os tiles com colisões de objetos (PERDE PRECISÃO)
         boolean[][] gridObjetos = new boolean[maxRow][maxCol];
+        boolean[][] gridObjetosPulaveis = new boolean[maxRow][maxCol];
         if (objetosCenario != null) {
             for (MapObject obj : objetosCenario) {
                 if (obj == null || !obj.isSolid() || obj.getHitbox() == null) {
@@ -51,8 +58,10 @@ public class PathFinder {
                 Rectangle2D bounds = obj.getHitbox().getBounds2D();
                 int startC = Math.max(0, (int) (bounds.getX() / GameCore.tiles_size));
                 int startR = Math.max(0, (int) (bounds.getY() / GameCore.tiles_size));
-                int endC = Math.min(maxCol - 1, (int) ((bounds.getX() + bounds.getWidth()) / GameCore.tiles_size));
-                int endR = Math.min(maxRow - 1, (int) ((bounds.getY() + bounds.getHeight()) / GameCore.tiles_size));
+                int endC = Math.min(maxCol - 1,
+                        (int) ((bounds.getMaxX() - 0.001) / GameCore.tiles_size));
+                int endR = Math.min(maxRow - 1,
+                        (int) ((bounds.getMaxY() - 0.001) / GameCore.tiles_size));
 
                 for (int r = startR; r <= endR; r++) {
                     for (int c = startC; c <= endC; c++) {
@@ -62,6 +71,9 @@ public class PathFinder {
 
                         if (obj.getHitbox().intersects(tileRect)) {
                             gridObjetos[r][c] = true;
+                            if (obj.isTransparent()) {
+                                gridObjetosPulaveis[r][c] = true;
+                            }
                         }
                     }
                 }
@@ -103,7 +115,9 @@ public class PathFinder {
                 return construirCaminho(current);
             }
 
-            for (Node vizinho : getVizinhos(current, lvlData, jumpLinks, closedMap, gridObjetos)) {
+            for (Node vizinho : getVizinhos(
+                    current, lvlData, jumpLinks, closedMap,
+                    gridObjetos, gridObjetosPulaveis)) {
                 long key = nodeKey(vizinho.coluna, vizinho.linha);
                 int moveCost = current.gCost + calcularMoveCost(current, vizinho, lvlData);
                 Node existingOpen = openMap.get(key);
@@ -114,6 +128,8 @@ public class PathFinder {
                         existingOpen.hCost = calcularDistancia(existingOpen, targetNode);
                         existingOpen.calcularFCost();
                         existingOpen.parent = current;
+                        existingOpen.requerSalto = vizinho.requerSalto;
+                        existingOpen.distanciaTiles = vizinho.distanciaTiles;
                     }
                 } else {
                     vizinho.gCost = moveCost;
@@ -141,7 +157,8 @@ public class PathFinder {
             int[][] lvlData,
             ArrayList<JumpLink> jumpLinks,
             HashMap<Long, Node> closedMap,
-            boolean[][] gridObjetos) {
+            boolean[][] gridObjetos,
+            boolean[][] gridObjetosPulaveis) {
 
         ArrayList<Node> vizinhos = new ArrayList<>();
         int maxRow = lvlData.length;
@@ -167,7 +184,11 @@ public class PathFinder {
             for (JumpLink link : jumpLinks) {
                 if (link.origemCol == current.coluna && link.origemRow == current.linha
                         && !closedMap.containsKey(nodeKey(link.destinoCol, link.destinoRow))
-                        && !gridObjetos[link.destinoRow][link.destinoCol]) {
+                        && !gridObjetos[link.destinoRow][link.destinoCol]
+                        && saltoNaoCruzaObjetoOpaco(
+                                link.origemCol, link.origemRow,
+                                link.destinoCol, link.destinoRow,
+                                gridObjetos, gridObjetosPulaveis)) {
 
                     Node jumpNode = new Node(link.destinoCol, link.destinoRow);
                     jumpNode.requerSalto = true;
@@ -176,7 +197,11 @@ public class PathFinder {
 
                 } else if (link.destinoCol == current.coluna && link.destinoRow == current.linha
                         && !closedMap.containsKey(nodeKey(link.origemCol, link.origemRow))
-                        && !gridObjetos[link.origemRow][link.origemCol]) {
+                        && !gridObjetos[link.origemRow][link.origemCol]
+                        && saltoNaoCruzaObjetoOpaco(
+                                link.destinoCol, link.destinoRow,
+                                link.origemCol, link.origemRow,
+                                gridObjetos, gridObjetosPulaveis)) {
 
                     Node jumpNode = new Node(link.origemCol, link.origemRow);
                     jumpNode.requerSalto = true;
@@ -184,8 +209,97 @@ public class PathFinder {
                     vizinhos.add(jumpNode);
                 }
             }
+
+            adicionarSaltosSobreObjetosTransparentes(
+                    current, lvlData, jumpLinks, closedMap,
+                    gridObjetos, gridObjetosPulaveis, vizinhos);
         }
         return vizinhos;
+    }
+
+    private static boolean saltoNaoCruzaObjetoOpaco(
+            int origemCol, int origemRow,
+            int destinoCol, int destinoRow,
+            boolean[][] gridObjetos,
+            boolean[][] gridObjetosPulaveis) {
+
+        int deltaCol = destinoCol - origemCol;
+        int deltaRow = destinoRow - origemRow;
+        int quantidadePassos = Math.max(Math.abs(deltaCol), Math.abs(deltaRow));
+
+        if (quantidadePassos <= 1) {
+            return true;
+        }
+
+        for (int i = 1; i < quantidadePassos; i++) {
+            int col = origemCol + (int) Math.round(deltaCol * (i / (double) quantidadePassos));
+            int row = origemRow + (int) Math.round(deltaRow * (i / (double) quantidadePassos));
+
+            if (gridObjetos[row][col] && !gridObjetosPulaveis[row][col]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static void adicionarSaltosSobreObjetosTransparentes(
+            Node current,
+            int[][] lvlData,
+            ArrayList<JumpLink> jumpLinks,
+            HashMap<Long, Node> closedMap,
+            boolean[][] gridObjetos,
+            boolean[][] gridObjetosPulaveis,
+            ArrayList<Node> vizinhos) {
+
+        int maxDistancia = 5;
+        for (JumpLink link : jumpLinks) {
+            maxDistancia = Math.max(maxDistancia, link.distanciaTiles);
+        }
+
+        int[] dirX = {0, 1, 0, -1};
+        int[] dirY = {-1, 0, 1, 0};
+
+        for (int i = 0; i < 4; i++) {
+            int adjCol = current.coluna + dirX[i];
+            int adjRow = current.linha + dirY[i];
+
+            if (!dentroDoGrid(adjCol, adjRow, lvlData)
+                    || !gridObjetosPulaveis[adjRow][adjCol]) {
+                continue;
+            }
+
+            for (int distancia = 2; distancia <= maxDistancia; distancia++) {
+                int col = current.coluna + dirX[i] * distancia;
+                int row = current.linha + dirY[i] * distancia;
+
+                if (!dentroDoGrid(col, row, lvlData)) {
+                    break;
+                }
+
+                if (gridObjetosPulaveis[row][col]) {
+                    continue;
+                }
+
+                // Um objeto opaco no meio não pode ser atravessado pelo salto.
+                if (gridObjetos[row][col] || !isCaminhavel(lvlData[row][col])) {
+                    break;
+                }
+
+                if (!closedMap.containsKey(nodeKey(col, row))) {
+                    Node salto = new Node(col, row);
+                    salto.requerSalto = true;
+                    salto.distanciaTiles = distancia;
+                    vizinhos.add(salto);
+                }
+                break;
+            }
+        }
+    }
+
+    private static boolean dentroDoGrid(int col, int row, int[][] lvlData) {
+        return row >= 0 && row < lvlData.length
+                && col >= 0 && col < lvlData[0].length;
     }
 
     private static int calcularDistancia(Node a, Node b) {

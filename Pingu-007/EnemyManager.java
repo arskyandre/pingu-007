@@ -48,7 +48,11 @@ public class EnemyManager {
                 if (itemManager != null && !e1.isLootProcessado() && e1.podeDropar) {
                     itemManager.gerarDropDeInimigo(e1);
                 }
-                player.addEnemyCount(1);
+
+                if (e1.geraRecompensaPadrao) {
+                    player.addEnemyCount(1);
+                }
+
                 if (e1 instanceof Shooter) {
                     player.addShooterEnemyCount(1);
                 } else if (e1 instanceof BasicEnemy) {

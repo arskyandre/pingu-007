@@ -5,6 +5,9 @@ import java.util.ArrayList;
 
 public abstract class Entity implements Renderable {
 
+    private static final double SWEEP_EPSILON = 0.01;
+    private static final int SWEEP_SEARCH_ITERATIONS = 24;
+
     protected double x, y;
     protected double velX, velY;
 
@@ -26,6 +29,7 @@ public abstract class Entity implements Renderable {
     protected boolean isPuxado = false;
     protected boolean isSlippery = false;
     protected boolean isCaindo = false;
+    protected boolean podeAtravessarObjetosTransparentes = false;
     protected int timerQueda = 0;
     protected int timerLedgeSnap = 0;
     protected int timerDano = 0;
@@ -146,15 +150,156 @@ public abstract class Entity implements Renderable {
         }
 
         Rectangle2D.Double hitboxFutura = new Rectangle2D.Double(nextX, nextY, width, height);
+        Rectangle2D.Double hitboxAtual = new Rectangle2D.Double(
+                x + bodyCollider.getOffsetX(),
+                y + bodyCollider.getOffsetY(),
+                bodyCollider.getWidth(),
+                bodyCollider.getHeight());
 
         for (MapObject obj : objetos) {
-            if (obj.isSolid() && obj.getHitbox() != null) {
-                if (obj.getHitbox().intersects(hitboxFutura)) {
-                    return true;
-                }
+            if (obj == null || !obj.isSolid() || obj.getHitbox() == null) {
+                continue;
+            }
+
+            if (podeAtravessarObjetosTransparentes && obj.isTransparent()
+                    && (isAirborne || obj.getHitbox().intersects(hitboxAtual))) {
+                continue;
+            }
+
+            if (obj.getHitbox().intersects(hitboxFutura)) {
+                return true;
             }
         }
         return false;
+    }
+
+    private boolean deveIgnorarObjetoNoSweep(
+            MapObject obj,
+            Rectangle2D.Double hitboxAtual) {
+
+        if (obj == null || !obj.isSolid() || obj.getHitbox() == null) {
+            return true;
+        }
+
+        if (obj.getHitbox().intersects(hitboxAtual)) {
+            return true;
+        }
+
+        return podeAtravessarObjetosTransparentes
+                && obj.isTransparent()
+                && isAirborne;
+    }
+
+    private double limitarDeslocamentoHorizontal(
+            double cbX, double cbY,
+            double cbW, double cbH,
+            double deslocamento,
+            ArrayList<MapObject> objetos) {
+
+        if (deslocamento == 0.0 || objetos == null || objetos.isEmpty()) {
+            return deslocamento;
+        }
+
+        Rectangle2D.Double hitboxAtual = new Rectangle2D.Double(cbX, cbY, cbW, cbH);
+        double distancia = Math.abs(deslocamento);
+        boolean movendoDireita = deslocamento > 0.0;
+        double inicioCorredor = movendoDireita ? cbX + cbW : cbX - distancia;
+        Rectangle2D.Double corredor = new Rectangle2D.Double(
+                inicioCorredor, cbY, distancia, cbH);
+        double menorFracao = 1.0;
+
+        for (MapObject obj : objetos) {
+            if (deveIgnorarObjetoNoSweep(obj, hitboxAtual)
+                    || !obj.getHitbox().intersects(corredor)) {
+                continue;
+            }
+
+            double inicio = 0.0;
+            double fim = 1.0;
+
+            for (int i = 0; i < SWEEP_SEARCH_ITERATIONS; i++) {
+                double meio = (inicio + fim) / 2.0;
+                double largura = distancia * meio;
+                double xCorredor = movendoDireita
+                        ? cbX + cbW
+                        : cbX - largura;
+                Rectangle2D.Double corredorParcial = new Rectangle2D.Double(
+                        xCorredor, cbY, largura, cbH);
+
+                if (obj.getHitbox().intersects(corredorParcial)) {
+                    fim = meio;
+                } else {
+                    inicio = meio;
+                }
+            }
+
+            menorFracao = Math.min(menorFracao, fim);
+        }
+
+        if (menorFracao >= 1.0) {
+            return deslocamento;
+        }
+
+        double distanciaPermitida = Math.max(
+                0.0,
+                distancia * menorFracao - SWEEP_EPSILON);
+        return movendoDireita ? distanciaPermitida : -distanciaPermitida;
+    }
+
+    private double limitarDeslocamentoVertical(
+            double cbX, double cbY,
+            double cbW, double cbH,
+            double deslocamento,
+            ArrayList<MapObject> objetos) {
+
+        if (deslocamento == 0.0 || objetos == null || objetos.isEmpty()) {
+            return deslocamento;
+        }
+
+        Rectangle2D.Double hitboxAtual = new Rectangle2D.Double(cbX, cbY, cbW, cbH);
+        double distancia = Math.abs(deslocamento);
+        boolean movendoBaixo = deslocamento > 0.0;
+        double inicioCorredor = movendoBaixo ? cbY + cbH : cbY - distancia;
+        Rectangle2D.Double corredor = new Rectangle2D.Double(
+                cbX, inicioCorredor, cbW, distancia);
+        double menorFracao = 1.0;
+
+        for (MapObject obj : objetos) {
+            if (deveIgnorarObjetoNoSweep(obj, hitboxAtual)
+                    || !obj.getHitbox().intersects(corredor)) {
+                continue;
+            }
+
+            double inicio = 0.0;
+            double fim = 1.0;
+
+            for (int i = 0; i < SWEEP_SEARCH_ITERATIONS; i++) {
+                double meio = (inicio + fim) / 2.0;
+                double altura = distancia * meio;
+                double yCorredor = movendoBaixo
+                        ? cbY + cbH
+                        : cbY - altura;
+                Rectangle2D.Double corredorParcial = new Rectangle2D.Double(
+                        cbX, yCorredor, cbW, altura);
+
+                if (obj.getHitbox().intersects(corredorParcial)) {
+                    fim = meio;
+                } else {
+                    inicio = meio;
+                }
+            }
+
+            menorFracao = Math.min(menorFracao, fim);
+        }
+
+        if (menorFracao >= 1.0) {
+            return deslocamento;
+        }
+
+        double distanciaPermitida = Math.max(
+                0.0,
+                distancia * menorFracao - SWEEP_EPSILON);
+        return movendoBaixo ? distanciaPermitida : -distanciaPermitida;
     }
 
     protected void moveAndCollideWithMap(int[][] lvlData, ArrayList<MapObject> objetosDeCenario) {
@@ -176,7 +321,8 @@ public abstract class Entity implements Renderable {
         double cbH = bodyCollider.getHeight();
         double maxVel = Math.hypot(velX, velY);
 
-        int steps = (int) Math.ceil(maxVel / (GameCore.tiles_size / 2.0));
+        double maxCollisionStep = Math.max(1.0, GameCore.tiles_size / 2.0);
+        int steps = (int) Math.ceil(maxVel / maxCollisionStep);
         if (steps < 1) {
             steps = 1;
         }
@@ -188,15 +334,18 @@ public abstract class Entity implements Renderable {
             double cbX = x + bodyCollider.getOffsetX();
             double cbY = y + bodyCollider.getOffsetY();
 
+            double movimentoPermitidoX = limitarDeslocamentoHorizontal(
+                    cbX, cbY, cbW, cbH, stepX, objetosDeCenario);
             double proxX = cbX + stepX;
-            double proxY = cbY + stepY;
 
             // HORIZONTAL
             boolean colidiuTileX = !canMoveHere(proxX, cbY, cbW, cbH, lvlData);
-            boolean colidiuObjX = colideComObjetos(proxX, cbY, cbW, cbH, objetosDeCenario);
+            boolean colidiuObjX = Math.abs(movimentoPermitidoX - stepX) > 0.000001;
 
             if (colidiuTileX || colidiuObjX) {
-                if (colidiuTileX && !colidiuObjX) {
+                if (colidiuObjX && !colidiuTileX) {
+                    x += movimentoPermitidoX;
+                } else if (colidiuTileX && !colidiuObjX) {
                     if (stepX > 0) {
                         int tileX = (int) ((proxX + cbW - 0.1) / GameCore.tiles_size);
                         x = tileX * GameCore.tiles_size - cbW - 0.1 - bodyCollider.getOffsetX();
@@ -216,13 +365,20 @@ public abstract class Entity implements Renderable {
                 x += stepX;
             }
             cbX = x + bodyCollider.getOffsetX();
+            cbY = y + bodyCollider.getOffsetY();
+
+            double movimentoPermitidoY = limitarDeslocamentoVertical(
+                    cbX, cbY, cbW, cbH, stepY, objetosDeCenario);
+            double proxY = cbY + stepY;
 
             // VERTICAL
             boolean colidiuTileY = !canMoveHere(cbX, proxY, cbW, cbH, lvlData);
-            boolean colidiuObjY = colideComObjetos(cbX, proxY, cbW, cbH, objetosDeCenario);
+            boolean colidiuObjY = Math.abs(movimentoPermitidoY - stepY) > 0.000001;
 
             if (colidiuTileY || colidiuObjY) {
-                if (colidiuTileY && !colidiuObjY) {
+                if (colidiuObjY && !colidiuTileY) {
+                    y += movimentoPermitidoY;
+                } else if (colidiuTileY && !colidiuObjY) {
                     if (stepY > 0) {
                         int tileY = (int) ((proxY + cbH - 0.1) / GameCore.tiles_size);
                         y = tileY * GameCore.tiles_size - cbH - 0.1 - bodyCollider.getOffsetY();
@@ -261,7 +417,8 @@ public abstract class Entity implements Renderable {
                 if (TileProperties.isHole(lvlData[rowAtual][colAtual])) {
                     boolean salvoPelaBorda = false;
                     if (this.timerLedgeSnap > 0) {
-                        salvoPelaBorda = verificarEApplicarLedgeSnap(lvlData);
+                        salvoPelaBorda = verificarEApplicarLedgeSnap(
+                                lvlData, objetosDeCenario);
                     }
                     if (!salvoPelaBorda) {
                         this.isCaindo = true;
@@ -302,7 +459,61 @@ public abstract class Entity implements Renderable {
         return false;
     }
 
-    protected boolean verificarEApplicarLedgeSnap(int[][] lvlData) {
+    private boolean destinoDoLedgeSnapEstaLivre(
+            double destinoX,
+            double destinoY,
+            ArrayList<MapObject> objetosDeCenario) {
+
+        if (objetosDeCenario == null || objetosDeCenario.isEmpty()) {
+            return true;
+        }
+
+        double cbX = x + bodyCollider.getOffsetX();
+        double cbY = y + bodyCollider.getOffsetY();
+        double cbW = bodyCollider.getWidth();
+        double cbH = bodyCollider.getHeight();
+        double destinoCbX = destinoX + bodyCollider.getOffsetX();
+        double destinoCbY = destinoY + bodyCollider.getOffsetY();
+
+        double deslocamentoX = destinoCbX - cbX;
+        double permitidoX = limitarDeslocamentoHorizontal(
+                cbX, cbY, cbW, cbH, deslocamentoX, objetosDeCenario);
+        if (Math.abs(permitidoX - deslocamentoX) > 0.000001) {
+            return false;
+        }
+
+        double deslocamentoY = destinoCbY - cbY;
+        double permitidoY = limitarDeslocamentoVertical(
+                destinoCbX, cbY, cbW, cbH, deslocamentoY, objetosDeCenario);
+        if (Math.abs(permitidoY - deslocamentoY) > 0.000001) {
+            return false;
+        }
+
+        Rectangle2D.Double hitboxDestino = new Rectangle2D.Double(
+                destinoCbX, destinoCbY, cbW, cbH);
+
+        for (MapObject obj : objetosDeCenario) {
+            if (obj == null || !obj.isSolid() || obj.getHitbox() == null) {
+                continue;
+            }
+
+            if (podeAtravessarObjetosTransparentes
+                    && obj.isTransparent()
+                    && isAirborne) {
+                continue;
+            }
+
+            if (obj.getHitbox().intersects(hitboxDestino)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    protected boolean verificarEApplicarLedgeSnap(
+            int[][] lvlData,
+            ArrayList<MapObject> objetosDeCenario) {
         if (this.bodyCollider == null || this.isDead) {
             return false;
         }
@@ -320,8 +531,8 @@ public abstract class Entity implements Renderable {
         int endRow = (int) ((colY + colH) / GameCore.tiles_size);
 
         double areaSeguraAcumulada = 0;
-        double melhorTileX = -1;
-        double melhorTileY = -1;
+        double melhorDestinoX = Double.NaN;
+        double melhorDestinoY = Double.NaN;
         double menorDistanciaCentro = Double.MAX_VALUE;
 
         for (int r = startRow; r <= endRow; r++) {
@@ -344,6 +555,24 @@ public abstract class Entity implements Renderable {
 
                             double centroTileX = tileX + GameCore.tiles_size / 2.0;
                             double centroTileY = tileY + GameCore.tiles_size / 2.0;
+
+                            if (isSlippery) {
+                                centroTileX -= Math.signum(velX)
+                                        * Math.min(Math.abs(velX) * 1.5, GameCore.tiles_size * 0.15);
+                                centroTileY -= Math.signum(velY)
+                                        * Math.min(Math.abs(velY) * 1.5, GameCore.tiles_size * 0.15);
+                            }
+
+                            double destinoX = centroTileX
+                                    - (bodyCollider.getOffsetX() + colW / 2.0);
+                            double destinoY = centroTileY
+                                    - (bodyCollider.getOffsetY() + colH / 2.0);
+
+                            if (!destinoDoLedgeSnapEstaLivre(
+                                    destinoX, destinoY, objetosDeCenario)) {
+                                continue;
+                            }
+
                             double centroEntidadeX = colX + colW / 2.0;
                             double centroEntidadeY = colY + colH / 2.0;
 
@@ -351,8 +580,8 @@ public abstract class Entity implements Renderable {
 
                             if (dist < menorDistanciaCentro) {
                                 menorDistanciaCentro = dist;
-                                melhorTileX = tileX;
-                                melhorTileY = tileY;
+                                melhorDestinoX = destinoX;
+                                melhorDestinoY = destinoY;
                             }
                         }
                     }
@@ -365,17 +594,10 @@ public abstract class Entity implements Renderable {
             limiarSnap = 0.22;
         }
 
-        if ((areaSeguraAcumulada / areaTotal) >= limiarSnap && melhorTileX != -1) {
-            double centroAlvoX = melhorTileX + (GameCore.tiles_size / 2.0);
-            double centroAlvoY = melhorTileY + (GameCore.tiles_size / 2.0);
-
-            if (isSlippery) {
-                centroAlvoX -= Math.signum(velX) * Math.min(Math.abs(velX) * 1.5, GameCore.tiles_size * 0.15);
-                centroAlvoY -= Math.signum(velY) * Math.min(Math.abs(velY) * 1.5, GameCore.tiles_size * 0.15);
-            }
-
-            this.x = centroAlvoX - (this.bodyCollider.getOffsetX() + colW / 2.0);
-            this.y = centroAlvoY - (this.bodyCollider.getOffsetY() + colH / 2.0);
+        if ((areaSeguraAcumulada / areaTotal) >= limiarSnap
+                && !Double.isNaN(melhorDestinoX)) {
+            this.x = melhorDestinoX;
+            this.y = melhorDestinoY;
 
             this.velX = 0;
             this.velY = 0;

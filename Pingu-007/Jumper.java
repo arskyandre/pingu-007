@@ -36,9 +36,10 @@ public class Jumper extends Enemy {
         this.vidaMaxima = 40;
         this.vida = this.vidaMaxima;
         this.podePularBuracos = true;
+        this.podeAtravessarObjetosTransparentes = true;
         this.velocidadeAndar = 1.5;
         this.velocidadeMax = 30.0;
-        this.raioDeteccao = GameCore.tiles_size * 5.0;
+        this.raioDeteccao = GameCore.tiles_size * 3.5;
 
         this.aceleracao = 0.3;
         this.peso = 0.8;
@@ -71,7 +72,7 @@ public class Jumper extends Enemy {
             return;
         }
 
-        atualizarAggro(player);
+        boolean detectouJogador = atualizarAggro(player);
         atualizarTimersKnockback();
 
         double centerX = x + width / 2.0;
@@ -85,6 +86,13 @@ public class Jumper extends Enemy {
 
         this.isInvulneravel = (estadoAtual == Status.PULANDO || estadoAtual == Status.FLUTUANDO);
         this.podeSerPuxado = (!this.isInvulneravel && !emSaltoCinematico);
+
+        if (!detectouJogador && !isHooked && !isPuxado) {
+            aplicarComportamentoIdle();
+            aplicarFisicaBasica();
+            moveAndCollideWithMap(lvlData, arenaManager.getObjetosDeCenario());
+            return;
+        }
 
         if (isHooked || isPuxado) {
             if (estadoAtual == Status.PREPARANDO) {
@@ -116,7 +124,19 @@ public class Jumper extends Enemy {
                      */
                     timer--;
                     if (timer <= 0) {
-                        if (!podePularBuracos && !temLinhaDeVisaoLivre(player)) {
+                        if (pendingJumpNode != null) {
+                            Node destinoDoPathfinder = pendingJumpNode;
+                            pendingJumpNode = null;
+                            estadoAtual = Status.PULANDO;
+                            timer = tempoPulo;
+                            isAirborne = true;
+                            saltoTerminaFlutuando = false;
+
+                            int duracaoSalto = Math.max(
+                                    12,
+                                    destinoDoPathfinder.distanciaTiles * 6);
+                            iniciarSaltoCinematico(destinoDoPathfinder, duracaoSalto);
+                        } else if (!podePularBuracos && !temLinhaDeVisaoLivre(player)) {
                             estadoAtual = Status.COOLDOWN;
                             timer = tempoCooldown;
                         } else {

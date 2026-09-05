@@ -672,7 +672,7 @@ public class Player extends Entity {
                         setGunType(Player.GunType.PISTOL);
                         if (ToastNotifications.getNotifAtual() != null
                                 && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                             ToastNotifications.skipNotification();
                         }
                         if (ToastNotifications.getNotifAtual() == null
@@ -683,7 +683,7 @@ public class Player extends Entity {
                         setGunType(Player.GunType.SHOTGUN);
                         if (ToastNotifications.getNotifAtual() != null
                                 && (ToastNotifications.getNotifAtual().equals("Mudou para Shotgun")
-                                        || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
+                                || ToastNotifications.getNotifAtual().equals("Mudou para Pistola"))) {
                             ToastNotifications.skipNotification();
                         }
                         if (ToastNotifications.getNotifAtual() == null
@@ -709,7 +709,7 @@ public class Player extends Entity {
 
                 if (!hasVelocityOverride()
                         && (input.isButtonPressed(InputManager.GamepadButton.A)
-                                || input.isButtonPressed(InputManager.GamepadButton.LB))
+                        || input.isButtonPressed(InputManager.GamepadButton.LB))
                         && podeDash && !emDash) {
                     if (analogicoEsquerdo.x != 0 || analogicoEsquerdo.y != 0) {
                         aplicarDashDirecional(analogicoEsquerdo.partiallyNormalized());
@@ -1091,7 +1091,7 @@ public class Player extends Entity {
 
     public void addMoedas(int qtd) {
         moedas += qtd;
-        System.out.println("coletou " + String.valueOf(qtd) + "moedas, total: " + String.valueOf(municao));
+        System.out.println("coletou " + String.valueOf(qtd) + " moedas, total: " + String.valueOf(moedas));
     }
 
     public void addIscas(int qtd) {
@@ -1356,6 +1356,10 @@ public class Player extends Entity {
 
     public int getTotalChavesColetadas() {
         return chavesColetadasTotal;
+    }
+
+    public ArenaManager getArenaManager() {
+        return arenaManager;
     }
 
     public void metodoInutil() {

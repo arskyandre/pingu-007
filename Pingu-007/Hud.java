@@ -29,8 +29,10 @@ public class Hud {
     private static final float AMMO_RELOADING_TEXT_SIZE = AMMO_TEXT_SIZE - 4f;
 
     private static final Polygon SETA_POLYGON = new Polygon(
-            new int[]{10, -8, -8},
-            new int[]{0, -8, 8},
+            new int[]{10,
+                -8, -8},
+            new int[]{0,
+                -8, 8},
             3
     );
     private static final BasicStroke SETA_STROKE = new BasicStroke(4f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
@@ -85,7 +87,6 @@ public class Hud {
     public Hud() {
         try {
             heartSheet = LoadSave.GetSpriteAtlas("images/hud/heart_sprites.png");
-
         } catch (Exception e) {
             System.err.println("Erro ao carregar heart_sprites.png: " + e.getMessage());
         }
@@ -127,7 +128,6 @@ public class Hud {
 
     public void draw(Graphics2D g2, int telaLargura, int telaAltura,
             CameraManager camera, Player p, EnemyManager em, double delta, int offset) {
-
         if (p.consumirDanoFlag()) {
             spawnHeartParticles(p);
         }
@@ -139,50 +139,123 @@ public class Hud {
         healthbar_inimigos(g2, telaLargura, telaAltura, camera, em);
         if (GameCore.getGameState() != GameState.CUTSCENE) {
             indicadores_inimigos(g2, telaLargura, telaAltura, camera, em, offset);
+            indicador_missao(g2, telaLargura, telaAltura, camera, p, offset);
         }
     }
 
     private void drawSeta(Graphics2D g2, double x, double y, double angle, boolean isOffScreen) {
         Composite oldComposite = g2.getComposite();
-
         if (isOffScreen) {
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f));
         }
 
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
         AffineTransform oldTransform = g2.getTransform();
         AffineTransform transform = new AffineTransform(oldTransform);
         transform.translate(x, y);
         transform.rotate(angle);
         g2.setTransform(transform);
-
         g2.setColor(COR_SETA_BORDA);
         g2.setStroke(SETA_STROKE);
         g2.drawPolygon(SETA_POLYGON);
-
         g2.setColor(COR_SETA_INTERIOR);
         g2.fillPolygon(SETA_POLYGON);
-
         g2.setTransform(oldTransform);
         g2.setComposite(oldComposite);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+    }
+
+    private void indicador_missao(Graphics2D g2, int telaLargura, int telaAltura,
+            CameraManager camera, Player p, int offset) {
+        if (p.getArenaManager() == null
+                || p.getArenaManager().getQuestState() != ArenaManager.QuestState.ATIVA
+                || p.getArenaManager().isQuestArenaAtiva()) {
+            return;
+        }
+
+        java.awt.geom.Point2D.Double pontoAlvo
+                = p.getArenaManager().getQuestTargetPoint();
+
+        if (pontoAlvo == null) {
+            return;
+        }
+
+        double alvoX = pontoAlvo.x;
+        double alvoY = pontoAlvo.y;
+        double camX = camera.getX();
+        double camY = camera.getY();
+        double camZoom = camera.getZoom();
+        double centerX = telaLargura / 2.0;
+        double centerY = telaAltura / 2.0;
+        int marginX = 35;
+        int marginY = 35 + offset;
+        double limitW = centerX - marginX;
+        double limitH = centerY - marginY;
+        double screenX = (alvoX - camX) * camZoom;
+        double screenY = (alvoY - camY) * camZoom;
+
+        boolean isOffScreen = screenX < 0
+                || screenX > telaLargura
+                || screenY < offset
+                || screenY > telaAltura - offset;
+
+        if (isOffScreen) {
+            double dx = screenX - centerX;
+            double dy = screenY - centerY;
+
+            if (dx == 0 && dy == 0) {
+                return;
+            }
+
+            double scaleX = limitW / Math.abs(dx);
+            double scaleY = limitH / Math.abs(dy);
+            double scale = Math.min(scaleX, scaleY);
+            double drawX = centerX + dx * scale;
+            double drawY = centerY + dy * scale;
+            double angle = Math.atan2(dy, dx);
+
+            drawSetaMissao(g2, drawX, drawY, angle);
+        } else {
+            double distanciaDoCentro = 24.0;
+            double drawX = Math.max(marginX,
+                    Math.min(telaLargura - marginX, screenX));
+            double drawY = Math.max(offset + marginX,
+                    Math.min(telaAltura - offset - marginX,
+                            screenY - distanciaDoCentro));
+
+            drawSetaMissao(g2, drawX, drawY, Math.PI / 2.0);
+        }
+    }
+
+    private void drawSetaMissao(Graphics2D g2, double x, double y, double angle) {
+        java.awt.Composite oldComposite = g2.getComposite();
+        g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.9f));
+        g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+        java.awt.geom.AffineTransform oldTransform = g2.getTransform();
+        java.awt.geom.AffineTransform transform = new java.awt.geom.AffineTransform(oldTransform);
+        transform.translate(x, y);
+        transform.rotate(angle);
+        g2.setTransform(transform);
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.setStroke(new java.awt.BasicStroke(4f, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND));
+        g2.drawPolygon(SETA_POLYGON);
+        g2.setColor(new Color(255, 215, 0));
+        g2.fillPolygon(SETA_POLYGON);
+        g2.setTransform(oldTransform);
+        g2.setComposite(oldComposite);
+        g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_OFF);
     }
 
     private void indicadores_inimigos(Graphics2D g2, int telaLargura, int telaAltura, CameraManager camera, EnemyManager em, int offset) {
         double camX = camera.getX();
         double camY = camera.getY();
         double camzoom = camera.getZoom();
-
         double centerX = telaLargura / 2.0;
         double centerY = telaAltura / 2.0;
-
         int marginX = 35;
         int marginY = 35 + offset;
-
         double limitW = centerX - marginX;
         double limitH = centerY - marginY;
-
         ArrayList<Enemy> enemies = em.getEnemies();
         for (Enemy enemy : enemies) {
             if (enemy.getVida() <= 0) {
@@ -191,22 +264,17 @@ public class Hud {
 
             double enCentroX = enemy.getX() + (enemy.getLargura() / 2.0);
             double enCentroY = enemy.getY() + (enemy.getAltura() / 2.0);
-
             double screenX = (enCentroX - camX) * camzoom;
             double screenY = (enCentroY - camY) * camzoom;
-
             double leftX = (enemy.getX() - camX) * camzoom;
             double rightX = ((enemy.getX() + enemy.getLargura()) - camX) * camzoom;
             double topY = (enemy.getY() - camY) * camzoom;
             double bottomY = ((enemy.getY() + enemy.getAltura()) - camY) * camzoom;
-
             boolean isOffScreenVisual = rightX < 0 || leftX > telaLargura
                     || bottomY < offset || topY > (telaAltura - offset);
-
             if (isOffScreenVisual) {
                 double dx = screenX - centerX;
                 double dy = screenY - centerY;
-
                 if (dx == 0 && dy == 0) {
                     continue;
                 }
@@ -214,23 +282,18 @@ public class Hud {
                 double scaleX = limitW / Math.abs(dx);
                 double scaleY = limitH / Math.abs(dy);
                 double scale = Math.min(scaleX, scaleY);
-
                 double drawX = centerX + (dx * scale);
                 double drawY = centerY + (dy * scale);
-
                 double angle = Math.atan2(dy, dx);
-
                 drawSeta(g2, drawX, drawY, angle, true);
             } else {
                 double drawX = screenX;
                 double drawY = topY - (20 * camzoom);
-
                 if (drawY < offset + 15) {
                     drawY = offset + 15;
                 }
 
                 double angle = Math.PI / 2;
-
                 drawSeta(g2, drawX, drawY, angle, false);
             }
         }
@@ -249,7 +312,6 @@ public class Hud {
         int pente = p.getPente();
         int penteMax = p.getPenteMax();
         int municaoTotal = p.getMunicao();
-
         if (penteMax <= 0) {
             return;
         }
@@ -257,20 +319,19 @@ public class Hud {
         int barX = telaLargura - AMMO_BAR_WIDTH - AMMO_BAR_MARGIN;
         int barraPenteMaxY = telaAltura - AMMO_BAR_HEIGHT - AMMO_BAR_MARGIN - offset;
         int barraPenteY = barraPenteMaxY - AMMO_BAR_GAP - AMMO_CURRENT_BAR_HEIGHT;
-
         Composite compositeAnterior = g2.getComposite();
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, AMMO_BAR_OPACITY));
-
         // barra clara eh o tamanho do pente total, barra escura eh as balas no pente
         g2.setColor(new Color(137, 137, 137));
         g2.fillRect(barX + AMMO_MAX_BAR_OFFSET_X, barraPenteMaxY, AMMO_BAR_WIDTH, AMMO_BAR_HEIGHT);
-
         int larguraPente = (int) Math.round(AMMO_BAR_WIDTH * (double) pente / penteMax);
         larguraPente = Math.max(0, Math.min(AMMO_BAR_WIDTH, larguraPente));
         if (larguraPente > 0) {
             g2.setColor(new Color(51, 51, 51));
             g2.fillRect(barX + AMMO_MAX_BAR_OFFSET_X, barraPenteY, larguraPente - AMMO_MAX_BAR_OFFSET_X,
-                    AMMO_CURRENT_BAR_HEIGHT);
+                    AMMO_CURRENT_BAR_HEIGHT
+            );
+
         }
         g2.setComposite(compositeAnterior);
 
@@ -398,12 +459,9 @@ public class Hud {
 
         int vida = p.getVida();
         int vidaMax = p.getVidaMax();
-
         float vidaPorCoracao = (float) vidaMax / HEARTS_MAX;
-
         for (int i = 0; i < HEARTS_MAX; i++) {
             float vidaRestante = vida - i * vidaPorCoracao;
-
             int spriteIndex;
             if (vidaRestante >= vidaPorCoracao) {
                 spriteIndex = 0;
@@ -415,7 +473,6 @@ public class Hud {
 
             BufferedImage sprite = heartSheet.getSubimage(spriteIndex * HEART_SIZE, 0, HEART_SIZE, HEART_SIZE);
             int drawX = 16 + i * (HEART_RENDER + HEART_GAP);
-
             g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
             g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
             g2.drawImage(sprite, drawX, 16 + offset, HEART_RENDER, HEART_RENDER, null);
@@ -441,15 +498,20 @@ public class Hud {
         } else if (chaveAlpha > chaveAlphaTarget) {
             chaveAlpha = Math.max(chaveAlphaTarget, chaveAlpha - chaveAlphaFadeSpeed * delta);
         }
+
         if (chaveAlpha <= 0.0) {
             return;
         }
+
         int chavesMax = 3; // mudar caso exista mais chave no jogo
+
         int iconSize = 32;
         Composite oldComposite = g2.getComposite();
         g2.setComposite(AlphaComposite.getInstance(
                 AlphaComposite.SRC_OVER,
-                (float) chaveAlpha));
+                (float) chaveAlpha
+        ));
+
         for (int i = 0; i < chavesMax; i++) {
             int drawX = iconSize / 2 + 16 + i * (iconSize + HEART_GAP);
 
@@ -480,6 +542,7 @@ public class Hud {
         if (moedas > 0) {
             jaPegouMoeda = true;
         }
+
         double moedaAlphaTarget = (jaPegouMoeda && !GameCore.isLevel2()) ? 1.0 : 0.0;
         double moeda_fade_duracao = 0.75;
         double moedaAlphaFadeSpeed = 1.0 / moeda_fade_duracao;
@@ -493,6 +556,7 @@ public class Hud {
         if (iscas > 0) {
             jaPegouIsca = true;
         }
+
         double iscaAlphaTarget = (jaPegouIsca && !GameCore.isLevel2()) ? 1.0 : 0.0;
         double isca_fade_duracao = 0.75;
         double iscaAlphaFadeSpeed = 1.0 / isca_fade_duracao;
@@ -514,19 +578,16 @@ public class Hud {
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
         g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 24f));
-
         String chMoeda = Integer.toString(moedas);
         Rectangle2D textBoundsMoeda = g2.getFontMetrics().getStringBounds(chMoeda, g2);
         int twMoeda = (int) textBoundsMoeda.getWidth();
         int thMoeda = (int) textBoundsMoeda.getHeight();
         int moedaDrawX = telaLargura - iconSize - margin - twMoeda - icon_text_distance;
-
         if (moedaAlpha > 0.0) {
             Composite oldComposite = g2.getComposite();
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) moedaAlpha));
             g2.drawImage(moedaSprite[0], moedaDrawX + 2, margin + offset + 2, iconSize, iconSize, null);
             g2.drawImage(moedaSprite[1], moedaDrawX, margin + offset, iconSize, iconSize, null);
-
             int textX = moedaDrawX + iconSize + icon_text_distance;
             int textY = margin + 4 + offset + thMoeda;
             g2.setColor(new Color(0, 0, 0, 160));
@@ -541,14 +602,11 @@ public class Hud {
             Rectangle2D textBoundsIsca = g2.getFontMetrics().getStringBounds(chIsca, g2);
             int twIsca = (int) textBoundsIsca.getWidth();
             int thIsca = (int) textBoundsIsca.getHeight();
-
             int iscaDrawX = moedaDrawX - group_gap - iconSize - icon_text_distance - twIsca;
-
             Composite oldComposite = g2.getComposite();
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) iscaAlpha));
             g2.drawImage(iscaSprite[0], iscaDrawX + 2, margin + offset + 2, iconSize, iconSize, null);
             g2.drawImage(iscaSprite[1], iscaDrawX, margin + offset, iconSize, iconSize, null);
-
             int textX = iscaDrawX + iconSize + icon_text_distance;
             int textY = margin + 4 + offset + thIsca;
             g2.setColor(new Color(0, 0, 0, 160));
@@ -571,17 +629,17 @@ public class Hud {
             if (envida == envidamax) {
                 continue;
             }
+
             double enX = enemy.getX();
             double enY = enemy.getY();
-
             double screenX = (enX - camX) * camzoom;
             double screenY = (enY - 32 - camY) * camzoom;
-
             g2.setColor(Color.BLACK);
             g2.fill(new RoundRectangle2D.Double(screenX, screenY, 48 * camzoom, 8 * camzoom, 4, 4));
             g2.setColor(Color.RED);
             g2.fill(new RoundRectangle2D.Double(screenX + 1 * camzoom, screenY + 2 * camzoom,
-                    (48 * (1.0 * envida / envidamax) - 2) * camzoom, 4 * camzoom, 2, 2));
+                    (48 * (1.0 * envida / envidamax) - 2) * camzoom, 4 * camzoom,
+                    2, 2));
 
         }
     }

@@ -4,7 +4,7 @@
   <export target="LEVEL_1_DATA.json" format="json"/>
  </editorsettings>
  <tileset firstgid="1" source="tile_set_pingu.tsx"/>
- <tileset firstgid="127" source="images/iglus.tsx"/>
+ <tileset firstgid="126" source="images/iglus.tsx"/>
  <tileset firstgid="129" source="images/portao.tsx"/>
  <tileset firstgid="131" source="images/arvore.tsx"/>
  <tileset firstgid="133" source="images/loja_pescador.tsx"/>
@@ -1251,7 +1251,7 @@
   </object>
   <object id="837" gid="11" x="2896" y="688" width="16" height="16"/>
   <object id="838" gid="129" x="1872" y="688" width="64" height="48"/>
-  <object id="845" gid="128" x="1856" y="2688" width="48" height="32">
+  <object id="845" gid="127" x="1856" y="2688" width="48" height="32">
    <properties>
     <property name="acao" value="trocar_mapa"/>
     <property name="destino" value="CASA_VENDEDOR.tmj"/>
@@ -1259,7 +1259,7 @@
    </properties>
   </object>
   <object id="847" gid="133" x="320" y="752" width="32" height="32"/>
-  <object id="848" gid="128" x="3984" y="944" width="48" height="32">
+  <object id="848" gid="127" x="3984" y="944" width="48" height="32">
    <properties>
     <property name="acao" value="trocar_mapa"/>
     <property name="destino" value="CASA_VENDEDOR.tmj"/>

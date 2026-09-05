@@ -36,12 +36,14 @@ public abstract class Enemy extends Entity {
     protected int lerpFramesMax = 0;
     protected int lerpFrameAtual = 0;
     protected Node pendingJumpNode = null;
+    public boolean geraRecompensaPadrao = true;
 
     protected int timerPuxado = 0;
 
     /**
-     * TODO: atribuir efeito sonoro de morte do inimigo pelo enum SFX do SoundManager(falta: Jumper, Dasher, Shooter, Maos da Morsa(?))
-     * o som toca para todo inimigo morto pelo EnemyManager
+     * TODO: atribuir efeito sonoro de morte do inimigo pelo enum SFX do
+     * SoundManager(falta: Jumper, Dasher, Shooter, Maos da Morsa(?)) o som toca
+     * para todo inimigo morto pelo EnemyManager
      */
     protected SoundManager.SFX deathSFX = null;
 
@@ -125,7 +127,7 @@ public abstract class Enemy extends Entity {
         double dy = y1 - y0;
         double dist = Math.hypot(dx, dy);
 
-        int steps = (int) (dist / 16.0);
+        int steps = Math.max(1, (int) Math.ceil(dist / 16.0));
         for (int i = 0; i <= steps; i++) {
             double checkX = x0 + (dx * i) / steps;
             double checkY = y0 + (dy * i) / steps;
@@ -325,8 +327,8 @@ public abstract class Enemy extends Entity {
         }
 
         Node proximoNo = caminhoAStar.get(currentPathIndex);
-        double alvoX = proximoNo.coluna * GameCore.tiles_size + (GameCore.tiles_size / 2.0) - (this.width / 2.0);
-        double alvoY = proximoNo.linha * GameCore.tiles_size + (GameCore.tiles_size / 2.0) - (this.height / 2.0);
+        double alvoX = getPathTargetX(proximoNo);
+        double alvoY = getPathTargetY(proximoNo);
 
         double dx = alvoX - this.x;
         double dy = alvoY - this.y;
@@ -359,6 +361,24 @@ public abstract class Enemy extends Entity {
     protected void prepararSaltoAStar(Node noDestino) {
     }
 
+    private double getPathTargetX(Node no) {
+        double centroLocal = bodyCollider != null
+                ? bodyCollider.getOffsetX() + bodyCollider.getWidth() / 2.0
+                : width / 2.0;
+        return no.coluna * GameCore.tiles_size
+                + GameCore.tiles_size / 2.0
+                - centroLocal;
+    }
+
+    private double getPathTargetY(Node no) {
+        double centroLocal = bodyCollider != null
+                ? bodyCollider.getOffsetY() + bodyCollider.getHeight() / 2.0
+                : height / 2.0;
+        return no.linha * GameCore.tiles_size
+                + GameCore.tiles_size / 2.0
+                - centroLocal;
+    }
+
     protected void iniciarSaltoCinematico(Node noDestino, int durationFrames) {
         this.emSaltoCinematico = true;
         this.lerpFrameAtual = 0;
@@ -366,8 +386,8 @@ public abstract class Enemy extends Entity {
         this.lerpStartX = this.x;
         this.lerpStartY = this.y;
 
-        double alvoX = noDestino.coluna * GameCore.tiles_size + (GameCore.tiles_size / 2.0) - (this.width / 2.0);
-        double alvoY = noDestino.linha * GameCore.tiles_size + (GameCore.tiles_size / 2.0) - (this.height / 2.0);
+        double alvoX = getPathTargetX(noDestino);
+        double alvoY = getPathTargetY(noDestino);
         this.lerpTargetX = alvoX;
         this.lerpTargetY = alvoY;
 
@@ -432,30 +452,40 @@ public abstract class Enemy extends Entity {
     }
 
     public void separarEmpilhamento(Entity outro) {
-        if (this == outro || this.isDead || outro.isDead) {
+        if (this == outro || this.isDead || outro.isDead
+                || this.bodyCollider == null || outro.bodyCollider == null) {
             return;
         }
 
-        double meuCX = this.x + bodyCollider.getOffsetX() + (bodyCollider.getWidth() / 2.0);
-        double meuCY = this.y + bodyCollider.getOffsetY() + (bodyCollider.getHeight() / 2.0);
-        double outroCX = outro.x + outro.bodyCollider.getOffsetX() + (outro.bodyCollider.getWidth() / 2.0);
-        double outroCY = outro.y + outro.bodyCollider.getOffsetY() + (outro.bodyCollider.getHeight() / 2.0);
+        double meuLeft = this.x + bodyCollider.getOffsetX();
+        double meuTop = this.y + bodyCollider.getOffsetY();
+        double meuRight = meuLeft + bodyCollider.getWidth();
+        double meuBottom = meuTop + bodyCollider.getHeight();
 
-        double dx = meuCX - outroCX;
-        double dy = meuCY - outroCY;
-        double dist = Math.hypot(dx, dy);
-        double distMin = (this.bodyCollider.getWidth() / 2.0) + (outro.bodyCollider.getWidth() / 2.0);
+        double outroLeft = outro.x + outro.bodyCollider.getOffsetX();
+        double outroTop = outro.y + outro.bodyCollider.getOffsetY();
+        double outroRight = outroLeft + outro.bodyCollider.getWidth();
+        double outroBottom = outroTop + outro.bodyCollider.getHeight();
 
-        if (dist < distMin) {
-            if (dist == 0.0) {
-                dx = Math.random() - 0.5;
-                dy = Math.random() - 0.5;
-                dist = Math.hypot(dx, dy);
-            }
-            double intensidade = (distMin - dist) / distMin;
-            double forcaRepulsao = 0.5;
-            this.velX += (dx / dist) * intensidade * forcaRepulsao / this.peso;
-            this.velY += (dy / dist) * intensidade * forcaRepulsao / this.peso;
+        double overlapX = Math.min(meuRight, outroRight) - Math.max(meuLeft, outroLeft);
+        double overlapY = Math.min(meuBottom, outroBottom) - Math.max(meuTop, outroTop);
+
+        if (overlapX <= 0 || overlapY <= 0) {
+            return;
+        }
+
+        double meuCX = (meuLeft + meuRight) / 2.0;
+        double meuCY = (meuTop + meuBottom) / 2.0;
+        double outroCX = (outroLeft + outroRight) / 2.0;
+        double outroCY = (outroTop + outroBottom) / 2.0;
+        double forcaRepulsao = 0.5 / Math.max(0.1, this.peso);
+
+        if (overlapX < overlapY) {
+            double direcao = meuCX < outroCX ? -1.0 : 1.0;
+            this.velX += direcao * Math.min(1.0, overlapX / bodyCollider.getWidth()) * forcaRepulsao;
+        } else {
+            double direcao = meuCY < outroCY ? -1.0 : 1.0;
+            this.velY += direcao * Math.min(1.0, overlapY / bodyCollider.getHeight()) * forcaRepulsao;
         }
     }
 

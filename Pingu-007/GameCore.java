@@ -581,11 +581,11 @@ public class GameCore extends Canvas implements Runnable {
     public void triggerDialogoInicial() {
         if (!dialogueManager.isAtivo()) {
             dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadio, DialogueCatalogo.FalaInicialRadio,
-                    new BufferedImage[] {
-                            pingu_portrait,
-                            cellphone_image,
-                            pingu_portrait,
-                            cellphone_image
+                    new BufferedImage[]{
+                        pingu_portrait,
+                        cellphone_image,
+                        pingu_portrait,
+                        cellphone_image
                     });
             dialogueManager.setAoTerminarDialogo(() -> {
                 ToastNotifications.RequestNotification("Use as setas para selecionar a opção e ENTER para confirmar.",
@@ -776,6 +776,7 @@ public class GameCore extends Canvas implements Runnable {
 
         if (estadoLevel1AntesDaLoja != null) {
             arenaManager.restaurarEstadoMapa(estadoLevel1AntesDaLoja, player, itemManager);
+            arenaManager.reaplicarQuestFisica(player);
         }
         // System.out.println("Player position arenaManager.restaurarEstadoMapa (" +
         // player.getX() + ", " + player.getY() + ")");
@@ -892,8 +893,9 @@ public class GameCore extends Canvas implements Runnable {
         if (bossFinal != null && bossFinal.isEmSequenciaMorte()) {
             bossFinal.update(player, levelManager.getJumpLinks());
             atualizarCameraSemInput();
-            if (getDebug())
+            if (getDebug()) {
                 debugInputProcessing();
+            }
             return;
         }
 
@@ -1034,8 +1036,9 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     public void iniciarFinalDoJogo() {
-        if (gameState == GameState.CREDITS)
+        if (gameState == GameState.CREDITS) {
             return;
+        }
         creditsScreen.reset();
         gameState = GameState.CREDITS;
     }
@@ -1078,7 +1081,7 @@ public class GameCore extends Canvas implements Runnable {
                     player.setY(obj.y);
                 }
                 case "spawn_npc" -> {
-                    NPC npc = NPCRegistry.create(obj, camera, soundManager);
+                    NPC npc = NPCRegistry.create(obj, camera, soundManager, arenaManager);
                     if (npc != null) {
                         npcManager.spawn(npc);
                         System.out.println("Spawnou NPC '" + obj.npc_nome + "' em: " + obj.x + ", " + obj.y);
@@ -1111,7 +1114,13 @@ public class GameCore extends Canvas implements Runnable {
         checkMunicao = player.getMunicao();
         checkPente = player.getPente();
         checkChaves = player.getChaves();
+        // A lista usada pelo vendedor passa a representar exatamente o estado
+        // deste checkpoint, e nao um estado recalculado apenas ao falar com ele.
+        arenaManager.atualizarArenasValidasParaQuest();
         checkArenas = arenaManager.getArenasConcluidas();
+        System.out.println("[DEBUG CHECKPOINT] IDs de arenas concluidas: " + checkArenas);
+        System.out.println("[DEBUG CHECKPOINT] IDs validos para o vendedor: "
+                + arenaManager.getArenasValidasParaQuest());
         hasCheckpoint = true;
         checkVaraDePesca = player.hasFishingRod();
         System.out.println(">>> CHECKPOINT SALVO! <<<");
@@ -1131,6 +1140,8 @@ public class GameCore extends Canvas implements Runnable {
         bulletmanager.limparTudo();
         itemManager.limparConsumiveis();
         arenaManager.restaurarArenas(checkArenas, player, itemManager);
+        arenaManager.reaplicarQuestFisica(player);
+        arenaManager.atualizarArenasValidasParaQuest();
     }
 
     public void resetarJogoCompleto() {
@@ -1148,6 +1159,7 @@ public class GameCore extends Canvas implements Runnable {
         camera.desfocarCamera();
         arenaManager.setFirstArenaFlag(true);
         arenaManager.setFezCutscene(false);
+        arenaManager.resetarProgressoDeQuests();
         FishingManager.setPlayerHasKey(false);
         fishingManager.cancelFishing();
         fishingManager.setfirstFlag(true);
@@ -1317,8 +1329,8 @@ public class GameCore extends Canvas implements Runnable {
             double y = rect.getY();
             if (x > Xmax) {
                 Xmax = x;
-            } else if (x < Xmax) {
-                Xmax = x;
+            } else if (x < Xmin) {
+                Xmin = x;
             }
             if (y > Ymax) {
                 Ymax = y;
@@ -1344,8 +1356,8 @@ public class GameCore extends Canvas implements Runnable {
             double y = rect.getY();
             if (x > Xmax) {
                 Xmax = x;
-            } else if (x < Xmax) {
-                Xmax = x;
+            } else if (x < Xmin) {
+                Xmin = x;
             }
             if (y > Ymax) {
                 Ymax = y;
@@ -1371,8 +1383,8 @@ public class GameCore extends Canvas implements Runnable {
             double y = rect.getY();
             if (x > Xmax) {
                 Xmax = x;
-            } else if (x < Xmax) {
-                Xmax = x;
+            } else if (x < Xmin) {
+                Xmin = x;
             }
             if (y > Ymax) {
                 Ymax = y;
@@ -1437,7 +1449,6 @@ public class GameCore extends Canvas implements Runnable {
             }
         }
     }
-
 
     public void start() {
         new Thread(this).start();
