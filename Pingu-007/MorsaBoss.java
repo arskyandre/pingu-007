@@ -1339,8 +1339,8 @@ class BossMao extends Enemy {
             g.fillOval((int) (sombraX - currentW / 2.0), (int) (sombraY - currentH / 2.0), (int) currentW,
                     (int) currentH);
         }
-        g.setColor(this.cor);
-        g.fillRect((int) (x + tremorVisualX), (int) y, (int) width, (int) height);
+        //g.setColor(this.cor);
+        //g.fillRect((int) (x + tremorVisualX), (int) y, (int) width, (int) height);
 
         int mode=0, xx = (int)x, yy= (int)y;
         if(inv == -1){
@@ -1375,11 +1375,11 @@ class BossMao extends Enemy {
         if(status == MaoState.BOTE_DASH){
             sp = HelpMethods.rotateImageByDegrees(sp, angulo-(Math.PI/2));
         }
-        int gap = sp.getWidth()*3 - 48;
+        int gap = (int)(sp.getWidth()*4.5 - 72);
         gap /= 2;
         yy -= gap;
-        int spW = inv * sp.getWidth() * 3;
-        int spH = sp.getHeight() * 3;
+        int spW = (int)(inv * sp.getWidth() * 4.5);
+        int spH = (int)(sp.getHeight() * 4.5);
         xx -= gap*inv*(-1);
 
         g.drawImage(sp,(int)(xx + tremorVisualX),yy, spW, spH, null);
