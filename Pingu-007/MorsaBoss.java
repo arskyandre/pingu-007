@@ -76,6 +76,7 @@ public class MorsaBoss extends Enemy {
             Sprites[j] = img.getSubimage(j * 96, 0, 96, 96);
             spritesBrancos[j] = criarSilhuetaBranca(Sprites[j]);
         }
+        
     }
 
     private BufferedImage criarSilhuetaBranca(BufferedImage sprite) {
@@ -787,6 +788,12 @@ class BossMao extends Enemy {
     private double slingshotDirY = 0;
     private int cooldownDano = 0;
 
+    private BufferedImage[][] maos;
+    private int idx = 0;
+    private double tick = 0;
+    private int inv = 1;
+    private double angulo = 0;
+
     public BossMao(double startX, double startY, int[][] lvlData, SoundManager sound, ArenaManager am, MorsaBoss corpo) {
         super(startX, startY, GameCore.tiles_size * 1.5, GameCore.tiles_size * 1.5, lvlData, sound, am);
         this.bodyCollider = new Collider(-1, 0, GameCore.tiles_size * 1.5, GameCore.tiles_size * 1.5);
@@ -796,6 +803,19 @@ class BossMao extends Enemy {
         this.corpoPrincipal = corpo;
         this.vida = 150;
         this.danoContato = 10;
+
+        BufferedImage img = LoadSave.GetSpriteAtlas("images/enemy/garca_sprite_sheet.png");
+        maos = new BufferedImage[4][7];
+        for(int j=0; j<7; j++){
+            maos[0][j] = img.getSubimage(j*16,0,16,16);
+        }
+        for(int i=1; i<=2; i++){
+            for(int j=0; j<3; j++){
+                maos[i][j] = img.getSubimage(j*16,i*16,16,16); 
+            }
+        }
+        maos[3][0] = img.getSubimage(0,48,16,16);
+        maos[3][1] = img.getSubimage(16,48,16,16);
     }
 
     public boolean isIdle() {
@@ -997,6 +1017,7 @@ class BossMao extends Enemy {
                 double dxBote = targetX - this.x;
                 double dyBote = targetY - this.y;
                 double distBote = Math.hypot(dxBote, dyBote);
+                angulo = Math.atan2(dyBote, dxBote);
 
                 double spdBote = corpoPrincipal.isFase2() ? 35.0 : 28.0;
 
@@ -1282,6 +1303,21 @@ class BossMao extends Enemy {
                 }
             }
         }
+        //inv logica
+        if(status != MaoState.RETURNING){
+            double px = player.getX();
+            if(px-this.x > 0){
+                inv = -1;
+            }else{
+                inv = 1;
+            }
+        }else{
+            if(xHome - this.x > 0){
+                inv = -1;
+            }else{
+                inv = 1;
+            }
+        }
     }
 
     @Override
@@ -1303,9 +1339,50 @@ class BossMao extends Enemy {
             g.fillOval((int) (sombraX - currentW / 2.0), (int) (sombraY - currentH / 2.0), (int) currentW,
                     (int) currentH);
         }
-
         g.setColor(this.cor);
         g.fillRect((int) (x + tremorVisualX), (int) y, (int) width, (int) height);
+
+        int mode=0, xx = (int)x, yy= (int)y;
+        if(inv == -1){
+            xx = xx + (int)width;
+        }
+        tick += 100*delta;
+        if(tick >= 10){
+            tick=0;
+            idx++;
+            if(idx > 6){
+                idx = 0;
+            }
+        }
+        
+        if(status == MaoState.BOTE_WINDUP || status == MaoState.HOVER_WINDUP)
+        {
+            if(idx > 2){idx=0;}
+            mode=1;
+        }
+        else if(status == MaoState.BOTE_DASH || status == MaoState.HOVER_SLAM)
+        {
+            if(idx > 2){idx=0;}
+            mode=2;
+        }else if(status == MaoState.HOVER_RECOVERY || status == MaoState.FISHED  || status == MaoState.PULLED_TO_PLAYER){
+            idx = 0;
+            mode = 3;
+        }else if(status == MaoState.SLINGSHOT || status == MaoState.STUNNED){
+            idx = 1;
+            mode = 3;
+        }
+        BufferedImage sp = maos[mode][idx];
+        if(status == MaoState.BOTE_DASH){
+            sp = HelpMethods.rotateImageByDegrees(sp, angulo-(Math.PI/2));
+        }
+        int gap = sp.getWidth()*3 - 48;
+        gap /= 2;
+        yy -= gap;
+        int spW = inv * sp.getWidth() * 3;
+        int spH = sp.getHeight() * 3;
+        xx -= gap*inv*(-1);
+
+        g.drawImage(sp,(int)(xx + tremorVisualX),yy, spW, spH, null);
     }
 
     @Override
