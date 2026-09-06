@@ -21,6 +21,7 @@ public class GameCore extends Canvas implements Runnable {
     private final GameOverScreen gameOverScreen;
     private final CreditsScreen creditsScreen;
     private final KeyBindingsMenu keyBindingsMenu;
+    private final MapScreen mapScreen = new MapScreen();
 
     // permite os botoes de teste(debuginputprocessing() e outros). se colocar false
     // o jogo se comporta como versao de "usuario"
@@ -178,6 +179,7 @@ public class GameCore extends Canvas implements Runnable {
         addMouseMotionListener(input);
         addMouseListener(input);
         setFocusable(true);
+        setFocusTraversalKeysEnabled(false);
         requestFocus();
 
         try {
@@ -443,6 +445,27 @@ public class GameCore extends Canvas implements Runnable {
                 gameState = next;
             }
             case PLAYING -> {
+                // A introdução não avança no modo debug.
+                boolean introBloqueiaMapa = !getDebug()
+                        && (introPreDelay || introPendente || introDialogoAtiva);
+                boolean podeAbrirMapa = !dialogueManager.isAtivo()
+                        && !screenTransition.isAtivo()
+                        && !cutsceneManager.isAtiva()
+                        && !fishingManager.isActive()
+                        && !player.isBlockInputs()
+                        && !player.isDead()
+                        && !introBloqueiaMapa;
+
+                MorsaBoss boss = enemyManager.getMorsaBoss();
+                if (boss != null && boss.isEmSequenciaMorte()) {
+                    podeAbrirMapa = false;
+                }
+
+                if (podeAbrirMapa && MapScreen.apertouMapa(input)) {
+                    mapScreen.abrir(levelManager);
+                    gameState = GameState.MAP;
+                    break;
+                }
                 if (!getDebug()) {
                     if (introPreDelay) {
                         introPreDelayTimer--;
@@ -476,6 +499,14 @@ public class GameCore extends Canvas implements Runnable {
                 }
                 // DESCOMENTAR BLOCO NO JOGO FINAL
                 // (nao mais, agora eh controlado pela flag de debug)
+            }
+            case MAP -> {
+                GameState next = mapScreen.update(input);
+
+                if (next == GameState.PLAYING) {
+                    player.setShootCooldownTimer(15);
+                }
+                gameState = next;
             }
             case SHOP -> {
                 ShopMenu shop = getShopMenu();
@@ -1263,6 +1294,9 @@ public class GameCore extends Canvas implements Runnable {
                                 cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                 true, true);
 
+                    }
+                    case MAP -> {
+                        mapScreen.render(g2, getWidth(), getHeight(), player, levelManager, questManager);
                     }
                     case SHOP -> {
                         renderer.renderizar(g2, camera, player, input,

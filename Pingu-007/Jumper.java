@@ -49,7 +49,7 @@ public class Jumper extends Enemy {
         this.hitbox = new Collider(4, 4, width - 8, height - 8);
         this.timer = tempoPreparo;
 
-        BufferedImage img = LoadSave.GetSpriteAtlas("images/enemy/boneve_sprite_sheet.png");
+        BufferedImage img = LoadSave.GetSpriteAtlas("images/enemy/Boneve_sprite_sheet.png");
         Sprites = new BufferedImage[21];
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 7; j++) {

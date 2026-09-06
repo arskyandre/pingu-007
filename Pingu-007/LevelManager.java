@@ -168,6 +168,59 @@ public class LevelManager {
         drawFilteredLayers(g2, camera, telaLargura, telaAltura, layer -> layer.name.toLowerCase().startsWith("t"));
     }
 
+    public BufferedImage criarMiniaturaMapa() {
+        int[][] terreno = getCurLevelData();
+
+        int linhas = terreno.length;
+        int colunas = terreno[0].length;
+
+        double pixelsPorTile = Math.min(4.0, 1600.0 / Math.max(colunas, linhas));
+
+        int largura = Math.max(1, (int) Math.ceil(colunas * pixelsPorTile));
+        int altura = Math.max(1, (int) Math.ceil(linhas * pixelsPorTile));
+
+        BufferedImage image = new BufferedImage(largura, altura, BufferedImage.TYPE_INT_RGB);
+
+        Graphics2D g = image.createGraphics();
+
+        try {
+            g.setColor(new java.awt.Color(26, 65, 83));
+            g.fillRect(0, 0, largura, altura);
+
+            g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+
+            for (MapDATA.TileLayer layer : mapDataAtual.layers) {
+                String nome = layer.name.toLowerCase(java.util.Locale.ROOT);
+
+                boolean desenhar = nome.equals("sea") || nome.equals("ground") || nome.equals("fence") || nome.startsWith("b") || nome.startsWith("t");
+
+                if (!desenhar) {
+                    continue;
+                }
+
+                for (int y = 0; y < layer.data.length; y++) {
+                    for (int x = 0; x < layer.data[y].length; x++) {
+                        int sprite = layer.data[y][x] - 1;
+
+                        if (sprite < 0 || sprite >= levelSprite.length || levelSprite[sprite] == null) {
+                            continue;
+                        }
+
+                        int x1 = (int) Math.floor(x * largura / (double) colunas);
+                        int y1 = (int) Math.floor(y * altura / (double) linhas);
+                        int x2 = (int) Math.ceil((x + 1) * largura / (double) colunas);
+                        int y2 = (int) Math.ceil((y + 1) * altura / (double) linhas);
+
+                        g.drawImage(levelSprite[sprite], x1, y1, x2 - x1, y2 - y1, null);
+                    }
+                }
+            }
+        } finally {
+            g.dispose();
+        }
+        return image;
+    }
+
     public MapDATA getMapData() {
         return mapDataAtual;
     }

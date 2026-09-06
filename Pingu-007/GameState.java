@@ -5,6 +5,7 @@ public enum GameState {
     GAME_OVER,
     CUTSCENE,
     PAUSED,
+    MAP,
     OPTIONS,
     KEYBINDINGS,
     QUIT,
