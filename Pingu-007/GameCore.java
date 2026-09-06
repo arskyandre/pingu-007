@@ -832,8 +832,8 @@ public class GameCore extends Canvas implements Runnable {
     }
 
     private void entrarNivelBossImediato() {
-        levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
         arenaManager.setFirstArenaFlag(false);
+        levelManager.carregarNivel(LoadSave.LEVEL_2_DATA);
         mapLoadCooldown = 60;
         configurarCameraDoMapaAtual();
         System.out.println("Entrou nivel boss");

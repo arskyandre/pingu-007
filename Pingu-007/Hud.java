@@ -29,12 +29,11 @@ public class Hud {
     private static final float AMMO_RELOADING_TEXT_SIZE = AMMO_TEXT_SIZE - 4f;
 
     private static final Polygon SETA_POLYGON = new Polygon(
-            new int[]{10,
-                -8, -8},
-            new int[]{0,
-                -8, 8},
-            3
-    );
+            new int[] { 10,
+                    -8, -8 },
+            new int[] { 0,
+                    -8, 8 },
+            3);
     private static final BasicStroke SETA_STROKE = new BasicStroke(4f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
     private static final Color COR_SETA_BORDA = new Color(0, 0, 0, 180);
     private static final Color COR_SETA_INTERIOR = new Color(220, 20, 60);
@@ -173,8 +172,7 @@ public class Hud {
             return;
         }
 
-        java.awt.geom.Point2D.Double pontoAlvo
-                = questManager.getQuestTargetPoint();
+        java.awt.geom.Point2D.Double pontoAlvo = questManager.getQuestTargetPoint();
 
         if (pontoAlvo == null) {
             return;
@@ -246,7 +244,8 @@ public class Hud {
         g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_OFF);
     }
 
-    private void indicadores_inimigos(Graphics2D g2, int telaLargura, int telaAltura, CameraManager camera, EnemyManager em, int offset) {
+    private void indicadores_inimigos(Graphics2D g2, int telaLargura, int telaAltura, CameraManager camera,
+            EnemyManager em, int offset) {
         double camX = camera.getX();
         double camY = camera.getY();
         double camzoom = camera.getZoom();
@@ -329,8 +328,7 @@ public class Hud {
         if (larguraPente > 0) {
             g2.setColor(new Color(51, 51, 51));
             g2.fillRect(barX + AMMO_MAX_BAR_OFFSET_X, barraPenteY, larguraPente - AMMO_MAX_BAR_OFFSET_X,
-                    AMMO_CURRENT_BAR_HEIGHT
-            );
+                    AMMO_CURRENT_BAR_HEIGHT);
 
         }
         g2.setComposite(compositeAnterior);
@@ -509,8 +507,7 @@ public class Hud {
         Composite oldComposite = g2.getComposite();
         g2.setComposite(AlphaComposite.getInstance(
                 AlphaComposite.SRC_OVER,
-                (float) chaveAlpha
-        ));
+                (float) chaveAlpha));
 
         for (int i = 0; i < chavesMax; i++) {
             int drawX = iconSize / 2 + 16 + i * (iconSize + HEART_GAP);
@@ -624,6 +621,8 @@ public class Hud {
         double camzoom = camera.getZoom();
         ArrayList<Enemy> enemies = em.getEnemies();
         for (Enemy enemy : enemies) {
+            if (enemy instanceof MorsaBoss || enemy instanceof BossMao)
+                continue;
             int envida = enemy.getVida();
             int envidamax = enemy.getVidaMax();
             if (envida == envidamax) {
