@@ -8,12 +8,6 @@ O jogo foi inspirado no episódio de pesadelo da série **Pingu**. Nele, o jogad
 
 *Episódio de inspiração para o jogo*
 
-## Menu principal
-
-Ao iniciar o jogo, o menu principal permite começar a jogar, acessar as configurações ou encerrar o programa.
-
-<img src="screenshots/main_menu.webp" alt="Menu Principal" width="700">
-
 ## Gameplay
 
 O personagem pode se movimentar usando `W`, `A`, `S` e `D`, realizar um dash com `Espaço`, atirar utilizando o botão esquerdo do mouse, recarregar a arma com `R` e interagir com objetos pressionando `E`.
@@ -67,20 +61,6 @@ O mapa é composto por diferentes tipos de terreno. Além da neve comum, existem
 Além de inimigos, o jogo possui diversos *NPCs* com os quais o jogador pode interagir para comprar itens, descobrir segredos e receber recompensas.
 
 <img src="screenshots/npcs.png" alt="Mapa" width="700">
-
-## Configurações
-
-O menu de configurações pode ser acessado tanto pelo menu principal quanto durante o jogo.
-
-Nele é possível ajustar o volume da música e dos efeitos sonoros, além de alterar opções de renderização, consultar as teclas de ações do jogo e alternar o modo Tela Cheia.
-
-<img src="screenshots/options_menu.png" alt="Configurações" width="700">
-
-## Pausa
-
-Durante o jogo, pressionando `Esc`, o jogo é pausado. Nesse menu é possível continuar o jogo, abrir as configurações ou retornar ao menu principal.
-
-<img src="screenshots/pause.png" alt="Menu de Pausa" width="700">
 
 ## Como executar
 
