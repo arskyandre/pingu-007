@@ -92,6 +92,8 @@ public class SoundManager {
         VENDEDOR_FALA1_1("sound/dialogue/vendedor_fala1_1.wav", 1),
         VENDEDOR_FALA1_2("sound/dialogue/vendedor_fala1_2.wav", 1),
         VENDEDOR_FALA1_3("sound/dialogue/vendedor_fala1_3.wav", 1),
+        VENDEDOR_MISSAO_RECOMPENSA_1("sound/dialogue/vendedor_missao_recompensa_1.wav", 1),
+        VENDEDOR_MISSAO_RECOMPENSA_2("sound/dialogue/vendedor_missao_recompensa_2.wav", 1),
         VENDEDOR_INSUFICIENTE_RECOMPENSA("sound/dialogue/vendedor_insuficiente_recompensa.wav", 1),
         VENDEDOR_O_QUE_DESEJA("sound/dialogue/vendedor_o_que_deseja.wav", 1),
         VENDEDOR_TCHAU("sound/dialogue/vendedor_tchau.wav", 1);

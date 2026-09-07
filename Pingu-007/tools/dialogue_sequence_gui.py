@@ -14,6 +14,7 @@ an FFmpeg build that includes the Rubber Band filter.
 
 from __future__ import annotations
 
+import argparse
 import math
 import os
 import random
@@ -1817,7 +1818,7 @@ class NativeWindowsDialogueSequenceApp:
             self.user32.DispatchMessageW(self.ctypes.byref(message))
 
 
-def main() -> None:
+def _run_gui() -> None:
     try:
         app = DialogueSequenceApp()
         print("[Dialogue GUI] Interface: Tkinter", flush=True)
@@ -1840,5 +1841,128 @@ def main() -> None:
         raise SystemExit(1) from gui_error
 
 
+def _build_cli_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Convert a Java SoundManager.SFX dialogue sequence to a WAV file. "
+            "Run without arguments to open the graphical interface."
+        )
+    )
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument(
+        "--sequence",
+        "-s",
+        help='sequence text, for example: "bo, se, ko, n, null, a"',
+    )
+    source.add_argument(
+        "--input",
+        "-i",
+        metavar="FILE",
+        help="read the sequence from a UTF-8 text file; use - to read stdin",
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=Path,
+        default=Path("dialogue_sequence.wav"),
+        help="destination WAV path (default: dialogue_sequence.wav)",
+    )
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=DEFAULT_INTERVAL_MS,
+        metavar="MS",
+        help=f"interval between sound starts in milliseconds (default: {DEFAULT_INTERVAL_MS})",
+    )
+    parser.add_argument(
+        "--pitch",
+        type=float,
+        default=0.0,
+        metavar="SEMITONES",
+        help="pitch shift from -12 to +12 semitones (requires FFmpeg when non-zero)",
+    )
+    parser.add_argument(
+        "--radio",
+        action="store_true",
+        help="apply the radio filter and hiss",
+    )
+    parser.add_argument(
+        "--dialogue-volume",
+        type=float,
+        default=50.0,
+        metavar="PERCENT",
+        help="dialogue volume from 0 to 100 percent (default: 50)",
+    )
+    parser.add_argument(
+        "--hiss-volume",
+        type=float,
+        default=50.0,
+        metavar="PERCENT",
+        help="radio hiss volume from 0 to 100 percent (default: 50)",
+    )
+    return parser
+
+
+def _read_cli_sequence(sequence: str | None, input_name: str | None) -> str:
+    if sequence is not None:
+        return sequence
+    if input_name == "-":
+        return sys.stdin.read()
+    if input_name is None:
+        raise SequenceError("No sequence source was provided.")
+    try:
+        return Path(input_name).read_text(encoding="utf-8")
+    except OSError as exc:
+        raise SequenceError(f"Could not read sequence file {input_name}: {exc}") from exc
+
+
+def _run_cli(arguments: list[str]) -> int:
+    parser = _build_cli_parser()
+    options = parser.parse_args(arguments)
+    for name, value in (
+        ("Dialogue volume", options.dialogue_volume),
+        ("Radio hiss volume", options.hiss_volume),
+    ):
+        if not 0.0 <= value <= 100.0:
+            parser.error(f"{name} must be between 0 and 100 percent.")
+
+    try:
+        source = _read_cli_sequence(options.sequence, options.input)
+        catalog = load_sfx_catalog()
+        tokens = parse_sequence(source, catalog)
+        duration = render_sequence(
+            tokens,
+            catalog,
+            options.output,
+            options.interval,
+            options.pitch,
+            options.radio,
+            options.dialogue_volume / VOLUME_SLIDER_UNITY,
+            options.hiss_volume / VOLUME_SLIDER_UNITY,
+        )
+    except (OSError, SequenceError) as exc:
+        parser.exit(1, f"Error: {exc}\n")
+
+    sounds = sum(token is not None for token in tokens)
+    pauses = len(tokens) - sounds
+    print(
+        f"Saved {len(tokens)} slots ({sounds} sounds, {pauses} null pauses; "
+        f"{duration:.2f} s) to {options.output.resolve()}"
+    )
+    return 0
+
+
+def main(arguments: list[str] | None = None) -> int:
+    arguments = sys.argv[1:] if arguments is None else arguments
+    if not arguments or arguments == ["--gui"]:
+        _run_gui()
+        return 0
+    if "--gui" in arguments:
+        _build_cli_parser().error(
+            "--gui cannot be combined with command-line export options."
+        )
+    return _run_cli(arguments)
+
+
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

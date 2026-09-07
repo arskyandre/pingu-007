@@ -82,7 +82,7 @@ public class VendedorNPC extends NPC {
                 dialogueManager.iniciarDialogo(new String[]{
                     "VENDEDOR: Excelente trabalho limpando aquela área de novo, Pingu!",
                     "VENDEDOR: Aqui está sua recompensa. Volte mais tarde se quiser outro serviço."
-                }, new BufferedImage[]{portrait});
+                }, DialogueCatalogo.Vendedor_missao_recompensa, new BufferedImage[]{portrait});
             }
             case ATIVA ->
                 dialogueManager.iniciarDialogo(new String[]{
@@ -174,8 +174,22 @@ public class VendedorNPC extends NPC {
             case IDLE -> {
                 if (proximo && (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E) || input.isButtonJustPressed(InputManager.GamepadButton.Y))) {
                     if (Player.getDesbloqueouRecompensa()) {
-                        loopInteracao("VENDEDOR: E aí, Pingu? O que deseja?", DialogueCatalogo.Vendedor_o_que_deseja,
-                                player, dialogueManager, soundManager);
+                        if (this.questManager.getQuestState() == QuestManager.QuestState.PRONTA_PARA_ENTREGAR) {
+                            this.questManager.entregarQuest(player);
+                            dialogueManager.iniciarDialogo(new String[]{
+                                "VENDEDOR: Excelente trabalho limpando aquela área de novo, Pingu!",
+                                "VENDEDOR: Aqui está sua recompensa. Volte mais tarde se quiser outro serviço."
+                            }, DialogueCatalogo.Vendedor_missao_recompensa, new BufferedImage[]{portrait});
+                            dialogueManager.setAoTerminarDialogo(() -> {
+                                loopInteracao("VENDEDOR: E aí, Pingu? O que deseja?",
+                                        DialogueCatalogo.Vendedor_o_que_deseja,
+                                        player, dialogueManager, soundManager);
+                            });
+                        } else {
+                            loopInteracao("VENDEDOR: E aí, Pingu? O que deseja?",
+                                    DialogueCatalogo.Vendedor_o_que_deseja,
+                                    player, dialogueManager, soundManager);
+                        }
                     } else {
                         int moedas = (int) Math.ceil(player.getCurrentEnemyCount() * moedasPorInimigo);
                         dialogueManager.iniciarDialogo(new String[]{

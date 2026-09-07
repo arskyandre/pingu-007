@@ -37,6 +37,10 @@ public class DialogueCatalogo {
                         SoundManager.SFX.VENDEDOR_FALA1_3
 
         };
+        public static final SoundManager.SFX[] Vendedor_missao_recompensa = new SoundManager.SFX[] {
+                        SoundManager.SFX.VENDEDOR_MISSAO_RECOMPENSA_1,
+                        SoundManager.SFX.VENDEDOR_MISSAO_RECOMPENSA_2
+        };
         public static final SoundManager.SFX[] Vendedor_insuficiente_recompensa = new SoundManager.SFX[] {
                         SoundManager.SFX.VENDEDOR_INSUFICIENTE_RECOMPENSA
         };
@@ -58,6 +62,7 @@ public class DialogueCatalogo {
                         "RADIO: Mas, para chegar à Morsa, você precisa encontrar as 3 chaves que destrancam o portão da sua arena.",
                         "RADIO: Movimente-se com WASD, use ESPAÇO para dar um dash e o botão esquerdo do mouse para atirar.",
                         "RADIO: Mantenha sua munição sob controle. Pressione R para recarregar sua pistola.",
+                        "RADIO: Aperte TAB para dar uma olhada no mapa da região.",
                         "RADIO: Se uma arena fechar atrás de você, elimine todos os inimigos. A saída será liberada quando o último cair.",
                         "RADIO: Há buracos de pesca espalhados pela região, mas você ainda não possui uma vara.",
                         "RADIO: Nossos relatórios indicam a presença de um pescador. Se encontrá-lo, ele pode ser útil."
@@ -68,6 +73,7 @@ public class DialogueCatalogo {
                         "RADIO: Mas, para chegar à Morsa, você precisa encontrar as 3 chaves que destrancam o portão da sua arena.",
                         "RADIO: Movimente-se com WASD, use ESPAÇO para dar um dash e o botão esquerdo do mouse para atirar.",
                         "RADIO: Mantenha sua munição sob controle. Pressione R para recarregar sua pistola.",
+                        "RADIO: Aperte TAB para dar uma olhada no mapa da região.",
                         "RADIO: Se uma arena fechar atrás de você, elimine todos os inimigos. A saída será liberada quando o último cair.",
                         "RADIO: Há buracos de pesca espalhados pela região, mas você ainda não possui uma vara.",
                         "RADIO: Nossos relatórios indicam a presença de um pescador. Se encontrá-lo, ele pode ser útil."
@@ -77,8 +83,8 @@ public class DialogueCatalogo {
                         "RADIO: Isso é tudo, agente. Boa sorte. A colônia está contando com você."
         };
         public static final String[] TextoBossFinal = new String[] {
-          "MORSA: Não acredito...um pinguim com duas pistolas de meia tigela...me derrotou.",
-          "MORSA: Isso não vai ficar assim, eu vou me vingar!"
+                        "MORSA: Não acredito...um pinguim com duas pistolas de meia tigela...me derrotou.",
+                        "MORSA: Isso não vai ficar assim, eu vou me vingar!"
         };
         public static final SoundManager.SFX[] FalaInicialRadio = new SoundManager.SFX[] {
                         SoundManager.SFX.NOOT_NOOT,
