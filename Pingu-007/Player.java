@@ -917,7 +917,9 @@ public class Player extends Entity {
     }
 
     public boolean sixSeven(InputManager input) {
-        return input.isKeyPressed(KeyEvent.VK_6) && input.isKeyJustPressed(KeyEvent.VK_7);
+        return ((input.isKeyPressed(KeyEvent.VK_6) && input.isKeyJustPressed(KeyEvent.VK_7))
+                || (input.isButtonPressed(InputManager.GamepadButton.LEFT_STICK))
+                        && input.isButtonJustPressed(InputManager.GamepadButton.RIGHT_STICK));
     }
 
     private void updatePlayerDirection(double mouseX, double mouseY) {

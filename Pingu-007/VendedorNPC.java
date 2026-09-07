@@ -18,12 +18,15 @@ public class VendedorNPC extends NPC {
     private BufferedImage Sprite;
     private CameraManager camera;
     private final QuestManager questManager;
+    private static boolean playerTemSinalizador = false;
 
     private BufferedImage portrait = LoadSave.GetSpriteAtlas("images/portrait/vendedor_portrait.png");
     private BufferedImage portrait2 = LoadSave.GetSpriteAtlas("images/portrait/vendedor_portrait2.png");
-    // private BufferedImage nao_implementado = LoadSave.GetSpriteAtlas("images/portrait/Corinthians_simbolo.png");
+    // private BufferedImage nao_implementado =
+    // LoadSave.GetSpriteAtlas("images/portrait/Corinthians_simbolo.png");
 
-    public VendedorNPC(double x, double y, CameraManager cameraMgr, SoundManager soundManager, QuestManager questManager) {
+    public VendedorNPC(double x, double y, CameraManager cameraMgr, SoundManager soundManager,
+            QuestManager questManager) {
         super(x, y, WIDTH, HEIGHT);
         INTERACT_RANGE = GameCore.tiles_size * 3.5;
         this.camera = cameraMgr;
@@ -32,13 +35,25 @@ public class VendedorNPC extends NPC {
         shopMenu = new ShopMenu(soundManager);
     }
 
+    public void setPlayerTemSinalizador(boolean set) {
+        playerTemSinalizador = set;
+    }
+
+    public boolean getPlayerTemSinalizador() {
+        return playerTemSinalizador;
+    }
+
+    public void resetarProgresso() {
+        playerTemSinalizador = false;
+    }
+
     private void popularItens(Player player, SoundManager soundManager) {
         shopMenu.limparItens();
 
         shopMenu.addItem("10 Balas", "Está sem munição? Você pode comprar balas para a sua jornada aqui!",
                 LoadSave.GetSpriteAtlas("images/hud/balas.png"), 10, () -> {
-            player.addMunicao(10);
-        }, true, false);
+                    player.addMunicao(10);
+                }, true, false);
         shopMenu.addItem("Peixe", "Um delicioso peixe para curar um coração.",
                 LoadSave.GetSpriteAtlas("images/tile_set.png").getSubimage(144, 33, 16, 16), 15,
                 () -> {
@@ -47,13 +62,13 @@ public class VendedorNPC extends NPC {
         shopMenu.addItem("Capacete",
                 "Se proteja de balas dos inimigos com esse capacete! Esse item oferece uma redução do dano recebido por inimigos. ENDL (-33%)",
                 LoadSave.GetSpriteAtlas("images/hud/helmet.png"), 40, () -> {
-            player.setTemCapacete(true);
-        }, !player.getTemCapacete(), true);
+                    player.setTemCapacete(true);
+                }, !player.getTemCapacete(), true);
         shopMenu.addItem("Recarga Rápida",
                 "Reduz o tempo necessário para recarregar a arma. ENDL (0.5s -> 0.25s)",
                 LoadSave.GetSpriteAtlas("images/hud/clock.png"), 50, () -> {
-            player.setFasterReload(true);
-        }, !player.getFasterReload(), true);
+                    player.setFasterReload(true);
+                }, !player.getFasterReload(), true);
         shopMenu.addItem("Pente Estendido",
                 "Aumenta a capacidade do pente da sua arma. ENDL (15 tiros -> 30 tiros)",
                 GameCore.missing_image, 50, () -> {
@@ -62,15 +77,42 @@ public class VendedorNPC extends NPC {
         shopMenu.addItem("Espingarda (Shotgun)",
                 "Uma espingarda que dispara diversos projéteis de uma só vez, causando alto dano a curta distância. Sua eficiência diminui conforme a distância aumenta.",
                 LoadSave.GetSpriteAtlas("images/hud/shotgun_shopitem.png"), 100, () -> {
-            player.setHasShotgun(true);
-        }, !player.getHasShotgun(), true);
+                    player.setHasShotgun(true);
+                }, !player.getHasShotgun(), true);
     }
 
     private void encerrarDialogo(DialogueManager dialogueManager) {
-        dialogueManager.iniciarDialogo(new String[]{
-            "VENDEDOR: Estou aqui sempre que precisar!"
-        }, DialogueCatalogo.VendedorTchau, new BufferedImage[]{portrait2});
+        dialogueManager.iniciarDialogo(new String[] {
+                "VENDEDOR: Estou aqui sempre que precisar!"
+        }, DialogueCatalogo.VendedorTchau, new BufferedImage[] { portrait2 });
         state = State.IDLE;
+    }
+
+    private void darSinalizador(DialogueManager dialogueManager, Player player,
+            SoundManager soundManager) {
+        if (getPlayerTemSinalizador()) {
+            explicarMissao(dialogueManager, player, soundManager);
+            return;
+        }
+
+        dialogueManager.iniciarDialogo(new String[] {
+                "VENDEDOR: Pegue esse sinalizador. Ele apontará em amarelo para a arena que foi invadida de novo."
+        }, DialogueCatalogo.Vendedor_dar_sinalizador);
+        dialogueManager.setAoTerminarDialogo(() -> {
+            setPlayerTemSinalizador(true);
+            explicarMissao(dialogueManager, player, soundManager);
+        });
+    }
+
+    private void explicarMissao(DialogueManager dialogueManager, Player player, SoundManager soundManager) {
+        dialogueManager.iniciarDialogo(new String[] {
+                "VENDEDOR: Alguns inimigos reocuparam uma arena que você já tinha limpado.",
+                "VENDEDOR: Siga o sinalizador. Vá até lá e acabe com eles, vou te pagar bem!"
+        }, DialogueCatalogo.Vendedor_explicar_missao, new BufferedImage[] { portrait });
+        dialogueManager.setAoTerminarDialogo(() -> {
+            loopInteracao("VENDEDOR: Algo a mais, Pingu?", DialogueCatalogo.Vendedor_algo_a_mais,
+                    player, dialogueManager, soundManager);
+        });
     }
 
     private void comoPossoAjudar(DialogueManager dialogueManager, Player player, SoundManager soundManager) {
@@ -79,50 +121,46 @@ public class VendedorNPC extends NPC {
         switch (qs) {
             case PRONTA_PARA_ENTREGAR -> {
                 this.questManager.entregarQuest(player);
-                dialogueManager.iniciarDialogo(new String[]{
-                    "VENDEDOR: Excelente trabalho limpando aquela área de novo, Pingu!",
-                    "VENDEDOR: Aqui está sua recompensa. Volte mais tarde se quiser outro serviço."
-                }, DialogueCatalogo.Vendedor_missao_recompensa, new BufferedImage[]{portrait});
+                dialogueManager.iniciarDialogo(new String[] {
+                        "VENDEDOR: Excelente trabalho limpando aquela área de novo, Pingu!",
+                        "VENDEDOR: Aqui está sua recompensa. Volte mais tarde se quiser outro serviço."
+                }, DialogueCatalogo.Vendedor_missao_recompensa, new BufferedImage[] { portrait });
             }
             case ATIVA ->
-                dialogueManager.iniciarDialogo(new String[]{
-                    "VENDEDOR: Você ainda não terminou o serviço!",
-                    "VENDEDOR: Siga a seta amarela no seu capacete (mudar dps), acabe com os inimigos e volte aqui."
-                }, new BufferedImage[]{portrait});
+                dialogueManager.iniciarDialogo(new String[] {
+                        "VENDEDOR: Você ainda não terminou o serviço!",
+                        "VENDEDOR: Siga o sinalizador, acabe com os inimigos e volte aqui."
+                }, DialogueCatalogo.Vendedor_missao_ativa, new BufferedImage[] { portrait });
             case NENHUMA -> {
                 boolean questGerada = this.questManager.gerarQuestArenaAleatoria(player);
                 if (questGerada) {
-                    dialogueManager.iniciarDialogo(new String[]{
-                        "VENDEDOR: Eu tenho um trabalho pra você.",
-                        "VENDEDOR: Alguns inimigos reocuparam uma arena que você já tinha limpado.",
-                        "VENDEDOR: Siga o indicador no HUD. Vá até lá e acabe com eles, vou te pagar bem!"
-                    }, new BufferedImage[]{portrait});
-                } else {
-                    dialogueManager.iniciarDialogo(new String[]{
+                    dialogueManager.iniciarDialogo(new String[] { "VENDEDOR: Está procurando serviço? ",
+                            "VENDEDOR: Eu tenho um trabalho pra você." },
+                            DialogueCatalogo.Vendedor_oferta_missao);
+                    dialogueManager.setAoTerminarDialogo(() -> darSinalizador(dialogueManager, player, soundManager));
+                    return;
+                }
+
+                dialogueManager.iniciarDialogo(new String[] {
                         "VENDEDOR: No momento o bairro está pacífico.",
                         "VENDEDOR: Avance na sua jornada e volte depois que explorar novas áreas!"
-                    }, new BufferedImage[]{portrait});
-                }
+                }, new BufferedImage[] { portrait });
             }
         }
-        // dialogueManager.iniciarDialogo(new String[]{
-        //     "Sou um time fraco!"
-        // }, new BufferedImage[]{nao_implementado});
-        // dialogueManager.setAoTerminarDialogo(() -> {
-        //     encerrarDialogo(dialogueManager);
-        // });
+
         dialogueManager.setAoTerminarDialogo(() -> {
-            loopInteracao("VENDEDOR: Algo a mais, Pingu?", DialogueCatalogo.Vendedor_algo_a_mais,
-                    player, dialogueManager, soundManager);
+            loopInteracao("VENDEDOR: Algo a mais, Pingu?", DialogueCatalogo.Vendedor_algo_a_mais, player,
+                    dialogueManager, soundManager);
         });
     }
 
-    private void loopInteracao(String pergunta, SoundManager.SFX[] fala, Player player, DialogueManager dialogueManager, SoundManager soundManager) {
-        dialogueManager.iniciarEscolha(pergunta, new String[]{
-            "Quero comprar algo.",
-            "Tem algum trabalho pra mim? (Missão)",
-            "Me dê minha recompensa!",
-            "Deixa pra lá."
+    private void loopInteracao(String pergunta, SoundManager.SFX[] fala, Player player, DialogueManager dialogueManager,
+            SoundManager soundManager) {
+        dialogueManager.iniciarEscolha(pergunta, new String[] {
+                "Quero comprar algo.",
+                "Tem algum trabalho pra mim? (Missão)",
+                "Me dê minha recompensa!",
+                "Deixa pra lá."
         }, fala, portrait, 0,
                 escolha -> {
                     soundManager.playSFX(SoundManager.SFX.NOOT_NOOT);
@@ -137,25 +175,26 @@ public class VendedorNPC extends NPC {
                             GameCore.setShopMenu(shopMenu);
                         }
                         case 1 -> {
+
                             comoPossoAjudar(dialogueManager, player, soundManager);
                         }
                         case 2 -> {
                             int moedas = (int) Math.ceil(player.getCurrentEnemyCount() * moedasPorInimigo);
                             if (moedas == 0) {
-                                dialogueManager.iniciarDialogo(new String[]{
-                            "VENDEDOR: Elimine mais inimigos para resgatar sua recompensa."
-                        }, new BufferedImage[]{portrait});
+                                dialogueManager.iniciarDialogo(new String[] {
+                                        "VENDEDOR: Elimine mais inimigos para resgatar sua recompensa."
+                                }, new BufferedImage[] { portrait });
                             } else {
-                                dialogueManager.iniciarDialogo(new String[]{
-                            "Desde a última vez que veio aqui, você eliminou "
-                            + player.getCurrentEnemyCount()
-                            + " inimigos. Isso dá um total de "
-                            + moedas + " moedas."
-                        }, new BufferedImage[]{portrait});
+                                dialogueManager.iniciarDialogo(new String[] {
+                                        "Desde a última vez que veio aqui, você eliminou "
+                                                + player.getCurrentEnemyCount()
+                                                + " inimigos. Isso dá um total de "
+                                                + moedas + " moedas."
+                                }, new BufferedImage[] { portrait });
                             }
                             dialogueManager.setAoTerminarDialogo(() -> {
                                 player.addMoedas(moedas);
-                                player.setCurrentEnemyCount(0); // Zera a contagem para não pagar 2 vezes!
+                                player.setCurrentEnemyCount(0);
                                 loopInteracao("VENDEDOR: Algo a mais, Pingu?", DialogueCatalogo.Vendedor_algo_a_mais,
                                         player, dialogueManager, soundManager);
                             });
@@ -168,18 +207,20 @@ public class VendedorNPC extends NPC {
     }
 
     @Override
-    public void update(Player player, InputManager input, DialogueManager dialogueManager, SoundManager soundManager, ItemManager itemManager) {
+    public void update(Player player, InputManager input, DialogueManager dialogueManager, SoundManager soundManager,
+            ItemManager itemManager) {
         proximo = playerNearby(player);
         switch (state) {
             case IDLE -> {
-                if (proximo && (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E) || input.isButtonJustPressed(InputManager.GamepadButton.Y))) {
+                if (proximo && (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)
+                        || input.isButtonJustPressed(InputManager.GamepadButton.Y))) {
                     if (Player.getDesbloqueouRecompensa()) {
                         if (this.questManager.getQuestState() == QuestManager.QuestState.PRONTA_PARA_ENTREGAR) {
                             this.questManager.entregarQuest(player);
-                            dialogueManager.iniciarDialogo(new String[]{
-                                "VENDEDOR: Excelente trabalho limpando aquela área de novo, Pingu!",
-                                "VENDEDOR: Aqui está sua recompensa. Volte mais tarde se quiser outro serviço."
-                            }, DialogueCatalogo.Vendedor_missao_recompensa, new BufferedImage[]{portrait});
+                            dialogueManager.iniciarDialogo(new String[] {
+                                    "VENDEDOR: Excelente trabalho limpando aquela área de novo, Pingu!",
+                                    "VENDEDOR: Aqui está sua recompensa. Volte mais tarde se quiser outro serviço."
+                            }, DialogueCatalogo.Vendedor_missao_recompensa, new BufferedImage[] { portrait });
                             dialogueManager.setAoTerminarDialogo(() -> {
                                 loopInteracao("VENDEDOR: E aí, Pingu? O que deseja?",
                                         DialogueCatalogo.Vendedor_o_que_deseja,
@@ -192,12 +233,15 @@ public class VendedorNPC extends NPC {
                         }
                     } else {
                         int moedas = (int) Math.ceil(player.getCurrentEnemyCount() * moedasPorInimigo);
-                        dialogueManager.iniciarDialogo(new String[]{
-                            "VENDEDOR: E aí Pingu, beleza?",
-                            "VENDEDOR: Obrigado por salvar o nosso bairro, os soldados da Morsa estavam aterrorizando a nossa região!",
-                            "VENDEDOR: Como agradecimento, quero lhe oferecer uma recompensa. A partir de agora, vou te pagar em moedas pelos inimigos que você eliminar!",
-                            "VENDEDOR: Até agora, você eliminou " + player.getCurrentEnemyCount() + " inimigos. Aqui estão " + moedas + " moedas."
-                        }, DialogueCatalogo.VendedorFala1, new BufferedImage[]{portrait});
+                        dialogueManager.iniciarDialogo(new String[] {
+                                "VENDEDOR: E aí Pingu, beleza?",
+                                "VENDEDOR: Obrigado por salvar o nosso bairro, os soldados da Morsa estavam aterrorizando a nossa região!",
+                                "VENDEDOR: Como agradecimento, quero lhe oferecer uma recompensa. A partir de agora, vou te pagar em moedas pelos inimigos que você eliminar!",
+                                "VENDEDOR: Até agora, você eliminou " + player.getCurrentEnemyCount()
+                                        + " inimigos. Aqui estão " + moedas + " moedas.",
+                                "VENDEDOR: Aliás, pode ser que os capangas da Morsa voltem para alguma arena. Se quiser ter notícias, venha falar comigo!",
+                                "VENDEDOR: Vou lhe pagar um adicional para limpar novamente as arenas reabertas."
+                        }, DialogueCatalogo.VendedorFala1, new BufferedImage[] { portrait });
                         dialogueManager.setAoTerminarDialogo(() -> {
                             ToastNotifications.RequestNotification(
                                     "Elimine inimigos e volte à loja do vendedor para receber recompensas!", 2.5);

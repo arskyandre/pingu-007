@@ -34,8 +34,26 @@ public class DialogueCatalogo {
         public static final SoundManager.SFX[] VendedorFala1 = new SoundManager.SFX[] {
                         SoundManager.SFX.VENDEDOR_FALA1_1,
                         SoundManager.SFX.VENDEDOR_FALA1_2,
-                        SoundManager.SFX.VENDEDOR_FALA1_3
+                        SoundManager.SFX.VENDEDOR_FALA1_3,
+                        null,
+                        SoundManager.SFX.VENDEDOR_RECOMPENSA_AVISO_1,
+                        SoundManager.SFX.VENDEDOR_RECOMPENSA_AVISO_2
 
+        };
+        public static final SoundManager.SFX[] Vendedor_missao_ativa = new SoundManager.SFX[] {
+                        null,
+                        SoundManager.SFX.VENDEDOR_MISSAO_ATIVA
+        };
+        public static final SoundManager.SFX[] Vendedor_oferta_missao = new SoundManager.SFX[] {
+                        SoundManager.SFX.VENDEDOR_PROCURANDO_SERVICO,
+                        null
+        };
+        public static final SoundManager.SFX[] Vendedor_dar_sinalizador = new SoundManager.SFX[] {
+                        SoundManager.SFX.VENDEDOR_DAR_SINALIZADOR
+        };
+        public static final SoundManager.SFX[] Vendedor_explicar_missao = new SoundManager.SFX[] {
+                        null,
+                        SoundManager.SFX.VENDEDOR_EXPLICAR_MISSAO
         };
         public static final SoundManager.SFX[] Vendedor_missao_recompensa = new SoundManager.SFX[] {
                         SoundManager.SFX.VENDEDOR_MISSAO_RECOMPENSA_1,
