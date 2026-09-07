@@ -1,0 +1,2 @@
+// Exemplo de uso no CMD: python dialogue_sequence_gui.py --input exemplo.txt
+tu, n, gu, tu, n, gu, tu, n, gu, null, sa, hu, u, ru
