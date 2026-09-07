@@ -26,9 +26,9 @@ public class GameCore extends Canvas implements Runnable {
     // permite os botoes de teste(debuginputprocessing() e outros). se colocar false
     // o jogo se comporta como versao de "usuario"
     private static boolean debugInputs = true;
+
     private static boolean MunicaoMinimaNoCheckpoint = true;
     private static final int MUNICAO_MINIMA_NO_CHECKPOINT = 35;
-
     private double checkX, checkY;
     private int checkVida, checkMunicao, checkPente, checkChaves, checkIscas;
     private int chavesColetadasCheckpoint = 0;
@@ -614,11 +614,11 @@ public class GameCore extends Canvas implements Runnable {
     public void triggerDialogoInicial() {
         if (!dialogueManager.isAtivo()) {
             dialogueManager.iniciarDialogo(DialogueCatalogo.TextoInicialRadio, DialogueCatalogo.FalaInicialRadio,
-                    new BufferedImage[]{
-                        pingu_portrait,
-                        cellphone_image,
-                        pingu_portrait,
-                        cellphone_image
+                    new BufferedImage[] {
+                            pingu_portrait,
+                            cellphone_image,
+                            pingu_portrait,
+                            cellphone_image
                     });
             dialogueManager.setAoTerminarDialogo(() -> {
                 ToastNotifications.RequestNotification("Use as setas para selecionar a opção e ENTER para confirmar.",
@@ -1290,7 +1290,8 @@ public class GameCore extends Canvas implements Runnable {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager, npcManager,
+                                enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager,
+                                npcManager,
                                 cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                 true, true);
 
@@ -1302,7 +1303,8 @@ public class GameCore extends Canvas implements Runnable {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager, npcManager,
+                                enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager,
+                                npcManager,
                                 cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                 false, false);
                         // renderizar os elementos de venda por cima
@@ -1315,7 +1317,8 @@ public class GameCore extends Canvas implements Runnable {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager, npcManager,
+                                enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager,
+                                npcManager,
                                 cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                 true, false);
 
@@ -1325,7 +1328,8 @@ public class GameCore extends Canvas implements Runnable {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(),
                                 levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager, npcManager,
+                                enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager,
+                                npcManager,
                                 cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                 true, false);
 
@@ -1337,7 +1341,8 @@ public class GameCore extends Canvas implements Runnable {
                             renderer.renderizar(g2, camera, player, input,
                                     getWidth(), getHeight(),
                                     levelManager, bulletmanager, itemManager,
-                                    enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager, npcManager,
+                                    enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager,
+                                    npcManager,
                                     cutsceneManager, !estaDentroLoja, dayProgress, delta,
                                     true, false);
 
@@ -1352,7 +1357,8 @@ public class GameCore extends Canvas implements Runnable {
                     case CREDITS -> {
                         renderer.renderizar(g2, camera, player, input,
                                 getWidth(), getHeight(), levelManager, bulletmanager, itemManager,
-                                enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager, npcManager,
+                                enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager,
+                                npcManager,
                                 cutsceneManager, !estaDentroLoja, dayProgress, delta, false, false);
                         creditsScreen.render(g2, getWidth(), getHeight());
                     }

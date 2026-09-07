@@ -418,7 +418,7 @@ def read_audio_clip(path: Path) -> AudioClip:
 
 
 def _apply_pitch_shift(samples: array, semitones: float) -> array:
-    """Pitch the finished mix with FFmpeg Rubber Band, preserving duration."""
+    """Pitch one audio clip with FFmpeg Rubber Band, preserving duration."""
 
     if abs(semitones) < 1e-9:
         return samples
@@ -661,7 +661,10 @@ def render_sequence(
     clip_cache: dict[str, AudioClip] = {}
     for token in tokens:
         if token is not None and token not in clip_cache:
-            clip_cache[token] = read_audio_clip(catalog[token])
+            clip = read_audio_clip(catalog[token])
+            if token.startswith("KATAKANA_") and abs(pitch_semitones) >= 1e-9:
+                clip = AudioClip(_apply_pitch_shift(clip.samples, pitch_semitones))
+            clip_cache[token] = clip
 
     interval_frames = round(OUTPUT_SAMPLE_RATE * interval_ms / 1000)
     total_frames = len(tokens) * interval_frames
@@ -680,7 +683,7 @@ def render_sequence(
         for sample_index, sample in enumerate(clip_cache[token].samples):
             mixed[destination + sample_index] += sample
 
-    processed = _apply_pitch_shift(mixed, pitch_semitones)
+    processed = mixed
     if dialogue_volume != 1.0:
         processed = array("i", (round(sample * dialogue_volume) for sample in processed))
     if radio_effect:
@@ -883,7 +886,7 @@ class DialogueSequenceApp:
             wrap=False,
         )
         pitch_entry.grid(row=1, column=1, sticky="w", padx=(6, 14), pady=(8, 0))
-        ttk.Label(options, text="-12 to +12; duration is preserved.").grid(
+        ttk.Label(options, text="-12 to +12; Katakana only.").grid(
             row=1, column=2, sticky="w", pady=(8, 0)
         )
         ttk.Checkbutton(
@@ -1427,7 +1430,7 @@ class NativeWindowsDialogueSequenceApp:
             "BUTTON", "▼", 0, self.ID_PITCH_DOWN
         )
         self.pitch_note_handle = self._create_control(
-            "STATIC", "-12 to +12; same duration.", 0, 0
+            "STATIC", "-12 to +12; Katakana only.", 0, 0
         )
         self.radio_handle = self._create_control(
             "BUTTON", "Radio effect + hiss", 0x00000003, self.ID_RADIO
@@ -1879,7 +1882,10 @@ def _build_cli_parser() -> argparse.ArgumentParser:
         type=float,
         default=0.0,
         metavar="SEMITONES",
-        help="pitch shift from -12 to +12 semitones (requires FFmpeg when non-zero)",
+        help=(
+            "pitch shift Katakana clips from -12 to +12 semitones "
+            "(requires FFmpeg when non-zero)"
+        ),
     )
     parser.add_argument(
         "--radio",
