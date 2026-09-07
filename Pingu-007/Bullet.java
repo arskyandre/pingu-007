@@ -11,7 +11,7 @@ public class Bullet {
     private boolean active = true;
 
     private double KnockbackForce = 20;
-    private final double maxDistancia = 600.0;
+    private final double maxDistancia = GameCore.tiles_size * 20.0;
 
     private final Collider collider;
     private final int dano = 10;

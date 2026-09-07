@@ -39,7 +39,7 @@ public class Jumper extends Enemy {
         this.podeAtravessarObjetosTransparentes = true;
         this.velocidadeAndar = 1.5;
         this.velocidadeMax = 30.0;
-        this.raioDeteccao = GameCore.tiles_size * 3.5;
+        this.raioDeteccao = GameCore.tiles_size * 12.0;
 
         this.aceleracao = 0.3;
         this.peso = 0.8;

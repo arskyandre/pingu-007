@@ -19,7 +19,7 @@ public class Dasher extends Enemy {
     private int animIndex = 0;
     private int dirS = 0;
 
-    private final double distAtivacao = 200.0;
+    private final double distAtivacao = GameCore.tiles_size * 5.0;
     private final int tempoPreparo = 60;
     private final int tempoDash = 30;
     private final int tempoCooldown = 120;
@@ -40,7 +40,7 @@ public class Dasher extends Enemy {
         this.velocidadeMax = 45.0;
         this.aceleracao = 0.8;
         this.peso = 1.0;
-        this.raioDeteccao = GameCore.tiles_size * 9;
+        this.raioDeteccao = GameCore.tiles_size * 12.0;
 
         this.bodyCollider = new Collider(0, height / 2.0, width, height / 2.0);
         this.hurtbox = new Collider(0, 0, width, height);
