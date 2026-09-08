@@ -4,8 +4,8 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.concurrent.TimeUnit;
 
 public class InteractiveMapObject extends MapObject {
 
@@ -76,10 +76,10 @@ public class InteractiveMapObject extends MapObject {
             dialogueManager.iniciarDialogo(new String[]{
                 "PINGU ME AJUDE! ENFIARAM UMA ARVORE NO MEU BUTICO SOCORRO AAAAAAA"}, null,
                     new BufferedImage[]{GameCore.star_portrait});
-                this.data.gid += 1;
-                LoadSave.applyGidData(this.data);
-                this.setSprite(this.data.sprite);
-            dialogueManager.setAoTerminarDialogo(()->{
+            this.data.gid += 1;
+            LoadSave.applyGidData(this.data);
+            this.setSprite(this.data.sprite);
+            dialogueManager.setAoTerminarDialogo(() -> {
                 player.metodoInutil();
                 this.data.gid += 1;
                 LoadSave.applyGidData(this.data);
@@ -87,14 +87,14 @@ public class InteractiveMapObject extends MapObject {
                 dialogueManager.iniciarDialogo(new String[]{
                     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}, null,
                         new BufferedImage[]{GameCore.star_portrait});
-                dialogueManager.setAoTerminarDialogo(()->{
+                dialogueManager.setAoTerminarDialogo(() -> {
                     this.data.gid -= 3;
-                LoadSave.applyGidData(this.data);
-                this.setSprite(this.data.sprite);
+                    LoadSave.applyGidData(this.data);
+                    this.setSprite(this.data.sprite);
                 });
                 //grita e muda pra uma arvore normal
             });
-            
+
             return true;
         }
 
@@ -174,5 +174,10 @@ public class InteractiveMapObject extends MapObject {
             g2.setColor(new Color(20, 77, 55)); // Cor principal
             g2.drawString(prompt, px, py);
         }
+    }
+
+    @Override
+    public Rectangle2D getOcclusionBounds() {
+        return null;
     }
 }

@@ -1,6 +1,7 @@
 
 import java.awt.Graphics2D;
 import java.awt.Shape;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 public class MapObject implements Renderable, DebugRenderable {
@@ -17,6 +18,8 @@ public class MapObject implements Renderable, DebugRenderable {
     private double visualAnchorY;
     private double visibleAlphaHeight = 1.0;
     private boolean hasVisibleVisualAnchor;
+    private Rectangle2D.Double visibleAlphaBounds;
+    private Rectangle2D.Double opaqueOcclusionBounds;
 
     private boolean temColisao;
     private boolean isTransparent;
@@ -71,7 +74,7 @@ public class MapObject implements Renderable, DebugRenderable {
                         new ProjectedShadow.Part(sprite, dx, dy, drawW, drawH));
             }
 
-            g2.drawImage(sprite, dx, dy, drawW, drawH, null);
+            SpriteLighting.drawImage(g2, sprite, dx, dy, drawW, drawH);
         }
 
         // --- DEBUG DE COLISÃO ---
@@ -163,6 +166,16 @@ public class MapObject implements Renderable, DebugRenderable {
         return GameCore.tiles_size * 2.0;
     }
 
+    @Override
+    public Rectangle2D getOcclusionBounds() {
+        return visibleAlphaBounds;
+    }
+
+    @Override
+    public Rectangle2D getOpaqueOcclusionBounds() {
+        return isTransparent ? null : opaqueOcclusionBounds;
+    }
+
     private void recalculateVisualAnchorAndDepth() {
         SpriteGeometry geometry = calculateSpriteGeometry();
         if (geometry != null) {
@@ -172,11 +185,17 @@ public class MapObject implements Renderable, DebugRenderable {
             this.visualAnchorY = anchor.getY();
             this.visibleAlphaHeight = Math.max(1.0, anchor.getVisibleHeight());
             this.hasVisibleVisualAnchor = anchor.hasVisiblePixels();
+            this.visibleAlphaBounds = ProjectedShadow.getVisibleAlphaBounds(
+                    sprite, geometry.dx, geometry.dy, geometry.drawWidth, geometry.drawHeight);
+            this.opaqueOcclusionBounds = ProjectedShadow.getOpaqueAlphaBounds(
+                    sprite, geometry.dx, geometry.dy, geometry.drawWidth, geometry.drawHeight);
         } else {
             this.visualAnchorX = this.x + this.width / 2.0;
             this.visualAnchorY = this.y + this.height;
             this.visibleAlphaHeight = 1.0;
             this.hasVisibleVisualAnchor = false;
+            this.visibleAlphaBounds = null;
+            this.opaqueOcclusionBounds = null;
         }
 
         if (data.castsShadow) {

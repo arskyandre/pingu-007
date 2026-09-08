@@ -1,8 +1,14 @@
+
 import java.awt.AlphaComposite;
 import java.awt.Composite;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
+import java.awt.image.Raster;
+import java.awt.image.WritableRaster;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -14,25 +20,38 @@ public final class ProjectedShadow {
     private static final double PLAYER_SHADOW_LENGTH = 42.0;
     private static final double MAX_LENGTH_MULTIPLIER = 1.60;
     private static final double CULL_PADDING = 48.0;
-    public static final double SHADOW_LENGTH_PER_REFERENCE_HEIGHT =
-            PLAYER_SHADOW_LENGTH / PLAYER_FEET_HEIGHT;
+    public static final double SHADOW_LENGTH_PER_REFERENCE_HEIGHT
+            = PLAYER_SHADOW_LENGTH / PLAYER_FEET_HEIGHT;
     public static final float DEFAULT_SHADOW_OPACITY = 0.42f;
     private static final int SUN_ANGLE_BUCKETS = 360;
     private static final double SUN_ANGLE_STEP = Math.PI * 2.0 / SUN_ANGLE_BUCKETS;
-    private static final int MAX_CACHED_SHADOWS = 48;
+    private static final int MAX_CACHED_SHADOWS = 256;
+    private static final float[] SHADOW_BLUR_KERNEL = {
+        0.054488685f, 0.24420135f, 0.40261996f, 0.24420135f, 0.054488685f
+    };
+    private static final ConvolveOp SHADOW_BLUR_HORIZONTAL = new ConvolveOp(
+            new Kernel(5, 1, SHADOW_BLUR_KERNEL), ConvolveOp.EDGE_NO_OP, null);
+    private static final ConvolveOp SHADOW_BLUR_VERTICAL = new ConvolveOp(
+            new Kernel(1, 5, SHADOW_BLUR_KERNEL), ConvolveOp.EDGE_NO_OP, null);
     private static final BufferedImage SOLID_PIXEL = createSolidPixel();
     private static final Map<BufferedImage, AlphaMetrics> ALPHA_METRICS = new WeakHashMap<>();
-    private static final Map<ShadowCacheKey, CachedShadow> SHADOW_CACHE =
-            new LinkedHashMap<>(MAX_CACHED_SHADOWS, 0.75f, true) {
-                @Override
-                protected boolean removeEldestEntry(Map.Entry<ShadowCacheKey, CachedShadow> eldest) {
-                    return size() > MAX_CACHED_SHADOWS;
-                }
-            };
+    private static final Map<ShadowCacheKey, CachedShadow> SHADOW_CACHE
+            = new LinkedHashMap<>(MAX_CACHED_SHADOWS, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<ShadowCacheKey, CachedShadow> eldest) {
+            return size() > MAX_CACHED_SHADOWS;
+        }
+    };
     private static long generatedShadowCount;
     private static long shadowCacheHitCount;
+    private static Graphics2D activeShadowBufferGraphics;
+    private static boolean enabled = true;
 
     private ProjectedShadow() {
+    }
+
+    static void configure(boolean shadowsEnabled) {
+        enabled = shadowsEnabled;
     }
 
     private static BufferedImage createSolidPixel() {
@@ -42,6 +61,7 @@ public final class ProjectedShadow {
     }
 
     public static final class Part {
+
         private final BufferedImage image;
         private final int x, y, width, height;
 
@@ -55,6 +75,7 @@ public final class ProjectedShadow {
     }
 
     public static final class VisualAnchor {
+
         private final double x;
         private final double y;
         private final double visibleHeight;
@@ -85,21 +106,36 @@ public final class ProjectedShadow {
     }
 
     private static final class AlphaMetrics {
+
         private final int firstVisibleRow;
         private final int lastVisibleRow;
         private final int firstRowMinX;
         private final int firstRowMaxX;
         private final int lastRowMinX;
         private final int lastRowMaxX;
+        private final int visibleMinX;
+        private final int visibleMaxX;
+        private final int opaqueX;
+        private final int opaqueY;
+        private final int opaqueWidth;
+        private final int opaqueHeight;
 
         private AlphaMetrics(int firstVisibleRow, int lastVisibleRow,
-                int firstRowMinX, int firstRowMaxX, int lastRowMinX, int lastRowMaxX) {
+                int firstRowMinX, int firstRowMaxX, int lastRowMinX, int lastRowMaxX,
+                int visibleMinX, int visibleMaxX,
+                int opaqueX, int opaqueY, int opaqueWidth, int opaqueHeight) {
             this.firstVisibleRow = firstVisibleRow;
             this.lastVisibleRow = lastVisibleRow;
             this.firstRowMinX = firstRowMinX;
             this.firstRowMaxX = firstRowMaxX;
             this.lastRowMinX = lastRowMinX;
             this.lastRowMaxX = lastRowMaxX;
+            this.visibleMinX = visibleMinX;
+            this.visibleMaxX = visibleMaxX;
+            this.opaqueX = opaqueX;
+            this.opaqueY = opaqueY;
+            this.opaqueWidth = opaqueWidth;
+            this.opaqueHeight = opaqueHeight;
         }
 
         private boolean hasVisiblePixels() {
@@ -108,57 +144,35 @@ public final class ProjectedShadow {
     }
 
     private static final class ShadowCacheKey {
+
         private final int angleBucket;
         private final long referenceHeightBits;
         private final long shadowLengthBits;
-        private final int opacityBits;
-        private final BufferedImage[] images;
-        private final int[] geometry;
-        private final byte[] flipFlags;
+        private final int anchorX;
+        private final int anchorY;
+        private final Part[] parts;
         private final int hash;
 
         private ShadowCacheKey(int angleBucket, double referenceHeight, double shadowLength,
-                float opacity, int anchorX, int anchorY, Part... parts) {
+                int anchorX, int anchorY, Part... parts) {
             this.angleBucket = angleBucket;
             this.referenceHeightBits = Double.doubleToLongBits(referenceHeight);
             this.shadowLengthBits = Double.doubleToLongBits(shadowLength);
-            this.opacityBits = Float.floatToIntBits(opacity);
-
-            int validPartCount = 0;
-            for (Part part : parts) {
-                if (part != null && part.image != null && part.width != 0 && part.height != 0) {
-                    validPartCount++;
-                }
-            }
-            this.images = new BufferedImage[validPartCount];
-            this.geometry = new int[validPartCount * 4];
-            this.flipFlags = new byte[validPartCount];
-
-            int imageIndex = 0;
-            int geometryIndex = 0;
+            this.anchorX = anchorX;
+            this.anchorY = anchorY;
+            this.parts = parts;
             int calculatedHash = angleBucket;
             calculatedHash = 31 * calculatedHash + Long.hashCode(referenceHeightBits);
             calculatedHash = 31 * calculatedHash + Long.hashCode(shadowLengthBits);
-            calculatedHash = 31 * calculatedHash + opacityBits;
             for (Part part : parts) {
                 if (part == null || part.image == null || part.width == 0 || part.height == 0) {
                     continue;
                 }
-                images[imageIndex++] = part.image;
-                flipFlags[imageIndex - 1] = (byte) ((part.width < 0 ? 1 : 0)
-                        | (part.height < 0 ? 2 : 0));
-                geometry[geometryIndex++] = part.x - anchorX;
-                geometry[geometryIndex++] = part.y - anchorY;
-                geometry[geometryIndex++] = part.width;
-                geometry[geometryIndex++] = part.height;
                 calculatedHash = 31 * calculatedHash + System.identityHashCode(part.image);
                 calculatedHash = 31 * calculatedHash + part.x - anchorX;
                 calculatedHash = 31 * calculatedHash + part.y - anchorY;
                 calculatedHash = 31 * calculatedHash + part.width;
                 calculatedHash = 31 * calculatedHash + part.height;
-            }
-            for (byte flipFlag : flipFlags) {
-                calculatedHash = 31 * calculatedHash + flipFlag;
             }
             this.hash = calculatedHash;
         }
@@ -177,24 +191,23 @@ public final class ProjectedShadow {
                     || angleBucket != other.angleBucket
                     || referenceHeightBits != other.referenceHeightBits
                     || shadowLengthBits != other.shadowLengthBits
-                    || opacityBits != other.opacityBits
-                    || images.length != other.images.length
-                    || geometry.length != other.geometry.length
-                    || flipFlags.length != other.flipFlags.length) {
+                    || parts.length != other.parts.length) {
                 return false;
             }
-            for (int i = 0; i < images.length; i++) {
-                if (images[i] != other.images[i]) {
-                    return false;
+            for (int i = 0; i < parts.length; i++) {
+                Part left = parts[i];
+                Part right = other.parts[i];
+                if (left == null || right == null) {
+                    if (left != right) {
+                        return false;
+                    }
+                    continue;
                 }
-            }
-            for (int i = 0; i < geometry.length; i++) {
-                if (geometry[i] != other.geometry[i]) {
-                    return false;
-                }
-            }
-            for (int i = 0; i < flipFlags.length; i++) {
-                if (flipFlags[i] != other.flipFlags[i]) {
+                if (left.image != right.image
+                        || left.x - anchorX != right.x - other.anchorX
+                        || left.y - anchorY != right.y - other.anchorY
+                        || left.width != right.width
+                        || left.height != right.height) {
                     return false;
                 }
             }
@@ -203,8 +216,10 @@ public final class ProjectedShadow {
     }
 
     private static final class CachedShadow {
+
         private final BufferedImage image;
         private final int drawOffsetX, drawOffsetY, drawWidth, drawHeight;
+        private final int sourceX, sourceY, sourceWidth, sourceHeight;
 
         private CachedShadow(BufferedImage image, int drawOffsetX, int drawOffsetY,
                 int drawWidth, int drawHeight) {
@@ -213,6 +228,33 @@ public final class ProjectedShadow {
             this.drawOffsetY = drawOffsetY;
             this.drawWidth = drawWidth;
             this.drawHeight = drawHeight;
+
+            Raster alpha = image.getAlphaRaster();
+            int minX = image.getWidth();
+            int minY = image.getHeight();
+            int maxX = -1;
+            int maxY = -1;
+            if (alpha == null) {
+                minX = 0;
+                minY = 0;
+                maxX = image.getWidth() - 1;
+                maxY = image.getHeight() - 1;
+            } else {
+                for (int y = 0; y < image.getHeight(); y++) {
+                    for (int x = 0; x < image.getWidth(); x++) {
+                        if (alpha.getSample(x, y, 0) != 0) {
+                            minX = Math.min(minX, x);
+                            minY = Math.min(minY, y);
+                            maxX = Math.max(maxX, x);
+                            maxY = Math.max(maxY, y);
+                        }
+                    }
+                }
+            }
+            this.sourceX = maxX >= minX ? minX : 0;
+            this.sourceY = maxY >= minY ? minY : 0;
+            this.sourceWidth = maxX >= minX ? maxX - minX + 1 : 0;
+            this.sourceHeight = maxY >= minY ? maxY - minY + 1 : 0;
         }
     }
 
@@ -267,6 +309,55 @@ public final class ProjectedShadow {
                 true);
     }
 
+    public static Rectangle2D.Double getVisibleAlphaBounds(BufferedImage image,
+            int dx, int dy, int drawWidth, int drawHeight) {
+        if (image == null || drawWidth == 0 || drawHeight == 0) {
+            return null;
+        }
+        AlphaMetrics metrics = getAlphaMetrics(image);
+        if (!metrics.hasVisiblePixels()) {
+            return null;
+        }
+        return mapSourceBounds(image, dx, dy, drawWidth, drawHeight,
+                metrics.visibleMinX, metrics.firstVisibleRow,
+                metrics.visibleMaxX - metrics.visibleMinX + 1,
+                metrics.lastVisibleRow - metrics.firstVisibleRow + 1);
+    }
+
+    public static Rectangle2D.Double getOpaqueAlphaBounds(BufferedImage image,
+            int dx, int dy, int drawWidth, int drawHeight) {
+        if (image == null || drawWidth == 0 || drawHeight == 0) {
+            return null;
+        }
+        AlphaMetrics metrics = getAlphaMetrics(image);
+        if (metrics.opaqueWidth <= 0 || metrics.opaqueHeight <= 0) {
+            return null;
+        }
+        return mapSourceBounds(image, dx, dy, drawWidth, drawHeight,
+                metrics.opaqueX, metrics.opaqueY, metrics.opaqueWidth, metrics.opaqueHeight);
+    }
+
+    private static Rectangle2D.Double mapSourceBounds(BufferedImage image,
+            int dx, int dy, int drawWidth, int drawHeight,
+            int sourceX, int sourceY, int sourceWidth, int sourceHeight) {
+        double destinationLeft = Math.min(dx, dx + (double) drawWidth);
+        double destinationTop = Math.min(dy, dy + (double) drawHeight);
+        double scaleX = Math.abs((double) drawWidth) / image.getWidth();
+        double scaleY = Math.abs((double) drawHeight) / image.getHeight();
+
+        int mappedSourceX = drawWidth < 0
+                ? image.getWidth() - sourceX - sourceWidth
+                : sourceX;
+        int mappedSourceY = drawHeight < 0
+                ? image.getHeight() - sourceY - sourceHeight
+                : sourceY;
+        return new Rectangle2D.Double(
+                destinationLeft + mappedSourceX * scaleX,
+                destinationTop + mappedSourceY * scaleY,
+                sourceWidth * scaleX,
+                sourceHeight * scaleY);
+    }
+
     private static AlphaMetrics getAlphaMetrics(BufferedImage image) {
         synchronized (ALPHA_METRICS) {
             AlphaMetrics cached = ALPHA_METRICS.get(image);
@@ -280,34 +371,82 @@ public final class ProjectedShadow {
             int firstMaxX = Integer.MIN_VALUE;
             int lastMinX = Integer.MAX_VALUE;
             int lastMaxX = Integer.MIN_VALUE;
+            int visibleMinX = Integer.MAX_VALUE;
+            int visibleMaxX = Integer.MIN_VALUE;
+            int bestOpaqueX = 0;
+            int bestOpaqueY = 0;
+            int bestOpaqueWidth = 0;
+            int bestOpaqueHeight = 0;
+            int bestOpaqueArea = 0;
+            int[] opaqueHeights = new int[image.getWidth()];
+            int[] histogramStack = new int[image.getWidth() + 1];
+            Raster alphaRaster = image.getAlphaRaster();
+
             for (int sourceY = 0; sourceY < image.getHeight(); sourceY++) {
                 int rowMinX = Integer.MAX_VALUE;
                 int rowMaxX = Integer.MIN_VALUE;
                 for (int sourceX = 0; sourceX < image.getWidth(); sourceX++) {
-                    int alpha = (image.getRGB(sourceX, sourceY) >>> 24) & 0xFF;
+                    int alpha = alphaRaster == null ? 255 : alphaRaster.getSample(sourceX, sourceY, 0);
                     if (alpha != 0) {
                         rowMinX = Math.min(rowMinX, sourceX);
                         rowMaxX = Math.max(rowMaxX, sourceX);
                     }
+                    opaqueHeights[sourceX] = alpha == 255 ? opaqueHeights[sourceX] + 1 : 0;
                 }
                 if (rowMinX == Integer.MAX_VALUE) {
-                    continue;
+                    // Ainda precisamos processar o histograma para encerrar retangulos.
+                } else {
+                    if (firstRow == -1) {
+                        firstRow = sourceY;
+                        firstMinX = rowMinX;
+                        firstMaxX = rowMaxX;
+                    }
+                    lastRow = sourceY;
+                    lastMinX = rowMinX;
+                    lastMaxX = rowMaxX;
+                    visibleMinX = Math.min(visibleMinX, rowMinX);
+                    visibleMaxX = Math.max(visibleMaxX, rowMaxX);
                 }
-                if (firstRow == -1) {
-                    firstRow = sourceY;
-                    firstMinX = rowMinX;
-                    firstMaxX = rowMaxX;
+
+                int stackSize = 0;
+                for (int sourceX = 0; sourceX <= image.getWidth(); sourceX++) {
+                    int currentHeight = sourceX == image.getWidth() ? 0 : opaqueHeights[sourceX];
+                    while (stackSize > 0
+                            && opaqueHeights[histogramStack[stackSize - 1]] > currentHeight) {
+                        int barX = histogramStack[--stackSize];
+                        int rectHeight = opaqueHeights[barX];
+                        int rectLeft = stackSize == 0 ? 0 : histogramStack[stackSize - 1] + 1;
+                        int rectWidth = sourceX - rectLeft;
+                        int area = rectWidth * rectHeight;
+                        if (area > bestOpaqueArea) {
+                            bestOpaqueArea = area;
+                            bestOpaqueX = rectLeft;
+                            bestOpaqueY = sourceY - rectHeight + 1;
+                            bestOpaqueWidth = rectWidth;
+                            bestOpaqueHeight = rectHeight;
+                        }
+                    }
+                    if (sourceX < image.getWidth()) {
+                        histogramStack[stackSize++] = sourceX;
+                    }
                 }
-                lastRow = sourceY;
-                lastMinX = rowMinX;
-                lastMaxX = rowMaxX;
             }
 
             AlphaMetrics metrics = new AlphaMetrics(firstRow, lastRow,
-                    firstMinX, firstMaxX, lastMinX, lastMaxX);
+                    firstMinX, firstMaxX, lastMinX, lastMaxX,
+                    visibleMinX, visibleMaxX,
+                    bestOpaqueX, bestOpaqueY, bestOpaqueWidth, bestOpaqueHeight);
             ALPHA_METRICS.put(image, metrics);
             return metrics;
         }
+    }
+
+    static void beginGlobalBuffer(Graphics2D shadowGraphics) {
+        activeShadowBufferGraphics = shadowGraphics;
+    }
+
+    static void endGlobalBuffer() {
+        activeShadowBufferGraphics = null;
     }
 
     private static int getSunAngleBucket() {
@@ -349,6 +488,32 @@ public final class ProjectedShadow {
 
     private static void drawCachedShadow(Graphics2D g2, CachedShadow shadow,
             int anchorX, int anchorY, float opacity) {
+        if (shadow.sourceWidth <= 0 || shadow.sourceHeight <= 0) {
+            return;
+        }
+        int destinationX1 = anchorX + shadow.drawOffsetX
+                + (int) Math.floor(shadow.sourceX * shadow.drawWidth / (double) shadow.image.getWidth());
+        int destinationY1 = anchorY + shadow.drawOffsetY
+                + (int) Math.floor(shadow.sourceY * shadow.drawHeight / (double) shadow.image.getHeight());
+        int destinationX2 = anchorX + shadow.drawOffsetX
+                + (int) Math.ceil((shadow.sourceX + shadow.sourceWidth)
+                        * shadow.drawWidth / (double) shadow.image.getWidth());
+        int destinationY2 = anchorY + shadow.drawOffsetY
+                + (int) Math.ceil((shadow.sourceY + shadow.sourceHeight)
+                        * shadow.drawHeight / (double) shadow.image.getHeight());
+        int sourceX2 = shadow.sourceX + shadow.sourceWidth;
+        int sourceY2 = shadow.sourceY + shadow.sourceHeight;
+
+        if (activeShadowBufferGraphics != null) {
+            activeShadowBufferGraphics.setComposite(ShadowMaxComposite.INSTANCE);
+            activeShadowBufferGraphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            activeShadowBufferGraphics.drawImage(shadow.image,
+                    destinationX1, destinationY1, destinationX2, destinationY2,
+                    shadow.sourceX, shadow.sourceY, sourceX2, sourceY2, null);
+            return;
+        }
+
         Composite oldComposite = g2.getComposite();
         RenderingHints oldHints = (RenderingHints) g2.getRenderingHints().clone();
         try {
@@ -356,12 +521,65 @@ public final class ProjectedShadow {
             g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_BILINEAR);
             g2.drawImage(shadow.image,
-                    anchorX + shadow.drawOffsetX,
-                    anchorY + shadow.drawOffsetY,
-                    shadow.drawWidth, shadow.drawHeight, null);
+                    destinationX1, destinationY1, destinationX2, destinationY2,
+                    shadow.sourceX, shadow.sourceY, sourceX2, sourceY2, null);
         } finally {
             g2.setRenderingHints(oldHints);
             g2.setComposite(oldComposite);
+        }
+    }
+
+    private static void applySmoothGradient(BufferedImage mask,
+            double sourceFeetY, double referenceHeight) {
+        WritableRaster alpha = mask.getAlphaRaster();
+        if (alpha == null) {
+            return;
+        }
+
+        double safeReferenceHeight = Math.max(1.0, referenceHeight);
+        for (int y = 0; y < mask.getHeight(); y++) {
+            double heightAboveFeet = Math.max(0.0, sourceFeetY - (y + 1.0));
+            double normalizedHeight = Math.min(1.0, heightAboveFeet / safeReferenceHeight);
+            double proximity = 1.0 - normalizedHeight;
+            double rowStrength = 0.12 + 0.88 * Math.pow(proximity, 0.75);
+            for (int x = 0; x < mask.getWidth(); x++) {
+                int sourceAlpha = alpha.getSample(x, y, 0);
+                alpha.setSample(x, y, 0, (int) Math.round(sourceAlpha * rowStrength));
+            }
+        }
+    }
+
+    private static BufferedImage blurShadow(BufferedImage source) {
+        BufferedImage horizontal = new BufferedImage(
+                source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_ARGB_PRE);
+        BufferedImage result = new BufferedImage(
+                source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_ARGB_PRE);
+        SHADOW_BLUR_HORIZONTAL.filter(source, horizontal);
+        SHADOW_BLUR_VERTICAL.filter(horizontal, result);
+        horizontal.flush();
+        return result;
+    }
+
+    public static void drawGroundEllipse(Graphics2D g2, int x, int y, int width, int height,
+            float opacity) {
+        if (!enabled || width <= 0 || height <= 0) {
+            return;
+        }
+        Graphics2D target = activeShadowBufferGraphics != null ? activeShadowBufferGraphics : g2;
+        Composite oldComposite = target.getComposite();
+        java.awt.Color oldColor = target.getColor();
+        try {
+            if (activeShadowBufferGraphics != null) {
+                target.setComposite(AlphaComposite.SrcOver);
+                target.setColor(java.awt.Color.BLACK);
+            } else {
+                target.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
+                target.setColor(java.awt.Color.BLACK);
+            }
+            target.fillOval(x, y, width, height);
+        } finally {
+            target.setColor(oldColor);
+            target.setComposite(oldComposite);
         }
     }
 
@@ -373,7 +591,7 @@ public final class ProjectedShadow {
 
     public static void drawForEntity(Graphics2D g2, double x, double y, double width, double height,
             double shadowLength, float shadowOpacity, Part... parts) {
-        if (!Renderer.isRenderShadows() || parts == null || parts.length == 0) {
+        if (!enabled || parts == null || parts.length == 0) {
             return;
         }
 
@@ -388,7 +606,7 @@ public final class ProjectedShadow {
 
     public static void drawForEntityAtFeet(Graphics2D g2, double x, double y,
             double width, double height, double feetRatioY, Part... parts) {
-        if (!Renderer.isRenderShadows() || parts == null || parts.length == 0) {
+        if (!enabled || parts == null || parts.length == 0) {
             return;
         }
 
@@ -402,7 +620,7 @@ public final class ProjectedShadow {
 
     public static void drawAtGroundAnchor(Graphics2D g2, double groundAnchorX, double groundAnchorY,
             double referenceHeight, double shadowLength, float opacity, Part... parts) {
-        if (!Renderer.isRenderShadows() || parts == null || parts.length == 0) {
+        if (!enabled || parts == null || parts.length == 0) {
             return;
         }
 
@@ -419,7 +637,7 @@ public final class ProjectedShadow {
         int anchorY = (int) Math.floor(worldFeetY);
         int angleBucket = getSunAngleBucket();
         ShadowCacheKey cacheKey = new ShadowCacheKey(angleBucket, referenceHeight, shadowLength,
-                opacity, anchorX, anchorY, parts);
+                anchorX, anchorY, parts);
         CachedShadow cachedShadow = getCachedShadow(cacheKey);
         if (cachedShadow != null) {
             synchronized (SHADOW_CACHE) {
@@ -459,7 +677,9 @@ public final class ProjectedShadow {
         BufferedImage combined = new BufferedImage(
                 Math.max(1, worldRight - worldLeft),
                 Math.max(1, worldBottom - worldTop),
-                BufferedImage.TYPE_INT_ARGB);
+                BufferedImage.TYPE_INT_ARGB_PRE);
+        double sourceFeetX = worldFeetX - worldLeft;
+        double sourceFeetY = worldFeetY - worldTop;
         Graphics2D cg = combined.createGraphics();
         try {
             cg.setComposite(AlphaComposite.SrcOver);
@@ -471,29 +691,17 @@ public final class ProjectedShadow {
                             part.width, part.height, null);
                 }
             }
+            // Colore a silhueta sem copiar pixels para arrays com getRGB/setRGB.
+            cg.setComposite(AlphaComposite.SrcIn);
+            cg.setColor(java.awt.Color.BLACK);
+            cg.fillRect(0, 0, combined.getWidth(), combined.getHeight());
         } finally {
             cg.dispose();
         }
+        // O degrade continuo e calculado apenas quando a sombra entra no cache.
+        applySmoothGradient(combined, sourceFeetY, referenceHeight);
 
-        double sourceFeetX = worldFeetX - worldLeft;
-        double sourceFeetY = worldFeetY - worldTop;
-        int maskWidth = combined.getWidth();
-        int maskHeight = combined.getHeight();
-        int[] maskPixels = combined.getRGB(0, 0, maskWidth, maskHeight, null, 0, maskWidth);
-        for (int py = 0; py < combined.getHeight(); py++) {
-            double heightAboveFeet = Math.max(0.0, sourceFeetY - py);
-            double normalizedHeight = heightAboveFeet / referenceHeight;
-            float proximity = (float) Math.max(0.0, 1.0 - normalizedHeight);
-            float rowStrength = 0.12f + 0.88f * (float) Math.pow(proximity, 0.75);
-            for (int px = 0; px < combined.getWidth(); px++) {
-                int pixelIndex = py * maskWidth + px;
-                int originalAlpha = (maskPixels[pixelIndex] >>> 24) & 0xFF;
-                int finalAlpha = Math.round(originalAlpha * rowStrength);
-                maskPixels[pixelIndex] = finalAlpha << 24;
-            }
-        }
-        BufferedImage shadowMask = new BufferedImage(maskWidth, maskHeight, BufferedImage.TYPE_INT_ARGB);
-        shadowMask.setRGB(0, 0, maskWidth, maskHeight, maskPixels, 0, maskWidth);
+        BufferedImage shadowMask = combined;
 
         double shadowAngle = angleBucket * SUN_ANGLE_STEP + Math.PI;
         double shadowDirX = Math.cos(shadowAngle);
@@ -502,9 +710,13 @@ public final class ProjectedShadow {
         double lengthMultiplier = 0.55 + (MAX_LENGTH_MULTIPLIER - 0.55) * southFactor;
         double widthMultiplier = 0.80 + (1.20 - 0.80) * southFactor;
         double effectiveLength = shadowLength * lengthMultiplier;
+        double contactBand = Math.max(2.0, Math.min(6.0, referenceHeight * 0.04));
+        double projectedReferenceHeight = Math.max(1.0, referenceHeight - contactBand);
         double maximumHeight = Math.max(referenceHeight, sourceFeetY);
-        double maximumProjectedDistance = effectiveLength * Math.pow(maximumHeight / referenceHeight, 0.90);
-        int blurPadding = 12;
+        double maximumProjectedHeight = Math.max(0.0, maximumHeight - contactBand);
+        double maximumProjectedDistance = effectiveLength
+                * Math.pow(maximumProjectedHeight / projectedReferenceHeight, 0.90);
+        int blurPadding = 2;
         int safetyPadding = 12;
 
         int bufferWidth = (int) Math.ceil(shadowMask.getWidth() * widthMultiplier
@@ -517,7 +729,7 @@ public final class ProjectedShadow {
         double localFeetX = blurPadding + safetyPadding
                 + Math.max(0.0, -shadowDirX * maximumProjectedDistance) + sourceFeetX * widthMultiplier;
         double localFeetY = blurPadding + safetyPadding
-                + Math.max(0.0, -shadowDirY * maximumProjectedDistance) + 6.0;
+                + Math.max(0.0, -shadowDirY * maximumProjectedDistance);
 
         Graphics2D sg = shadowLayer.createGraphics();
         try {
@@ -525,8 +737,9 @@ public final class ProjectedShadow {
             sg.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
             for (int sourceY = 0; sourceY < shadowMask.getHeight(); sourceY++) {
-                double heightAboveFeet = Math.max(0.0, sourceFeetY - sourceY);
-                double distanceFromFeet = heightAboveFeet / referenceHeight;
+                double heightAboveFeet = Math.max(0.0,
+                        sourceFeetY - (sourceY + 1.0) - contactBand);
+                double distanceFromFeet = heightAboveFeet / projectedReferenceHeight;
                 double projectedDistance = effectiveLength * Math.pow(distanceFromFeet, 0.90);
                 double rowCenterY = localFeetY + shadowDirY * projectedDistance;
                 double rowPerspective = Math.max(0.45, 0.72 + 0.28 * (1.0 - distanceFromFeet));
@@ -556,12 +769,13 @@ public final class ProjectedShadow {
         try {
             reducedGraphics.setComposite(AlphaComposite.Src);
             reducedGraphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                    RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                    RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
             reducedGraphics.drawImage(shadowLayer, 0, 0, reducedWidth, reducedHeight, null);
         } finally {
             reducedGraphics.dispose();
         }
-        BufferedImage blurredShadow = Renderer.gaussianBlur(reducedShadow, 2, 1.0);
+        BufferedImage blurredShadow = blurShadow(reducedShadow);
+        reducedShadow.flush();
         int drawX = (int) Math.round(worldFeetX - localFeetX);
         int drawY = (int) Math.round(worldFeetY - localFeetY);
         CachedShadow renderedShadow = new CachedShadow(blurredShadow,

@@ -220,7 +220,8 @@ public class Dasher extends Enemy {
             ProjectedShadow.drawForEntity(g2, x, y, width, height,
                     new ProjectedShadow.Part(Sprites[8], xx, (int) y,
                             inv * (int) (19 * width / 16), (int) height));
-            g2.drawImage(Sprites[8], xx, (int) y, inv * (int) (19 * width / 16), (int) height, null);
+            SpriteLighting.drawImage(g2, Sprites[8], xx, (int) y,
+                    inv * (int) (19 * width / 16), (int) height);
         } else {
             if (estadoAtual == Status.PREPARANDO) {
                 if (timer > 54) {
@@ -251,7 +252,8 @@ public class Dasher extends Enemy {
             ProjectedShadow.drawForEntity(g2, x, y, width, height,
                     new ProjectedShadow.Part(Sprites[animIndex], xx, (int) y,
                             inv * (int) width, (int) height));
-            g2.drawImage(Sprites[animIndex], xx, (int) y, inv * (int) width, (int) height, null);
+            SpriteLighting.drawImage(g2, Sprites[animIndex], xx, (int) y,
+                    inv * (int) width, (int) height);
         }
     }
 

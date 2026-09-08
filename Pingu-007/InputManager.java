@@ -42,11 +42,17 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
 
     private double deadzoneEsquerda = 0.2;
     private double deadzoneDireita = 0.4;
-    private int mouseX = 0;
-    private int mouseY = 0;
+    private volatile int mouseX = 0;
+    private volatile int mouseY = 0;
     private boolean mouseBloqueado = false;
     private double mouseBloqueioReferenciaX = 0;
     private double mouseBloqueioReferenciaY = 0;
+    private volatile int viewportX = 0;
+    private volatile int viewportY = 0;
+    private volatile int viewportLargura = 1;
+    private volatile int viewportAltura = 1;
+    private volatile int larguraLogica = 1;
+    private volatile int alturaLogica = 1;
 
     public InputManager() {
         controllerManager = new ControllerManager();
@@ -327,11 +333,27 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
     }
 
     public int getMouseX() {
-        return mouseX;
+        int larguraViewport = Math.max(1, viewportLargura);
+        int larguraDestino = Math.max(1, larguraLogica);
+        int xLogico = (int) Math.floor((mouseX - viewportX) * (larguraDestino / (double) larguraViewport));
+        return Math.clamp(xLogico, 0, larguraDestino - 1);
     }
 
     public int getMouseY() {
-        return mouseY;
+        int alturaViewport = Math.max(1, viewportAltura);
+        int alturaDestino = Math.max(1, alturaLogica);
+        int yLogico = (int) Math.floor((mouseY - viewportY) * (alturaDestino / (double) alturaViewport));
+        return Math.clamp(yLogico, 0, alturaDestino - 1);
+    }
+
+    public void configurarViewport(int x, int y, int largura, int altura,
+            int larguraLogica, int alturaLogica) {
+        this.viewportX = x;
+        this.viewportY = y;
+        this.viewportLargura = Math.max(1, largura);
+        this.viewportAltura = Math.max(1, altura);
+        this.larguraLogica = Math.max(1, larguraLogica);
+        this.alturaLogica = Math.max(1, alturaLogica);
     }
 
     public void iniciarBloqueioMouse() {

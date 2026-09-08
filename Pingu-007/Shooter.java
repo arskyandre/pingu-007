@@ -274,8 +274,9 @@ public class Shooter extends Enemy {
                 new ProjectedShadow.Part(Sprites[animIndex], xx, (int) y,
                         inv * (int) width, (int) height),
                 new ProjectedShadow.Part(gun, gunX, yy, gunWidth, gunHeight));
-        g2.drawImage(Sprites[animIndex], xx, (int) y, inv * (int) width, (int) height, null);
-        g2.drawImage(gun, gunX, yy, gunWidth, gunHeight, null);
+        SpriteLighting.drawImage(g2, Sprites[animIndex], xx, (int) y,
+                inv * (int) width, (int) height);
+        SpriteLighting.drawImage(g2, gun, gunX, yy, gunWidth, gunHeight);
     }
 
     @Override

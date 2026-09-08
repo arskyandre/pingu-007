@@ -1080,14 +1080,14 @@ public class Player extends Entity {
                         visual.gunX, visual.gunY, visual.gunWidth, visual.gunHeight));
 
         if (visual.gunBehindPlayer) {
-            g2.drawImage(visual.gunFrame, visual.gunX, visual.gunY,
-                    visual.gunWidth, visual.gunHeight, null);
+            SpriteLighting.drawImage(g2, visual.gunFrame, visual.gunX, visual.gunY,
+                    visual.gunWidth, visual.gunHeight);
         }
-        g2.drawImage(visual.playerFrame, visual.playerX, visual.playerY,
-                visual.playerWidth, 48, null);
+        SpriteLighting.drawImage(g2, visual.playerFrame, visual.playerX, visual.playerY,
+                visual.playerWidth, 48);
         if (!visual.gunBehindPlayer) {
-            g2.drawImage(visual.gunFrame, visual.gunX, visual.gunY,
-                    visual.gunWidth, visual.gunHeight, null);
+            SpriteLighting.drawImage(g2, visual.gunFrame, visual.gunX, visual.gunY,
+                    visual.gunWidth, visual.gunHeight);
         }
 
         if (hasFishingRod && fishingBobber != null && fishingBobber.isAtivo()) {

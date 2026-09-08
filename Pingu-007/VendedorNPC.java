@@ -207,7 +207,7 @@ public class VendedorNPC extends NPC {
             return;
         }
         drawSpriteWithShadow(g2, Sprite, (int) x, (int) y, (int) WIDTH, (int) HEIGHT);
-        g2.drawImage(Sprite, (int) x, (int) y, (int) WIDTH, (int) HEIGHT, null);
+        SpriteLighting.drawImage(g2, Sprite, (int) x, (int) y, (int) WIDTH, (int) HEIGHT);
         if (state == State.IDLE && proximo) {
             g2.setFont(MenuButton.pixelFont.deriveFont(7f));
             g2.setColor(new Color(20, 77, 55));

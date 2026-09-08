@@ -96,7 +96,8 @@ public class BasicEnemy extends Enemy {
         ProjectedShadow.drawForEntity(g2, x, y, width, height,
                 new ProjectedShadow.Part(Sprites[animIndex], xx, (int) y,
                         inv * (int) width, (int) height));
-        g2.drawImage(Sprites[animIndex], xx, (int) y, inv * (int) width, (int) height, null);
+        SpriteLighting.drawImage(g2, Sprites[animIndex], xx, (int) y,
+                inv * (int) width, (int) height);
     }
 
 }

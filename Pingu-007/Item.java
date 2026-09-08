@@ -1,5 +1,6 @@
 
 import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
 
 public abstract class Item implements Renderable {
 
@@ -12,6 +13,7 @@ public abstract class Item implements Renderable {
     private double bobVel = 0.08;
     private double bobAmplitude = 4.0;
     private double bobTempo = 0;
+    private final Rectangle2D.Double occlusionBounds = new Rectangle2D.Double();
 
     public Item(double x, double y, double largura, double altura) {
         this.x = x;
@@ -89,6 +91,13 @@ public abstract class Item implements Renderable {
     @Override
     public double getProfundidade() {
         return getSortBaseY();
+    }
+
+    @Override
+    public Rectangle2D getOcclusionBounds() {
+        // Inclui toda a amplitude do bob para nunca descartar um item parcialmente visivel.
+        occlusionBounds.setRect(x, y - bobAmplitude, largura, altura + bobAmplitude * 2.0);
+        return occlusionBounds;
     }
 
     public Collider getBodyCollider() {

@@ -48,7 +48,7 @@ public class FishingRodItem extends Item {
             ProjectedShadow.drawForEntity(g2, x, y, largura, altura,
                     new ProjectedShadow.Part(sprite, (int) x, (int) drawY,
                             (int) largura, (int) altura));
-            g2.drawImage(sprite, (int) x, (int) drawY, (int) largura, (int) altura, null);
+            SpriteLighting.drawImage(g2, sprite, (int) x, (int) drawY, (int) largura, (int) altura);
         } else {
             ProjectedShadow.drawForEntity(g2, x, y, largura, altura,
                     ProjectedShadow.solidPart((int) x + 8, (int) drawY,

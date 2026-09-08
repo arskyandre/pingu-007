@@ -397,6 +397,6 @@ public class Jumper extends Enemy {
         ProjectedShadow.drawForEntity(g2, x, y, width, height,
                 new ProjectedShadow.Part(Sprites[spIndex], spriteX, spriteY,
                         spriteWidth, spriteHeight));
-        g2.drawImage(Sprites[spIndex], spriteX, spriteY, spriteWidth, spriteHeight, null);
+        SpriteLighting.drawImage(g2, Sprites[spIndex], spriteX, spriteY, spriteWidth, spriteHeight);
     }
 }

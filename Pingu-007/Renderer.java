@@ -2,8 +2,6 @@
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.ConvolveOp;
-import java.awt.image.Kernel;
 import java.util.ArrayList;
 
 public class Renderer {
@@ -14,6 +12,10 @@ public class Renderer {
 
     public static final BufferedImage crosshair = LoadSave.GetSpriteAtlas("images/hud/crosshair.png");
     private static boolean renderShadows = true;
+    private static boolean spriteLighting = true;
+
+    /** Resolucao relativa da mascara; 1.0 = tela cheia, 0.5 = metade em cada eixo. */
+    public static final double SHADOW_BUFFER_SCALE = 1.0;
 
     public BorderState borderState = BorderState.IDLE;
     public boolean modoDebug = false;
@@ -35,8 +37,12 @@ public class Renderer {
     private double borderProgress = 0;
 
     private final ArrayList<Renderable> renderQueue = new ArrayList<>(200);
+    private final ArrayList<Renderable> visibleRenderQueue = new ArrayList<>(200);
     private final java.util.Comparator<Renderable> depthComparator = (o1, o2) -> Double.compare(o1.getProfundidade(),
             o2.getProfundidade());
+    private final OcclusionCuller occlusionCuller = new OcclusionCuller();
+    private BufferedImage spriteLayer;
+    private BufferedImage shadowBuffer;
 
     private final Ellipse2D.Double mouseShape = new Ellipse2D.Double(0, 0, 20, 20);
     public boolean useAntiAliasing = true;
@@ -51,6 +57,118 @@ public class Renderer {
 
     public static void toggleRenderShadows() {
         renderShadows = !renderShadows;
+    }
+
+    public static boolean isSpriteLightingEnabled() {
+        return spriteLighting;
+    }
+
+    public static void setSpriteLightingEnabled(boolean enabled) {
+        spriteLighting = enabled;
+    }
+
+    public static void toggleSpriteLighting() {
+        spriteLighting = !spriteLighting;
+    }
+
+    private void ensureWorldLayers(int width, int height) {
+        int safeWidth = Math.max(1, width);
+        int safeHeight = Math.max(1, height);
+        if (spriteLayer == null
+                || spriteLayer.getWidth() != safeWidth || spriteLayer.getHeight() != safeHeight) {
+            if (spriteLayer != null) {
+                spriteLayer.flush();
+            }
+            spriteLayer = new BufferedImage(safeWidth, safeHeight, BufferedImage.TYPE_INT_ARGB_PRE);
+        }
+
+        int shadowWidth = Math.max(1, (int) Math.ceil(safeWidth * SHADOW_BUFFER_SCALE));
+        int shadowHeight = Math.max(1, (int) Math.ceil(safeHeight * SHADOW_BUFFER_SCALE));
+        if (shadowBuffer == null
+                || shadowBuffer.getWidth() != shadowWidth || shadowBuffer.getHeight() != shadowHeight) {
+            if (shadowBuffer != null) {
+                shadowBuffer.flush();
+            }
+            shadowBuffer = new BufferedImage(shadowWidth, shadowHeight, BufferedImage.TYPE_INT_ARGB_PRE);
+        }
+    }
+
+    private static Graphics2D prepareLayer(BufferedImage layer, AffineTransform transform,
+            boolean antiAliasing) {
+        Graphics2D graphics = layer.createGraphics();
+        configureLayer(graphics, layer.getWidth(), layer.getHeight(), transform, antiAliasing);
+        return graphics;
+    }
+
+    private static void configureLayer(Graphics2D graphics, int width, int height,
+            AffineTransform transform, boolean antiAliasing) {
+        graphics.setComposite(AlphaComposite.Clear);
+        graphics.fillRect(0, 0, width, height);
+        graphics.setComposite(AlphaComposite.SrcOver);
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                antiAliasing ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
+        graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        graphics.setTransform(transform);
+    }
+
+    private void drawWorldObjects(Graphics2D g2, AffineTransform originalTransform,
+            AffineTransform worldTransform, CameraManager camera,
+            int telaLargura, int telaAltura, double delta) {
+        ArrayList<Renderable> objectsToDraw = renderQueue;
+        if (GameCore.isOcclusionCullingEnabled()) {
+            occlusionCuller.filter(renderQueue, visibleRenderQueue);
+            objectsToDraw = visibleRenderQueue;
+        }
+
+        SpriteLighting.configure(GameCore.getSunAngle(), GameCore.getSunElevation(), spriteLighting);
+        ProjectedShadow.configure(renderShadows);
+
+        // Sem sombras, desenha diretamente no alvo original e evita as camadas globais.
+        if (!renderShadows) {
+            for (Renderable obj : objectsToDraw) {
+                obj.draw(g2, delta);
+            }
+            return;
+        }
+
+        ensureWorldLayers(telaLargura, telaAltura);
+
+        AffineTransform layerWorldTransform = new AffineTransform();
+        layerWorldTransform.scale(camera.getZoom(), camera.getZoom());
+        layerWorldTransform.translate(-camera.getX(), -camera.getY());
+        Graphics2D spriteGraphics = prepareLayer(spriteLayer, layerWorldTransform, useAntiAliasing);
+
+        AffineTransform shadowTransform = AffineTransform.getScaleInstance(
+                SHADOW_BUFFER_SCALE, SHADOW_BUFFER_SCALE);
+        shadowTransform.concatenate(layerWorldTransform);
+        Graphics2D shadowGraphics = prepareLayer(shadowBuffer, shadowTransform, useAntiAliasing);
+
+        ProjectedShadow.beginGlobalBuffer(shadowGraphics);
+        try {
+            for (Renderable obj : objectsToDraw) {
+                obj.draw(spriteGraphics, delta);
+            }
+        } finally {
+            ProjectedShadow.endGlobalBuffer();
+            spriteGraphics.dispose();
+            shadowGraphics.dispose();
+        }
+
+        g2.setTransform(originalTransform);
+        g2.setComposite(AlphaComposite.SrcOver);
+        Object previousInterpolation = g2.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g2.setComposite(AlphaComposite.getInstance(
+                AlphaComposite.SRC_OVER, ProjectedShadow.DEFAULT_SHADOW_OPACITY));
+        g2.drawImage(shadowBuffer, 0, 0, telaLargura, telaAltura, null);
+        g2.setComposite(AlphaComposite.SrcOver);
+        if (previousInterpolation != null) {
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, previousInterpolation);
+        }
+        g2.drawImage(spriteLayer, 0, 0, null);
+        g2.setTransform(worldTransform);
     }
 
     public void setBorderProgress(double prog) {
@@ -93,67 +211,6 @@ public class Renderer {
                         + (ColorB.getAlpha() - ColorA.getAlpha()) * t);
 
         return new Color(red, green, blue, alpha);
-    }
-
-    public static BufferedImage gaussianBlur(BufferedImage source, int radius, double sigma) {
-        if (source == null) {
-            return null;
-        }
-        if (radius <= 0) {
-            return source;
-        }
-        if (sigma <= 0.0) {
-            throw new IllegalArgumentException("Sigma must be greater than zero.");
-        }
-
-        int kernelSize = radius * 2 + 1;
-        float[] kernelData = new float[kernelSize];
-        double sigmaSquaredTimesTwo = 2.0 * sigma * sigma;
-        double sum = 0.0;
-
-        for (int i = -radius; i <= radius; i++) {
-            double weight = Math.exp(-(i * i) / sigmaSquaredTimesTwo);
-            kernelData[i + radius] = (float) weight;
-            sum += weight;
-        }
-        for (int i = 0; i < kernelData.length; i++) {
-            kernelData[i] /= (float) sum;
-        }
-
-        BufferedImage preparedSource = new BufferedImage(
-                source.getWidth(),
-                source.getHeight(),
-                BufferedImage.TYPE_INT_ARGB_PRE);
-        Graphics2D preparedGraphics = preparedSource.createGraphics();
-        try {
-            preparedGraphics.setComposite(AlphaComposite.Src);
-            preparedGraphics.drawImage(source, 0, 0, null);
-        } finally {
-            preparedGraphics.dispose();
-        }
-
-        BufferedImage horizontalResult = new BufferedImage(
-                source.getWidth(),
-                source.getHeight(),
-                BufferedImage.TYPE_INT_ARGB_PRE);
-        BufferedImage finalResult = new BufferedImage(
-                source.getWidth(),
-                source.getHeight(),
-                BufferedImage.TYPE_INT_ARGB_PRE);
-
-        ConvolveOp blurOp = new ConvolveOp(
-                new Kernel(kernelSize, 1, kernelData),
-                ConvolveOp.EDGE_NO_OP,
-                null);
-        blurOp.filter(preparedSource, horizontalResult);
-
-        blurOp = new ConvolveOp(
-                new Kernel(1, kernelSize, kernelData),
-                ConvolveOp.EDGE_NO_OP,
-                null);
-        blurOp.filter(horizontalResult, finalResult);
-
-        return finalResult;
     }
 
     private static final Color PRE_DAWN_OVERLAY = new Color(90, 48, 70, 105);
@@ -330,7 +387,8 @@ public class Renderer {
             for (NPC npc : npcManager.getNpcs()) {
                 if (npc != null && npc.isActive()) {
                     if (camera.onScreenWithTolerance(npc.getX(), npc.getY(), npc.getLargura(), npc.getAltura(),
-                            telaLargura, telaAltura)) {
+                            telaLargura, telaAltura,
+                            ProjectedShadow.cullingToleranceForReferenceHeight(npc.getAltura()))) {
                         renderQueue.add(npc);
                     }
                 }
@@ -349,10 +407,9 @@ public class Renderer {
             }
         }
         renderQueue.sort(depthComparator);
-
-        for (Renderable obj : renderQueue) {
-            obj.draw(g2, delta);
-        }
+        AffineTransform worldTransform = g2.getTransform();
+        drawWorldObjects(g2, originalTransform, worldTransform, camera,
+                telaLargura, telaAltura, delta);
 
         bulletmanager.draw(g2, camera, telaLargura, telaAltura);
         lm.drawForeground(g2, camera, telaLargura, telaAltura);

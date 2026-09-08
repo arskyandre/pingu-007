@@ -79,6 +79,8 @@ public class OptionsMenu {
     private final MenuButton keyBindBtn;
     private final IconButton fullScreenButton;
     private final IconButton renderShadowsButton;
+    private final IconButton spriteLightingButton;
+    private final IconButton occlusionCullingButton;
     private final IconButton showFpsButton;
     private final IconButton enableAAButton;
 
@@ -100,6 +102,8 @@ public class OptionsMenu {
         toggleUnlimitedFps = new IconButton(0, 0, BTN_SIZE, IconIndex.UNLIM_FPS_OFF, false);
         fullScreenButton = new IconButton(0, 0, BTN_SIZE, IconIndex.FULLSCREEN, false);
         renderShadowsButton = new IconButton(0, 0, BTN_SIZE, IconIndex.GREEN_CHECK, false);
+        spriteLightingButton = new IconButton(0, 0, BTN_SIZE, IconIndex.GREEN_CHECK, false);
+        occlusionCullingButton = new IconButton(0, 0, BTN_SIZE, IconIndex.GREEN_CHECK, false);
         showFpsButton = new IconButton(0, 0, BTN_SIZE, IconIndex.RED_X, false);
         enableAAButton = new IconButton(0, 0, BTN_SIZE, IconIndex.GREEN_CHECK, false);
 
@@ -120,6 +124,14 @@ public class OptionsMenu {
         }));
         itensFoco.add(new ItemFoco(renderShadowsButton, gc -> {
             gc.toggleRenderShadows();
+            return GameState.OPTIONS;
+        }));
+        itensFoco.add(new ItemFoco(spriteLightingButton, gc -> {
+            gc.toggleSpriteLighting();
+            return GameState.OPTIONS;
+        }));
+        itensFoco.add(new ItemFoco(occlusionCullingButton, gc -> {
+            gc.toggleOcclusionCulling();
             return GameState.OPTIONS;
         }));
         itensFoco.add(new ItemFoco(enableAAButton, gc -> {
@@ -176,9 +188,9 @@ public class OptionsMenu {
         int centerX = width / 2;
         int contentStartY = height / CONTENT_START_FRACTION;
         int sliderRowHeight = LABEL_TO_SLIDER_GAP + SLIDER_H;
-        int fixedContentHeight = sliderRowHeight * 3 + BTN_SIZE * 3 + 46;
+        int fixedContentHeight = sliderRowHeight * 3 + BTN_SIZE * 5 + 46;
         int availableForGaps = height - contentStartY - 20 - fixedContentHeight;
-        int responsiveGap = Math.clamp(availableForGaps / 6, 10, ROW_GAP);
+        int responsiveGap = Math.clamp(availableForGaps / 8, 8, ROW_GAP);
         LayoutCursor cursor = new LayoutCursor(contentStartY, responsiveGap);
 
         int musicY = cursor.nextRow(sliderRowHeight);
@@ -192,6 +204,12 @@ public class OptionsMenu {
 
         int shadowsToggleY = cursor.nextRow(BTN_SIZE);
         renderShadowsButton.setPosition(centerX + SLIDER_W / 2 - BTN_SIZE, shadowsToggleY);
+
+        int lightingToggleY = cursor.nextRow(BTN_SIZE);
+        spriteLightingButton.setPosition(centerX + SLIDER_W / 2 - BTN_SIZE, lightingToggleY);
+
+        int cullingToggleY = cursor.nextRow(BTN_SIZE);
+        occlusionCullingButton.setPosition(centerX + SLIDER_W / 2 - BTN_SIZE, cullingToggleY);
 
         int AAToggleY = cursor.nextRow(BTN_SIZE);
         enableAAButton.setPosition(centerX + SLIDER_W / 2 - BTN_SIZE, AAToggleY);
@@ -244,6 +262,12 @@ public class OptionsMenu {
         atualizarIconesFps(GC);
 
         renderShadowsButton.setIcon(GC.isRenderShadows()
+                ? IconIndex.GREEN_CHECK
+                : IconIndex.RED_X);
+        spriteLightingButton.setIcon(GC.isSpriteLightingEnabled()
+                ? IconIndex.GREEN_CHECK
+                : IconIndex.RED_X);
+        occlusionCullingButton.setIcon(GameCore.isOcclusionCullingEnabled()
                 ? IconIndex.GREEN_CHECK
                 : IconIndex.RED_X);
 
@@ -601,9 +625,13 @@ public class OptionsMenu {
                 fpsCapSlider, estaFocado(fpsCapSlider), width, true, false);
 
         drawLabelLeftOf(g2, "RENDERIZAR SOMBRAS", renderShadowsButton.getRect());
+        drawLabelLeftOf(g2, "ILUMINAÇÃO DOS SPRITES", spriteLightingButton.getRect());
+        drawLabelLeftOf(g2, "OTIMIZAR OBJETOS OCULTOS", occlusionCullingButton.getRect());
         drawLabelLeftOf(g2, "Habilitar Anti-Aliasing", enableAAButton.getRect());
         drawLabelLeftOf(g2, "MOSTRAR FPS", showFpsButton.getRect());
         renderShadowsButton.draw(g2);
+        spriteLightingButton.draw(g2);
+        occlusionCullingButton.draw(g2);
         enableAAButton.draw(g2);
         toggleMuteBGM.draw(g2);
         toggleMuteSFX.draw(g2);

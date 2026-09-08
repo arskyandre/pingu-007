@@ -605,7 +605,8 @@ public class MorsaBoss extends Enemy {
             ProjectedShadow.drawForEntityAtFeet(g, x, y, width, height, 81.0 / 96.0,
                     new ProjectedShadow.Part(Sprites[index], xx, (int) y,
                             inv * (int) width, (int) height));
-            g.drawImage(Sprites[index], xx, (int) y, inv * (int) width, (int) height, null);
+            SpriteLighting.drawImage(g, Sprites[index], xx, (int) y,
+                    inv * (int) width, (int) height);
         }
 
         desenharBarradevida(g);
@@ -1299,9 +1300,9 @@ class BossMao extends Enemy {
             double maxShadowHeight = this.height * 0.4;
             double currentW = maxShadowWidth * sombraScale;
             double currentH = maxShadowHeight * sombraScale;
-            g.setColor(new Color(0, 0, 0, 120));
-            g.fillOval((int) (sombraX - currentW / 2.0), (int) (sombraY - currentH / 2.0), (int) currentW,
-                    (int) currentH);
+            ProjectedShadow.drawGroundEllipse(g,
+                    (int) (sombraX - currentW / 2.0), (int) (sombraY - currentH / 2.0),
+                    (int) currentW, (int) currentH, 120.0f / 255.0f);
         }
 
         g.setColor(this.cor);
