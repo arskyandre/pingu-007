@@ -556,6 +556,10 @@ public class GameCore extends Canvas implements Runnable {
                     podeAbrirMapa = false;
                 }
 
+                if (podeAbrirMapa && getDebug() && input.isKeyJustPressed(KeyEvent.VK_F12)) {
+                    testarMissaoNoMapa();
+                    break;
+                }
                 if (podeAbrirMapa && MapScreen.apertouMapa(input)) {
                     mapScreen.abrir(levelManager);
                     gameState = GameState.MAP;
@@ -596,6 +600,9 @@ public class GameCore extends Canvas implements Runnable {
                 // (nao mais, agora eh controlado pela flag de debug)
             }
             case MAP -> {
+                if (getDebug() && input.isKeyJustPressed(KeyEvent.VK_F12)) {
+                    testarMissaoNoMapa();
+                }
                 GameState next = mapScreen.update(input);
 
                 if (next == GameState.PLAYING) {
@@ -721,6 +728,23 @@ public class GameCore extends Canvas implements Runnable {
                 DialogueCatalogo.loopDialogoInicial(dialogueManager, soundManager);
             });
         }
+    }
+
+    private void testarMissaoNoMapa() {
+        if (!LoadSave.LEVEL_1_DATA.equals(levelManager.getArquivoNivelAtual())) {
+            ToastNotifications.RequestNotification("F12: volte ao mapa principal para testar a missão.", 3.0);
+            return;
+        }
+        if (arenaManager.existeArenaRealAtiva()) {
+            ToastNotifications.RequestNotification("F12: termine o combate atual antes de testar a missão.", 3.0);
+            return;
+        }
+        if (!questManager.gerarQuestArenaTeste(player, levelManager.getMapData().objects)) {
+            ToastNotifications.RequestNotification("F12: nenhuma arena disponível para o teste.", 3.0);
+            return;
+        }
+        mapScreen.abrir(levelManager);
+        gameState = GameState.MAP;
     }
 
     public void debugInputProcessing() {

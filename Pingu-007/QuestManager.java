@@ -1,4 +1,5 @@
 
+import java.awt.Shape;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -99,19 +100,35 @@ public final class QuestManager implements ArenaManager.ObservadorArenas {
     }
 
     public Rectangle2D.Double getQuestTargetBounds() {
+        Shape alvo = getQuestTargetShape();
+        return alvo == null ? null : copiarBounds(alvo);
+    }
+
+    public Shape getQuestTargetShape() {
         if (questState == QuestState.ATIVA && idArenaQuestAtual != -1) {
-            return getArenaTriggerBounds(idArenaQuestAtual);
+            return getArenaTriggerShape(idArenaQuestAtual);
         }
         return null;
     }
 
     private Rectangle2D.Double getArenaTriggerBounds(int idArena) {
+        Shape trigger = getArenaTriggerShape(idArena);
+        return trigger == null ? null : copiarBounds(trigger);
+    }
+
+    private Rectangle2D.Double copiarBounds(Shape shape) {
+        Rectangle2D bounds = shape.getBounds2D();
+        return new Rectangle2D.Double(
+                bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+    }
+
+    private Shape getArenaTriggerShape(int idArena) {
         ArenaManager.Arena arena = arenaManager.getOuCriarArena(idArena);
         if (arena.trigger == null) {
             return null;
         }
 
-        java.awt.Shape triggerShape = null;
+        Shape triggerShape = null;
         if (arena.trigger.isPolygon) {
             triggerShape = arena.trigger.getPolygonShape();
         }
@@ -119,9 +136,7 @@ public final class QuestManager implements ArenaManager.ObservadorArenas {
             triggerShape = arena.trigger.hitbox;
         }
         if (triggerShape != null) {
-            Rectangle2D bounds = triggerShape.getBounds2D();
-            return new Rectangle2D.Double(
-                    bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+            return triggerShape;
         }
 
         return new Rectangle2D.Double(
@@ -159,13 +174,55 @@ public final class QuestManager implements ArenaManager.ObservadorArenas {
         int arenaEscolhida = validas.get((int) (Math.random() * validas.size()));
         System.out.println("-> SUCESSO! Arena sorteada: " + arenaEscolhida);
 
+        iniciarQuestArena(arenaEscolhida, player);
+        return true;
+    }
+
+    // Permite testar o objetivo sem ter concluído arenas nem visitado o vendedor.
+    public boolean gerarQuestArenaTeste(Player player, Iterable<TiledObject> objetos) {
+        if (!GameCore.getDebug()) {
+            return false;
+        }
+        if (questState != QuestState.NENHUMA) {
+            return true;
+        }
+
+        int arenaEscolhida = -1;
+        double menorDistancia = Double.POSITIVE_INFINITY;
+        for (TiledObject objeto : objetos) {
+            String tipo = objeto.tipo == null ? "" : objeto.tipo.toLowerCase().trim();
+            if (!(tipo.equals("trigger") || tipo.equals("arena_trigger"))
+                    || objeto.id_arena < 0 || QUEST_BLACKLIST.contains(objeto.id_arena)
+                    || Math.max(objeto.totalHordas, objeto.horda) <= 0) {
+                continue;
+            }
+            ArenaManager.Arena arena = arenaManager.getOuCriarArena(objeto.id_arena);
+            Rectangle2D.Double bounds = getArenaTriggerBounds(objeto.id_arena);
+            if (arena.ativa || bounds == null || arena.spawners.isEmpty()) {
+                continue;
+            }
+            double distancia = Point2D.distanceSq(player.getX(), player.getY(),
+                    bounds.getCenterX(), bounds.getCenterY());
+            if (distancia < menorDistancia) {
+                menorDistancia = distancia;
+                arenaEscolhida = objeto.id_arena;
+            }
+        }
+        if (arenaEscolhida == -1) {
+            return false;
+        }
+        iniciarQuestArena(arenaEscolhida, player);
+        System.out.println("DEBUG: F12 criou missão na arena " + arenaEscolhida);
+        return true;
+    }
+
+    private void iniciarQuestArena(int arenaEscolhida, Player player) {
         this.idArenaQuestAtual = arenaEscolhida;
         this.questState = QuestState.ATIVA;
         arenaManager.prepararArenaParaRepeticao(arenaEscolhida);
 
         player.solicitarCheckpoint();
 
-        return true;
     }
 
     private void checarConclusaoQuest(int idArena) {
