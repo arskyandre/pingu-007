@@ -38,19 +38,23 @@ public class MapScreen {
             int alturaTela,
             Player player,
             LevelManager levelManager,
-            QuestManager questManager) {
+            QuestManager questManager,
+            NPCManager npcManager) {
         Graphics2D g = (Graphics2D) original.create();
 
         try {
-            g.setColor(new Color(12, 22, 32));
+            g.setColor(new Color(0, 0, 0, 200));
             g.fillRect(0, 0, larguraTela, alturaTela);
 
-            g.setFont(new Font("SansSerif", Font.BOLD, 22));
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                    RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+
+            g.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 22f));
             g.setColor(Color.WHITE);
             g.drawString("MAPA", 24, 32);
 
-            g.setFont(new Font("SansSerif", Font.PLAIN, 14));
-            g.drawString("Tab / Back: voltar  |  Esc / B: fechar", 24, 55);
+            g.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 12f));
+            g.drawString("Tab: voltar  |  Esc: fechar", 24, 55);
 
             if (miniatura == null) {
                 return;
@@ -77,18 +81,9 @@ public class MapScreen {
             g.setColor(new Color(140, 175, 195));
             g.drawRect(mapaX, mapaY, larguraMapa, alturaMapa);
 
-            for (TiledObject obj : levelManager.getMapData().objects) {
-                if (!"spawn_npc".equalsIgnoreCase(obj.tipo) || obj.npc_nome == null) {
-                    continue;
-                }
-
-                String nome = obj.npc_nome;
-
-                if (!nome.equalsIgnoreCase("pescador") && !nome.equalsIgnoreCase("vendedor")) {
-                    continue;
-                }
-
-                marcar(g, obj.x, obj.y, mapaX, mapaY, escala, Color.CYAN, nome);
+            for (NPCManager.MarcadorMapa npc : npcManager.getMarcadoresMapa(
+                    levelManager.getArquivoNivelAtual(), levelManager.getMapData().objects)) {
+                marcar(g, npc.x(), npc.y(), mapaX, mapaY, escala, Color.CYAN, npc.nome());
             }
 
             boolean mapaPrincipal = LoadSave.LEVEL_1_DATA.equals(levelManager.getArquivoNivelAtual());

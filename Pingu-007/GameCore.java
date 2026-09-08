@@ -958,7 +958,7 @@ public class GameCore extends Canvas implements Runnable {
         fishingManager.update(input, camera, levelManager.getCurLevelData(), getWidth(), getHeight());
 
         player.update(input, getWidth(), getHeight(), camera, enemyManager.getEnemies());
-        npcManager.update(player, input);
+        npcManager.update(player, input, levelManager.getArquivoNivelAtual());
         itemManager.update(player);
 
         ArrayList<JumpLink> linksAtuais = levelManager.getJumpLinks();
@@ -1225,6 +1225,7 @@ public class GameCore extends Canvas implements Runnable {
         arenaManager.setFirstArenaFlag(true);
         arenaManager.setFezCutscene(false);
         questManager.resetarProgressoDeQuests();
+        npcManager.resetarDescobertas();
         FishingManager.setPlayerHasKey(false);
         fishingManager.cancelFishing();
         fishingManager.setfirstFlag(true);
@@ -1297,7 +1298,16 @@ public class GameCore extends Canvas implements Runnable {
 
                     }
                     case MAP -> {
-                        mapScreen.render(g2, getWidth(), getHeight(), player, levelManager, questManager);
+                        // Desenha a cena pausada sem avancar as animacoes do mundo e do HUD.
+                        renderer.renderizar(g2, camera, player, input,
+                                getWidth(), getHeight(),
+                                levelManager, bulletmanager, itemManager,
+                                enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager,
+                                npcManager,
+                                cutsceneManager, !estaDentroLoja, dayProgress, 0.0,
+                                false, false);
+                        drawLateHudElements(g2, 0.0);
+                        mapScreen.render(g2, getWidth(), getHeight(), player, levelManager, questManager, npcManager);
                     }
                     case SHOP -> {
                         renderer.renderizar(g2, camera, player, input,
