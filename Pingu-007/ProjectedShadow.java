@@ -31,6 +31,7 @@ public final class ProjectedShadow {
             };
     private static long generatedShadowCount;
     private static long shadowCacheHitCount;
+    private static boolean softShadows = true;
 
     private ProjectedShadow() {
     }
@@ -335,6 +336,21 @@ public final class ProjectedShadow {
         }
     }
 
+    public static boolean isSoftShadows() {
+        return softShadows;
+    }
+
+    public static void setSoftShadows(boolean enabled) {
+        if (softShadows == enabled) {
+            return;
+        }
+
+        softShadows = enabled;
+        synchronized (SHADOW_CACHE) {
+            SHADOW_CACHE.clear();
+        }
+    }
+
     public static long getGeneratedShadowCount() {
         synchronized (SHADOW_CACHE) {
             return generatedShadowCount;
@@ -561,10 +577,12 @@ public final class ProjectedShadow {
         } finally {
             reducedGraphics.dispose();
         }
-        BufferedImage blurredShadow = Renderer.gaussianBlur(reducedShadow, 2, 1.0);
+        BufferedImage finalShadow = softShadows
+                ? Renderer.gaussianBlur(reducedShadow, 2, 1.0)
+                : reducedShadow;
         int drawX = (int) Math.round(worldFeetX - localFeetX);
         int drawY = (int) Math.round(worldFeetY - localFeetY);
-        CachedShadow renderedShadow = new CachedShadow(blurredShadow,
+        CachedShadow renderedShadow = new CachedShadow(finalShadow,
                 drawX - anchorX, drawY - anchorY,
                 shadowLayer.getWidth(), shadowLayer.getHeight());
         if (cacheKey != null) {
