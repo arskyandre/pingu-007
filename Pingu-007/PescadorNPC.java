@@ -55,6 +55,11 @@ public class PescadorNPC extends NPC {
         Sprite = LoadSave.GetSpriteAtlas("images/npc/pescador.png");
     }
 
+    @Override
+    public String getNomeMapa() {
+        return "pescador";
+    }
+
     private void popularItens(Player player, SoundManager soundManager) {
         shopMenu.limparItens();
         shopMenu.addItem("5 Iscas", "Está sem iscas para pescar? Você pode comprar mais comigo!",
@@ -86,6 +91,7 @@ public class PescadorNPC extends NPC {
             case IDLE -> {
                 if (proximo && (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)
                         || input.isButtonJustPressed(InputManager.GamepadButton.Y))) {
+                    conversouComPlayer = true;
                     if (laEle || player.hasFishingRod()) {
                         if (FishingManager.isPlayerHasKey()) {
                             dialogueManager.iniciarDialogo(dialogo2_hasKey, DialogueCatalogo.PescadorFala2_hasKey,

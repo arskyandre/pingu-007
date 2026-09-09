@@ -6,6 +6,13 @@ public abstract class NPC implements Renderable {
     protected double x, y;
     protected double largura, altura;
     protected boolean active = true;
+    protected boolean conversouComPlayer = false;
+
+    public abstract String getNomeMapa();
+
+    public boolean jaConversouComPlayer() {
+        return conversouComPlayer;
+    }
 
     protected static double INTERACT_RANGE = GameCore.tiles_size * 2;
 

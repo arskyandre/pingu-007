@@ -35,6 +35,11 @@ public class VendedorNPC extends NPC {
         shopMenu = new ShopMenu(soundManager);
     }
 
+    @Override
+    public String getNomeMapa() {
+        return "vendedor";
+    }
+
     public void setPlayerTemSinalizador(boolean set) {
         playerTemSinalizador = set;
     }
@@ -214,6 +219,7 @@ public class VendedorNPC extends NPC {
             case IDLE -> {
                 if (proximo && (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_E)
                         || input.isButtonJustPressed(InputManager.GamepadButton.Y))) {
+                    conversouComPlayer = true;
                     if (Player.getDesbloqueouRecompensa()) {
                         if (this.questManager.getQuestState() == QuestManager.QuestState.PRONTA_PARA_ENTREGAR) {
                             this.questManager.entregarQuest(player);
