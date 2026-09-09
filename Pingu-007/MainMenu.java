@@ -12,11 +12,14 @@ public class MainMenu {
     private final SoundManager soundManager;
 
     private BufferedImage background;
+    private final MainMenuEyes eyes = new MainMenuEyes();
     private Font pixelFont;
 
-    private static final int BTN_W = 220;
-    private static final int BTN_H = 46;
+    private static final int BTN_W = 280;
+    private static final int BTN_H = 52;
     private static final int BTN_GAP = 18;
+    // A arte deixa livre a coluna da direita, centralizada em 79% da largura.
+    private static final double MENU_CENTER_X = 0.79;
 
     private static final int PLAY_INDEX = 0;
     private static final int OPTIONS_INDEX = 1;
@@ -51,11 +54,17 @@ public class MainMenu {
     }
 
     private void repositionButtons(int width, int height) {
-        int x = (width - BTN_W) / 2;
-        int y = height / 2;
+        int buttonWidth = Math.max(180, Math.min(BTN_W, (int) (width * 0.26)));
+        int buttonHeight = Math.max(40, Math.min(BTN_H, (int) (height * 0.08)));
+        int gap = Math.max(12, Math.min(BTN_GAP, (int) (height * 0.027)));
+        int x = (int) (width * MENU_CENTER_X) - buttonWidth / 2;
+        int y = (int) (height * 0.44);
+        playBtn.setSize(buttonWidth, buttonHeight);
+        optionsBtn.setSize(buttonWidth, buttonHeight);
+        quitBtn.setSize(buttonWidth, buttonHeight);
         playBtn.setPosition(x, y);
-        optionsBtn.setPosition(x, y + BTN_H + BTN_GAP);
-        quitBtn.setPosition(x, y + (BTN_H + BTN_GAP) * 2);
+        optionsBtn.setPosition(x, y + buttonHeight + gap);
+        quitBtn.setPosition(x, y + (buttonHeight + gap) * 2);
     }
 
     public GameState update(InputManager input, int width, int height) {
@@ -78,6 +87,7 @@ public class MainMenu {
         int quitState;
 
         if (mouseAceito) {
+            eyes.update(input.getMouseX(), input.getMouseY(), width, height);
             playState = playBtn.update(input);
             optionsState = optionsBtn.update(input);
             quitState = quitBtn.update(input);
@@ -129,33 +139,39 @@ public class MainMenu {
     }
 
     public void render(Graphics2D g2, int width, int height) {
+        repositionButtons(width, height);
         if (background != null) {
             g2.drawImage(background, 0, 0, width, height, null);
+            eyes.render(g2, width, height);
         } else {
             g2.setColor(Color.BLACK);
             g2.fillRect(0, 0, width, height);
         }
 
-        g2.setColor(new Color(0, 0, 0, 100));
+        g2.setColor(new Color(0, 0, 0, 60));
         g2.fillRect(0, 0, width, height);
 
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 
-        g2.setFont(pixelFont);
+        float titleSize = Math.min(32f, width * 0.034f);
+        g2.setFont(pixelFont.deriveFont(Font.PLAIN, titleSize));
         String title = "PINGU 007";
         int tw = g2.getFontMetrics().stringWidth(title);
+        int centerX = (int) (width * MENU_CENTER_X);
+        int titleX = centerX - tw / 2;
+        int titleY = (int) (height * 0.31);
         g2.setColor(new Color(0, 0, 0, 180));
-        g2.drawString(title, (width - tw) / 2 + 3, height / 4 + 3);
+        g2.drawString(title, titleX + 3, titleY + 3);
         g2.setColor(Color.WHITE);
-        g2.drawString(title, (width - tw) / 2, height / 4);
+        g2.drawString(title, titleX, titleY);
 
         g2.setFont(pixelFont.deriveFont(Font.PLAIN, 12f));
-        String fscreen = "Pressione F11 para alternar a tela cheia!";
+        String fscreen = "F11: tela cheia";
         tw = g2.getFontMetrics().stringWidth(fscreen);
-        int textX = width - tw;
+        int textX = centerX - tw / 2;
         int bobOffset = (int) (Math.sin(bobTime) * BOB_AMP);
-        int textY = height - 10 + bobOffset;
+        int textY = height - 24 + bobOffset;
         g2.setColor(new Color(0, 0, 0, 180));
         g2.drawString(fscreen, textX + 3, textY + 3);
         g2.setColor(Color.GRAY);
