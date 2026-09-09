@@ -76,8 +76,8 @@ public class MenuButton {
         return lines;
     }
 
-    public int update(InputManager input) {
-        hovered = rect.contains(input.getMouseX(), input.getMouseY());
+    public int update(InputManager input, InputManager.MouseSpace mouseSpace) {
+        hovered = rect.contains(input.getMouseX(mouseSpace), input.getMouseY(mouseSpace));
         if (hovered && input.isMouseButtonJustPressed(MouseEvent.BUTTON1))
             return CLICKED;
         else if (hovered && input.isMouseButtonPressed(MouseEvent.BUTTON1)) {

@@ -89,7 +89,7 @@ public class FishingManager {
         }
 
         repositionButton(camera, screenWidth, screenHeight);
-        boolean triggered = fishingButton.update(input) == MenuButton.CLICKED
+        boolean triggered = fishingButton.update(input, InputManager.MouseSpace.SCENE) == MenuButton.CLICKED
                 || isPullLinePressed(input);
 
         switch (state) {

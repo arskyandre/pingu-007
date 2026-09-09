@@ -243,7 +243,8 @@ public class OptionsMenu {
         }
     }
 
-    public GameState update(InputManager input, int width, int height, GameCore GC) {
+    public GameState update(InputManager input, int width, int height, GameCore GC,
+            InputManager.MouseSpace mouseSpace) {
         repositionElements(width, height, GC);
 
         if (!fpsSliderInitialized) {
@@ -275,10 +276,10 @@ public class OptionsMenu {
 
         boolean mouseAceito = !input.isMouseBloqueado();
         if (mouseAceito) {
-            updateMusicSlider(input);
-            updateSfxSlider(input);
-            updateFpsCapSlider(input, GC);
-            GameState acaoMouse = atualizarBotoesMouse(input, GC);
+            updateMusicSlider(input, mouseSpace);
+            updateSfxSlider(input, mouseSpace);
+            updateFpsCapSlider(input, GC, mouseSpace);
+            GameState acaoMouse = atualizarBotoesMouse(input, GC, mouseSpace);
             if (acaoMouse != GameState.OPTIONS) {
                 return acaoMouse;
             }
@@ -300,12 +301,13 @@ public class OptionsMenu {
         return GameState.OPTIONS;
     }
 
-    private GameState atualizarBotoesMouse(InputManager input, GameCore GC) {
+    private GameState atualizarBotoesMouse(InputManager input, GameCore GC,
+            InputManager.MouseSpace mouseSpace) {
         for (ItemFoco item : itensFoco) {
             if (item.botao == null) {
                 continue;
             }
-            if (item.botao.update(input) == MenuButton.CLICKED) {
+            if (item.botao.update(input, mouseSpace) == MenuButton.CLICKED) {
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
                 return item.acao.apply(GC);
             }
@@ -333,8 +335,8 @@ public class OptionsMenu {
         }
     }
 
-    private void updateMusicSlider(InputManager input) {
-        int state = musicSlider.update(input);
+    private void updateMusicSlider(InputManager input, InputManager.MouseSpace mouseSpace) {
+        int state = musicSlider.update(input, mouseSpace);
         if (state == MenuSlider.DRAGGING || state == MenuSlider.CLICKED) {
             itemFocado = encontrarItemFoco(musicSlider);
             if (state == MenuSlider.CLICKED)
@@ -351,8 +353,8 @@ public class OptionsMenu {
         }
     }
 
-    private void updateSfxSlider(InputManager input) {
-        int state = sfxSlider.update(input);
+    private void updateSfxSlider(InputManager input, InputManager.MouseSpace mouseSpace) {
+        int state = sfxSlider.update(input, mouseSpace);
         if (state == MenuSlider.DRAGGING || state == MenuSlider.CLICKED) {
             itemFocado = encontrarItemFoco(sfxSlider);
             if (state == MenuSlider.CLICKED)
@@ -369,8 +371,8 @@ public class OptionsMenu {
         }
     }
 
-    private void updateFpsCapSlider(InputManager input, GameCore GC) {
-        int state = fpsCapSlider.update(input);
+    private void updateFpsCapSlider(InputManager input, GameCore GC, InputManager.MouseSpace mouseSpace) {
+        int state = fpsCapSlider.update(input, mouseSpace);
         if (state == MenuSlider.DRAGGING || state == MenuSlider.CLICKED) {
             itemFocado = encontrarItemFoco(fpsCapSlider);
             if (state == MenuSlider.CLICKED)

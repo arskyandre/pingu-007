@@ -7,6 +7,11 @@ import com.studiohartman.jamepad.ControllerState;
 
 public class InputManager extends KeyAdapter implements MouseMotionListener, MouseListener {
 
+    public enum MouseSpace {
+        SCREEN,
+        SCENE
+    }
+
     public enum GamepadButton {
         A,
         B,
@@ -48,12 +53,7 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
     private boolean mouseBloqueado = false;
     private double mouseBloqueioReferenciaX = 0;
     private double mouseBloqueioReferenciaY = 0;
-    private volatile int viewportX = 0;
-    private volatile int viewportY = 0;
-    private volatile int viewportLargura = 1;
-    private volatile int viewportAltura = 1;
-    private volatile int larguraLogica = 1;
-    private volatile int alturaLogica = 1;
+    private volatile RenderViewport viewport = RenderViewport.identidade(1, 1);
 
     public InputManager() {
         controllerManager = new ControllerManager();
@@ -350,28 +350,26 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
         return false;
     }
 
-    public int getMouseX() {
-        int larguraViewport = Math.max(1, viewportLargura);
-        int larguraDestino = Math.max(1, larguraLogica);
-        int xLogico = (int) Math.floor((mouseX - viewportX) * (larguraDestino / (double) larguraViewport));
-        return Math.clamp(xLogico, 0, larguraDestino - 1);
+    public int getMouseX(MouseSpace espaco) {
+        RenderViewport viewportAtual = viewport;
+        return espaco == MouseSpace.SCENE
+                ? viewportAtual.screenToSceneX(mouseX)
+                : viewportAtual.screenX(mouseX);
     }
 
-    public int getMouseY() {
-        int alturaViewport = Math.max(1, viewportAltura);
-        int alturaDestino = Math.max(1, alturaLogica);
-        int yLogico = (int) Math.floor((mouseY - viewportY) * (alturaDestino / (double) alturaViewport));
-        return Math.clamp(yLogico, 0, alturaDestino - 1);
+    public int getMouseY(MouseSpace espaco) {
+        RenderViewport viewportAtual = viewport;
+        return espaco == MouseSpace.SCENE
+                ? viewportAtual.screenToSceneY(mouseY)
+                : viewportAtual.screenY(mouseY);
     }
 
-    public void configurarViewport(int x, int y, int largura, int altura,
-            int larguraLogica, int alturaLogica) {
-        this.viewportX = x;
-        this.viewportY = y;
-        this.viewportLargura = Math.max(1, largura);
-        this.viewportAltura = Math.max(1, altura);
-        this.larguraLogica = Math.max(1, larguraLogica);
-        this.alturaLogica = Math.max(1, alturaLogica);
+    public RenderViewport getViewport() {
+        return viewport;
+    }
+
+    public void configurarViewport(RenderViewport novoViewport) {
+        this.viewport = novoViewport == null ? RenderViewport.identidade(1, 1) : novoViewport;
     }
 
     public void iniciarBloqueioMouse() {

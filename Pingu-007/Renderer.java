@@ -253,21 +253,12 @@ public class Renderer {
         g2.setColor(originalColor);
     }
 
-    public void renderizar(Graphics2D g2, CameraManager camera, Player player, InputManager input, int telaLargura,
-            int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager,
-            EnemyManager enemyManager, ArenaManager arenaManager, QuestManager questManager, Hud HUD,
-            DialogueManager dialogueManager,
-            FishingManager fishingManager, NPCManager npcManager, CutsceneManager cutsceneManager,
-            boolean renderizarDayNightOverlay, double dayProgress,
-            double delta,
-            boolean animateBorder, boolean mouseCircle) {
+    public void renderizarCena(Graphics2D g2, CameraManager camera, Player player, InputManager input,
+            int telaLargura, int telaAltura, LevelManager lm, BulletManager bulletmanager,
+            ItemManager itemManager, EnemyManager enemyManager, ArenaManager arenaManager,
+            NPCManager npcManager, double delta, CutsceneManager cutsceneManager, boolean renderizarDayNightOverlay,
+            double dayProgress, FishingManager fishingManager) {
 
-        // Mantem o tamanho da borda proporcional a altura da tela
-        cinematicBorderHeight = telaAltura / 8;
-        g2.setColor(Color.BLACK);
-        g2.fillRect(0, 0, telaLargura, telaAltura);
-
-        // Anti-Aliasing e Interpolação
         if (useAntiAliasing) {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         } else {
@@ -276,178 +267,187 @@ public class Renderer {
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 
         AffineTransform originalTransform = g2.getTransform();
-        g2.scale(camera.getZoom(), camera.getZoom());
-        g2.translate(-camera.getX(), -camera.getY());
+        try {
+            g2.scale(camera.getZoom(), camera.getZoom());
+            g2.translate(-camera.getX(), -camera.getY());
 
-        lm.drawBackground(g2, camera, telaLargura, telaAltura);
-        if (cutsceneManager.isWallRevealAtiva()) {
-            lm.drawGround(g2, camera, telaLargura, telaAltura,
-                    cutsceneManager.getWallFadeRect(), cutsceneManager.getWallFadeAlpha(),
-                    cutsceneManager.getWallShakeX(), cutsceneManager.getWallShakeY());
-        } else {
-            lm.drawGround(g2, camera, telaLargura, telaAltura);
-        }
+            lm.drawBackground(g2, camera, telaLargura, telaAltura);
+            if (cutsceneManager.isWallRevealAtiva()) {
+                lm.drawGround(g2, camera, telaLargura, telaAltura,
+                        cutsceneManager.getWallFadeRect(), cutsceneManager.getWallFadeAlpha(),
+                        cutsceneManager.getWallShakeX(), cutsceneManager.getWallShakeY());
+            } else {
+                lm.drawGround(g2, camera, telaLargura, telaAltura);
+            }
 
-        if (arenaManager != null) {
-            arenaManager.drawOverlays(g2);
-        }
+            if (arenaManager != null) {
+                arenaManager.drawOverlays(g2);
+            }
 
-        if (enemyManager != null && enemyManager.getEnemies() != null) {
-            for (Enemy enemy : enemyManager.getEnemies()) {
-                if (enemy != null && !enemy.isDead()) {
-                    enemy.drawGroundTelegraph(g2, delta);
+            if (enemyManager != null && enemyManager.getEnemies() != null) {
+                for (Enemy enemy : enemyManager.getEnemies()) {
+                    if (enemy != null && !enemy.isDead()) {
+                        enemy.drawGroundTelegraph(g2, delta);
+                    }
                 }
             }
-        }
 
-        renderQueue.clear();
-        renderQueue.add(player);
+            renderQueue.clear();
+            renderQueue.add(player);
 
-        if (enemyManager != null && enemyManager.getEnemies() != null) {
-            for (Enemy e : enemyManager.getEnemies()) {
-                if (e != null && !e.isDead()) {
-                    if (camera.onScreenWithTolerance(e.getX(), e.getY(), e.getLargura(), e.getAltura(),
-                            telaLargura, telaAltura,
-                            ProjectedShadow.cullingToleranceForReferenceHeight(e.getAltura()))) {
+            if (enemyManager != null && enemyManager.getEnemies() != null) {
+                for (Enemy e : enemyManager.getEnemies()) {
+                    if (e != null && !e.isDead()
+                            && camera.onScreenWithTolerance(e.getX(), e.getY(), e.getLargura(), e.getAltura(),
+                                    telaLargura, telaAltura,
+                                    ProjectedShadow.cullingToleranceForReferenceHeight(e.getAltura()))) {
                         renderQueue.add(e);
                     }
                 }
             }
-        }
 
-        if (itemManager != null && itemManager.getItems() != null) {
-            for (Item item : itemManager.getItems()) {
-                if (item != null && item.isAtivo()) {
-                    if (camera.onScreenWithTolerance(item.getX(), item.getY(), item.getLargura(), item.getAltura(),
-                            telaLargura, telaAltura,
-                            ProjectedShadow.cullingToleranceForReferenceHeight(item.getAltura()))) {
+            if (itemManager != null && itemManager.getItems() != null) {
+                for (Item item : itemManager.getItems()) {
+                    if (item != null && item.isAtivo()
+                            && camera.onScreenWithTolerance(item.getX(), item.getY(), item.getLargura(), item.getAltura(),
+                                    telaLargura, telaAltura,
+                                    ProjectedShadow.cullingToleranceForReferenceHeight(item.getAltura()))) {
                         renderQueue.add(item);
                     }
                 }
             }
-        }
 
-        if (npcManager != null && npcManager.getNpcs() != null) {
-            for (NPC npc : npcManager.getNpcs()) {
-                if (npc != null && npc.isActive()) {
-                    if (camera.onScreenWithTolerance(npc.getX(), npc.getY(), npc.getLargura(), npc.getAltura(),
-                            telaLargura, telaAltura)) {
+            if (npcManager != null && npcManager.getNpcs() != null) {
+                for (NPC npc : npcManager.getNpcs()) {
+                    if (npc != null && npc.isActive()
+                            && camera.onScreenWithTolerance(npc.getX(), npc.getY(), npc.getLargura(), npc.getAltura(),
+                                    telaLargura, telaAltura)) {
                         renderQueue.add(npc);
                     }
                 }
             }
-        }
 
-        if (arenaManager != null && arenaManager.getObjetosDeCenario() != null) {
-            for (MapObject obj : arenaManager.getObjetosDeCenario()) {
-                double w = obj.getLargura() > 0 ? obj.getLargura() : GameCore.tiles_size;
-                double h = obj.getAltura() > 0 ? obj.getAltura() : GameCore.tiles_size;
+            if (arenaManager != null && arenaManager.getObjetosDeCenario() != null) {
+                for (MapObject obj : arenaManager.getObjetosDeCenario()) {
+                    double w = obj.getLargura() > 0 ? obj.getLargura() : GameCore.tiles_size;
+                    double h = obj.getAltura() > 0 ? obj.getAltura() : GameCore.tiles_size;
 
-                if (camera.onScreenWithTolerance(obj.getX(), obj.getY(), w, h,
-                        telaLargura, telaAltura, obj.getCullTolerance())) {
-                    renderQueue.add(obj);
-                }
-            }
-        }
-        renderQueue.sort(depthComparator);
-
-        for (Renderable obj : renderQueue) {
-            obj.draw(g2, delta);
-        }
-
-        bulletmanager.draw(g2, camera, telaLargura, telaAltura);
-        lm.drawForeground(g2, camera, telaLargura, telaAltura);
-
-        if (modoDebug) {
-            renderDebug(g2, camera, player, input);
-
-            drawDebugColliders(g2, player);
-            if (enemyManager != null && enemyManager.getEnemies() != null) {
-                for (Enemy e : enemyManager.getEnemies()) {
-                    if (e != null && !e.isDead()) {
-                        drawDebugColliders(g2, e);
+                    if (camera.onScreenWithTolerance(obj.getX(), obj.getY(), w, h,
+                            telaLargura, telaAltura, obj.getCullTolerance())) {
+                        renderQueue.add(obj);
                     }
                 }
             }
+            renderQueue.sort(depthComparator);
 
-            if (arenaManager != null) {
-                if (arenaManager.getObjetosInstanciadosParaDebug() != null) {
-                    for (DebugRenderable obj : arenaManager.getObjetosInstanciadosParaDebug()) {
-                        desenharDebugDeObjeto(g2, obj.getDadosTiled(), obj.getHitboxAtual(), camera, telaLargura,
-                                telaAltura);
+            for (Renderable obj : renderQueue) {
+                obj.draw(g2, delta);
+            }
+
+            bulletmanager.draw(g2, camera, telaLargura, telaAltura);
+            lm.drawForeground(g2, camera, telaLargura, telaAltura);
+
+            if (modoDebug) {
+                renderDebug(g2, camera, player, input);
+                drawDebugColliders(g2, player);
+                if (enemyManager != null && enemyManager.getEnemies() != null) {
+                    for (Enemy e : enemyManager.getEnemies()) {
+                        if (e != null && !e.isDead()) {
+                            drawDebugColliders(g2, e);
+                        }
                     }
                 }
-                if (arenaManager.getTriggersESpawnersParaDebug() != null) {
-                    for (TiledObject raw : arenaManager.getTriggersESpawnersParaDebug()) {
-                        Shape hitboxCru = raw.isPolygon
-                                ? raw.getPolygonShape()
-                                : new Rectangle2D.Double(raw.x, raw.y, raw.width, raw.height);
-                        desenharDebugDeObjeto(g2, raw, hitboxCru, camera, telaLargura, telaAltura);
+
+                if (arenaManager != null) {
+                    if (arenaManager.getObjetosInstanciadosParaDebug() != null) {
+                        for (DebugRenderable obj : arenaManager.getObjetosInstanciadosParaDebug()) {
+                            desenharDebugDeObjeto(g2, obj.getDadosTiled(), obj.getHitboxAtual(), camera,
+                                    telaLargura, telaAltura);
+                        }
+                    }
+                    if (arenaManager.getTriggersESpawnersParaDebug() != null) {
+                        for (TiledObject raw : arenaManager.getTriggersESpawnersParaDebug()) {
+                            Shape hitboxCru = raw.isPolygon
+                                    ? raw.getPolygonShape()
+                                    : new Rectangle2D.Double(raw.x, raw.y, raw.width, raw.height);
+                            desenharDebugDeObjeto(g2, raw, hitboxCru, camera, telaLargura, telaAltura);
+                        }
                     }
                 }
             }
+        } finally {
+            g2.setTransform(originalTransform);
         }
 
-        g2.setTransform(originalTransform);
-
-        // Animacao das bordas cinematicas
-        if (animateBorder) {
-            double progressSpeed = 1.0 / borderFadeDuration;
-
-            if (borderState == BorderState.IN) {
-                borderProgress += progressSpeed * delta;
-
-                if (borderProgress >= 1.0) {
-                    borderProgress = 1.0;
-                    borderState = BorderState.IDLE;
-                }
-            } else if (borderState == BorderState.OUT) {
-                borderProgress -= progressSpeed * delta;
-
-                if (borderProgress <= 0.0) {
-                    borderProgress = 0.0;
-                    borderState = BorderState.IDLE;
-                }
-            }
-        }
-        int cinematicBorder = getOffset();
         if (renderizarDayNightOverlay) {
             drawDayNightOverlay(g2, dayProgress, telaLargura, telaAltura);
         }
-        HUD.draw(g2, telaLargura, telaAltura, camera, player, enemyManager, questManager, delta, (int) cinematicBorder);
-        fishingManager.render(g2, camera, telaLargura, telaAltura, delta);
-        double mouseCircleTarget = (mouseCircle && camera.isMouseMiraAtiva()) ? 1.0 : 0.0;
-        double mouseCircleFadeSpeed = 1.0 / MOUSE_CIRCLE_FADE_DURATION;
-
-        if (mouseCircleAlpha < mouseCircleTarget) {
-            mouseCircleAlpha = Math.min(mouseCircleTarget, mouseCircleAlpha + mouseCircleFadeSpeed * delta);
-        } else if (mouseCircleAlpha > mouseCircleTarget) {
-            mouseCircleAlpha = Math.max(mouseCircleTarget, mouseCircleAlpha - mouseCircleFadeSpeed * delta);
+        if (fishingManager != null) {
+            fishingManager.render(g2, camera, telaLargura, telaAltura, delta);
         }
+    }
 
-        if (mouseCircleAlpha > 0.0) {
-            renderMouse(g2, input, mouseCircleAlpha, telaAltura);
+    public void renderizarInterface(Graphics2D g2, CameraManager camera, Player player, InputManager input,
+            RenderViewport viewport, int telaLargura, int telaAltura, Hud HUD, EnemyManager enemyManager,
+            QuestManager questManager, CutsceneManager cutsceneManager, double delta,
+            boolean renderizarHud, boolean renderizarCrosshair, boolean renderizarCutscene,
+            boolean renderizarRelogioDebug, boolean renderizarIndicadores, double dayProgress) {
+        int cinematicBorder = getOffset();
+        if (renderizarHud) {
+            HUD.draw(g2, telaLargura, telaAltura, camera, viewport, player, enemyManager, questManager,
+                    delta, cinematicBorder, renderizarIndicadores);
         }
-        if (GameCore.getGameState() == GameState.CUTSCENE) {
+        if (renderizarCrosshair && mouseCircleAlpha > 0.0) {
+            renderMouse(g2, input, viewport, mouseCircleAlpha, telaAltura);
+        }
+        if (renderizarCutscene) {
             cutsceneManager.draw(g2, telaLargura, telaAltura, delta);
         }
         if (cinematicBorder > 0) {
             camera.setLetterboxAtivo(true);
             g2.setColor(Color.BLACK);
-            g2.fillRect(0, 0, telaLargura, (int) cinematicBorder);
-            g2.fillRect(0, telaAltura - (int) cinematicBorder, telaLargura, (int) cinematicBorder);
+            g2.fillRect(0, 0, telaLargura, cinematicBorder);
+            g2.fillRect(0, telaAltura - cinematicBorder, telaLargura, cinematicBorder);
         } else {
             camera.setLetterboxAtivo(false);
         }
 
-        ToastNotifications.draw(g2, telaLargura, telaAltura);
-
-        if (modoDebug) {
+        if (renderizarHud) {
+            ToastNotifications.draw(g2, telaLargura, telaAltura);
+        }
+        if (renderizarRelogioDebug && modoDebug) {
             int totalMinutes = (int) (dayProgress * 24.0 * 60.0) % 1440;
-            int hour = totalMinutes / 60;
-            int minute = totalMinutes % 60;
+            debugDrawHorario(g2, totalMinutes / 60, totalMinutes % 60, telaLargura, telaAltura);
+        }
+    }
 
-            debugDrawHorario(g2, hour, minute, telaLargura, telaAltura);
+    public void prepararInterface(int telaAltura) {
+        cinematicBorderHeight = Math.max(0, telaAltura / 8);
+    }
+
+    public void atualizarAnimacoes(CameraManager camera, double delta,
+            boolean animateBorder, boolean mouseCircle) {
+        if (animateBorder) {
+            double progressSpeed = 1.0 / borderFadeDuration;
+            if (borderState == BorderState.IN) {
+                borderProgress = Math.min(1.0, borderProgress + progressSpeed * delta);
+                if (borderProgress >= 1.0) {
+                    borderState = BorderState.IDLE;
+                }
+            } else if (borderState == BorderState.OUT) {
+                borderProgress = Math.max(0.0, borderProgress - progressSpeed * delta);
+                if (borderProgress <= 0.0) {
+                    borderState = BorderState.IDLE;
+                }
+            }
+        }
+
+        double mouseCircleTarget = (mouseCircle && camera.isMouseMiraAtiva()) ? 1.0 : 0.0;
+        double mouseCircleFadeSpeed = 1.0 / MOUSE_CIRCLE_FADE_DURATION;
+        if (mouseCircleAlpha < mouseCircleTarget) {
+            mouseCircleAlpha = Math.min(mouseCircleTarget, mouseCircleAlpha + mouseCircleFadeSpeed * delta);
+        } else if (mouseCircleAlpha > mouseCircleTarget) {
+            mouseCircleAlpha = Math.max(mouseCircleTarget, mouseCircleAlpha - mouseCircleFadeSpeed * delta);
         }
     }
 
@@ -636,8 +636,8 @@ public class Renderer {
             Player quadrado, InputManager input) {
         double centerX = quadrado.getX() + quadrado.getLargura() / 2.0;
         double centerY = quadrado.getY() + quadrado.getAltura() / 2.0;
-        double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-        double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+        double mouseXWorld = (input.getMouseX(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getX();
+        double mouseYWorld = (input.getMouseY(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getY();
         g2.setColor(Color.WHITE);
         g2.drawLine((int) centerX, (int) centerY,
                 (int) mouseXWorld, (int) mouseYWorld);
@@ -646,6 +646,7 @@ public class Renderer {
     private void renderMouse(
             Graphics2D g2,
             InputManager input,
+            RenderViewport viewport,
             double alpha,
             int telaAltura) {
         Composite originalComposite = g2.getComposite();
@@ -676,8 +677,11 @@ public class Renderer {
 
         int size = (int) Math.round(32 * dampenedScale);
 
-        int mouseX = input.getMouseX() - size / 2;
-        int mouseY = input.getMouseY() - size / 2;
+        InputManager.MouseSpace mouseSpace = viewport.isInterfaceEmBaixaResolucao()
+                ? InputManager.MouseSpace.SCENE
+                : InputManager.MouseSpace.SCREEN;
+        int mouseX = input.getMouseX(mouseSpace) - size / 2;
+        int mouseY = input.getMouseY(mouseSpace) - size / 2;
 
         g2.drawImage(
                 crosshair,

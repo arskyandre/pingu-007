@@ -237,23 +237,27 @@ public class CutsceneManager {
         g2.setTransform(transformOriginal);
     }
 
-    private void desenharBarraPreta(Graphics2D g2, int telaLargura, int telaAltura, double delta) {
+    /** Avanca a animacao de apresentacao uma vez por frame logico de renderizacao. */
+    public void atualizarAnimacaoDeRender(double delta) {
+        if (type != CutsceneType.BOSS_INTRO && bossIntroState != BossIntroState.CAMERA_PAN) {
+            return;
+        }
+
         double progressSpeed = 1.0 / blackBarDuration;
         if (blackBarState == BlackBarState.IN) {
-            blackBarProgress += progressSpeed * delta;
-
+            blackBarProgress = Math.min(1.0, blackBarProgress + progressSpeed * delta);
             if (blackBarProgress >= 1.0) {
-                blackBarProgress = 1.0;
                 blackBarState = BlackBarState.IDLE;
             }
         } else if (blackBarState == BlackBarState.OUT) {
-            blackBarProgress -= progressSpeed * delta;
-
+            blackBarProgress = Math.max(0.0, blackBarProgress - progressSpeed * delta);
             if (blackBarProgress <= 0.0) {
-                blackBarProgress = 0.0;
                 blackBarState = BlackBarState.IDLE;
             }
         }
+    }
+
+    private void desenharBarraPreta(Graphics2D g2, int telaLargura, int telaAltura, double delta) {
         double eased;
 
         if (blackBarState == BlackBarState.OUT) {

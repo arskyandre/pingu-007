@@ -42,7 +42,8 @@ public class KeyBindingsMenu {
         backBtn.setPosition((width - 160) / 2, height * 3 / 4 + 76);
     }
 
-    public GameState update(InputManager input, int width, int height) {
+    public GameState update(InputManager input, int width, int height,
+            InputManager.MouseSpace mouseSpace) {
         repositionElements(width, height);
 
         if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE)
@@ -62,7 +63,7 @@ public class KeyBindingsMenu {
         boolean mouseAceito = !input.isMouseBloqueado();
         boolean controleAtivo = input.isControllerActive();
 
-        if (mouseAceito && backBtn.update(input) == MenuButton.CLICKED) {
+        if (mouseAceito && backBtn.update(input, mouseSpace) == MenuButton.CLICKED) {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             return returnTo;
         }
