@@ -78,7 +78,9 @@ public class OptionsMenu {
     private final MenuButton backBtn;
     private final MenuButton keyBindBtn;
     private final IconButton fullScreenButton;
-    private final IconButton renderShadowsButton;
+    private final MenuButton shadowsOffButton;
+    private final MenuButton shadowsSharpButton;
+    private final MenuButton shadowsSoftButton;
     private final IconButton showFpsButton;
     private final IconButton enableAAButton;
 
@@ -99,7 +101,9 @@ public class OptionsMenu {
         toggleMuteSFX = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED, false);
         toggleUnlimitedFps = new IconButton(0, 0, BTN_SIZE, IconIndex.UNLIM_FPS_OFF, false);
         fullScreenButton = new IconButton(0, 0, BTN_SIZE, IconIndex.FULLSCREEN, false);
-        renderShadowsButton = new IconButton(0, 0, BTN_SIZE, IconIndex.GREEN_CHECK, false);
+        shadowsOffButton = new MenuButton("Desligadas", 0, 0, 160, 46);
+        shadowsSharpButton = new MenuButton("Nitidas", 0, 0, 160, 46);
+        shadowsSoftButton = new MenuButton("Suaves", 0, 0, 160, 46);
         showFpsButton = new IconButton(0, 0, BTN_SIZE, IconIndex.RED_X, false);
         enableAAButton = new IconButton(0, 0, BTN_SIZE, IconIndex.GREEN_CHECK, false);
 
@@ -118,8 +122,18 @@ public class OptionsMenu {
             alternarFpsIlimitado(gc);
             return GameState.OPTIONS;
         }));
-        itensFoco.add(new ItemFoco(renderShadowsButton, gc -> {
-            gc.toggleRenderShadows();
+        itensFoco.add(new ItemFoco(shadowsOffButton, gc -> {
+            Renderer.setRenderShadows(false);
+            return GameState.OPTIONS;
+        }));
+        itensFoco.add(new ItemFoco(shadowsSharpButton, gc -> {
+            Renderer.setRenderShadows(true);
+            ProjectedShadow.setSoftShadows(false);
+            return GameState.OPTIONS;
+        }));
+        itensFoco.add(new ItemFoco(shadowsSoftButton, gc -> {
+            Renderer.setRenderShadows(true);
+            ProjectedShadow.setSoftShadows(true);
             return GameState.OPTIONS;
         }));
         itensFoco.add(new ItemFoco(enableAAButton, gc -> {
@@ -155,7 +169,6 @@ public class OptionsMenu {
         this.returnTo = state;
     }
 
-
     private static class LayoutCursor {
         int y;
         final int gap;
@@ -176,7 +189,8 @@ public class OptionsMenu {
         int centerX = width / 2;
         int contentStartY = height / CONTENT_START_FRACTION;
         int sliderRowHeight = LABEL_TO_SLIDER_GAP + SLIDER_H;
-        int fixedContentHeight = sliderRowHeight * 3 + BTN_SIZE * 3 + 46;
+        int shadowRowHeight = LABEL_TO_SLIDER_GAP + 46;
+        int fixedContentHeight = sliderRowHeight * 3 + shadowRowHeight + BTN_SIZE * 2 + 46;
         int availableForGaps = height - contentStartY - 20 - fixedContentHeight;
         int responsiveGap = Math.clamp(availableForGaps / 6, 10, ROW_GAP);
         LayoutCursor cursor = new LayoutCursor(contentStartY, responsiveGap);
@@ -190,8 +204,9 @@ public class OptionsMenu {
         int fpsCapY = cursor.nextRow(sliderRowHeight);
         positionSliderRow(fpsCapSlider, toggleUnlimitedFps, centerX, fpsCapY);
 
-        int shadowsToggleY = cursor.nextRow(BTN_SIZE);
-        renderShadowsButton.setPosition(centerX + SLIDER_W / 2 - BTN_SIZE, shadowsToggleY);
+        int shadowsY = cursor.nextRow(shadowRowHeight);
+        layoutButtonRowCentered(shadowsY + LABEL_TO_SLIDER_GAP, centerX,
+                shadowsOffButton, shadowsSharpButton, shadowsSoftButton);
 
         int AAToggleY = cursor.nextRow(BTN_SIZE);
         enableAAButton.setPosition(centerX + SLIDER_W / 2 - BTN_SIZE, AAToggleY);
@@ -242,10 +257,6 @@ public class OptionsMenu {
         }
 
         atualizarIconesFps(GC);
-
-        renderShadowsButton.setIcon(GC.isRenderShadows()
-                ? IconIndex.GREEN_CHECK
-                : IconIndex.RED_X);
 
         if (GC.isAntiAliasingEnabled()) {
             enableAAButton.setIcon(IconIndex.GREEN_CHECK);
@@ -600,10 +611,9 @@ public class OptionsMenu {
         drawSliderRow(g2, rotuloLimiteFps(),
                 fpsCapSlider, estaFocado(fpsCapSlider), width, true, false);
 
-        drawLabelLeftOf(g2, "RENDERIZAR SOMBRAS", renderShadowsButton.getRect());
+        drawShadowModeRow(g2, width);
         drawLabelLeftOf(g2, "Habilitar Anti-Aliasing", enableAAButton.getRect());
         drawLabelLeftOf(g2, "MOSTRAR FPS", showFpsButton.getRect());
-        renderShadowsButton.draw(g2);
         enableAAButton.draw(g2);
         toggleMuteBGM.draw(g2);
         toggleMuteSFX.draw(g2);
@@ -614,6 +624,34 @@ public class OptionsMenu {
         fullScreenButton.draw(g2);
 
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT);
+    }
+
+    private void drawShadowModeRow(Graphics2D g2, int width) {
+        Rectangle firstButton = shadowsOffButton.getRect();
+
+        g2.setFont(pixelFontSmall);
+        FontMetrics fm = g2.getFontMetrics();
+        String label = "SOMBRAS";
+        int labelY = firstButton.y - LABEL_TO_SLIDER_GAP + fm.getAscent();
+
+        g2.setColor(Color.WHITE);
+        g2.drawString(label, (width - fm.stringWidth(label)) / 2, labelY);
+
+        boolean shadowsEnabled = Renderer.isRenderShadows();
+        drawShadowModeButton(g2, shadowsOffButton, !shadowsEnabled);
+        drawShadowModeButton(g2, shadowsSharpButton,
+                shadowsEnabled && !ProjectedShadow.isSoftShadows());
+        drawShadowModeButton(g2, shadowsSoftButton,
+                shadowsEnabled && ProjectedShadow.isSoftShadows());
+    }
+
+    private void drawShadowModeButton(Graphics2D g2, MenuButton button, boolean selected) {
+        boolean wasHovered = button.hovered;
+        if (selected) {
+            button.hovered = true;
+        }
+        button.draw(g2);
+        button.hovered = wasHovered;
     }
 
     private void drawSliderRow(Graphics2D g2, String label, MenuSlider slider, boolean highlighted,

@@ -1039,8 +1039,7 @@ public class GameCore extends Canvas implements Runnable {
     public void updateGame() {
         if (avisoPlebeu && currentFps < targetFps * 4 / 5) {
             avisoPlebeu = false;
-            ToastNotifications.RequestNotification("plebeu detectado, desligando sombras");
-            System.out.println("plebeu detectado, desligando sombras\nFPS: " + currentFps);
+            System.out.println("performance baixa detectada, desligando sombras\nFPS: " + currentFps);
             Renderer.setRenderShadows(false);
         }
         if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE) || input.isButtonJustPressed(InputManager.GamepadButton.START)) {

@@ -255,7 +255,8 @@ public class Renderer {
 
     public void renderizar(Graphics2D g2, CameraManager camera, Player player, InputManager input, int telaLargura,
             int telaAltura, LevelManager lm, BulletManager bulletmanager, ItemManager itemManager,
-            EnemyManager enemyManager, ArenaManager arenaManager, QuestManager questManager, Hud HUD, DialogueManager dialogueManager,
+            EnemyManager enemyManager, ArenaManager arenaManager, QuestManager questManager, Hud HUD,
+            DialogueManager dialogueManager,
             FishingManager fishingManager, NPCManager npcManager, CutsceneManager cutsceneManager,
             boolean renderizarDayNightOverlay, double dayProgress,
             double delta,
