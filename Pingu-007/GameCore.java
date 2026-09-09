@@ -161,7 +161,7 @@ public class GameCore extends Canvas implements Runnable {
         creditsScreen = new CreditsScreen();
         mainMenu = new MainMenu(soundManager);
         pauseMenu = new PauseMenu(soundManager);
-        optionsMenu = new OptionsMenu(soundManager);
+        optionsMenu = new OptionsMenu(new OptionsModel(new GameOptionsSettings(this, soundManager)));
         keyBindingsMenu = new KeyBindingsMenu(soundManager);
 
         npcManager = new NPCManager(dialogueManager, itemManager, soundManager);
@@ -513,6 +513,9 @@ public class GameCore extends Canvas implements Runnable {
         camera.adjustForViewportResize(telaLargura, telaAltura, calculateBaseZoom(telaAltura));
         updateCursorVisibility();
 
+        MenuViewport menuViewport = new MenuViewport(telaLargura, telaAltura);
+        MenuContext menuContext = new MenuContext(input, soundManager, menuViewport);
+
         if (screenTransition.isAtivo()) {
             screenTransition.update();
             if (screenTransition.deveBloquearAtualizacaoDaCena()) {
@@ -529,9 +532,9 @@ public class GameCore extends Canvas implements Runnable {
 
         switch (gameState) {
             case MAIN_MENU -> {
-                GameState next = mainMenu.update(input, telaLargura, telaAltura);
+                GameState next = mainMenu.update(menuContext);
                 if (next == GameState.OPTIONS) {
-                    optionsMenu.setReturnState(GameState.MAIN_MENU);
+                    optionsMenu.onEnter(GameState.MAIN_MENU);
                 }
                 if (next == GameState.PLAYING) {
                     screenTransition.start(this::iniciarJogoDoMenu);
@@ -613,11 +616,11 @@ public class GameCore extends Canvas implements Runnable {
             case SHOP -> {
                 ShopMenu shop = getShopMenu();
                 if (shop != null) {
-                    shop.update(input, telaLargura, telaAltura);
+                    gameState = shop.update(menuContext);
                 }
             }
             case GAME_OVER -> {
-                GameState next = gameOverScreen.update(input, telaLargura, telaAltura);
+                GameState next = gameOverScreen.update(menuContext);
                 if (next == GameState.MAIN_MENU) {
                     screenTransition.start(this::voltarAoMenuPrincipalImediato);
                     next = GameState.GAME_OVER;
@@ -641,9 +644,9 @@ public class GameCore extends Canvas implements Runnable {
                 }
             }
             case PAUSED -> {
-                GameState next = pauseMenu.update(input, telaLargura, telaAltura);
+                GameState next = pauseMenu.update(menuContext);
                 if (next == GameState.OPTIONS) {
-                    optionsMenu.setReturnState(GameState.PAUSED);
+                    optionsMenu.onEnter(GameState.PAUSED);
                 }
                 if (next == GameState.MAIN_MENU) {
                     screenTransition.start(this::voltarAoMenuPrincipalImediato);
@@ -654,10 +657,15 @@ public class GameCore extends Canvas implements Runnable {
                 }
                 gameState = next;
             }
-            case OPTIONS ->
-                gameState = optionsMenu.update(input, telaLargura, telaAltura, this);
+            case OPTIONS -> {
+                GameState next = optionsMenu.update(menuContext);
+                if (next == GameState.KEYBINDINGS) {
+                    keyBindingsMenu.onEnter(GameState.OPTIONS);
+                }
+                gameState = next;
+            }
             case KEYBINDINGS ->
-                gameState = keyBindingsMenu.update(input, telaLargura, telaAltura);
+                gameState = keyBindingsMenu.update(menuContext);
             case QUIT -> {
                 input.shutdown();
                 System.exit(0);
@@ -1403,10 +1411,11 @@ public class GameCore extends Canvas implements Runnable {
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, telaLargura, telaAltura);
         g2.setComposite(AlphaComposite.SrcOver);
+        MenuViewport menuViewport = new MenuViewport(telaLargura, telaAltura);
 
         switch (gameState) {
             case MAIN_MENU -> {
-                mainMenu.render(g2, telaLargura, telaAltura);
+                mainMenu.render(g2, menuViewport);
             }
             case PLAYING -> {
                 renderer.renderizar(g2, camera, player, input,
@@ -1440,7 +1449,7 @@ public class GameCore extends Canvas implements Runnable {
                 // renderizar os elementos de venda por cima
                 ShopMenu shop = getShopMenu();
                 if (shop != null) {
-                    shop.render(g2, telaLargura, telaAltura);
+                    shop.render(g2, menuViewport);
                 }
             }
             case GAME_OVER -> {
@@ -1452,7 +1461,7 @@ public class GameCore extends Canvas implements Runnable {
                         cutsceneManager, !estaDentroLoja, dayProgress, delta,
                         true, false);
 
-                gameOverScreen.render(g2, telaLargura, telaAltura);
+                gameOverScreen.render(g2, menuViewport);
             }
             case PAUSED -> {
                 renderer.renderizar(g2, camera, player, input,
@@ -1463,7 +1472,7 @@ public class GameCore extends Canvas implements Runnable {
                         cutsceneManager, !estaDentroLoja, dayProgress, delta,
                         true, false);
 
-                pauseMenu.render(g2, telaLargura, telaAltura);
+                pauseMenu.render(g2, menuViewport);
             }
             case CUTSCENE -> {
                 renderer.renderizar(g2, camera, player, input,
@@ -1475,10 +1484,10 @@ public class GameCore extends Canvas implements Runnable {
                         true, false);
             }
             case OPTIONS -> {
-                optionsMenu.render(g2, telaLargura, telaAltura);
+                optionsMenu.render(g2, menuViewport);
             }
             case KEYBINDINGS -> {
-                keyBindingsMenu.render(g2, telaLargura, telaAltura);
+                keyBindingsMenu.render(g2, menuViewport);
             }
             case CREDITS -> {
                 renderer.renderizar(g2, camera, player, input,
@@ -1737,8 +1746,6 @@ public class GameCore extends Canvas implements Runnable {
         game.frame.setLocationRelativeTo(null);
         game.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         game.frame.setResizable(true);
-        game.optionsMenu.repositionElements(game.getWidth(), game.getHeight(), game);
-        game.keyBindingsMenu.repositionElements(game.getWidth(), game.getHeight());
         game.frame.setVisible(true);
         game.start();
     }

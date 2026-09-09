@@ -1,15 +1,17 @@
-import java.awt.*;
-import java.awt.event.MouseEvent;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.List;
 
+/** Shop-row control with availability-aware painting and typed pointer results. */
 public class ShopItemButton extends MenuButton {
 
     private final ShopItem item;
     private final BufferedImage coinIcon;
-    private boolean selecionado = false;
-    private List<String> nomeLines;
+    private List<String> nameLines;
 
     private static final int ICON_LEFT_MARGIN = 12;
     private static final int ICON_TEXT_GAP = 14;
@@ -23,167 +25,127 @@ public class ShopItemButton extends MenuButton {
         super(item.nome, x, y, width, height);
         this.item = item;
         this.coinIcon = coinIcon;
-
-        ajustarAlturaPeloNome(height);
+        adjustHeightFromName(height);
     }
 
     @Override
     protected void adjustHeight() {
+        // Shop rows use their icon/text-aware height calculation below.
     }
 
     @Override
     public void setSize(int width, int height) {
         super.setSize(width, height);
-        ajustarAlturaPeloNome(height);
+        adjustHeightFromName(height);
     }
 
-    private void ajustarAlturaPeloNome(int alturaMinima) {
+    private void adjustHeightFromName(int minimumHeight) {
         BufferedImage dummy = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = dummy.createGraphics();
-        g2.setFont(pixelFont.deriveFont(13f));
-        FontMetrics fm = g2.getFontMetrics();
-        g2.dispose();
+        Graphics2D graphics = dummy.createGraphics();
+        try {
+            graphics.setFont(MenuFonts.buttonFont(13f));
+            FontMetrics metrics = graphics.getFontMetrics();
 
-        int iconSizeBase = alturaMinima - 16;
-        int textAreaX = ICON_LEFT_MARGIN + iconSizeBase + ICON_TEXT_GAP;
-        int maxTextWidth = rect.width - textAreaX - PRICE_RESERVED_WIDTH;
-        if (maxTextWidth < 20) {
-            maxTextWidth = 20;
-        }
-
-        nomeLines = wrapText(fm, item.nome, maxTextWidth);
-
-        int lineHeight = fm.getAscent() + fm.getDescent() + 2;
-        int neededHeight = nomeLines.size() * lineHeight + VERTICAL_PADDING;
-
-        rect.height = Math.max(alturaMinima, neededHeight);
-    }
-
-    private List<String> wrapText(FontMetrics fm, String texto, int maxWidth) {
-        String[] palavras = texto.split(" ");
-        List<String> linhas = new ArrayList<>();
-        StringBuilder atual = new StringBuilder();
-        for (String palavra : palavras) {
-            String teste = atual.isEmpty() ? palavra : atual + " " + palavra;
-            if (fm.stringWidth(teste) <= maxWidth) {
-                atual = new StringBuilder(teste);
-            } else {
-                if (!atual.isEmpty())
-                    linhas.add(atual.toString());
-                atual = new StringBuilder(palavra);
+            int iconSizeBase = minimumHeight - 16;
+            int textAreaX = ICON_LEFT_MARGIN + iconSizeBase + ICON_TEXT_GAP;
+            int maxTextWidth = rect.width - textAreaX - PRICE_RESERVED_WIDTH;
+            if (maxTextWidth < 20) {
+                maxTextWidth = 20;
             }
+
+            nameLines = MenuPainter.wrapWords(metrics, item.nome, maxTextWidth);
+            int lineHeight = metrics.getAscent() + metrics.getDescent() + 2;
+            int neededHeight = nameLines.size() * lineHeight + VERTICAL_PADDING;
+            rect.height = Math.max(minimumHeight, neededHeight);
+        } finally {
+            graphics.dispose();
         }
-        if (!atual.isEmpty())
-            linhas.add(atual.toString());
-        return linhas;
     }
 
     public ShopItem getItem() {
         return item;
     }
 
-    public void setSelecionado(boolean valor) {
-        this.selecionado = valor;
-    }
-
-    private void drawDashedLine(Graphics2D g2, int x1, int y, int x2) {
-        Stroke old = g2.getStroke();
-        g2.setStroke(new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] { 2, 4 }, 0));
-        g2.setColor(new Color(255, 255, 255, 90));
-        g2.drawLine(x1, y, x2, y);
-        g2.setStroke(old);
-    }
-
-    private void drawTextWithShadow(Graphics2D g2, String texto, int x, int y, Color cor) {
-        g2.setColor(new Color(0, 0, 0, 160));
-        g2.drawString(texto, x + 2, y + 2);
-        g2.setColor(cor);
-        g2.drawString(texto, x, y);
+    @Override
+    public MenuInteraction updatePointer(InputManager input) {
+        if (!item.disponivel) {
+            clearPointerHover();
+            setSelected(false);
+            return MenuInteraction.IDLE;
+        }
+        return super.updatePointer(input);
     }
 
     @Override
-    public int update(InputManager input) {
-        if (!item.disponivel) {
-            held = false;
-            hovered = false;
-            selecionado = false;
-            return IDLE;
-        }
-        hovered = rect.contains(input.getMouseX(), input.getMouseY());
-        if (hovered && input.isMouseButtonJustPressed(MouseEvent.BUTTON1))
-            return CLICKED;
-        else if (hovered && input.isMouseButtonPressed(MouseEvent.BUTTON1)) {
-            held = true;
-        }
-        held = false;
-        if (!hovered) {
-            return IDLE;
-        }
-        return HOVERED;
-    }
-
-    @Override
-    public void draw(Graphics2D g2) {
-        boolean destacado = selecionado || hovered;
-        if (!item.disponivel) {
-            g2.setColor(new Color(0, 0, 0, 128));
-            g2.fillRect(rect.x, rect.y, rect.width, rect.height);
-            g2.setColor(new Color(140, 140, 80));
-            g2.setStroke(new BasicStroke(2.5f));
-        } else if (destacado) {
-            g2.setColor(new Color(255, 220, 130, 35));
-            g2.fillRect(rect.x, rect.y, rect.width, rect.height);
-            g2.setColor(new Color(255, 215, 80));
-            g2.setStroke(new BasicStroke(2.5f));
-        } else {
-            g2.setColor(new Color(0, 0, 0, 120));
-            g2.fillRect(rect.x, rect.y, rect.width, rect.height);
-            g2.setColor(new Color(255, 255, 255, 70));
-            g2.setStroke(new BasicStroke(1.5f));
-        }
-        g2.drawRect(rect.x, rect.y, rect.width, rect.height);
-
-        int iconSize = rect.height - 16;
-        int iconX = rect.x + ICON_LEFT_MARGIN;
-        int iconY = rect.y + (rect.height - iconSize) / 2;
-        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-        g2.setColor(new Color(0, 0, 0, 72));
-        g2.fillRoundRect(iconX, iconY, iconSize, iconSize, 4, 4);
-        if (item.icone != null) {
-            g2.drawImage(item.icone, iconX, iconY, iconSize, iconSize, null);
-        }
-
-        int nameX = iconX + iconSize + ICON_TEXT_GAP;
-        g2.setFont(pixelFont.deriveFont(13f));
-        FontMetrics fmNome = g2.getFontMetrics();
-        int lineHeight = fmNome.getAscent() + fmNome.getDescent() + 2;
-        int totalTextHeight = nomeLines.size() * lineHeight;
-        int textStartY = rect.y + (rect.height - totalTextHeight) / 2 + fmNome.getAscent();
-
-        Color nomeColor = destacado ? Color.WHITE : new Color(220, 220, 220);
-        for (int i = 0; i < nomeLines.size(); i++) {
-            drawTextWithShadow(g2, nomeLines.get(i), nameX, textStartY + i * lineHeight, nomeColor);
-        }
-
-        String precoTexto = String.valueOf(item.preco);
-        int precoTextW = fmNome.stringWidth(precoTexto);
-        int precoX = rect.x + rect.width - PRICE_RIGHT_MARGIN - precoTextW;
-        int iconPriceX = precoX - PRICE_ICON_SIZE - 4;
-        int iconPriceY = rect.y + (rect.height - PRICE_ICON_SIZE) / 2;
-        int precoBaselineY = rect.y + rect.height / 2 + fmNome.getAscent() / 2 - 2;
-
-        if (coinIcon != null) {
-            g2.drawImage(coinIcon, iconPriceX, iconPriceY, PRICE_ICON_SIZE, PRICE_ICON_SIZE, null);
-        }
-        drawTextWithShadow(g2, precoTexto, precoX, precoBaselineY, new Color(255, 215, 80));
-
-        if (nomeLines.size() == 1) {
-            int lineStartX = nameX + fmNome.stringWidth(nomeLines.get(0)) + 10;
-            int lineEndX = iconPriceX - 10;
-            if (lineEndX > lineStartX) {
-                drawDashedLine(g2, lineStartX, rect.y + rect.height / 2, lineEndX);
+    public void render(Graphics2D graphics) {
+        Graphics2D copy = (Graphics2D) graphics.create();
+        try {
+            boolean highlighted = isHighlighted();
+            if (!item.disponivel) {
+                copy.setColor(new Color(0, 0, 0, 128));
+                copy.fillRect(rect.x, rect.y, rect.width, rect.height);
+                copy.setColor(new Color(140, 140, 80));
+                copy.setStroke(new BasicStroke(2.5f));
+            } else if (highlighted) {
+                copy.setColor(new Color(255, 220, 130, 35));
+                copy.fillRect(rect.x, rect.y, rect.width, rect.height);
+                copy.setColor(new Color(255, 215, 80));
+                copy.setStroke(new BasicStroke(2.5f));
+            } else {
+                copy.setColor(new Color(0, 0, 0, 120));
+                copy.fillRect(rect.x, rect.y, rect.width, rect.height);
+                copy.setColor(new Color(255, 255, 255, 70));
+                copy.setStroke(new BasicStroke(1.5f));
             }
+            copy.drawRect(rect.x, rect.y, rect.width, rect.height);
+
+            int iconSize = rect.height - 16;
+            int iconX = rect.x + ICON_LEFT_MARGIN;
+            int iconY = rect.y + (rect.height - iconSize) / 2;
+            copy.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+            copy.setColor(new Color(0, 0, 0, 72));
+            copy.fillRoundRect(iconX, iconY, iconSize, iconSize, 4, 4);
+            if (item.icone != null) {
+                copy.drawImage(item.icone, iconX, iconY, iconSize, iconSize, null);
+            }
+
+            int nameX = iconX + iconSize + ICON_TEXT_GAP;
+            copy.setFont(MenuFonts.buttonFont(13f));
+            FontMetrics nameMetrics = copy.getFontMetrics();
+            int lineHeight = nameMetrics.getAscent() + nameMetrics.getDescent() + 2;
+            int totalTextHeight = nameLines.size() * lineHeight;
+            int textStartY = rect.y + (rect.height - totalTextHeight) / 2 + nameMetrics.getAscent();
+
+            Color nameColor = highlighted ? Color.WHITE : new Color(220, 220, 220);
+            for (int index = 0; index < nameLines.size(); index++) {
+                MenuPainter.drawTextWithShadow(copy, nameLines.get(index), nameX,
+                        textStartY + index * lineHeight, nameColor);
+            }
+
+            String priceText = String.valueOf(item.preco);
+            int priceTextWidth = nameMetrics.stringWidth(priceText);
+            int priceX = rect.x + rect.width - PRICE_RIGHT_MARGIN - priceTextWidth;
+            int priceIconX = priceX - PRICE_ICON_SIZE - 4;
+            int priceIconY = rect.y + (rect.height - PRICE_ICON_SIZE) / 2;
+            int priceBaselineY = rect.y + rect.height / 2 + nameMetrics.getAscent() / 2 - 2;
+
+            if (coinIcon != null) {
+                copy.drawImage(coinIcon, priceIconX, priceIconY, PRICE_ICON_SIZE, PRICE_ICON_SIZE, null);
+            }
+            MenuPainter.drawTextWithShadow(copy, priceText, priceX, priceBaselineY,
+                    new Color(255, 215, 80));
+
+            if (nameLines.size() == 1) {
+                int lineStartX = nameX + nameMetrics.stringWidth(nameLines.get(0)) + 10;
+                int lineEndX = priceIconX - 10;
+                if (lineEndX > lineStartX) {
+                    MenuPainter.drawDashedLine(copy, lineStartX, rect.y + rect.height / 2, lineEndX,
+                            new Color(255, 255, 255, 90), 1f, new float[] { 2, 4 }, 0);
+                }
+            }
+        } finally {
+            copy.dispose();
         }
     }
 }

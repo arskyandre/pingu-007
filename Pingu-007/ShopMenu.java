@@ -1,26 +1,35 @@
-import java.awt.*;
-import java.awt.event.KeyEvent;
+import java.awt.Color;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ShopMenu {
+/** Specialized shop screen that reuses menu controls without generalizing purchase rules. */
+public final class ShopMenu implements MenuScreen {
 
-    private final List<ShopItem> itens = new ArrayList<>();
-    private final List<ShopItemButton> botoes = new ArrayList<>();
+    private final List<ShopItem> items = new ArrayList<>();
+    private final List<ShopItemButton> buttons = new ArrayList<>();
+    private final List<MenuEntry> itemEntries = new ArrayList<>();
     private final SoundManager soundManager;
-    private final IconButton setaQuantidadeEsquerda;
-    private final IconButton setaQuantidadeDireita;
-    private BufferedImage coinIcon;
-    private Runnable aoFechar = null;
+    private final MenuInputBindings inputBindings = MenuInputBindings.shopMenu();
+    private final MenuController itemController;
+    private final IconButton quantityLeftButton;
+    private final IconButton quantityRightButton;
+    private final BufferedImage coinIcon;
 
+    private Runnable onClose;
     private Player player;
-    private int selecionado = 0;
-    private int quantidadeSelecionada = 1;
-    private boolean aberto = false;
+    private int selectedIndex;
+    private int selectedQuantity = 1;
+    private boolean open;
+    private String feedbackMessage;
+    private int feedbackTimer;
+    private MenuViewport lastLayoutViewport;
+    private int lastLayoutSelection = -1;
 
-    private String mensagemFeedback = null;
-    private int feedbackTimer = 0;
     private static final int FEEDBACK_DURATION = 90;
 
     private static final int BUTTON_WIDTH = 360;
@@ -40,157 +49,190 @@ public class ShopMenu {
 
     public ShopMenu(SoundManager soundManager) {
         this.soundManager = soundManager;
-        setaQuantidadeEsquerda = new IconButton(0, 0, QUANTITY_BUTTON_SIZE, IconIndex.LEFT_ARROW, false);
-        setaQuantidadeDireita = new IconButton(0, 0, QUANTITY_BUTTON_SIZE, IconIndex.RIGHT_ARROW, false);
+        quantityLeftButton = new IconButton(0, 0, QUANTITY_BUTTON_SIZE, IconIndex.LEFT_ARROW, false);
+        quantityRightButton = new IconButton(0, 0, QUANTITY_BUTTON_SIZE, IconIndex.RIGHT_ARROW, false);
+        BufferedImage loadedCoinIcon = null;
         try {
-            coinIcon = LoadSave.GetSpriteAtlas("images/hud/moedasprite.png").getSubimage(16, 0, 16, 16);
-        } catch (Exception e) {
-            System.err.println("ShopMenu: erro ao carregar moedasprite.png: " + e.getMessage());
+            loadedCoinIcon = LoadSave.GetSpriteAtlas("images/hud/moedasprite.png").getSubimage(16, 0, 16, 16);
+        } catch (Exception exception) {
+            System.err.println("ShopMenu: erro ao carregar moedasprite.png: " + exception.getMessage());
         }
+        coinIcon = loadedCoinIcon;
+
+        itemController = MenuController.linear(itemEntries, inputBindings, true)
+                .withMouseLockOnNavigation(false)
+                .withMouseLockArbitration(false)
+                .withActivationSound(false)
+                .withBackAction(() -> {
+                    fechar();
+                    return GameState.PLAYING;
+                }, true);
     }
 
     public void addItem(String nome, String descricao, BufferedImage icone, int preco,
-            Runnable aoComprar, boolean disponivel, boolean compra_unica) {
-        ShopItem item = new ShopItem(nome, descricao, icone, preco, aoComprar, disponivel, compra_unica);
-        itens.add(item);
-        botoes.add(new ShopItemButton(item, coinIcon, 0, 0, BUTTON_WIDTH, BUTTON_HEIGHT));
+            Runnable aoComprar, boolean disponivel, boolean compraUnica) {
+        ShopItem item = new ShopItem(nome, descricao, icone, preco, aoComprar, disponivel, compraUnica);
+        int itemIndex = items.size();
+        ShopItemButton button = new ShopItemButton(item, coinIcon, 0, 0,
+                BUTTON_WIDTH, BUTTON_HEIGHT);
+        items.add(item);
+        buttons.add(button);
+        itemEntries.add(MenuEntry.button(button,
+                MenuAction.stay(GameState.SHOP, () -> comprarItem(itemIndex)))
+                .enabledWhen(() -> item.disponivel));
     }
 
     public void limparItens() {
-        itens.clear();
-        botoes.clear();
-        selecionado = 0;
-        quantidadeSelecionada = 1;
+        items.clear();
+        buttons.clear();
+        itemEntries.clear();
+        selectedIndex = 0;
+        selectedQuantity = 1;
+        itemController.navigator().setFocusedIndex(0);
+        invalidateLayout();
     }
 
     public boolean isAberto() {
-        return aberto;
+        return open;
     }
 
     public void setAoFechar(Runnable callback) {
-        this.aoFechar = callback;
+        onClose = callback;
     }
 
     public void abrir(Player player) {
         this.player = player;
-        this.selecionado = 0;
-        this.quantidadeSelecionada = 1;
-        this.mensagemFeedback = null;
-        this.feedbackTimer = 0;
-        this.aberto = true;
+        selectedIndex = 0;
+        selectedQuantity = 1;
+        feedbackMessage = null;
+        feedbackTimer = 0;
+        open = true;
+        itemController.navigator().setFocusedIndex(0);
+        invalidateLayout();
         GameCore.setGameState(GameState.SHOP);
     }
 
     public void fechar() {
-        aberto = false;
+        open = false;
         GameCore.setGameState(GameState.PLAYING);
-        if (aoFechar != null) {
-            Runnable callback = aoFechar;
-            aoFechar = null;
+        if (onClose != null) {
+            Runnable callback = onClose;
+            onClose = null;
             callback.run();
         }
     }
 
+    private void invalidateLayout() {
+        lastLayoutViewport = null;
+        lastLayoutSelection = -1;
+    }
+
+    @Override
+    public void layout(MenuViewport viewport) {
+        if (viewport.equals(lastLayoutViewport) && selectedIndex == lastLayoutSelection) {
+            return;
+        }
+        repositionButtons();
+        positionQuantityButtonsForSelection(viewport);
+        lastLayoutViewport = viewport;
+        lastLayoutSelection = selectedIndex;
+    }
+
     private void repositionButtons() {
         int y = TOP_MARGIN + HEADER_GAP;
-        for (int i = 0; i < botoes.size(); i++) {
-            ShopItemButton botao = botoes.get(i);
-            botao.setPosition(LIST_MARGIN_LEFT, y);
-            y += botao.getRect().height + BUTTON_GAP;
+        for (ShopItemButton button : buttons) {
+            button.setPosition(LIST_MARGIN_LEFT, y);
+            y += button.getBoundsCopy().height + BUTTON_GAP;
         }
     }
 
-    public void update(InputManager input, int telaLargura, int telaAltura) {
-        if (!aberto) {
+    private void positionQuantityButtonsForSelection(MenuViewport viewport) {
+        if (items.isEmpty() || selectedIndex < 0 || selectedIndex >= items.size()
+                || items.get(selectedIndex).compra_unica) {
             return;
         }
+        positionQuantityButtonsForItem(viewport.width(), items.get(selectedIndex));
+    }
 
-        repositionButtons();
+    @Override
+    public GameState update(MenuContext context) {
+        if (!open) {
+            return GameState.SHOP;
+        }
+        layout(context.viewport());
         garantirSelecaoDisponivel(1);
 
         if (feedbackTimer > 0) {
             feedbackTimer--;
         }
 
-        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE) || input.isButtonJustPressed(InputManager.GamepadButton.B)
-                || input.isButtonJustPressed(InputManager.GamepadButton.START)) {
-            soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
-            fechar();
-            return;
+        GameState controllerResult = itemController.update(context, GameState.SHOP);
+        sincronizarSelecaoDoNavegador();
+        if (controllerResult != GameState.SHOP) {
+            return controllerResult;
         }
 
-        if (botoes.isEmpty()) {
-            return;
+        if (items.isEmpty()) {
+            return GameState.SHOP;
         }
 
-        if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP) || input.isKeyJustPressed(KeyEvent.VK_W)
-                || input.isKeyJustPressed(KeyEvent.VK_UP)) {
-            moverSelecao(-1);
-        } else if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN)
-                || input.isKeyJustPressed(KeyEvent.VK_S) || input.isKeyJustPressed(KeyEvent.VK_DOWN)) {
-            moverSelecao(1);
-        }
-
-        for (int i = 0; i < botoes.size(); i++) {
-            int resultado = botoes.get(i).update(input);
-            if (botoes.get(i).isHovered()) {
-                if (selecionado != i) {
-                    quantidadeSelecionada = 1;
-                }
-                selecionado = i;
-            }
-            if (resultado == MenuButton.CLICKED) {
-                comprarItem(i);
-            }
-        }
-
-        ShopItem itemSelecionado = itens.get(selecionado);
         garantirSelecaoDisponivel(1);
-        itemSelecionado = itens.get(selecionado);
-        ajustarQuantidadeAoLimite(itemSelecionado);
-        if (!itemSelecionado.compra_unica) {
-            repositionQuantityButtons(telaLargura, itemSelecionado);
+        ShopItem selectedItem = items.get(selectedIndex);
+        ajustarQuantidadeAoLimite(selectedItem);
+        positionQuantityButtonsForItem(context.viewport().width(), selectedItem);
 
-            if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_LEFT)
-                    || input.isKeyJustPressed(KeyEvent.VK_A) || input.isKeyJustPressed(KeyEvent.VK_LEFT)) {
-                alterarQuantidade(-1, itemSelecionado);
+        if (!selectedItem.compra_unica) {
+            if (inputBindings.isJustPressed(MenuInputIntent.LEFT, context.input())) {
+                alterarQuantidade(-1, selectedItem);
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             }
-            if (input.isButtonJustPressed(InputManager.GamepadButton.DPAD_RIGHT)
-                    || input.isKeyJustPressed(KeyEvent.VK_D) || input.isKeyJustPressed(KeyEvent.VK_RIGHT)) {
-                alterarQuantidade(1, itemSelecionado);
+            if (inputBindings.isJustPressed(MenuInputIntent.RIGHT, context.input())) {
+                alterarQuantidade(1, selectedItem);
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             }
-            if (setaQuantidadeEsquerda.update(input) == MenuButton.CLICKED) {
-                alterarQuantidade(-1, itemSelecionado);
+            if (quantityLeftButton.updatePointer(context.input()) == MenuInteraction.CLICKED) {
+                alterarQuantidade(-1, selectedItem);
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             }
-            if (setaQuantidadeDireita.update(input) == MenuButton.CLICKED) {
-                alterarQuantidade(1, itemSelecionado);
+            if (quantityRightButton.updatePointer(context.input()) == MenuInteraction.CLICKED) {
+                alterarQuantidade(1, selectedItem);
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             }
         }
+        return GameState.SHOP;
+    }
 
-        if (input.isButtonJustPressed(InputManager.GamepadButton.A) || input.isKeyJustPressed(KeyEvent.VK_ENTER)
-                || input.isKeyJustPressed(KeyEvent.VK_SPACE)) {
-            comprarItem(selecionado);
+    private void sincronizarSelecaoDoNavegador() {
+        int focusedIndex = itemController.navigator().focusedIndex();
+        if (focusedIndex >= 0 && focusedIndex < items.size() && focusedIndex != selectedIndex) {
+            selectedIndex = focusedIndex;
+            selectedQuantity = 1;
+            lastLayoutSelection = -1;
+        }
+        sincronizarSelecaoVisual();
+    }
+
+    private void sincronizarSelecaoVisual() {
+        for (int index = 0; index < buttons.size(); index++) {
+            buttons.get(index).setSelected(index == selectedIndex);
         }
     }
 
     private void comprarItem(int index) {
-        ShopItem item = itens.get(index);
+        ShopItem item = items.get(index);
         if (!item.disponivel) {
-            mensagemFeedback = "Item já adquirido!";
+            feedbackMessage = "Item já adquirido!";
             feedbackTimer = FEEDBACK_DURATION;
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             return;
         }
-        int quantidade = item.compra_unica ? 1 : quantidadeSelecionada;
-        long total = (long) item.preco * quantidade;
+
+        int quantity = item.compra_unica ? 1 : selectedQuantity;
+        long total = (long) item.preco * quantity;
         if (player.getMoedas() >= total) {
             player.addMoedas(-(int) total);
             if (item.aoComprar != null) {
-                for (int i = 0; i < quantidade; i++) {
+                for (int indexInPurchase = 0; indexInPurchase < quantity; indexInPurchase++) {
                     item.aoComprar.run();
                 }
             }
@@ -199,142 +241,136 @@ public class ShopMenu {
             }
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             soundManager.playSFX(SoundManager.SFX.NOOT_NOOT);
-            mensagemFeedback = "Comprou: " + item.nome
-                    + (quantidade > 1 ? " x" + quantidade : "") + "!";
+            feedbackMessage = "Comprou: " + item.nome
+                    + (quantity > 1 ? " x" + quantity : "") + "!";
             garantirSelecaoDisponivel(1);
             ajustarQuantidadeAoLimite(item);
         } else {
             soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
-            mensagemFeedback = "Moedas insuficientes!";
+            feedbackMessage = "Moedas insuficientes!";
         }
         feedbackTimer = FEEDBACK_DURATION;
     }
 
-    public void render(Graphics2D g2, int telaLargura, int telaAltura) {
-        if (!aberto) {
+    @Override
+    public void render(Graphics2D graphics, MenuViewport viewport) {
+        if (!open) {
             return;
         }
+        layout(viewport);
+        sincronizarSelecaoVisual();
 
-        repositionButtons();
+        Graphics2D copy = (Graphics2D) graphics.create();
+        try {
+            copy.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                    RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+            copy.setColor(new Color(0, 0, 0, 190));
+            copy.fillRect(0, 0, viewport.width(), viewport.height());
 
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-                RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
-
-        g2.setColor(new Color(0, 0, 0, 190));
-        g2.fillRect(0, 0, telaLargura, telaAltura);
-
-        drawListHeader(g2);
-        drawItemList(g2);
-        drawDetailPanel(g2, telaLargura, telaAltura);
-        drawFeedback(g2, telaLargura, telaAltura);
-        drawControlsHint(g2, telaLargura, telaAltura);
-
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-                RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT);
+            drawListHeader(copy);
+            drawItemList(copy);
+            drawDetailPanel(copy, viewport.width(), viewport.height());
+            drawFeedback(copy, viewport.width(), viewport.height());
+            drawControlsHint(copy, viewport.width(), viewport.height());
+            copy.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                    RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT);
+        } finally {
+            copy.dispose();
+        }
     }
 
-    private void drawTextWithShadow(Graphics2D g2, String texto, int x, int y, Color cor) {
-        g2.setColor(new Color(0, 0, 0, 160));
-        g2.drawString(texto, x + 2, y + 2);
-        g2.setColor(cor);
-        g2.drawString(texto, x, y);
+    private void drawTextWithShadow(Graphics2D graphics, String text, int x, int y, Color color) {
+        MenuPainter.drawTextWithShadow(graphics, text, x, y, color,
+                new Color(0, 0, 0, 160), 2, 2);
     }
 
-    private void drawListHeader(Graphics2D g2) {
-        g2.setFont(MenuButton.pixelFont.deriveFont(11f));
-        String itensLabel = "ITENS";
-        String precoLabel = "PREÇO";
-        FontMetrics fm = g2.getFontMetrics();
+    private void drawListHeader(Graphics2D graphics) {
+        graphics.setFont(MenuFonts.buttonFont(11f));
+        String itemsLabel = "ITENS";
+        String priceLabel = "PREÇO";
+        FontMetrics metrics = graphics.getFontMetrics();
 
         int headerY = TOP_MARGIN;
-        drawTextWithShadow(g2, itensLabel, LIST_MARGIN_LEFT, headerY, new Color(220, 220, 220, 200));
+        drawTextWithShadow(graphics, itemsLabel, LIST_MARGIN_LEFT, headerY, new Color(220, 220, 220, 200));
 
-        int precoLabelX = LIST_MARGIN_LEFT + BUTTON_WIDTH - fm.stringWidth(precoLabel);
-        drawTextWithShadow(g2, precoLabel, precoLabelX, headerY, new Color(220, 220, 220, 200));
+        int priceLabelX = LIST_MARGIN_LEFT + BUTTON_WIDTH - metrics.stringWidth(priceLabel);
+        drawTextWithShadow(graphics, priceLabel, priceLabelX, headerY, new Color(220, 220, 220, 200));
 
         int lineY = headerY + 6;
-        int lineStartX = LIST_MARGIN_LEFT + fm.stringWidth(itensLabel) + 10;
-        int lineEndX = precoLabelX - 10;
-        g2.setColor(new Color(255, 255, 255, 90));
-        g2.drawLine(lineStartX, lineY, lineEndX, lineY);
+        int lineStartX = LIST_MARGIN_LEFT + metrics.stringWidth(itemsLabel) + 10;
+        int lineEndX = priceLabelX - 10;
+        graphics.setColor(new Color(255, 255, 255, 90));
+        graphics.drawLine(lineStartX, lineY, lineEndX, lineY);
     }
 
-    private void drawItemList(Graphics2D g2) {
-        for (int i = 0; i < botoes.size(); i++) {
-            botoes.get(i).setSelecionado(i == selecionado);
-            botoes.get(i).draw(g2);
+    private void drawItemList(Graphics2D graphics) {
+        for (ShopItemButton button : buttons) {
+            button.render(graphics);
         }
     }
 
-    private void drawDetailPanel(Graphics2D g2, int telaLargura, int telaAltura) {
+    private void drawDetailPanel(Graphics2D graphics, int screenWidth, int screenHeight) {
         int listRightEdge = LIST_MARGIN_LEFT + BUTTON_WIDTH;
         int panelX = listRightEdge + PANEL_GAP;
-        int panelWidth = Math.max(200, telaLargura - panelX - 60);
+        int panelWidth = Math.max(200, screenWidth - panelX - 60);
 
-        if (itens.isEmpty()) {
-            g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 14f));
-            String vazio = "Nenhum item disponível.";
-            drawTextWithShadow(g2, vazio, panelX, TOP_MARGIN + HEADER_GAP + BUTTON_HEIGHT / 2, Color.LIGHT_GRAY);
+        if (items.isEmpty()) {
+            graphics.setFont(MenuFonts.gameTextFont(14f));
+            drawTextWithShadow(graphics, "Nenhum item disponível.", panelX,
+                    TOP_MARGIN + HEADER_GAP + BUTTON_HEIGHT / 2, Color.LIGHT_GRAY);
             return;
         }
 
-        ShopItem item = itens.get(selecionado);
+        ShopItem item = items.get(selectedIndex);
         int y = TOP_MARGIN + HEADER_GAP;
 
-        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 22f));
-        FontMetrics fmVal = g2.getFontMetrics();
+        graphics.setFont(MenuFonts.gameTextFont(22f));
+        FontMetrics valueMetrics = graphics.getFontMetrics();
         int iconSize = 22;
-
         if (coinIcon != null) {
-            g2.drawImage(coinIcon, panelX, y - iconSize + 4, iconSize, iconSize, null);
+            graphics.drawImage(coinIcon, panelX, y - iconSize + 4, iconSize, iconSize, null);
         }
-        String precoTexto = String.valueOf(item.preco);
+        String priceText = String.valueOf(item.preco);
         int textX = panelX + iconSize + 8;
-        drawTextWithShadow(g2, precoTexto, textX, y, Color.WHITE);
+        drawTextWithShadow(graphics, priceText, textX, y, Color.WHITE);
 
-        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 11f));
-        String labelPreco = "Preço";
-        FontMetrics fmLabel = g2.getFontMetrics();
-        int labelX = panelX + panelWidth - fmLabel.stringWidth(labelPreco);
-        drawTextWithShadow(g2, labelPreco, labelX, y, new Color(210, 210, 210, 170));
+        graphics.setFont(MenuFonts.gameTextFont(11f));
+        String priceLabel = "Preço";
+        FontMetrics labelMetrics = graphics.getFontMetrics();
+        int labelX = panelX + panelWidth - labelMetrics.stringWidth(priceLabel);
+        drawTextWithShadow(graphics, priceLabel, labelX, y, new Color(210, 210, 210, 170));
 
-        int dashStartX = textX + fmVal.stringWidth(precoTexto) + 14;
+        int dashStartX = textX + valueMetrics.stringWidth(priceText) + 14;
         int dashEndX = labelX - 14;
         if (dashEndX > dashStartX) {
-            drawDashedLine(g2, dashStartX, y - fmVal.getAscent() / 2, dashEndX);
+            drawDashedLine(graphics, dashStartX, y - valueMetrics.getAscent() / 2, dashEndX);
         }
 
         y += 50;
-
-        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 26f));
-        FontMetrics fmNome = g2.getFontMetrics();
+        graphics.setFont(MenuFonts.gameTextFont(26f));
+        FontMetrics nameMetrics = graphics.getFontMetrics();
         int nameX = panelX;
-
         if (item.icone != null && item.icone != GameCore.missing_image) {
             int iconX = panelX;
-            int textCenterY = y - (fmNome.getAscent() - fmNome.getDescent()) / 2;
+            int textCenterY = y - (nameMetrics.getAscent() - nameMetrics.getDescent()) / 2;
             int iconY = textCenterY - DETAIL_ITEM_ICON_SIZE / 2;
-
-            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+            graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-            Color old = g2.getColor();
-            g2.setColor(new Color(0, 0, 0, 72));
-            g2.fillRoundRect(iconX, iconY, DETAIL_ITEM_ICON_SIZE, DETAIL_ITEM_ICON_SIZE, 6, 6);
-            g2.setColor(old);
-            g2.drawImage(item.icone, iconX, iconY,
-                    DETAIL_ITEM_ICON_SIZE, DETAIL_ITEM_ICON_SIZE, null);
+            graphics.setColor(new Color(0, 0, 0, 72));
+            graphics.fillRoundRect(iconX, iconY, DETAIL_ITEM_ICON_SIZE, DETAIL_ITEM_ICON_SIZE, 6, 6);
+            graphics.drawImage(item.icone, iconX, iconY, DETAIL_ITEM_ICON_SIZE, DETAIL_ITEM_ICON_SIZE, null);
             nameX += DETAIL_ITEM_ICON_SIZE + DETAIL_ITEM_ICON_GAP;
         }
 
-        drawTextWithShadow(g2, item.nome, nameX, y, Color.WHITE);
+        drawTextWithShadow(graphics, item.nome, nameX, y, Color.WHITE);
         y += 40;
 
-        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 12f));
-        FontMetrics fmDesc = g2.getFontMetrics();
-        List<String> linhas = wrapTextComQuebras(fmDesc, item.descricao, panelWidth);
-        int lineHeight = fmDesc.getHeight() + 6;
-        for (String linha : linhas) {
-            drawTextWithShadow(g2, linha, panelX, y, new Color(220, 220, 220));
+        graphics.setFont(MenuFonts.gameTextFont(12f));
+        FontMetrics descriptionMetrics = graphics.getFontMetrics();
+        List<String> lines = MenuPainter.wrapWordsWithEndl(descriptionMetrics, item.descricao, panelWidth);
+        int lineHeight = descriptionMetrics.getHeight() + 6;
+        for (String line : lines) {
+            drawTextWithShadow(graphics, line, panelX, y, new Color(220, 220, 220));
             y += lineHeight;
         }
 
@@ -343,228 +379,146 @@ public class ShopMenu {
             ajustarQuantidadeAoLimite(item);
             int selectorY = y + QUANTITY_TOP_GAP;
             positionQuantityButtons(panelX, panelWidth, selectorY);
-            drawQuantitySelector(g2, item);
+            drawQuantitySelector(graphics, item);
             totalY = selectorY + QUANTITY_BUTTON_SIZE + TOTAL_TOP_GAP;
         } else {
             totalY = y + QUANTITY_TOP_GAP;
         }
-
-        drawTotal(g2, item, panelX, panelWidth, totalY);
+        drawTotal(graphics, item, panelX, panelWidth, totalY);
     }
 
-    private void repositionQuantityButtons(int telaLargura, ShopItem item) {
+    private void positionQuantityButtonsForItem(int screenWidth, ShopItem item) {
         int listRightEdge = LIST_MARGIN_LEFT + BUTTON_WIDTH;
         int panelX = listRightEdge + PANEL_GAP;
-        int panelWidth = Math.max(200, telaLargura - panelX - 60);
+        int panelWidth = Math.max(200, screenWidth - panelX - 60);
 
         BufferedImage dummy = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = dummy.createGraphics();
-        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 12f));
-        FontMetrics fmDesc = g2.getFontMetrics();
-        int quantidadeLinhas = wrapTextComQuebras(fmDesc, item.descricao, panelWidth).size();
-        int lineHeight = fmDesc.getHeight() + 6;
-        g2.dispose();
-
-        int descriptionY = TOP_MARGIN + HEADER_GAP + 50 + 40;
-        int selectorY = descriptionY + quantidadeLinhas * lineHeight + QUANTITY_TOP_GAP;
-        positionQuantityButtons(panelX, panelWidth, selectorY);
+        Graphics2D graphics = dummy.createGraphics();
+        try {
+            graphics.setFont(MenuFonts.gameTextFont(12f));
+            FontMetrics metrics = graphics.getFontMetrics();
+            int descriptionLines = MenuPainter.wrapWordsWithEndl(metrics, item.descricao, panelWidth).size();
+            int lineHeight = metrics.getHeight() + 6;
+            int descriptionY = TOP_MARGIN + HEADER_GAP + 50 + 40;
+            int selectorY = descriptionY + descriptionLines * lineHeight + QUANTITY_TOP_GAP;
+            positionQuantityButtons(panelX, panelWidth, selectorY);
+        } finally {
+            graphics.dispose();
+        }
     }
 
     private void positionQuantityButtons(int panelX, int panelWidth, int y) {
         int centerX = panelX + panelWidth / 2;
-        setaQuantidadeEsquerda.setPosition(
-                centerX - QUANTITY_NUMBER_HALF_GAP - QUANTITY_BUTTON_SIZE, y);
-        setaQuantidadeDireita.setPosition(centerX + QUANTITY_NUMBER_HALF_GAP, y);
+        quantityLeftButton.setPosition(centerX - QUANTITY_NUMBER_HALF_GAP - QUANTITY_BUTTON_SIZE, y);
+        quantityRightButton.setPosition(centerX + QUANTITY_NUMBER_HALF_GAP, y);
     }
 
-    private void drawQuantitySelector(Graphics2D g2, ShopItem item) {
-        setaQuantidadeEsquerda.draw(g2);
-        setaQuantidadeDireita.draw(g2);
+    private void drawQuantitySelector(Graphics2D graphics, ShopItem item) {
+        quantityLeftButton.render(graphics);
+        quantityRightButton.render(graphics);
 
         String label = "Quantidade:";
-        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 12f));
-        FontMetrics fmLabel = g2.getFontMetrics();
-        int labelX = setaQuantidadeEsquerda.getRect().x - QUANTITY_LABEL_GAP - fmLabel.stringWidth(label);
-        int labelY = setaQuantidadeEsquerda.getRect().y
-                + (setaQuantidadeEsquerda.getRect().height - fmLabel.getHeight()) / 2
-                + fmLabel.getAscent();
-        drawTextWithShadow(g2, label, labelX, labelY, new Color(220, 220, 220));
+        graphics.setFont(MenuFonts.gameTextFont(12f));
+        FontMetrics labelMetrics = graphics.getFontMetrics();
+        Rectangle leftBounds = quantityLeftButton.getBoundsCopy();
+        int labelX = leftBounds.x - QUANTITY_LABEL_GAP - labelMetrics.stringWidth(label);
+        int labelY = leftBounds.y + (leftBounds.height - labelMetrics.getHeight()) / 2
+                + labelMetrics.getAscent();
+        drawTextWithShadow(graphics, label, labelX, labelY, new Color(220, 220, 220));
 
-        String texto = String.valueOf(quantidadeSelecionada);
-        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 15f));
-        FontMetrics fm = g2.getFontMetrics();
-        int centerX = (setaQuantidadeEsquerda.getRect().x + setaQuantidadeEsquerda.getRect().width
-                + setaQuantidadeDireita.getRect().x) / 2;
-        int x = centerX - fm.stringWidth(texto) / 2;
-        int y = setaQuantidadeEsquerda.getRect().y
-                + (setaQuantidadeEsquerda.getRect().height - fm.getHeight()) / 2
-                + fm.getAscent();
-
-        drawTextWithShadow(g2, texto, x, y,
+        String quantityText = String.valueOf(selectedQuantity);
+        graphics.setFont(MenuFonts.gameTextFont(15f));
+        FontMetrics quantityMetrics = graphics.getFontMetrics();
+        Rectangle rightBounds = quantityRightButton.getBoundsCopy();
+        int centerX = (leftBounds.x + leftBounds.width + rightBounds.x) / 2;
+        int x = centerX - quantityMetrics.stringWidth(quantityText) / 2;
+        int y = leftBounds.y + (leftBounds.height - quantityMetrics.getHeight()) / 2
+                + quantityMetrics.getAscent();
+        drawTextWithShadow(graphics, quantityText, x, y,
                 podeComprar(item) ? new Color(255, 215, 80) : new Color(220, 90, 90));
     }
 
-    private void alterarQuantidade(int direcao, ShopItem item) {
-        int limite = getLimiteQuantidade(item);
-        if (limite <= 1) {
-            quantidadeSelecionada = 1;
-        } else if (direcao < 0) {
-            quantidadeSelecionada = quantidadeSelecionada == 1
-                    ? limite
-                    : quantidadeSelecionada - 1;
+    private void alterarQuantidade(int direction, ShopItem item) {
+        int limit = getLimiteQuantidade(item);
+        if (limit <= 1) {
+            selectedQuantity = 1;
+        } else if (direction < 0) {
+            selectedQuantity = selectedQuantity == 1 ? limit : selectedQuantity - 1;
         } else {
-            quantidadeSelecionada = quantidadeSelecionada == limite
-                    ? 1
-                    : quantidadeSelecionada + 1;
+            selectedQuantity = selectedQuantity == limit ? 1 : selectedQuantity + 1;
         }
     }
 
     private void ajustarQuantidadeAoLimite(ShopItem item) {
         if (item.compra_unica) {
-            quantidadeSelecionada = 1;
+            selectedQuantity = 1;
             return;
         }
-        quantidadeSelecionada = Math.max(1,
-                Math.min(quantidadeSelecionada, getLimiteQuantidade(item)));
+        selectedQuantity = Math.max(1, Math.min(selectedQuantity, getLimiteQuantidade(item)));
     }
 
     private int getLimiteQuantidade(ShopItem item) {
         if (player == null || item.preco <= 0) {
             return 1;
         }
-        long moedas = Math.max(0, player.getMoedas());
-        long quantidadeCompravel = moedas / item.preco;
-        long proximaDezena = ((quantidadeCompravel + 9) / 10) * 10;
-        proximaDezena = Math.max(10, proximaDezena);
-        return (int) Math.min(Integer.MAX_VALUE, proximaDezena);
+        long coins = Math.max(0, player.getMoedas());
+        long affordableQuantity = coins / item.preco;
+        long nextTen = ((affordableQuantity + 9) / 10) * 10;
+        nextTen = Math.max(10, nextTen);
+        return (int) Math.min(Integer.MAX_VALUE, nextTen);
     }
 
     private long getTotal(ShopItem item) {
-        int quantidade = item.compra_unica ? 1 : quantidadeSelecionada;
-        return (long) item.preco * quantidade;
+        int quantity = item.compra_unica ? 1 : selectedQuantity;
+        return (long) item.preco * quantity;
     }
 
     private boolean podeComprar(ShopItem item) {
         return player != null && player.getMoedas() >= getTotal(item);
     }
 
-    private List<String> wrapTextComQuebras(FontMetrics fm, String texto, int maxWidth) {
-        List<String> linhas = new ArrayList<>();
-        String[] partes = texto.split("\\s*\\bENDL\\b\\s*");
-        for (String parte : partes) {
-            linhas.addAll(wrapText(fm, parte, maxWidth));
-        }
-        return linhas;
-    }
-
-    private void drawTotal(Graphics2D g2, ShopItem item, int panelX, int panelWidth, int topY) {
-        String texto = "Total: " + getTotal(item) + " moedas";
-        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 15f));
-        FontMetrics fm = g2.getFontMetrics();
-        int x = panelX + (panelWidth - fm.stringWidth(texto)) / 2;
-        int y = topY + fm.getAscent();
-
-        drawTextWithShadow(g2, texto, x, y,
+    private void drawTotal(Graphics2D graphics, ShopItem item, int panelX, int panelWidth, int topY) {
+        String text = "Total: " + getTotal(item) + " moedas";
+        graphics.setFont(MenuFonts.gameTextFont(15f));
+        FontMetrics metrics = graphics.getFontMetrics();
+        int x = panelX + (panelWidth - metrics.stringWidth(text)) / 2;
+        int y = topY + metrics.getAscent();
+        drawTextWithShadow(graphics, text, x, y,
                 podeComprar(item) ? new Color(255, 215, 80) : new Color(220, 90, 90));
     }
 
-    private void drawFeedback(Graphics2D g2, int telaLargura, int telaAltura) {
-        if (mensagemFeedback == null || feedbackTimer <= 0) {
+    private void drawFeedback(Graphics2D graphics, int screenWidth, int screenHeight) {
+        if (feedbackMessage == null || feedbackTimer <= 0) {
             return;
         }
-        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 12f));
-        FontMetrics fm = g2.getFontMetrics();
-        int x = (telaLargura - fm.stringWidth(mensagemFeedback)) / 2;
-        int y = telaAltura - 90;
-
-        drawTextWithShadow(g2, mensagemFeedback, x, y, new Color(150, 230, 150));
+        graphics.setFont(MenuFonts.gameTextFont(12f));
+        FontMetrics metrics = graphics.getFontMetrics();
+        int x = (screenWidth - metrics.stringWidth(feedbackMessage)) / 2;
+        int y = screenHeight - 90;
+        drawTextWithShadow(graphics, feedbackMessage, x, y, new Color(150, 230, 150));
     }
 
-    private void drawControlsHint(Graphics2D g2, int telaLargura, int telaAltura) {
-        g2.setFont(GameCore.pixelFont.deriveFont(Font.PLAIN, 10f));
-        String texto = "[DPAD] Navegar  [A] Comprar  [ESC/B/START] Sair";
-        FontMetrics fm = g2.getFontMetrics();
-        int x = (telaLargura - fm.stringWidth(texto)) / 2;
-        int y = telaAltura - 30;
-
-        drawTextWithShadow(g2, texto, x, y, new Color(200, 200, 200));
+    private void drawControlsHint(Graphics2D graphics, int screenWidth, int screenHeight) {
+        graphics.setFont(MenuFonts.gameTextFont(10f));
+        String text = "[DPAD] Navegar  [A] Comprar  [ESC/B/START] Sair";
+        FontMetrics metrics = graphics.getFontMetrics();
+        int x = (screenWidth - metrics.stringWidth(text)) / 2;
+        int y = screenHeight - 30;
+        drawTextWithShadow(graphics, text, x, y, new Color(200, 200, 200));
     }
 
-    private void drawDashedLine(Graphics2D g2, int x1, int y, int x2) {
-        Stroke old = g2.getStroke();
-        g2.setStroke(new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] { 2, 4 }, 0));
-        g2.setColor(new Color(255, 255, 255, 90));
-        g2.drawLine(x1, y, x2, y);
-        g2.setStroke(old);
+    private void drawDashedLine(Graphics2D graphics, int x1, int y, int x2) {
+        MenuPainter.drawDashedLine(graphics, x1, y, x2,
+                new Color(255, 255, 255, 90), 1f, new float[] { 2, 4 }, 0);
     }
 
-    private List<String> wrapText(FontMetrics fm, String texto, int maxWidth) {
-        String[] palavras = texto.split(" ");
-        List<String> linhas = new ArrayList<>();
-        StringBuilder atual = new StringBuilder();
-        for (String palavra : palavras) {
-            String teste = atual.isEmpty() ? palavra : atual + " " + palavra;
-            if (fm.stringWidth(teste) <= maxWidth) {
-                atual = new StringBuilder(teste);
-            } else {
-                if (!atual.isEmpty())
-                    linhas.add(atual.toString());
-                atual = new StringBuilder(palavra);
-            }
-        }
-        if (!atual.isEmpty())
-            linhas.add(atual.toString());
-        return linhas;
-    }
-
-    private void moverSelecao(int direcao) {
-        if (itens.isEmpty()) {
+    private void garantirSelecaoDisponivel(int preferredDirection) {
+        if (items.isEmpty()) {
+            selectedIndex = 0;
+            selectedQuantity = 1;
             return;
         }
-
-        int proximo = buscarProximoSelecionavel(selecionado, direcao);
-        if (proximo == -1 || proximo == selecionado) {
-            return;
-        }
-
-        selecionado = proximo;
-        quantidadeSelecionada = 1;
-    }
-
-    private void garantirSelecaoDisponivel(int direcaoPreferida) {
-        if (itens.isEmpty()) {
-            selecionado = 0;
-            quantidadeSelecionada = 1;
-            return;
-        }
-
-        if (selecionado >= 0 && selecionado < itens.size() && itens.get(selecionado).disponivel) {
-            return;
-        }
-
-        int novoIndice = buscarProximoSelecionavel(selecionado, direcaoPreferida);
-        if (novoIndice != -1) {
-            selecionado = novoIndice;
-            quantidadeSelecionada = 1;
-        }
-    }
-
-    private int buscarProximoSelecionavel(int indiceInicial, int direcao) {
-        if (itens.isEmpty()) {
-            return -1;
-        }
-
-        int tamanho = itens.size();
-        int passo = direcao >= 0 ? 1 : -1;
-        int indice = indiceInicial;
-
-        for (int i = 0; i < tamanho; i++) {
-            indice = (indice + passo + tamanho) % tamanho;
-            if (itens.get(indice).disponivel) {
-                return indice;
-            }
-        }
-
-        return -1;
+        itemController.navigator().ensureFocusedEntry(preferredDirection);
+        sincronizarSelecaoDoNavegador();
     }
 }

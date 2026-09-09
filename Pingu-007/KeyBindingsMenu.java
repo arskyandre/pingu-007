@@ -1,162 +1,71 @@
-import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.io.File;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.util.List;
 
-public class KeyBindingsMenu {
+/** Static help screen with its Back action represented by a one-entry controller. */
+public final class KeyBindingsMenu extends AbstractMenuScreen {
 
-    private final SoundManager soundManager;
+    private static final int BUTTON_WIDTH = 160;
+    private static final int BUTTON_HEIGHT = 46;
+
+    private static final List<String> HELP_ROWS = List.of(
+            "ANDAR: WASD",
+            "ATIRAR: BOTÃO ESQUERDO DO MOUSE",
+            "RECARREGAR: R",
+            "INTERAGIR/FORÇA(PESCA): E",
+            "LANÇAR LINHA DE PESCA: BOTÃO DIREITO DO MOUSE",
+            "ALTERNAR ARMAS: G");
+
+    private final MenuButton backButton = new MenuButton("VOLTAR", 0, 0, BUTTON_WIDTH, BUTTON_HEIGHT);
+    private final List<MenuEntry> entries;
+    private final MenuController controller;
+    private final Font pixelFont = MenuFonts.titleFont(24f);
     private GameState returnTo = GameState.OPTIONS;
 
-    private static final int BTN_SIZE = 36;
-    private static final int BTN_GAP = 10;
-
-    private final MenuButton backBtn;
-
-    private Font pixelFont;
-    private Font pixelFontSmall;
-    private Font pixelFontTiny;
-
-    public KeyBindingsMenu(SoundManager soundManager) {
-        this.soundManager = soundManager;
-
-        backBtn = new MenuButton("VOLTAR", 0, 0, 160, 46);
-
-        try {
-            Font base = Font.createFont(Font.TRUETYPE_FONT, new File("font/PressStart2P-Regular.ttf"));
-            pixelFont = base.deriveFont(Font.PLAIN, 24f);
-            pixelFontSmall = base.deriveFont(Font.PLAIN, 11f);
-            pixelFontTiny = base.deriveFont(Font.PLAIN, 9f);
-        } catch (Exception e) {
-            System.err.println("Font not found, falling back");
-            pixelFont = new Font("Monospaced", Font.BOLD, 24);
-            pixelFontSmall = new Font("Monospaced", Font.BOLD, 11);
-            pixelFontTiny = new Font("Monospaced", Font.PLAIN, 9);
-        }
+    public KeyBindingsMenu(SoundManager ignoredSoundManager) {
+        MenuAction returnAction = MenuAction.returnTo(() -> returnTo);
+        entries = List.of(MenuEntry.button(backButton, returnAction));
+        controller = MenuController.linear(entries, MenuInputBindings.keyBindingsMenu(), true)
+                .withBackAction(returnAction, false)
+                .withMouseLockOnConfirm(true)
+                .withConfirmBeforePointerActivation(false);
     }
 
-    public void setReturnState(GameState state) {
-        this.returnTo = state;
+    public void onEnter(GameState returnState) {
+        returnTo = returnState;
     }
 
-    public void repositionElements(int width, int height) {
-        backBtn.setPosition((width - 160) / 2, height * 3 / 4 + 76);
+    @Override
+    protected void layoutContent(MenuViewport viewport) {
+        backButton.setPosition((viewport.width() - BUTTON_WIDTH) / 2,
+                viewport.height() * 3 / 4 + 76);
     }
 
-    public GameState update(InputManager input, int width, int height) {
-        repositionElements(width, height);
-
-        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE)
-                || input.isButtonJustPressed(InputManager.GamepadButton.B))
-            return returnTo;
-
-        boolean controleAcionado = input.isButtonJustPressed(InputManager.GamepadButton.A)
-                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP)
-                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN)
-                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_LEFT)
-                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_RIGHT);
-
-        if (controleAcionado) {
-            input.iniciarBloqueioMouse();
-        }
-
-        boolean mouseAceito = !input.isMouseBloqueado();
-        boolean controleAtivo = input.isControllerActive();
-
-        if (mouseAceito && backBtn.update(input) == MenuButton.CLICKED) {
-            soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
-            return returnTo;
-        }
-
-        if (!mouseAceito) {
-            backBtn.hovered = false;
-        }
-
-        if ((controleAtivo || input.isMouseBloqueado())
-                && (!mouseAceito || !backBtn.isHovered())) {
-            backBtn.hovered = true;
-
-            if (input.isButtonJustPressed(InputManager.GamepadButton.A)) {
-                soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
-                return returnTo;
-            }
-        }
-
-        return GameState.KEYBINDINGS;
+    @Override
+    protected GameState updateScreen(MenuContext context) {
+        return controller.update(context, GameState.KEYBINDINGS);
     }
 
-    public void render(Graphics2D g2, int width, int height) {
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-                RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+    @Override
+    protected void drawScreen(Graphics2D graphics, MenuViewport viewport) {
+        graphics.setColor(new Color(10, 10, 10));
+        graphics.fillRect(0, 0, viewport.width(), viewport.height());
 
-        g2.setColor(new Color(10, 10, 10));
-        g2.fillRect(0, 0, width, height);
+        MenuPainter.drawCenteredTextInWidth(graphics, "TECLAS DE AÇÃO", pixelFont, viewport.width(), viewport.height() / 8,
+                Color.WHITE, new Color(0, 0, 0, 180), 2, 2);
 
-        // title
-        g2.setFont(pixelFont);
-        String title = "TECLAS DE AÇÃO";
-        int tw = g2.getFontMetrics().stringWidth(title);
-        g2.setColor(new Color(0, 0, 0, 180));
-        g2.drawString(title, (width - tw) / 2 + 2, height / 8 + 2);
-        g2.setColor(Color.WHITE);
-        g2.drawString(title, (width - tw) / 2, height / 8);
-        g2.setFont(pixelFont);
+        int textY = viewport.height() / 8 + 64;
+        for (String row : HELP_ROWS) {
+            MenuPainter.drawCenteredTextInWidth(graphics, row, pixelFont, viewport.width(), textY,
+                    Color.WHITE, new Color(0, 0, 0, 180), 2, 2);
+            textY += 32;
+        }
 
-        int textY = height / 8 + 64;
-        g2.setFont(pixelFont.deriveFont(Font.PLAIN, 24f));
-        title = "ANDAR: WASD";
-        tw = g2.getFontMetrics().stringWidth(title);
-        g2.setColor(new Color(0, 0, 0, 180));
-        g2.drawString(title, (width - tw) / 2 + 2, textY + 2);
-        g2.setColor(Color.WHITE);
-        g2.drawString(title, (width - tw) / 2, textY);
-        g2.setFont(pixelFont);
-
-        textY += 32;
-        title = "ATIRAR: BOTÃO ESQUERDO DO MOUSE";
-        tw = g2.getFontMetrics().stringWidth(title);
-        g2.setColor(new Color(0, 0, 0, 180));
-        g2.drawString(title, (width - tw) / 2 + 2, textY + 2);
-        g2.setColor(Color.WHITE);
-        g2.drawString(title, (width - tw) / 2, textY);
-        g2.setFont(pixelFont);
-
-        textY += 32;
-        title = "RECARREGAR: R";
-        tw = g2.getFontMetrics().stringWidth(title);
-        g2.setColor(new Color(0, 0, 0, 180));
-        g2.drawString(title, (width - tw) / 2 + 2, textY + 2);
-        g2.setColor(Color.WHITE);
-        g2.drawString(title, (width - tw) / 2, textY);
-        g2.setFont(pixelFont);
-
-        textY += 32;
-        title = "INTERAGIR/FORÇA(PESCA): E";
-        tw = g2.getFontMetrics().stringWidth(title);
-        g2.setColor(new Color(0, 0, 0, 180));
-        g2.drawString(title, (width - tw) / 2 + 2, textY + 2);
-        g2.setColor(Color.WHITE);
-        g2.drawString(title, (width - tw) / 2, textY);
-
-        textY += 32;
-        title = "LANÇAR LINHA DE PESCA: BOTÃO DIREITO DO MOUSE";
-        tw = g2.getFontMetrics().stringWidth(title);
-        g2.setColor(new Color(0, 0, 0, 180));
-        g2.drawString(title, (width - tw) / 2 + 2, textY + 2);
-        g2.setColor(Color.WHITE);
-        g2.drawString(title, (width - tw) / 2, textY);
-
-        textY += 32;
-        title = "ALTERNAR ARMAS: G";
-        tw = g2.getFontMetrics().stringWidth(title);
-        g2.setColor(new Color(0, 0, 0, 180));
-        g2.drawString(title, (width - tw) / 2 + 2, textY + 2);
-        g2.setColor(Color.WHITE);
-        g2.drawString(title, (width - tw) / 2, textY);
-
-        backBtn.draw(g2);
-
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-                RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT);
+        backButton.render(graphics);
     }
 
+    public MenuController controller() {
+        return controller;
+    }
 }
