@@ -1,14 +1,13 @@
-import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.io.File;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
-public class OptionsMenu {
-
-    private final SoundManager soundManager;
-    private GameState returnTo;
+/** Options screen composition and visuals backed by an injected OptionsModel. */
+public final class OptionsMenu extends AbstractMenuScreen {
 
     private static final int SLIDER_W = 320;
     private static final int SLIDER_H = 10;
@@ -22,52 +21,9 @@ public class OptionsMenu {
     private static final int TITLE_Y_FRACTION = 8;
     private static final int CONTENT_START_FRACTION = 3;
 
-    private static final int MIN_FPS = 30;
-    private static final int MAX_FPS = 240;
-
-    private static class ItemFoco {
-        final MenuSlider deslizador;
-        final MenuButton botao;
-        final Function<GameCore, GameState> acao;
-
-        ItemFoco(MenuSlider deslizador, MenuButton botao, Function<GameCore, GameState> acao) {
-            this.deslizador = deslizador;
-            this.botao = botao;
-            this.acao = acao;
-        }
-
-        ItemFoco(MenuButton botao, Function<GameCore, GameState> acao) {
-            this(null, botao, acao);
-        }
-
-        ItemFoco(MenuSlider deslizador, Function<GameCore, GameState> acao) {
-            this(deslizador, null, acao);
-        }
-
-        Rectangle limites() {
-            if (deslizador != null && botao != null) {
-                return deslizador.getRect().union(botao.getRect());
-            }
-            return deslizador != null ? deslizador.getRect() : botao.getRect();
-        }
-
-        void aplicarFoco(boolean focado) {
-            if (botao != null) {
-                botao.hovered = focado;
-            }
-        }
-    }
-
-    private final List<ItemFoco> itensFoco = new ArrayList<>();
-    private ItemFoco itemFocado;
-    private boolean fpsSliderInitialized = false;
-    private int previousFpsLimit = 120;
-    private boolean fpsUnlimited = false;
-
-    private float previousMusicVolume;
-    private float previousSfxVolume;
-    private boolean musicMuted = false;
-    private boolean sfxMuted = false;
+    private final OptionsModel model;
+    private final List<MenuEntry> entries;
+    private final MenuController controller;
 
     private final MenuSlider musicSlider;
     private final MenuSlider sfxSlider;
@@ -75,125 +31,124 @@ public class OptionsMenu {
     private final IconButton toggleMuteBGM;
     private final IconButton toggleMuteSFX;
     private final IconButton toggleUnlimitedFps;
-    private final MenuButton backBtn;
-    private final MenuButton keyBindBtn;
-    private final IconButton fullScreenButton;
+    private final MenuButton backButton;
+    private final MenuButton keyBindingsButton;
+    private final IconButton fullscreenButton;
     private final MenuButton shadowsOffButton;
     private final MenuButton shadowsSharpButton;
     private final MenuButton shadowsSoftButton;
     private final IconButton showFpsButton;
-    private final IconButton enableAAButton;
+    private final IconButton enableAaButton;
 
-    private Font pixelFont;
-    private Font pixelFontSmall;
-    private Font pixelFontTiny;
+    private final Font pixelFont = MenuFonts.titleFont(24f);
+    private final Font pixelFontSmall = MenuFonts.buttonFont(11f);
+    private final Font pixelFontTiny = MenuFonts.bodyFont(9f);
+    private GameState returnTo = GameState.MAIN_MENU;
 
-    public OptionsMenu(SoundManager soundManager) {
-        this.soundManager = soundManager;
-        this.previousMusicVolume = soundManager.getMusicVolume();
-        this.previousSfxVolume = soundManager.getSfxVolume();
+    public OptionsMenu(OptionsModel model) {
+        this.model = model;
 
-        musicSlider = new MenuSlider(0, 0, SLIDER_W, SLIDER_H, soundManager.getMusicVolume());
-        sfxSlider = new MenuSlider(0, 0, SLIDER_W, SLIDER_H, soundManager.getSfxVolume());
-        fpsCapSlider = new MenuSlider(0, 0, SLIDER_W, SLIDER_H, 0.5f);
+        musicSlider = new MenuSlider(0, 0, SLIDER_W, SLIDER_H, model.musicVolume());
+        sfxSlider = new MenuSlider(0, 0, SLIDER_W, SLIDER_H, model.sfxVolume());
+        fpsCapSlider = new MenuSlider(0, 0, SLIDER_W, SLIDER_H, model.fpsSliderValue());
 
         toggleMuteBGM = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED, false);
         toggleMuteSFX = new IconButton(0, 0, BTN_SIZE, IconIndex.UNMUTED, false);
         toggleUnlimitedFps = new IconButton(0, 0, BTN_SIZE, IconIndex.UNLIM_FPS_OFF, false);
-        fullScreenButton = new IconButton(0, 0, BTN_SIZE, IconIndex.FULLSCREEN, false);
+        fullscreenButton = new IconButton(0, 0, BTN_SIZE, IconIndex.FULLSCREEN, false);
         shadowsOffButton = new MenuButton("Desligadas", 0, 0, 160, 46);
         shadowsSharpButton = new MenuButton("Nitidas", 0, 0, 160, 46);
         shadowsSoftButton = new MenuButton("Suaves", 0, 0, 160, 46);
         showFpsButton = new IconButton(0, 0, BTN_SIZE, IconIndex.RED_X, false);
-        enableAAButton = new IconButton(0, 0, BTN_SIZE, IconIndex.GREEN_CHECK, false);
+        enableAaButton = new IconButton(0, 0, BTN_SIZE, IconIndex.GREEN_CHECK, false);
+        backButton = new MenuButton("VOLTAR", 0, 0, 160, 46);
+        keyBindingsButton = new MenuButton("CONSULTAR TECLAS", 0, 0, 200, 46);
 
-        backBtn = new MenuButton("VOLTAR", 0, 0, 160, 46);
-        keyBindBtn = new MenuButton("CONSULTAR TECLAS", 0, 0, 200, 46);
+        List<MenuEntry> declaredEntries = new ArrayList<>();
+        SliderOptionEntry musicEntry = new SliderOptionEntry("VOLUME DA MÚSICA", musicSlider, toggleMuteBGM,
+                MenuAction.stay(GameState.OPTIONS, model::toggleMusicMute), this::handleMusicSlider);
+        musicEntry.withAdjustment(MenuInputIntent.LEFT,
+                MenuAction.stay(GameState.OPTIONS, () -> model.adjustMusicVolume(-0.05f)));
+        musicEntry.withAdjustment(MenuInputIntent.RIGHT,
+                MenuAction.stay(GameState.OPTIONS, () -> model.adjustMusicVolume(0.05f)));
+        declaredEntries.add(musicEntry);
 
-        itensFoco.add(new ItemFoco(musicSlider, toggleMuteBGM, gc -> {
-            toggleMusicMute();
-            return GameState.OPTIONS;
-        }));
-        itensFoco.add(new ItemFoco(sfxSlider, toggleMuteSFX, gc -> {
-            toggleSfxMute();
-            return GameState.OPTIONS;
-        }));
-        itensFoco.add(new ItemFoco(fpsCapSlider, toggleUnlimitedFps, gc -> {
-            alternarFpsIlimitado(gc);
-            return GameState.OPTIONS;
-        }));
-        itensFoco.add(new ItemFoco(shadowsOffButton, gc -> {
-            Renderer.setRenderShadows(false);
-            return GameState.OPTIONS;
-        }));
-        itensFoco.add(new ItemFoco(shadowsSharpButton, gc -> {
-            Renderer.setRenderShadows(true);
-            ProjectedShadow.setSoftShadows(false);
-            return GameState.OPTIONS;
-        }));
-        itensFoco.add(new ItemFoco(shadowsSoftButton, gc -> {
-            Renderer.setRenderShadows(true);
-            ProjectedShadow.setSoftShadows(true);
-            return GameState.OPTIONS;
-        }));
-        itensFoco.add(new ItemFoco(enableAAButton, gc -> {
-            gc.toggleAntiAliasing();
-            return GameState.OPTIONS;
-        }));
-        itensFoco.add(new ItemFoco(showFpsButton, gc -> {
-            gc.toggleFpsCounter();
-            return GameState.OPTIONS;
-        }));
-        itensFoco.add(new ItemFoco(keyBindBtn, gc -> GameState.KEYBINDINGS));
-        itensFoco.add(new ItemFoco(backBtn, gc -> returnTo));
-        itensFoco.add(new ItemFoco(fullScreenButton, gc -> {
-            gc.toggleFullscreen();
-            return GameState.OPTIONS;
-        }));
-        itemFocado = itensFoco.get(0);
+        SliderOptionEntry sfxEntry = new SliderOptionEntry("VOLUME DOS EFEITOS", sfxSlider, toggleMuteSFX,
+                MenuAction.stay(GameState.OPTIONS, model::toggleSfxMute), this::handleSfxSlider);
+        sfxEntry.withAdjustment(MenuInputIntent.LEFT,
+                MenuAction.stay(GameState.OPTIONS, () -> model.adjustSfxVolume(-0.05f)));
+        sfxEntry.withAdjustment(MenuInputIntent.RIGHT,
+                MenuAction.stay(GameState.OPTIONS, () -> model.adjustSfxVolume(0.05f)));
+        declaredEntries.add(sfxEntry);
 
-        try {
-            Font base = Font.createFont(Font.TRUETYPE_FONT, new File("font/PressStart2P-Regular.ttf"));
-            pixelFont = base.deriveFont(Font.PLAIN, 24f);
-            pixelFontSmall = base.deriveFont(Font.PLAIN, 11f);
-            pixelFontTiny = base.deriveFont(Font.PLAIN, 9f);
-        } catch (Exception e) {
-            System.err.println("Font not found, falling back");
-            pixelFont = new Font("Monospaced", Font.BOLD, 24);
-            pixelFontSmall = new Font("Monospaced", Font.BOLD, 11);
-            pixelFontTiny = new Font("Monospaced", Font.PLAIN, 9);
-        }
+        SliderOptionEntry fpsEntry = new SliderOptionEntry(model::fpsLabel, fpsCapSlider, toggleUnlimitedFps,
+                MenuAction.stay(GameState.OPTIONS, () -> model.toggleUnlimitedFps(fpsCapSlider.getValue())),
+                this::handleFpsSlider);
+        fpsEntry.withAdjustment(MenuInputIntent.LEFT,
+                MenuAction.stay(GameState.OPTIONS, () -> model.adjustFpsByDirection(-1)));
+        fpsEntry.withAdjustment(MenuInputIntent.RIGHT,
+                MenuAction.stay(GameState.OPTIONS, () -> model.adjustFpsByDirection(1)));
+        declaredEntries.add(fpsEntry);
+
+        declaredEntries.add(MenuEntry.button(shadowsOffButton,
+                MenuAction.stay(GameState.OPTIONS,
+                        () -> model.setShadowMode(OptionsModel.ShadowMode.OFF))));
+        declaredEntries.add(MenuEntry.button(shadowsSharpButton,
+                MenuAction.stay(GameState.OPTIONS,
+                        () -> model.setShadowMode(OptionsModel.ShadowMode.SHARP))));
+        declaredEntries.add(MenuEntry.button(shadowsSoftButton,
+                MenuAction.stay(GameState.OPTIONS,
+                        () -> model.setShadowMode(OptionsModel.ShadowMode.SOFT))));
+        declaredEntries.add(new ToggleOptionEntry("Habilitar Anti-Aliasing", enableAaButton,
+                MenuAction.stay(GameState.OPTIONS, model::toggleAntiAliasing)));
+        declaredEntries.add(new ToggleOptionEntry("MOSTRAR FPS", showFpsButton,
+                MenuAction.stay(GameState.OPTIONS, model::toggleFpsCounter)));
+        declaredEntries.add(MenuEntry.button(keyBindingsButton, MenuAction.navigateTo(GameState.KEYBINDINGS)));
+
+        MenuAction returnAction = MenuAction.returnTo(() -> returnTo);
+        declaredEntries.add(MenuEntry.button(backButton, returnAction));
+        declaredEntries.add(MenuEntry.control(fullscreenButton,
+                MenuAction.stay(GameState.OPTIONS, model::toggleFullscreen)));
+
+        entries = List.copyOf(declaredEntries);
+        controller = MenuController.spatial(entries, MenuInputBindings.optionsMenu())
+                .withPointerBeforeNavigation(true)
+                .withBackAction(returnAction, false);
+        refreshControlState();
     }
 
-    public void setReturnState(GameState state) {
-        this.returnTo = state;
+    private GameState handleMusicSlider(MenuContext context, MenuControl control, MenuInteraction interaction) {
+        model.setMusicVolume(musicSlider.getValue());
+        return GameState.OPTIONS;
     }
 
-    private static class LayoutCursor {
-        int y;
-        final int gap;
-
-        LayoutCursor(int startY, int gap) {
-            this.y = startY;
-            this.gap = gap;
-        }
-
-        int nextRow(int rowHeight) {
-            int rowY = y;
-            y += rowHeight + gap;
-            return rowY;
-        }
+    private GameState handleSfxSlider(MenuContext context, MenuControl control, MenuInteraction interaction) {
+        model.setSfxVolume(sfxSlider.getValue());
+        return GameState.OPTIONS;
     }
 
-    public void repositionElements(int width, int height, GameCore GC) {
-        int centerX = width / 2;
-        int contentStartY = height / CONTENT_START_FRACTION;
+    private GameState handleFpsSlider(MenuContext context, MenuControl control, MenuInteraction interaction) {
+        model.setFpsFromSliderValue(fpsCapSlider.getValue());
+        return GameState.OPTIONS;
+    }
+
+    public void onEnter(GameState returnState) {
+        returnTo = returnState;
+        model.onEnter();
+        refreshControlState();
+    }
+
+    /** Compatibility setter for callers that enter Options through the old API. */
+    @Override
+    protected void layoutContent(MenuViewport viewport) {
+        int centerX = viewport.centerX();
+        int contentStartY = viewport.height() / CONTENT_START_FRACTION;
         int sliderRowHeight = LABEL_TO_SLIDER_GAP + SLIDER_H;
         int shadowRowHeight = LABEL_TO_SLIDER_GAP + 46;
         int fixedContentHeight = sliderRowHeight * 3 + shadowRowHeight + BTN_SIZE * 2 + 46;
-        int availableForGaps = height - contentStartY - 20 - fixedContentHeight;
+        int availableForGaps = viewport.height() - contentStartY - 20 - fixedContentHeight;
         int responsiveGap = Math.clamp(availableForGaps / 6, 10, ROW_GAP);
-        LayoutCursor cursor = new LayoutCursor(contentStartY, responsiveGap);
+        MenuLayouts.LayoutCursor cursor = new MenuLayouts.LayoutCursor(contentStartY, responsiveGap);
 
         int musicY = cursor.nextRow(sliderRowHeight);
         positionSliderRow(musicSlider, toggleMuteBGM, centerX, musicY);
@@ -201,496 +156,138 @@ public class OptionsMenu {
         int sfxY = cursor.nextRow(sliderRowHeight);
         positionSliderRow(sfxSlider, toggleMuteSFX, centerX, sfxY);
 
-        int fpsCapY = cursor.nextRow(sliderRowHeight);
-        positionSliderRow(fpsCapSlider, toggleUnlimitedFps, centerX, fpsCapY);
+        int fpsY = cursor.nextRow(sliderRowHeight);
+        positionSliderRow(fpsCapSlider, toggleUnlimitedFps, centerX, fpsY);
 
         int shadowsY = cursor.nextRow(shadowRowHeight);
-        layoutButtonRowCentered(shadowsY + LABEL_TO_SLIDER_GAP, centerX,
+        MenuLayouts.centeredHorizontalRow(viewport, shadowsY + LABEL_TO_SLIDER_GAP, BUTTON_ROW_GAP,
                 shadowsOffButton, shadowsSharpButton, shadowsSoftButton);
 
-        int AAToggleY = cursor.nextRow(BTN_SIZE);
-        enableAAButton.setPosition(centerX + SLIDER_W / 2 - BTN_SIZE, AAToggleY);
+        int aaY = cursor.nextRow(BTN_SIZE);
+        enableAaButton.setPosition(centerX + SLIDER_W / 2 - BTN_SIZE, aaY);
 
         int fpsToggleY = cursor.nextRow(BTN_SIZE);
         showFpsButton.setPosition(centerX + SLIDER_W / 2 - BTN_SIZE, fpsToggleY);
 
         int buttonsY = cursor.nextRow(46);
-        layoutButtonRowCentered(buttonsY, centerX, keyBindBtn, backBtn);
-
-        fullScreenButton.setPosition(width - CORNER_MARGIN - BTN_SIZE, height - CORNER_MARGIN - BTN_SIZE);
+        MenuLayouts.centeredHorizontalRow(viewport, buttonsY, BUTTON_ROW_GAP, keyBindingsButton, backButton);
+        MenuLayouts.bottomRight(viewport, CORNER_MARGIN, fullscreenButton);
     }
 
-    private void positionSliderRow(MenuSlider slider, IconButton muteButton, int centerX, int y) {
+    private void positionSliderRow(MenuSlider slider, IconButton accessory, int centerX, int y) {
         slider.setPosition(centerX - SLIDER_W / 2, y);
-        if (muteButton != null) {
-            muteButton.setPosition(
-                    slider.getRightX() + SLIDER_TO_BTN_GAP,
-                    slider.getCenterY() - BTN_SIZE / 2);
-        }
+        accessory.setPosition(slider.getRightX() + SLIDER_TO_BTN_GAP,
+                slider.getCenterY() - BTN_SIZE / 2);
     }
 
-    private void layoutButtonRowCentered(int y, int centerX, MenuButton... buttons) {
-        int totalWidth = 0;
-        for (MenuButton b : buttons) {
-            totalWidth += b.getRect().width;
-        }
-        totalWidth += BUTTON_ROW_GAP * (buttons.length - 1);
-
-        int x = centerX - totalWidth / 2;
-        for (MenuButton b : buttons) {
-            b.setPosition(x, y);
-            x += b.getRect().width + BUTTON_ROW_GAP;
-        }
+    @Override
+    protected GameState updateScreen(MenuContext context) {
+        model.synchronize();
+        refreshControlState();
+        GameState result = controller.update(context, GameState.OPTIONS);
+        model.synchronize();
+        refreshControlState();
+        return result;
     }
 
-    public GameState update(InputManager input, int width, int height, GameCore GC,
-            InputManager.MouseSpace mouseSpace) {
-        repositionElements(width, height, GC);
+    private void refreshControlState() {
+        musicSlider.setValue(model.musicVolume());
+        sfxSlider.setValue(model.sfxVolume());
+        fpsCapSlider.setValue(model.fpsSliderValue());
 
-        if (!fpsSliderInitialized) {
-            int limiteFps = GC.getTargetFps();
-            fpsUnlimited = limiteFps == 0;
-            if (!fpsUnlimited) {
-                previousFpsLimit = Math.clamp(limiteFps, MIN_FPS, MAX_FPS);
-            }
-            fpsCapSlider.setValue(sliderValueFromFps(previousFpsLimit));
-            fpsSliderInitialized = true;
-        }
+        toggleMuteBGM.setIcon(model.musicMuted() ? IconIndex.MUTED : IconIndex.UNMUTED);
+        toggleMuteSFX.setIcon(model.sfxMuted() ? IconIndex.MUTED : IconIndex.UNMUTED);
+        toggleUnlimitedFps.setIcon(model.fpsUnlimited() ? IconIndex.UNLIM_FPS_ON : IconIndex.UNLIM_FPS_OFF);
+        enableAaButton.setIcon(model.isAntiAliasingEnabled() ? IconIndex.GREEN_CHECK : IconIndex.RED_X);
+        showFpsButton.setIcon(model.isShowFpsCounter() ? IconIndex.GREEN_CHECK : IconIndex.RED_X);
 
-        atualizarIconesFps(GC);
-
-        if (GC.isAntiAliasingEnabled()) {
-            enableAAButton.setIcon(IconIndex.GREEN_CHECK);
-        } else
-            enableAAButton.setIcon(IconIndex.RED_X);
-
-        if (GC.isShowFpsCounter()) {
-            showFpsButton.setIcon(IconIndex.GREEN_CHECK);
-        } else {
-            showFpsButton.setIcon(IconIndex.RED_X);
-        }
-
-        if (input.isKeyJustPressed(KeyEvent.VK_ESCAPE) || input.isButtonJustPressed(InputManager.GamepadButton.B)) {
-            return returnTo;
-        }
-
-        boolean mouseAceito = !input.isMouseBloqueado();
-        if (mouseAceito) {
-            updateMusicSlider(input, mouseSpace);
-            updateSfxSlider(input, mouseSpace);
-            updateFpsCapSlider(input, GC, mouseSpace);
-            GameState acaoMouse = atualizarBotoesMouse(input, GC, mouseSpace);
-            if (acaoMouse != GameState.OPTIONS) {
-                return acaoMouse;
-            }
-            atualizarFocoPeloMouse(input);
-        } else {
-            limparEstadoHoverBotoes();
-        }
-
-        atualizarNavegacaoControle(input, GC);
-        if ((input.isControllerActive() || input.isMouseBloqueado()) && !mouseAceito) {
-            aplicarVisualFoco();
-        }
-
-        GameState acao = ativarItemFocado(input, GC);
-        if (acao != GameState.OPTIONS) {
-            return acao;
-        }
-
-        return GameState.OPTIONS;
+        OptionsModel.ShadowMode shadowMode = model.shadowMode();
+        shadowsOffButton.setSelected(shadowMode == OptionsModel.ShadowMode.OFF);
+        shadowsSharpButton.setSelected(shadowMode == OptionsModel.ShadowMode.SHARP);
+        shadowsSoftButton.setSelected(shadowMode == OptionsModel.ShadowMode.SOFT);
     }
 
-    private GameState atualizarBotoesMouse(InputManager input, GameCore GC,
-            InputManager.MouseSpace mouseSpace) {
-        for (ItemFoco item : itensFoco) {
-            if (item.botao == null) {
-                continue;
-            }
-            if (item.botao.update(input, mouseSpace) == MenuButton.CLICKED) {
-                soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
-                return item.acao.apply(GC);
-            }
-        }
-        return GameState.OPTIONS;
+    @Override
+    protected void drawScreen(Graphics2D graphics, MenuViewport viewport) {
+        model.synchronize();
+        refreshControlState();
+
+        graphics.setColor(new Color(10, 10, 10));
+        graphics.fillRect(0, 0, viewport.width(), viewport.height());
+        MenuPainter.drawCenteredTextInWidth(graphics, "OPÇÕES", pixelFont, viewport.width(),
+                viewport.height() / TITLE_Y_FRACTION, Color.WHITE, new Color(0, 0, 0, 180), 2, 2);
+
+        SliderOptionEntry musicEntry = (SliderOptionEntry) entries.get(0);
+        SliderOptionEntry sfxEntry = (SliderOptionEntry) entries.get(1);
+        SliderOptionEntry fpsEntry = (SliderOptionEntry) entries.get(2);
+        drawSliderRow(graphics, musicEntry, viewport.width(), true);
+        drawSliderRow(graphics, sfxEntry, viewport.width(), true);
+        drawSliderRow(graphics, fpsEntry, viewport.width(), false);
+
+        drawShadowModeRow(graphics, viewport.width());
+        drawLabelLeftOf(graphics, "Habilitar Anti-Aliasing", enableAaButton.getBoundsCopy());
+        drawLabelLeftOf(graphics, "MOSTRAR FPS", showFpsButton.getBoundsCopy());
+
+        enableAaButton.render(graphics);
+        toggleMuteBGM.render(graphics);
+        toggleMuteSFX.render(graphics);
+        toggleUnlimitedFps.render(graphics);
+        showFpsButton.render(graphics);
+        keyBindingsButton.render(graphics);
+        backButton.render(graphics);
+        fullscreenButton.render(graphics);
     }
 
-    private void atualizarFocoPeloMouse(InputManager input) {
-        for (ItemFoco item : itensFoco) {
-            if (item.botao != null && item.botao.isHovered()) {
-                itemFocado = item;
-            }
-        }
-    }
-
-    private void limparEstadoHoverBotoes() {
-        for (ItemFoco item : itensFoco) {
-            item.aplicarFoco(false);
-        }
-    }
-
-    private void aplicarVisualFoco() {
-        for (ItemFoco item : itensFoco) {
-            item.aplicarFoco(item == itemFocado);
-        }
-    }
-
-    private void updateMusicSlider(InputManager input, InputManager.MouseSpace mouseSpace) {
-        int state = musicSlider.update(input, mouseSpace);
-        if (state == MenuSlider.DRAGGING || state == MenuSlider.CLICKED) {
-            itemFocado = encontrarItemFoco(musicSlider);
-            if (state == MenuSlider.CLICKED)
-                soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
-            soundManager.setMusicVolume(musicSlider.getValue());
-        }
-
-        if (musicSlider.getValue() <= 0f && !musicMuted) {
-            musicMuted = true;
-            toggleMuteBGM.setIcon(IconIndex.MUTED);
-        } else if (musicSlider.getValue() > 0f && musicMuted) {
-            musicMuted = false;
-            toggleMuteBGM.setIcon(IconIndex.UNMUTED);
-        }
-    }
-
-    private void updateSfxSlider(InputManager input, InputManager.MouseSpace mouseSpace) {
-        int state = sfxSlider.update(input, mouseSpace);
-        if (state == MenuSlider.DRAGGING || state == MenuSlider.CLICKED) {
-            itemFocado = encontrarItemFoco(sfxSlider);
-            if (state == MenuSlider.CLICKED)
-                soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
-            soundManager.setSfxVolume(sfxSlider.getValue());
-        }
-
-        if (sfxSlider.getValue() <= 0f && !sfxMuted) {
-            sfxMuted = true;
-            toggleMuteSFX.setIcon(IconIndex.MUTED);
-        } else if (sfxSlider.getValue() > 0f && sfxMuted) {
-            sfxMuted = false;
-            toggleMuteSFX.setIcon(IconIndex.UNMUTED);
-        }
-    }
-
-    private void updateFpsCapSlider(InputManager input, GameCore GC, InputManager.MouseSpace mouseSpace) {
-        int state = fpsCapSlider.update(input, mouseSpace);
-        if (state == MenuSlider.DRAGGING || state == MenuSlider.CLICKED) {
-            itemFocado = encontrarItemFoco(fpsCapSlider);
-            if (state == MenuSlider.CLICKED)
-                soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
-            definirLimiteFps(fpsFromSliderValue(fpsCapSlider.getValue()), GC);
-        }
-    }
-
-    private int fpsFromSliderValue(float value) {
-        return Math.round(MIN_FPS + value * (MAX_FPS - MIN_FPS));
-    }
-
-    private float sliderValueFromFps(int fps) {
-        return Math.clamp((fps - MIN_FPS) / (float) (MAX_FPS - MIN_FPS), 0f, 1f);
-    }
-
-    private void atualizarNavegacaoControle(InputManager input, GameCore GC) {
-        boolean up = input.isKeyJustPressed(KeyEvent.VK_UP)
-                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_UP);
-        boolean down = input.isKeyJustPressed(KeyEvent.VK_DOWN)
-                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_DOWN);
-        boolean left = input.isKeyJustPressed(KeyEvent.VK_LEFT)
-                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_LEFT);
-        boolean right = input.isKeyJustPressed(KeyEvent.VK_RIGHT)
-                || input.isButtonJustPressed(InputManager.GamepadButton.DPAD_RIGHT);
-
-        if (up || down) {
-            moverVerticalmente(up ? -1 : 1);
-            input.iniciarBloqueioMouse();
-        } else if (left || right) {
-            if (itemFocado.deslizador != null) {
-                ajustarDeslizadorFocado(left ? -0.05f : 0.05f, GC);
-            } else {
-                moverHorizontalmente(right ? 1 : -1);
-            }
-            input.iniciarBloqueioMouse();
-        }
-    }
-
-    private void moverVerticalmente(int direction) {
-        Rectangle atual = itemFocado.limites();
-        ItemFoco candidato = null;
-        int menorDistancia = Integer.MAX_VALUE;
-        for (ItemFoco item : itensFoco) {
-            if (item == itemFocado) {
-                continue;
-            }
-            Rectangle limites = item.limites();
-            int deltaY = limites.y - atual.y;
-            if (Integer.signum(deltaY) != direction) {
-                continue;
-            }
-            int distancia = Math.abs(deltaY) * 100 + Math.abs(limites.x - atual.x);
-            if (distancia < menorDistancia) {
-                menorDistancia = distancia;
-                candidato = item;
-            }
-        }
-        if (candidato != null) {
-            itemFocado = candidato;
-        }
-    }
-
-    private void moverHorizontalmente(int direction) {
-        Rectangle atual = itemFocado.limites();
-        ItemFoco candidato = null;
-        int menorDistancia = Integer.MAX_VALUE;
-        for (ItemFoco item : itensFoco) {
-            if (item == itemFocado) {
-                continue;
-            }
-            Rectangle limites = item.limites();
-            int deltaX = limites.x - atual.x;
-            if (Integer.signum(deltaX) != direction
-                    || Math.abs(limites.y - atual.y) > Math.max(atual.height, limites.height)) {
-                continue;
-            }
-            if (Math.abs(deltaX) < menorDistancia) {
-                menorDistancia = Math.abs(deltaX);
-                candidato = item;
-            }
-        }
-        if (candidato != null) {
-            itemFocado = candidato;
-        }
-    }
-
-    private void ajustarDeslizadorFocado(float variacao, GameCore GC) {
-        MenuSlider slider = itemFocado.deslizador;
-        if (slider == fpsCapSlider) {
-            ajustarLimiteFps(variacao, GC);
-            return;
-        }
-
-        float valorAnterior = slider.getValue();
-        float valor = Math.clamp(valorAnterior + variacao, 0f, 1f);
-        if (valor == valorAnterior && moverParaIrmaoHorizontal(variacao > 0 ? 1 : -1)) {
-            return;
-        }
-        slider.setValue(valor);
-        if (slider == musicSlider) {
-            soundManager.setMusicVolume(valor);
-        } else if (slider == sfxSlider) {
-            soundManager.setSfxVolume(valor);
-        } else {
-            GC.setTargetFps(fpsFromSliderValue(valor));
-        }
-    }
-
-    private void ajustarLimiteFps(float variacao, GameCore GC) {
-        int fpsAtual = fpsFromSliderValue(fpsCapSlider.getValue());
-        int passo = variacao > 0f ? 5 : -5;
-        int novoFps = Math.clamp(fpsAtual + passo, MIN_FPS, MAX_FPS);
-        fpsCapSlider.setValue(sliderValueFromFps(novoFps));
-        definirLimiteFps(novoFps, GC);
-    }
-
-    private void definirLimiteFps(int limite, GameCore GC) {
-        previousFpsLimit = limite;
-        fpsUnlimited = false;
-        GC.setTargetFps(limite);
-        toggleUnlimitedFps.setIcon(IconIndex.UNLIM_FPS_OFF);
-    }
-
-    private void alternarFpsIlimitado(GameCore GC) {
-        if (!fpsUnlimited) {
-            previousFpsLimit = Math.clamp(fpsFromSliderValue(fpsCapSlider.getValue()), MIN_FPS, MAX_FPS);
-            fpsUnlimited = true;
-            GC.setTargetFps(0);
-            toggleUnlimitedFps.setIcon(IconIndex.UNLIM_FPS_ON);
-        } else {
-            fpsUnlimited = false;
-            fpsCapSlider.setValue(sliderValueFromFps(previousFpsLimit));
-            GC.setTargetFps(previousFpsLimit);
-            toggleUnlimitedFps.setIcon(IconIndex.UNLIM_FPS_OFF);
-        }
-    }
-
-    private void atualizarIconesFps(GameCore GC) {
-        fpsUnlimited = GC.getTargetFps() == 0;
-        toggleUnlimitedFps.setIcon(fpsUnlimited ? IconIndex.UNLIM_FPS_ON : IconIndex.UNLIM_FPS_OFF);
-    }
-
-    private boolean moverParaIrmaoHorizontal(int direcao) {
-        Rectangle atual = itemFocado.limites();
-        ItemFoco candidato = null;
-        int menorDistancia = Integer.MAX_VALUE;
-        for (ItemFoco item : itensFoco) {
-            if (item == itemFocado) {
-                continue;
-            }
-            Rectangle limites = item.limites();
-            int deltaX = limites.x - atual.x;
-            if (Integer.signum(deltaX) != direcao
-                    || Math.abs(limites.y - atual.y) > Math.max(atual.height, limites.height)) {
-                continue;
-            }
-            if (Math.abs(deltaX) < menorDistancia) {
-                menorDistancia = Math.abs(deltaX);
-                candidato = item;
-            }
-        }
-        if (candidato == null) {
-            return false;
-        }
-        itemFocado = candidato;
-        return true;
-    }
-
-    private GameState ativarItemFocado(InputManager input, GameCore GC) {
-        if (!input.isButtonJustPressed(InputManager.GamepadButton.A)) {
-            return GameState.OPTIONS;
-        }
-        soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
-        return itemFocado.acao.apply(GC);
-    }
-
-    private ItemFoco encontrarItemFoco(Object controle) {
-        for (ItemFoco item : itensFoco) {
-            if (item.deslizador == controle || item.botao == controle) {
-                return item;
-            }
-        }
-        return itemFocado;
-    }
-
-    private boolean estaFocado(Object controle) {
-        return itemFocado != null
-                && (itemFocado.deslizador == controle || itemFocado.botao == controle);
-    }
-
-    private void toggleMusicMute() {
-        if (!musicMuted) {
-            previousMusicVolume = soundManager.getMusicVolume();
-            soundManager.setMusicVolume(0f);
-            musicSlider.setValue(0f);
-            toggleMuteBGM.setIcon(IconIndex.MUTED);
-            musicMuted = true;
-        } else {
-            soundManager.setMusicVolume(previousMusicVolume);
-            musicSlider.setValue(previousMusicVolume);
-            toggleMuteBGM.setIcon(IconIndex.UNMUTED);
-            musicMuted = false;
-        }
-    }
-
-    private void toggleSfxMute() {
-        if (!sfxMuted) {
-            previousSfxVolume = soundManager.getSfxVolume();
-            soundManager.setSfxVolume(0f);
-            sfxSlider.setValue(0f);
-            toggleMuteSFX.setIcon(IconIndex.MUTED);
-            sfxMuted = true;
-        } else {
-            soundManager.setSfxVolume(previousSfxVolume);
-            sfxSlider.setValue(previousSfxVolume);
-            toggleMuteSFX.setIcon(IconIndex.UNMUTED);
-            sfxMuted = false;
-        }
-    }
-
-    public void render(Graphics2D g2, int width, int height) {
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
-
-        g2.setColor(new Color(10, 10, 10));
-        g2.fillRect(0, 0, width, height);
-
-        g2.setFont(pixelFont);
-        String title = "OPÇÕES";
-        int tw = g2.getFontMetrics().stringWidth(title);
-        g2.setColor(new Color(0, 0, 0, 180));
-        g2.drawString(title, (width - tw) / 2 + 2, height / TITLE_Y_FRACTION + 2);
-        g2.setColor(Color.WHITE);
-        g2.drawString(title, (width - tw) / 2, height / TITLE_Y_FRACTION);
-
-        drawSliderRow(g2, "VOLUME DA MÚSICA", musicSlider, estaFocado(musicSlider), width, true, true);
-        drawSliderRow(g2, "VOLUME DOS EFEITOS", sfxSlider, estaFocado(sfxSlider), width, true, true);
-        drawSliderRow(g2, LimiteFPSLabel(),
-                fpsCapSlider, estaFocado(fpsCapSlider), width, true, false);
-
-        drawShadowModeButtons(g2, width);
-        drawOptionLabel(g2, "Habilitar Anti-Aliasing", enableAAButton.getRect());
-        drawOptionLabel(g2, "MOSTRAR FPS", showFpsButton.getRect());
-        enableAAButton.draw(g2);
-        toggleMuteBGM.draw(g2);
-        toggleMuteSFX.draw(g2);
-        toggleUnlimitedFps.draw(g2);
-        showFpsButton.draw(g2);
-        keyBindBtn.draw(g2);
-        backBtn.draw(g2);
-        fullScreenButton.draw(g2);
-
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT);
-    }
-
-    private void drawShadowModeButtons(Graphics2D g2, int width) {
-        Rectangle firstButton = shadowsOffButton.getRect();
-
-        g2.setFont(pixelFontSmall);
-        FontMetrics fm = g2.getFontMetrics();
+    private void drawShadowModeRow(Graphics2D graphics, int width) {
+        Rectangle firstButton = shadowsOffButton.getBoundsCopy();
+        graphics.setFont(pixelFontSmall);
+        FontMetrics metrics = graphics.getFontMetrics();
         String label = "SOMBRAS";
-        int labelY = firstButton.y - LABEL_TO_SLIDER_GAP + fm.getAscent();
+        int labelY = firstButton.y - LABEL_TO_SLIDER_GAP + metrics.getAscent();
+        graphics.setColor(Color.WHITE);
+        graphics.drawString(label, (width - metrics.stringWidth(label)) / 2, labelY);
 
-        g2.setColor(Color.WHITE);
-        g2.drawString(label, (width - fm.stringWidth(label)) / 2, labelY);
-
-        boolean shadowsEnabled = Renderer.isRenderShadows();
-        drawShadowModeButton(g2, shadowsOffButton, !shadowsEnabled);
-        drawShadowModeButton(g2, shadowsSharpButton,
-                shadowsEnabled && !ProjectedShadow.isSoftShadows());
-        drawShadowModeButton(g2, shadowsSoftButton,
-                shadowsEnabled && ProjectedShadow.isSoftShadows());
+        shadowsOffButton.render(graphics);
+        shadowsSharpButton.render(graphics);
+        shadowsSoftButton.render(graphics);
     }
 
-    private void drawShadowModeButton(Graphics2D g2, MenuButton button, boolean selected) {
-        boolean wasHovered = button.hovered;
-        if (selected) {
-            button.hovered = true;
-        }
-        button.draw(g2);
-        button.hovered = wasHovered;
-    }
+    private void drawSliderRow(Graphics2D graphics, SliderOptionEntry entry, int width, boolean drawPercentage) {
+        MenuSlider slider = entry.slider();
+        Rectangle bounds = slider.getBoundsCopy();
+        graphics.setFont(pixelFontSmall);
+        boolean highlighted = controller.navigator().isFocused(entry);
+        graphics.setColor(highlighted ? Color.WHITE : new Color(180, 180, 180));
+        FontMetrics metrics = graphics.getFontMetrics();
+        String label = entry.label();
+        graphics.drawString(label, (width - metrics.stringWidth(label)) / 2,
+                bounds.y - LABEL_TO_SLIDER_GAP + metrics.getAscent());
 
-    private void drawSliderRow(Graphics2D g2, String label, MenuSlider slider, boolean highlighted,
-            int width, boolean hasButton, boolean drawPercentage) {
-        Rectangle r = slider.getRect();
-
-        g2.setFont(pixelFontSmall);
-        g2.setColor(highlighted ? Color.WHITE : new Color(180, 180, 180));
-        FontMetrics fm = g2.getFontMetrics();
-        g2.drawString(label, (width - fm.stringWidth(label)) / 2, r.y - LABEL_TO_SLIDER_GAP + fm.getAscent());
-
-        slider.draw(g2);
+        slider.render(graphics);
         if (drawPercentage) {
-            g2.setFont(pixelFontTiny);
-            g2.setColor(highlighted ? Color.WHITE : new Color(160, 160, 160));
-            String pct = (int) (slider.getValue() * 100) + "%";
-            int pctX = r.x + r.width + SLIDER_TO_BTN_GAP + (hasButton ? BTN_SIZE + BTN_TO_PCT_GAP : BTN_TO_PCT_GAP);
-            g2.drawString(pct, pctX, r.y + r.height);
+            graphics.setFont(pixelFontTiny);
+            graphics.setColor(highlighted ? Color.WHITE : new Color(160, 160, 160));
+            String percentage = (int) (slider.getValue() * 100) + "%";
+            int percentageX = bounds.x + bounds.width + SLIDER_TO_BTN_GAP + BTN_SIZE + BTN_TO_PCT_GAP;
+            graphics.drawString(percentage, percentageX, bounds.y + bounds.height);
         }
     }
 
-    private String LimiteFPSLabel() {
-        return fpsUnlimited
-                ? "LIMITE DE FPS: ILIMITADO"
-                : "LIMITE DE FPS: " + fpsFromSliderValue(fpsCapSlider.getValue());
+    private void drawLabelLeftOf(Graphics2D graphics, String text, Rectangle anchor) {
+        graphics.setFont(pixelFontSmall);
+        FontMetrics metrics = graphics.getFontMetrics();
+        int textWidth = metrics.stringWidth(text);
+        int x = anchor.x - textWidth - SLIDER_TO_BTN_GAP;
+        int y = anchor.y + (anchor.height + metrics.getAscent() - metrics.getDescent()) / 2;
+        MenuPainter.drawTextWithShadow(graphics, text, x, y, Color.WHITE,
+                new Color(0, 0, 0, 180), 2, 2);
     }
 
-    private void drawOptionLabel(Graphics2D g2, String text, Rectangle anchorRect) {
-        g2.setFont(pixelFontSmall);
-        FontMetrics fm = g2.getFontMetrics();
-        int tw = fm.stringWidth(text);
-        int x = anchorRect.x - tw - SLIDER_TO_BTN_GAP;
-        int y = anchorRect.y + (anchorRect.height + fm.getAscent() - fm.getDescent()) / 2;
+    public OptionsModel model() {
+        return model;
+    }
 
-        g2.setColor(new Color(0, 0, 0, 180));
-        g2.drawString(text, x + 2, y + 2);
-        g2.setColor(Color.WHITE);
-        g2.drawString(text, x, y);
+    public MenuController controller() {
+        return controller;
     }
 }

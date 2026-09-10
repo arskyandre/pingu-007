@@ -89,7 +89,7 @@ public class FishingManager {
         }
 
         repositionButton(camera, screenWidth, screenHeight);
-        boolean triggered = fishingButton.update(input, InputManager.MouseSpace.SCENE) == MenuButton.CLICKED
+        boolean triggered = fishingButton.updatePointer(input) == MenuInteraction.CLICKED
                 || isPullLinePressed(input);
 
         switch (state) {
@@ -328,7 +328,7 @@ public class FishingManager {
     }
 
     private void drawBite(Graphics2D g2, double screenX, double screenY) {
-        Rectangle rect = fishingButton.getRect();
+        Rectangle rect = fishingButton.getBoundsCopy();
         int centerX = rect.x + rect.width / 2;
         int centerY = rect.y + rect.height / 2;
 
@@ -359,7 +359,7 @@ public class FishingManager {
         g2.setColor(Color.WHITE);
         g2.drawRect(barX, barY, barW, barH);
 
-        g2.setFont(MenuButton.pixelFont.deriveFont(hard ? 10f : 12f));
+        g2.setFont(MenuFonts.buttonFont(hard ? 10f : 12f));
         FontMetrics fm = g2.getFontMetrics();
         String texto = "[E] / [Y]";
         int tx = centerX - fm.stringWidth(texto) / 2;

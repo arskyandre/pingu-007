@@ -1,90 +1,132 @@
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 
-public class MenuSlider {
-
-    private final Rectangle rect;
-    private boolean dragging = false;
-    private float value;
+/** Slider control retaining the original expanded hit area and value math. */
+public class MenuSlider implements MenuControl {
 
     private static final int HANDLE_W = 10;
     private static final int HANDLE_H = 22;
 
+    private final Rectangle rect;
+    private boolean dragging;
+    private boolean hovered;
+    private boolean focused;
+    private float value;
+
     public MenuSlider(int x, int y, int width, int height, float initialValue) {
-        this.rect = new Rectangle(x, y, width, height);
-        this.value = Math.clamp(initialValue, 0f, 1f);
+        rect = new Rectangle(x, y, width, height);
+        value = clamp(initialValue);
     }
 
-    public static final int IDLE = 0;
-    public static final int HOVERED = 1;
-    public static final int CLICKED = 2;
-    public static final int DRAGGING = 3;
-
-    public int update(InputManager input, InputManager.MouseSpace mouseSpace) {
-        int mx = input.getMouseX(mouseSpace);
-        int my = input.getMouseY(mouseSpace);
+    @Override
+    public MenuInteraction updatePointer(InputManager input) {
+        int mouseX = input.getMouseX();
+        int mouseY = input.getMouseY();
         boolean clicking = input.isMouseButtonPressed(MouseEvent.BUTTON1);
+        Rectangle hitArea = getHitBoundsCopy();
+        hovered = hitArea.contains(mouseX, mouseY);
 
-        Rectangle hitArea = new Rectangle(rect.x, rect.y - 8, rect.width, rect.height + 16);
-
-        if (input.isMouseButtonJustPressed(MouseEvent.BUTTON1) && hitArea.contains(mx, my)) {
+        if (input.isMouseButtonJustPressed(MouseEvent.BUTTON1) && hovered) {
             dragging = true;
-            value = Math.clamp((float) (mx - rect.x) / rect.width, 0f, 1f);
-            return CLICKED;
+            value = valueFromMouse(mouseX);
+            return MenuInteraction.CLICKED;
         }
         if (!clicking) {
             dragging = false;
         }
 
         if (dragging) {
-            value = Math.clamp((float) (mx - rect.x) / rect.width, 0f, 1f);
-            return DRAGGING;
+            value = valueFromMouse(mouseX);
+            return MenuInteraction.DRAGGING;
         }
-
-        if (hitArea.contains(mx, my))
-            return HOVERED;
-        return IDLE;
+        return hovered ? MenuInteraction.HOVERED : MenuInteraction.IDLE;
     }
 
-    public void draw(Graphics2D g2) {
+    private float valueFromMouse(int mouseX) {
+        return clamp((float) (mouseX - rect.x) / rect.width);
+    }
 
-        g2.setColor(new Color(60, 60, 60));
-        g2.fillRect(rect.x, rect.y, rect.width, rect.height);
+    @Override
+    public void render(Graphics2D graphics) {
+        Graphics2D copy = (Graphics2D) graphics.create();
+        try {
+            copy.setColor(new Color(60, 60, 60));
+            copy.fillRect(rect.x, rect.y, rect.width, rect.height);
 
-        g2.setColor(Color.WHITE);
-        g2.fillRect(rect.x, rect.y, (int) (rect.width * value), rect.height);
+            copy.setColor(Color.WHITE);
+            copy.fillRect(rect.x, rect.y, (int) (rect.width * value), rect.height);
 
-        int hx = rect.x + (int) (rect.width * value) - HANDLE_W / 2;
-        int hy = rect.y - (HANDLE_H - rect.height) / 2;
-        g2.setColor(Color.WHITE);
-        g2.fillRect(hx, hy, HANDLE_W, HANDLE_H);
-        g2.setColor(new Color(150, 150, 150));
-        g2.setStroke(new BasicStroke(1));
-        g2.drawRect(hx, hy, HANDLE_W, HANDLE_H);
+            int handleX = rect.x + (int) (rect.width * value) - HANDLE_W / 2;
+            int handleY = rect.y - (HANDLE_H - rect.height) / 2;
+            copy.setColor(Color.WHITE);
+            copy.fillRect(handleX, handleY, HANDLE_W, HANDLE_H);
+            copy.setColor(new Color(150, 150, 150));
+            copy.setStroke(new BasicStroke(1));
+            copy.drawRect(handleX, handleY, HANDLE_W, HANDLE_H);
+        } finally {
+            copy.dispose();
+        }
     }
 
     public float getValue() {
         return value;
     }
 
-    public void setValue(float v) {
-        this.value = Math.clamp(v, 0f, 1f);
+    public void setValue(float value) {
+        this.value = clamp(value);
     }
 
+    private static float clamp(float value) {
+        return Math.clamp(value, 0f, 1f);
+    }
+
+    @Override
     public void setPosition(int x, int y) {
         rect.setLocation(x, y);
     }
 
-    public Rectangle getRect() {
-        return rect;
+    @Override
+    public Rectangle getBoundsCopy() {
+        return new Rectangle(rect);
     }
 
-    // posicao da direita para colocar botoes do lado do slider
+    public Rectangle getHitBoundsCopy() {
+        return new Rectangle(rect.x, rect.y - 8, rect.width, rect.height + 16);
+    }
+
     public int getRightX() {
         return rect.x + rect.width;
     }
 
     public int getCenterY() {
         return rect.y + rect.height / 2;
+    }
+
+    public boolean isDragging() {
+        return dragging;
+    }
+
+    @Override
+    public void setFocused(boolean focused) {
+        this.focused = focused;
+    }
+
+    @Override
+    public boolean isFocused() {
+        return focused;
+    }
+
+    @Override
+    public boolean isHovered() {
+        return hovered;
+    }
+
+    @Override
+    public void clearPointerHover() {
+        hovered = false;
+        dragging = false;
     }
 }

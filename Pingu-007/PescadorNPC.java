@@ -164,7 +164,7 @@ public class PescadorNPC extends NPC {
         drawSpriteWithShadow(g2, Sprite, (int) x, (int) y, (int) WIDTH, (int) HEIGHT);
         g2.drawImage(Sprite, (int) x, (int) y, (int) WIDTH, (int) HEIGHT, null);
         if (state == State.IDLE && proximo) {
-            g2.setFont(MenuButton.pixelFont.deriveFont(7f));
+            g2.setFont(MenuFonts.buttonFont(7f));
             g2.setColor(new Color(20, 77, 55));
             String prompt = "[E]";
             int pw = g2.getFontMetrics().stringWidth(prompt);
