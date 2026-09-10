@@ -608,12 +608,12 @@ public class OptionsMenu {
 
         drawSliderRow(g2, "VOLUME DA MÚSICA", musicSlider, estaFocado(musicSlider), width, true, true);
         drawSliderRow(g2, "VOLUME DOS EFEITOS", sfxSlider, estaFocado(sfxSlider), width, true, true);
-        drawSliderRow(g2, rotuloLimiteFps(),
+        drawSliderRow(g2, LimiteFPSLabel(),
                 fpsCapSlider, estaFocado(fpsCapSlider), width, true, false);
 
-        drawShadowModeRow(g2, width);
-        drawLabelLeftOf(g2, "Habilitar Anti-Aliasing", enableAAButton.getRect());
-        drawLabelLeftOf(g2, "MOSTRAR FPS", showFpsButton.getRect());
+        drawShadowModeButtons(g2, width);
+        drawOptionLabel(g2, "Habilitar Anti-Aliasing", enableAAButton.getRect());
+        drawOptionLabel(g2, "MOSTRAR FPS", showFpsButton.getRect());
         enableAAButton.draw(g2);
         toggleMuteBGM.draw(g2);
         toggleMuteSFX.draw(g2);
@@ -626,7 +626,7 @@ public class OptionsMenu {
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT);
     }
 
-    private void drawShadowModeRow(Graphics2D g2, int width) {
+    private void drawShadowModeButtons(Graphics2D g2, int width) {
         Rectangle firstButton = shadowsOffButton.getRect();
 
         g2.setFont(pixelFontSmall);
@@ -673,13 +673,13 @@ public class OptionsMenu {
         }
     }
 
-    private String rotuloLimiteFps() {
+    private String LimiteFPSLabel() {
         return fpsUnlimited
                 ? "LIMITE DE FPS: ILIMITADO"
                 : "LIMITE DE FPS: " + fpsFromSliderValue(fpsCapSlider.getValue());
     }
 
-    private void drawLabelLeftOf(Graphics2D g2, String text, Rectangle anchorRect) {
+    private void drawOptionLabel(Graphics2D g2, String text, Rectangle anchorRect) {
         g2.setFont(pixelFontSmall);
         FontMetrics fm = g2.getFontMetrics();
         int tw = fm.stringWidth(text);
