@@ -3,6 +3,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
 public class BulletManager {
@@ -52,7 +53,10 @@ public class BulletManager {
                 // Hit Registration nos MapObjects
                 if (objetosDeCenario != null) {
                     boolean atingiuObjeto = false;
-                    for (MapObject mo : objetosDeCenario) {
+                    Rectangle2D areaBala = new Rectangle2D.Double(
+                            b.getX(), b.getY(),
+                            b.getLargura(), b.getAltura());
+                    for (MapObject mo : MapObjectSpatialIndex.query(objetosDeCenario, areaBala)) {
                         if (mo.isTransparent() || !mo.isSolid()) {
                             continue;
                         }

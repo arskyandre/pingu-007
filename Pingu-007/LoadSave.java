@@ -54,13 +54,20 @@ public class LoadSave {
 
     public static ArrayList<TilesetData> currentTilesets = new ArrayList<>();
     private static java.util.HashMap<Integer, java.util.HashMap<String, String>> tsxCache = new java.util.HashMap<>();
+    private static final HashMap<String, BufferedImage> spriteCache = new HashMap<>();
 
-    public static BufferedImage GetSpriteAtlas(String filename) {
+    public static synchronized BufferedImage GetSpriteAtlas(String filename) {
+        BufferedImage cached = spriteCache.get(filename);
+        if (cached != null) {
+            return cached;
+        }
         try (InputStream is = LoadSave.class.getResourceAsStream("/" + filename)) {
             if (is == null) {
                 throw new RuntimeException("Arquivo não encontrado: " + filename);
             }
-            return ImageIO.read(is);
+            BufferedImage image = ImageIO.read(is);
+            spriteCache.put(filename, image);
+            return image;
         } catch (IOException e) {
             throw new RuntimeException("Erro ao carregar imagem: " + filename, e);
         }

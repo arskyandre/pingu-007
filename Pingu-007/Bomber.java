@@ -41,6 +41,7 @@ public class Bomber extends Enemy {
 
         this.vidaMaxima = 15;
         this.vida = this.vidaMaxima;
+        this.navegacaoSegura = true;
 
         this.velocidadeAndar = 5.0;
         this.velocidadeMax = 30.0;

@@ -1,7 +1,6 @@
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
@@ -19,8 +18,10 @@ public abstract class Enemy extends Entity {
     protected double tempoRecalculoAStar = 30;
 
     protected boolean calculandoCaminho = false;
+    private boolean primeiraBuscaAStar = true;
 
     public boolean podePularBuracos = false;
+    protected boolean navegacaoSegura = false;
     public boolean isInvulneravel = false;
 
     public boolean isHooked = false;
@@ -28,6 +29,7 @@ public abstract class Enemy extends Entity {
 
     public double raioDeteccao = GameCore.tiles_size * 8.0;
     protected boolean aggroPermanente = false;
+    public boolean aggroAoReceberDano = true;
     protected boolean lootProcessado = false;
     public boolean podeDropar = true;
 
@@ -62,6 +64,8 @@ public abstract class Enemy extends Entity {
         this.lvlData = lvlData;
         this.caminhoAStar = null;
         this.currentPathIndex = 0;
+        this.primeiraBuscaAStar = true;
+        this.aStarDelay = (int) (Math.random() * tempoRecalculoAStar);
     }
 
     public boolean temAggro() {
@@ -122,59 +126,8 @@ public abstract class Enemy extends Entity {
         double y0 = this.y + this.height / 2.0;
         double x1 = player.getX() + player.getLargura() / 2.0;
         double y1 = player.getY() + player.getAltura() / 2.0;
-
-        double dx = x1 - x0;
-        double dy = y1 - y0;
-        double dist = Math.hypot(dx, dy);
-
-        int steps = Math.max(1, (int) Math.ceil(dist / 16.0));
-        for (int i = 0; i <= steps; i++) {
-            double checkX = x0 + (dx * i) / steps;
-            double checkY = y0 + (dy * i) / steps;
-            int col = (int) (checkX / GameCore.tiles_size);
-            int row = (int) (checkY / GameCore.tiles_size);
-
-            if (row >= 0 && row < lvlData.length && col >= 0 && col < lvlData[0].length) {
-                int tile = lvlData[row][col];
-                if (TileProperties.isOpaque(tile)) {
-                    return false;
-                }
-            }
-        }
-
-        if (arenaManager != null && arenaManager.getObjetosDeCenario() != null) {
-            java.awt.geom.Line2D.Double linhaDeVisao = new java.awt.geom.Line2D.Double(x0, y0, x1, y1);
-
-            java.awt.geom.Rectangle2D segBounds = new java.awt.geom.Rectangle2D.Double(
-                    Math.min(x0, x1), Math.min(y0, y1),
-                    Math.abs(dx), Math.abs(dy));
-
-            for (MapObject obj : arenaManager.getObjetosDeCenario()) {
-                if (obj == null || !obj.isSolid() || obj.isTransparent()) {
-                    continue;
-                }
-
-                Shape hb = obj.getHitbox();
-                if (hb == null) {
-                    continue;
-                }
-
-                java.awt.geom.Rectangle2D bounds = hb.getBounds2D();
-
-                if (!bounds.intersects(segBounds)) {
-                    continue;
-                }
-
-                if (hb instanceof java.awt.geom.Rectangle2D rect) {
-                    if (linhaDeVisao.intersects(rect)) {
-                        return false;
-                    }
-                } else if (hb.intersects(segBounds)) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        return PathFinder.temLinhaDeVisaoLivre(x0, y0, x1, y1, lvlData,
+                arenaManager == null ? null : arenaManager.getObjetosDeCenario());
     }
 
     protected void aplicarFreioDePreparacao(double intensidade) {
@@ -247,6 +200,14 @@ public abstract class Enemy extends Entity {
     }
 
     protected void seguirCaminhoAStar(Player player, ArrayList<JumpLink> jumpLinks) {
+        seguirCaminhoAStar(player, jumpLinks, false);
+    }
+
+    protected void seguirCaminhoAStarTatico(Player player, ArrayList<JumpLink> jumpLinks) {
+        seguirCaminhoAStar(player, jumpLinks, true);
+    }
+
+    private void seguirCaminhoAStar(Player player, ArrayList<JumpLink> jumpLinks, boolean tatico) {
 
         if (isPuxado || isCaindo) {
             if (isCaindo) {
@@ -276,7 +237,9 @@ public abstract class Enemy extends Entity {
 
         double distToPlayer = Math.hypot(playerCenterX - meuCenterX, playerCenterY - meuCenterY);
 
-        if (!isAirborne && distToPlayer < raioDeteccao && temLinhaDeVisaoLivre(player)) {
+        boolean buracoEntre = (tatico || navegacaoSegura) && PathFinder.temBuracoEntre(
+                meuCenterX, meuCenterY, playerCenterX, playerCenterY, lvlData);
+        if (!isAirborne && distToPlayer < raioDeteccao && temLinhaDeVisaoLivre(player) && !buracoEntre) {
             double dx = player.getX() - this.x;
             double dy = player.getY() - this.y;
             double distP = Math.hypot(dx, dy);
@@ -291,7 +254,9 @@ public abstract class Enemy extends Entity {
         if (!isAirborne) {
             aStarDelay++;
 
-            if (!calculandoCaminho && (aStarDelay >= tempoRecalculoAStar || caminhoAStar == null || currentPathIndex >= caminhoAStar.size())) {
+            boolean caminhoEsgotado = caminhoAStar == null || currentPathIndex >= caminhoAStar.size();
+            double espera = primeiraBuscaAStar || !caminhoEsgotado ? tempoRecalculoAStar : 5.0;
+            if (!calculandoCaminho && aStarDelay >= espera) {
 
                 int startCol = (int) (meuCenterX / GameCore.tiles_size);
                 int startRow = (int) (meuCenterY / GameCore.tiles_size);
@@ -299,21 +264,26 @@ public abstract class Enemy extends Entity {
                 int targetRow = (int) (playerCenterY / GameCore.tiles_size);
 
                 calculandoCaminho = true;
+                primeiraBuscaAStar = false;
                 aStarDelay = 0;
 
-                PathFinder.solicitarCaminhoAsync(startCol, startRow, targetCol, targetRow, this.lvlData,
-                        this.podePularBuracos ? jumpLinks : null,
-                        arenaManager.getObjetosDeCenario(),
-                        (novoCaminho) -> {
-                            this.caminhoAStar = novoCaminho;
-                            this.currentPathIndex = 0;
-                            this.calculandoCaminho = false;
-                        });
+                java.util.function.Consumer<ArrayList<Node>> callback = (novoCaminho) -> {
+                    this.caminhoAStar = novoCaminho;
+                    this.currentPathIndex = 0;
+                    this.calculandoCaminho = false;
+                };
+                if (tatico) {
+                    PathFinder.solicitarCaminhoTaticoAsync(startCol, startRow, targetCol, targetRow,
+                            raioDeteccao, lvlData, jumpLinks, arenaManager.getObjetosDeCenario(), callback);
+                } else {
+                    PathFinder.solicitarCaminhoAsync(startCol, startRow, targetCol, targetRow, lvlData,
+                            podePularBuracos ? jumpLinks : null, arenaManager.getObjetosDeCenario(), callback);
+                }
             }
         }
 
         if (caminhoAStar == null || currentPathIndex >= caminhoAStar.size()) {
-            if (!isAirborne) {
+            if (!isAirborne && !buracoEntre) {
                 double dx = player.getX() - this.x;
                 double dy = player.getY() - this.y;
                 double dist = Math.hypot(dx, dy);
@@ -420,6 +390,9 @@ public abstract class Enemy extends Entity {
     }
 
     public void receberDano(int dano, double sourceX, double sourceY, double knockbackForce) {
+        if (aggroAoReceberDano) {
+            aggroPermanente = true;
+        }
         super.receberDano(dano);
 
         this.isPuxado = true;

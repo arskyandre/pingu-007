@@ -156,7 +156,7 @@ public abstract class Entity implements Renderable {
                 bodyCollider.getWidth(),
                 bodyCollider.getHeight());
 
-        for (MapObject obj : objetos) {
+        for (MapObject obj : MapObjectSpatialIndex.query(objetos, hitboxFutura)) {
             if (obj == null || !obj.isSolid() || obj.getHitbox() == null) {
                 continue;
             }
@@ -208,7 +208,7 @@ public abstract class Entity implements Renderable {
                 inicioCorredor, cbY, distancia, cbH);
         double menorFracao = 1.0;
 
-        for (MapObject obj : objetos) {
+        for (MapObject obj : MapObjectSpatialIndex.query(objetos, corredor)) {
             if (deveIgnorarObjetoNoSweep(obj, hitboxAtual)
                     || !obj.getHitbox().intersects(corredor)) {
                 continue;
@@ -264,7 +264,7 @@ public abstract class Entity implements Renderable {
                 cbX, inicioCorredor, cbW, distancia);
         double menorFracao = 1.0;
 
-        for (MapObject obj : objetos) {
+        for (MapObject obj : MapObjectSpatialIndex.query(objetos, corredor)) {
             if (deveIgnorarObjetoNoSweep(obj, hitboxAtual)
                     || !obj.getHitbox().intersects(corredor)) {
                 continue;
@@ -492,7 +492,7 @@ public abstract class Entity implements Renderable {
         Rectangle2D.Double hitboxDestino = new Rectangle2D.Double(
                 destinoCbX, destinoCbY, cbW, cbH);
 
-        for (MapObject obj : objetosDeCenario) {
+        for (MapObject obj : MapObjectSpatialIndex.query(objetosDeCenario, hitboxDestino)) {
             if (obj == null || !obj.isSolid() || obj.getHitbox() == null) {
                 continue;
             }

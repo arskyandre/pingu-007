@@ -85,6 +85,11 @@ public class Shooter extends Enemy {
         double dx = pCenterX - centerX;
         double dy = pCenterY - centerY;
         double dist = Math.sqrt(dx * dx + dy * dy);
+        boolean linhaLivre = temAggro() && temLinhaDeVisaoLivre(player);
+        boolean buracoEntre = PathFinder.temBuracoEntre(centerX, centerY, pCenterX, pCenterY, lvlData);
+        boolean naBorda = PathFinder.estaNaBordaVoltadaPara(centerX, centerY, pCenterX, pCenterY, lvlData);
+        boolean podeAtirar = linhaLivre && ((!buracoEntre && dist < distAtivacao)
+                || (buracoEntre && naBorda && dist < raioDeteccao));
 
         if (isHooked) {
             if (estadoAtual == Status.PREPARANDO || estadoAtual == Status.ATIRANDO) {
@@ -98,29 +103,28 @@ public class Shooter extends Enemy {
             double oldAccel = this.aceleracao;
             this.aceleracao = 0.1;
             if (dist > 0 && !isPuxado) {
-                seguirCaminhoAStar(player, jumpLinks);
+                seguirCaminhoAStarTatico(player, jumpLinks);
             }
             this.aceleracao = oldAccel;
         } else {
             switch (estadoAtual) {
                 case PERSEGUINDO -> {
-                    if (dist < distAtivacao && temAggro()) {
+                    if (podeAtirar) {
                         estadoAtual = Status.PREPARANDO;
                         timer = tempoPreparo;
                         velX = 0;
                         velY = 0;
                     } else if (dist > 0) {
-                        // O Atirador usa o A* para chegar até à zona de tiro
-                        seguirCaminhoAStar(player, jumpLinks);
+                        seguirCaminhoAStarTatico(player, jumpLinks);
                     }
                 }
 
                 case PREPARANDO -> {
-                    timer--;
                     velX = 0;
                     velY = 0;
-
-                    if (timer <= 0) {
+                    if (!podeAtirar) {
+                        estadoAtual = Status.PERSEGUINDO;
+                    } else if (--timer <= 0) {
                         estadoAtual = Status.ATIRANDO;
                         lockedAngle = Math.atan2(dy, dx);
                         if (!modoShotgun) {
@@ -189,11 +193,14 @@ public class Shooter extends Enemy {
 
                 case COOLDOWN -> {
                     timer--;
-                    if (dist > 0) {
+                    if (dist > 0 && !podeAtirar) {
                         double oldAccel = this.aceleracao;
                         this.aceleracao *= 0.5;
-                        seguirCaminhoAStar(player, jumpLinks);
+                        seguirCaminhoAStarTatico(player, jumpLinks);
                         this.aceleracao = oldAccel;
+                    } else {
+                        velX *= 0.75;
+                        velY *= 0.75;
                     }
 
                     if (timer <= 0) {
@@ -214,12 +221,10 @@ public class Shooter extends Enemy {
             }
         }
 
-        if (estadoAtual != Status.ATIRANDO) {
-            if (velX > 0) {
-                dirS = 1;
-            } else if (velX < 0) {
-                dirS = 0;
-            }
+        if (temAggro() && Math.abs(dx) > 1.0) {
+            dirS = dx > 0 ? 1 : 0;
+        } else if (estadoAtual != Status.ATIRANDO && Math.abs(velX) > 0.2) {
+            dirS = velX > 0 ? 1 : 0;
         }
 
         if (isMoving()) {

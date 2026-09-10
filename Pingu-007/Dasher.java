@@ -35,6 +35,7 @@ public class Dasher extends Enemy {
         this.vidaMaxima = 40;
         this.vida = this.vidaMaxima;
         this.podePularBuracos = true;
+        this.navegacaoSegura = true;
 
         this.velocidadeAndar = 3.5;
         this.velocidadeMax = 45.0;

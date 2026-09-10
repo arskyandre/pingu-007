@@ -36,6 +36,7 @@ public class Jumper extends Enemy {
         this.vidaMaxima = 40;
         this.vida = this.vidaMaxima;
         this.podePularBuracos = true;
+        this.navegacaoSegura = true;
         this.podeAtravessarObjetosTransparentes = true;
         this.velocidadeAndar = 1.5;
         this.velocidadeMax = 30.0;

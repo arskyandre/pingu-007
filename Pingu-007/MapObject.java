@@ -5,6 +5,8 @@ import java.awt.image.BufferedImage;
 
 public class MapObject implements Renderable, DebugRenderable {
 
+    private static volatile long spatialVersion;
+
     protected TiledObject data;
 
     private double x, y;
@@ -46,6 +48,7 @@ public class MapObject implements Renderable, DebugRenderable {
         }
 
         recalculateVisualAnchorAndDepth();
+        spatialVersion++;
     }
 
     @Override
@@ -99,6 +102,7 @@ public class MapObject implements Renderable, DebugRenderable {
         }
 
         recalculateVisualAnchorAndDepth();
+        spatialVersion++;
     }
 
     public TiledObject getData() {
@@ -116,6 +120,9 @@ public class MapObject implements Renderable, DebugRenderable {
     }
 
     public void setSolid(boolean solido) {
+        if (this.temColisao != solido) {
+            spatialVersion++;
+        }
         this.temColisao = solido;
     }
 
@@ -126,6 +133,11 @@ public class MapObject implements Renderable, DebugRenderable {
 
     public void setHitboxNoMundo(Shape shape) {
         this.hitboxNoMundo = shape;
+        spatialVersion++;
+    }
+
+    public static long getSpatialVersion() {
+        return spatialVersion;
     }
 
     public Shape getHitbox() {
