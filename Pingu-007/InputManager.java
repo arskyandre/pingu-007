@@ -357,11 +357,19 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
                 : viewportAtual.screenX(mouseX);
     }
 
+    public int getMouseX() {
+        return getMouseX(MouseSpace.SCREEN);
+    }
+
     public int getMouseY(MouseSpace espaco) {
         RenderViewport viewportAtual = viewport;
         return espaco == MouseSpace.SCENE
                 ? viewportAtual.screenToSceneY(mouseY)
                 : viewportAtual.screenY(mouseY);
+    }
+
+    public int getMouseY() {
+        return getMouseY(MouseSpace.SCREEN);
     }
 
     public RenderViewport getViewport() {
@@ -370,6 +378,12 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
 
     public void configurarViewport(RenderViewport novoViewport) {
         this.viewport = novoViewport == null ? RenderViewport.identidade(1, 1) : novoViewport;
+    }
+
+    public void configurarViewport(int canvasWidth, int canvasHeight, int viewportX, int viewportY,
+            int viewportWidth, int viewportHeight) {
+        configurarViewport(new RenderViewport(canvasWidth, canvasHeight, viewportX, viewportY,
+                true, true));
     }
 
     public void iniciarBloqueioMouse() {

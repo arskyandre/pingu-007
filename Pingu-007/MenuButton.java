@@ -11,6 +11,10 @@ import java.util.List;
 /** Text button with the existing wrapping, sizing, and pixel-style painting. */
 public class MenuButton implements MenuControl {
 
+    public static final int IDLE = MenuInteraction.IDLE.ordinal();
+    public static final int PRESSED = MenuInteraction.PRESSED.ordinal();
+    public static final int CLICKED = MenuInteraction.CLICKED.ordinal();
+
     protected final String label;
     protected final Rectangle rect;
     protected boolean hovered;
@@ -63,6 +67,10 @@ public class MenuButton implements MenuControl {
         }
         held = false;
         return hovered ? MenuInteraction.HOVERED : MenuInteraction.IDLE;
+    }
+
+    public int update(InputManager input, InputManager.MouseSpace mouseSpace) {
+        return updatePointer(input).ordinal();
     }
 
     @Override

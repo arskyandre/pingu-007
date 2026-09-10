@@ -421,6 +421,23 @@ public class Renderer {
         }
     }
 
+    /** Compatibilidade para os chamadores antigos; preserva a separacao cena/interface. */
+    public void renderizar(Graphics2D g2, CameraManager camera, Player player, InputManager input,
+            int telaLargura, int telaAltura, LevelManager lm, BulletManager bulletmanager,
+            ItemManager itemManager, EnemyManager enemyManager, ArenaManager arenaManager,
+            QuestManager questManager, Hud HUD, DialogueManager dialogueManager,
+            FishingManager fishingManager, NPCManager npcManager, CutsceneManager cutsceneManager,
+            boolean renderizarDayNightOverlay, double dayProgress, double delta,
+            boolean renderizarHud, boolean renderizarCrosshair) {
+        RenderViewport viewport = input.getViewport();
+        renderizarCena(g2, camera, player, input, telaLargura, telaAltura, lm, bulletmanager,
+                itemManager, enemyManager, arenaManager, npcManager, delta, cutsceneManager,
+                renderizarDayNightOverlay, dayProgress, fishingManager);
+        renderizarInterface(g2, camera, player, input, viewport, telaLargura, telaAltura, HUD,
+                enemyManager, questManager, cutsceneManager, delta, renderizarHud,
+                renderizarCrosshair, false, false, true, dayProgress);
+    }
+
     public void prepararInterface(int telaAltura) {
         cinematicBorderHeight = Math.max(0, telaAltura / 8);
     }
