@@ -3,7 +3,13 @@
  <image source="stone2.png" width="64" height="32"/>
  <tile id="0">
   <properties>
+   <property name="acao" value="null"/>
    <property name="castsShadow" type="bool" value="true"/>
+   <property name="colisao" type="bool" value="true"/>
+   <property name="isActive" type="bool" value="true"/>
+   <property name="isInteractive" type="bool" value="false"/>
+   <property name="isTransparent" type="bool" value="false"/>
+   <property name="type" value="map_object"/>
   </properties>
   <objectgroup draworder="index" id="2">
    <object id="1" x="3.00735" y="22.875" width="25.9915" height="6.05367"/>
@@ -11,7 +17,13 @@
  </tile>
  <tile id="1">
   <properties>
+   <property name="acao" value="null"/>
    <property name="castsShadow" type="bool" value="true"/>
+   <property name="colisao" type="bool" value="true"/>
+   <property name="isActive" type="bool" value="true"/>
+   <property name="isInteractive" type="bool" value="false"/>
+   <property name="isTransparent" type="bool" value="false"/>
+   <property name="type" value="map_object"/>
   </properties>
   <objectgroup draworder="index" id="2">
    <object id="3" x="3.00735" y="22.875" width="25.9915" height="6.05367"/>

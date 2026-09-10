@@ -14,6 +14,9 @@
    <property name="isTransparent" type="bool" value="false"/>
    <property name="type" value="map_object"/>
   </properties>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="5.66962" y="27.0808" width="4.63575" height="3.56853"/>
+  </objectgroup>
  </tile>
  <tile id="1">
   <properties>
@@ -39,6 +42,9 @@
    <property name="isTransparent" type="bool" value="false"/>
    <property name="type" value="map_object"/>
   </properties>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="5.66962" y="27.0808" width="4.63575" height="3.56853"/>
+  </objectgroup>
  </tile>
  <tile id="3">
   <properties>
@@ -50,5 +56,8 @@
    <property name="isTransparent" type="bool" value="false"/>
    <property name="type" value="map_object"/>
   </properties>
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="5.66962" y="27.0808" width="4.63575" height="3.56853"/>
+  </objectgroup>
  </tile>
 </tileset>

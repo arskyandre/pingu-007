@@ -30,6 +30,7 @@
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
          "height":17,
          "id":2,
+         "locked":true,
          "name":"sea",
          "opacity":1,
          "type":"tilelayer",
@@ -58,6 +59,7 @@
             71, 75, 15, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16],
          "height":17,
          "id":1,
+         "locked":true,
          "name":"ground",
          "opacity":1,
          "type":"tilelayer",
@@ -86,6 +88,7 @@
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
          "height":17,
          "id":5,
+         "locked":true,
          "name":"fence",
          "opacity":1,
          "type":"tilelayer",
@@ -97,6 +100,7 @@
         {
          "draworder":"topdown",
          "id":12,
+         "locked":true,
          "name":"bInterativos",
          "objects":[
                 {
@@ -160,6 +164,7 @@
         {
          "draworder":"topdown",
          "id":4,
+         "locked":true,
          "name":"Spawners",
          "objects":[
                 {
@@ -214,6 +219,7 @@
         {
          "draworder":"topdown",
          "id":10,
+         "locked":true,
          "name":"Triggers",
          "objects":[],
          "opacity":1,
@@ -225,6 +231,7 @@
         {
          "draworder":"topdown",
          "id":11,
+         "locked":true,
          "name":"Paredes",
          "objects":[
                 {
@@ -291,6 +298,7 @@
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
          "height":17,
          "id":13,
+         "locked":true,
          "name":"tStone",
          "opacity":1,
          "type":"tilelayer",
@@ -302,6 +310,7 @@
         {
          "draworder":"topdown",
          "id":14,
+         "locked":true,
          "name":"Camera",
          "objects":[
                 {
