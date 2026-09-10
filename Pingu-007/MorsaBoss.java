@@ -793,6 +793,7 @@ class BossMao extends Enemy {
     private double tick = 0;
     private int inv = 1;
     private double angulo = 0;
+    SoundManager sound;
 
     public BossMao(double startX, double startY, int[][] lvlData, SoundManager sound, ArenaManager am, MorsaBoss corpo) {
         super(startX, startY, GameCore.tiles_size * 1.5, GameCore.tiles_size * 1.5, lvlData, sound, am);
@@ -803,6 +804,7 @@ class BossMao extends Enemy {
         this.corpoPrincipal = corpo;
         this.vida = 150;
         this.danoContato = 10;
+        this.sound = sound;
 
         BufferedImage img = LoadSave.GetSpriteAtlas("images/enemy/garca_sprite_sheet.png");
         maos = new BufferedImage[4][7];
@@ -830,6 +832,7 @@ class BossMao extends Enemy {
     public void iniciarBote(boolean duplo, boolean segundaMao) {
         if (status == MaoState.IDLE) {
             status = MaoState.BOTE_WINDUP;
+            sound.playSFX(SoundManager.SFX.HONK3);
             timerEstado = 0;
             isBoteDuplo = duplo;
             isSegundaMao = segundaMao;
@@ -995,6 +998,7 @@ class BossMao extends Enemy {
                 if (timerEstado > limiteWindup) {
                     status = MaoState.BOTE_DASH;
                     timerEstado = 0;
+                    sound.playSFX(SoundManager.SFX.PLANE);
 
                     double pX = player.getX();
                     double pY = player.getY();
@@ -1091,6 +1095,7 @@ class BossMao extends Enemy {
                     slamTargetX = player.getX();
                     slamTargetY = player.getY() - (GameCore.tiles_size * 0.5);
                     this.x = slamTargetX;
+                    sound.playSFX(SoundManager.SFX.HONK3);
                 }
             }
 
@@ -1142,6 +1147,7 @@ class BossMao extends Enemy {
                     this.y = slamTargetY;
                     status = MaoState.HOVER_RECOVERY;
                     timerEstado = 0;
+                    sound.playSFX(SoundManager.SFX.BONK);
 
                     if (corpoPrincipal != null && corpoPrincipal.getCamera() != null) {
                         corpoPrincipal.getCamera().tremer(14, 25);
@@ -1222,6 +1228,7 @@ class BossMao extends Enemy {
                     timerEstado = 0;
                     this.isHooked = false;
                     this.isPuxado = false;
+                    sound.playSFX(SoundManager.SFX.HONK);
 
                     double alvoX = corpoPrincipal.getCenterX();
                     double alvoY = corpoPrincipal.getCenterY();
@@ -1263,6 +1270,7 @@ class BossMao extends Enemy {
                 if (colideCom(corpoPrincipal)) {
                     corpoPrincipal.receberDano(100);
                     impacto = true;
+                    
                 }
                 // Colisão mobs
                 EnemyManager em = corpoPrincipal.getEnemyManager();

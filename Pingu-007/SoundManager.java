@@ -71,6 +71,10 @@ public class SoundManager {
         SCREAM("sound/sfx/chicken2.wav", 4),
         SEM_AURA("sound/sfx/sem-aura.wav", 1),
         SIX_SEVEN("sound/sfx/sixseben.wav", 1),
+        HONK("sound/sfx/honk.wav", 2),
+        HONK3("sound/sfx/honk3.wav", 2),
+        BONK("sound/sfx/bonk.wav", 2),
+        PLANE("sound/sfx/plane.wav", 2),
 
         // falas completas do dialogo animal crossing
         PESCADOR_FALA1_PART1_1("sound/dialogue/pescador_fala1_part1_1.wav", 1),
