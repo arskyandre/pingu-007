@@ -12,7 +12,7 @@ import javax.swing.*;
 
 public class GameCore extends Canvas implements Runnable {
 
-    // VARIÁVEL DO FPS CAP (0 para ilimitado)
+    // VARIÁVEL DO FPS CAP (0 = ilimitado)
     public int targetFps = 120;
     private static GameState gameState = GameState.MAIN_MENU;
     private static ShopMenu currentShopMenu = null;
