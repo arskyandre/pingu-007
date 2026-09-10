@@ -147,8 +147,8 @@ public class CameraManager {
                     ultimoOffsetMouseY = 0;
                 } else {
 
-                    double distMouseX = input.getMouseX() - centroTelaX;
-                    double distMouseY = input.getMouseY() - centroTelaY;
+                    double distMouseX = input.getMouseX(InputManager.MouseSpace.SCENE) - centroTelaX;
+                    double distMouseY = input.getMouseY(InputManager.MouseSpace.SCENE) - centroTelaY;
                     ultimoOffsetMouseX = distMouseX * pesoOffset;
                     ultimoOffsetMouseY = distMouseY * pesoOffset;
                 }

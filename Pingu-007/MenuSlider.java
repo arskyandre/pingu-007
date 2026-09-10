@@ -20,9 +20,9 @@ public class MenuSlider {
     public static final int CLICKED = 2;
     public static final int DRAGGING = 3;
 
-    public int update(InputManager input) {
-        int mx = input.getMouseX();
-        int my = input.getMouseY();
+    public int update(InputManager input, InputManager.MouseSpace mouseSpace) {
+        int mx = input.getMouseX(mouseSpace);
+        int my = input.getMouseY(mouseSpace);
         boolean clicking = input.isMouseButtonPressed(MouseEvent.BUTTON1);
 
         Rectangle hitArea = new Rectangle(rect.x, rect.y - 8, rect.width, rect.height + 16);

@@ -125,8 +125,7 @@ public class Hud {
         }
     }
 
-    public void draw(Graphics2D g2, int telaLargura, int telaAltura,
-            CameraManager camera, Player p, EnemyManager em, QuestManager questManager, double delta, int offset) {
+    public void update(Player p, double delta) {
         if (p.consumirDanoFlag()) {
             spawnHeartParticles(p);
         }
@@ -134,11 +133,57 @@ public class Hud {
             animateChave = true;
         }
 
-        updateAndDrawParticles(g2, delta, offset);
-        healthbar_inimigos(g2, telaLargura, telaAltura, camera, em);
-        if (GameCore.getGameState() != GameState.CUTSCENE) {
-            indicadores_inimigos(g2, telaLargura, telaAltura, camera, em, offset);
-            indicador_missao(g2, telaLargura, telaAltura, camera, p, questManager, offset);
+        updateParticles(delta);
+        updateResourceFade(p, delta);
+    }
+
+    private void updateResourceFade(Player p, double delta) {
+        int chaves = p.getChaves();
+        if (chaves > 0) {
+            jaPegouChave = true;
+        }
+        double chaveAlphaTarget = (jaPegouChave && !GameCore.isLevel2()) ? 1.0 : 0.0;
+        double chaveAlphaFadeSpeed = 1.0 / 0.75;
+        if (chaveAlpha < chaveAlphaTarget) {
+            chaveAlpha = Math.min(chaveAlphaTarget, chaveAlpha + chaveAlphaFadeSpeed * delta);
+        } else if (chaveAlpha > chaveAlphaTarget) {
+            chaveAlpha = Math.max(chaveAlphaTarget, chaveAlpha - chaveAlphaFadeSpeed * delta);
+        }
+
+        int moedas = p.getMoedas();
+        if (moedas > 0) {
+            jaPegouMoeda = true;
+        }
+        double moedaAlphaTarget = (jaPegouMoeda && !GameCore.isLevel2()) ? 1.0 : 0.0;
+        double moedaAlphaFadeSpeed = 1.0 / 0.75;
+        if (moedaAlpha < moedaAlphaTarget) {
+            moedaAlpha = Math.min(moedaAlphaTarget, moedaAlpha + moedaAlphaFadeSpeed * delta);
+        } else if (moedaAlpha > moedaAlphaTarget) {
+            moedaAlpha = Math.max(moedaAlphaTarget, moedaAlpha - moedaAlphaFadeSpeed * delta);
+        }
+
+        int iscas = p.getIscas();
+        if (iscas > 0) {
+            jaPegouIsca = true;
+        }
+        double iscaAlphaTarget = (jaPegouIsca && !GameCore.isLevel2()) ? 1.0 : 0.0;
+        double iscaAlphaFadeSpeed = 1.0 / 0.75;
+        if (iscaAlpha < iscaAlphaTarget) {
+            iscaAlpha = Math.min(iscaAlphaTarget, iscaAlpha + iscaAlphaFadeSpeed * delta);
+        } else if (iscaAlpha > iscaAlphaTarget) {
+            iscaAlpha = Math.max(iscaAlphaTarget, iscaAlpha - iscaAlphaFadeSpeed * delta);
+        }
+    }
+
+    public void draw(Graphics2D g2, int telaLargura, int telaAltura,
+            CameraManager camera, RenderViewport viewport, Player p, EnemyManager em,
+            QuestManager questManager, double delta, int offset, boolean renderizarIndicadores) {
+
+        drawParticles(g2, offset);
+        healthbar_inimigos(g2, telaLargura, telaAltura, camera, viewport, em);
+        if (renderizarIndicadores) {
+            indicadores_inimigos(g2, telaLargura, telaAltura, camera, viewport, em, offset);
+            indicador_missao(g2, telaLargura, telaAltura, camera, viewport, p, questManager, offset);
         }
     }
 
@@ -165,7 +210,8 @@ public class Hud {
     }
 
     private void indicador_missao(Graphics2D g2, int telaLargura, int telaAltura,
-            CameraManager camera, Player p, QuestManager questManager, int offset) {
+            CameraManager camera, RenderViewport viewport, Player p,
+            QuestManager questManager, int offset) {
         if (p.getArenaManager() == null
                 || questManager.getQuestState() != QuestManager.QuestState.ATIVA
                 || questManager.isQuestArenaAtiva()) {
@@ -189,8 +235,8 @@ public class Hud {
         int marginY = 35 + offset;
         double limitW = centerX - marginX;
         double limitH = centerY - marginY;
-        double screenX = (alvoX - camX) * camZoom;
-        double screenY = (alvoY - camY) * camZoom;
+        double screenX = projetarX(viewport, (alvoX - camX) * camZoom);
+        double screenY = projetarY(viewport, (alvoY - camY) * camZoom);
 
         boolean isOffScreen = screenX < 0
                 || screenX > telaLargura
@@ -245,7 +291,7 @@ public class Hud {
     }
 
     private void indicadores_inimigos(Graphics2D g2, int telaLargura, int telaAltura, CameraManager camera,
-            EnemyManager em, int offset) {
+            RenderViewport viewport, EnemyManager em, int offset) {
         double camX = camera.getX();
         double camY = camera.getY();
         double camzoom = camera.getZoom();
@@ -263,12 +309,12 @@ public class Hud {
 
             double enCentroX = enemy.getX() + (enemy.getLargura() / 2.0);
             double enCentroY = enemy.getY() + (enemy.getAltura() / 2.0);
-            double screenX = (enCentroX - camX) * camzoom;
-            double screenY = (enCentroY - camY) * camzoom;
-            double leftX = (enemy.getX() - camX) * camzoom;
-            double rightX = ((enemy.getX() + enemy.getLargura()) - camX) * camzoom;
-            double topY = (enemy.getY() - camY) * camzoom;
-            double bottomY = ((enemy.getY() + enemy.getAltura()) - camY) * camzoom;
+            double screenX = projetarX(viewport, (enCentroX - camX) * camzoom);
+            double screenY = projetarY(viewport, (enCentroY - camY) * camzoom);
+            double leftX = projetarX(viewport, (enemy.getX() - camX) * camzoom);
+            double rightX = projetarX(viewport, ((enemy.getX() + enemy.getLargura()) - camX) * camzoom);
+            double topY = projetarY(viewport, (enemy.getY() - camY) * camzoom);
+            double bottomY = projetarY(viewport, ((enemy.getY() + enemy.getAltura()) - camY) * camzoom);
             boolean isOffScreenVisual = rightX < 0 || leftX > telaLargura
                     || bottomY < offset || topY > (telaAltura - offset);
             if (isOffScreenVisual) {
@@ -287,7 +333,7 @@ public class Hud {
                 drawSeta(g2, drawX, drawY, angle, true);
             } else {
                 double drawX = screenX;
-                double drawY = topY - (20 * camzoom);
+                double drawY = topY - (viewport.isInterfaceEmBaixaResolucao() ? 20 * camzoom : 20);
                 if (drawY < offset + 15) {
                     drawY = offset + 15;
                 }
@@ -411,15 +457,10 @@ public class Hud {
         }
     }
 
-    private void updateAndDrawParticles(Graphics2D g2, double delta, int offset) {
+    private void updateParticles(double delta) {
         if (heartSheet == null) {
             return;
         }
-
-        BufferedImage halfHeart = heartSheet.getSubimage(1 * HEART_SIZE, 0, HEART_SIZE, HEART_SIZE);
-
-        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 
         double timeScale = delta * 640.0;
 
@@ -433,6 +474,22 @@ public class Hud {
             pt.y += pt.velY * timeScale;
             pt.life -= timeScale;
 
+            if (pt.life <= 0) {
+                it.remove();
+            }
+        }
+    }
+
+    private void drawParticles(Graphics2D g2, int offset) {
+        if (heartSheet == null) {
+            return;
+        }
+
+        BufferedImage halfHeart = heartSheet.getSubimage(1 * HEART_SIZE, 0, HEART_SIZE, HEART_SIZE);
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+
+        for (HeartParticle pt : particles) {
             double alpha = pt.life < 60 ? pt.life / 60f : 1f;
             int size = Math.max(1, (int) (HEART_RENDER * pt.scale));
 
@@ -443,10 +500,6 @@ public class Hud {
                     (int) (pt.y - size / 2.0) + offset,
                     size, size, null);
             g2.setComposite(comp);
-
-            if (pt.life <= 0) {
-                it.remove();
-            }
         }
     }
 
@@ -485,17 +538,6 @@ public class Hud {
         }
 
         int chaves = p.getChaves();
-        if (chaves > 0) {
-            jaPegouChave = true;
-        }
-        double chaveAlphaTarget = (jaPegouChave && !GameCore.isLevel2()) ? 1.0 : 0.0;
-        double chave_fade_duracao = 0.75;
-        double chaveAlphaFadeSpeed = 1.0 / chave_fade_duracao;
-        if (chaveAlpha < chaveAlphaTarget) {
-            chaveAlpha = Math.min(chaveAlphaTarget, chaveAlpha + chaveAlphaFadeSpeed * delta);
-        } else if (chaveAlpha > chaveAlphaTarget) {
-            chaveAlpha = Math.max(chaveAlphaTarget, chaveAlpha - chaveAlphaFadeSpeed * delta);
-        }
 
         if (chaveAlpha <= 0.0) {
             return;
@@ -536,32 +578,8 @@ public class Hud {
         }
 
         int moedas = p.getMoedas();
-        if (moedas > 0) {
-            jaPegouMoeda = true;
-        }
-
-        double moedaAlphaTarget = (jaPegouMoeda && !GameCore.isLevel2()) ? 1.0 : 0.0;
-        double moeda_fade_duracao = 0.75;
-        double moedaAlphaFadeSpeed = 1.0 / moeda_fade_duracao;
-        if (moedaAlpha < moedaAlphaTarget) {
-            moedaAlpha = Math.min(moedaAlphaTarget, moedaAlpha + moedaAlphaFadeSpeed * delta);
-        } else if (moedaAlpha > moedaAlphaTarget) {
-            moedaAlpha = Math.max(moedaAlphaTarget, moedaAlpha - moedaAlphaFadeSpeed * delta);
-        }
 
         int iscas = p.getIscas();
-        if (iscas > 0) {
-            jaPegouIsca = true;
-        }
-
-        double iscaAlphaTarget = (jaPegouIsca && !GameCore.isLevel2()) ? 1.0 : 0.0;
-        double isca_fade_duracao = 0.75;
-        double iscaAlphaFadeSpeed = 1.0 / isca_fade_duracao;
-        if (iscaAlpha < iscaAlphaTarget) {
-            iscaAlpha = Math.min(iscaAlphaTarget, iscaAlpha + iscaAlphaFadeSpeed * delta);
-        } else if (iscaAlpha > iscaAlphaTarget) {
-            iscaAlpha = Math.max(iscaAlphaTarget, iscaAlpha - iscaAlphaFadeSpeed * delta);
-        }
 
         if (moedaAlpha <= 0.0 && iscaAlpha <= 0.0) {
             return;
@@ -615,7 +633,8 @@ public class Hud {
     }
 
     // Desenha barra de vida para inimigos que nao estao com a vida cheia
-    void healthbar_inimigos(Graphics2D g2, int telaLargura, int telaAltura, CameraManager camera, EnemyManager em) {
+    void healthbar_inimigos(Graphics2D g2, int telaLargura, int telaAltura, CameraManager camera,
+            RenderViewport viewport, EnemyManager em) {
         double camX = camera.getX();
         double camY = camera.getY();
         double camzoom = camera.getZoom();
@@ -631,15 +650,31 @@ public class Hud {
 
             double enX = enemy.getX();
             double enY = enemy.getY();
-            double screenX = (enX - camX) * camzoom;
-            double screenY = (enY - 32 - camY) * camzoom;
+            double screenX = projetarX(viewport, (enX - camX) * camzoom);
+            double screenY = projetarY(viewport, (enY - 32 - camY) * camzoom);
+            double larguraBarra = viewport.isInterfaceEmBaixaResolucao() ? 48 * camzoom : 48;
+            double alturaBarra = viewport.isInterfaceEmBaixaResolucao() ? 8 * camzoom : 8;
+            double espacoInterno = viewport.isInterfaceEmBaixaResolucao() ? camzoom : 1.0;
             g2.setColor(Color.BLACK);
-            g2.fill(new RoundRectangle2D.Double(screenX, screenY, 48 * camzoom, 8 * camzoom, 4, 4));
+            g2.fill(new RoundRectangle2D.Double(screenX, screenY, larguraBarra, alturaBarra, 4, 4));
             g2.setColor(Color.RED);
-            g2.fill(new RoundRectangle2D.Double(screenX + 1 * camzoom, screenY + 2 * camzoom,
-                    (48 * (1.0 * envida / envidamax) - 2) * camzoom, 4 * camzoom,
+            g2.fill(new RoundRectangle2D.Double(screenX + espacoInterno, screenY + 2 * espacoInterno,
+                    larguraBarra * (1.0 * envida / envidamax) - 2 * espacoInterno,
+                    4 * espacoInterno,
                     2, 2));
 
         }
+    }
+
+    private double projetarX(RenderViewport viewport, double xCena) {
+        return viewport.isInterfaceEmBaixaResolucao()
+                ? xCena
+                : viewport.sceneToScreenX(xCena);
+    }
+
+    private double projetarY(RenderViewport viewport, double yCena) {
+        return viewport.isInterfaceEmBaixaResolucao()
+                ? yCena
+                : viewport.sceneToScreenY(yCena);
     }
 }

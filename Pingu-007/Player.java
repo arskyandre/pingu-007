@@ -437,8 +437,8 @@ public class Player extends Entity {
      * 
      * if (input.isMouseButtonPressed(MouseEvent.BUTTON3)) {
      * if (muniCOoldownTimer == 0) {
-     * double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-     * double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+     * double mouseXWorld = (input.getMouseX(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getX();
+     * double mouseYWorld = (input.getMouseY(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getY();
      * 
      * itemManager.spawn(new AmmoPackItem(mouseXWorld, mouseYWorld, 32));
      * muniCOoldownTimer = muniCooldown;
@@ -766,8 +766,8 @@ public class Player extends Entity {
                 }
 
                 if (mouseMiraAtiva) {
-                    double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-                    double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+                    double mouseXWorld = (input.getMouseX(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getX();
+                    double mouseYWorld = (input.getMouseY(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getY();
 
                     if (input.isMouseButtonPressed(MouseEvent.BUTTON1)) {
                         if (shootCooldownTimer == 0 && pente > 0) {
@@ -871,8 +871,8 @@ public class Player extends Entity {
                 }
 
                 if (mouseMiraAtiva) {
-                    double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-                    double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+                    double mouseXWorld = (input.getMouseX(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getX();
+                    double mouseYWorld = (input.getMouseY(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getY();
                     updatePlayerDirection(mouseXWorld, mouseYWorld);
                 }
                 updateFishing(input, camera, enemies);
@@ -984,8 +984,8 @@ public class Player extends Entity {
                 double alvoY = y + altura / 2.0 + direcaoY * distanciaMira;
                 fishingBobber.cast(this, soundManager, alvoX, alvoY);
             } else if (mouseMiraAtiva) {
-                double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-                double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+                double mouseXWorld = (input.getMouseX(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getX();
+                double mouseYWorld = (input.getMouseY(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getY();
                 fishingBobber.cast(this, soundManager, mouseXWorld, mouseYWorld);
             }
             fishingCooldown = 20;

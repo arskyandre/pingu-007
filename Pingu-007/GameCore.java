@@ -29,14 +29,10 @@ public class GameCore extends Canvas implements Runnable {
     private static boolean debugInputs = false;
 
     // Renderiza menos pixels em fullscreen e amplia apenas o quadro final.
-    private static final boolean OTIMIZAR_RENDER_FULLSCREEN = true;
+    private static boolean OTIMIZAR_RENDER_FULLSCREEN = true;
+    private static boolean RENDERIZAR_INTERFACE_EM_BAIXA_RESOLUCAO = false;
     private VolatileImage renderTargetFullscreen;
-    private int viewportX = 0;
-    private int viewportY = 0;
-    private int viewportLargura = 1;
-    private int viewportAltura = 1;
-    private int renderLarguraFullscreen = 1;
-    private int renderAlturaFullscreen = 1;
+    private volatile RenderViewport renderViewport = RenderViewport.identidade(1, 1);
 
     private static boolean MunicaoMinimaNoCheckpoint = true;
     private static final int MUNICAO_MINIMA_NO_CHECKPOINT = 35;
@@ -390,12 +386,57 @@ public class GameCore extends Canvas implements Runnable {
         return OTIMIZAR_RENDER_FULLSCREEN && isFullscreen;
     }
 
+    private void alternarRenderFullscreenEmBaixaResolucao() {
+        OTIMIZAR_RENDER_FULLSCREEN = !OTIMIZAR_RENDER_FULLSCREEN;
+        invalidarRenderTargetFullscreen();
+        atualizarViewportRender();
+
+        String estado = OTIMIZAR_RENDER_FULLSCREEN ? "ATIVADO" : "DESATIVADO";
+        String mensagem = "DEBUG: render do jogo em baixa resolução " + estado;
+        System.out.println(mensagem);
+        solicitarNotificacaoDebugSeLivre(mensagem);
+    }
+
+    private void alternarInterfaceEmBaixaResolucao() {
+        RENDERIZAR_INTERFACE_EM_BAIXA_RESOLUCAO = !RENDERIZAR_INTERFACE_EM_BAIXA_RESOLUCAO;
+        atualizarViewportRender();
+
+        String estado = RENDERIZAR_INTERFACE_EM_BAIXA_RESOLUCAO ? "ATIVADA" : "DESATIVADA";
+        String mensagem = "DEBUG: interface em baixa resolução " + estado;
+        System.out.println(mensagem);
+        solicitarNotificacaoDebugSeLivre(mensagem);
+    }
+
+    private void solicitarNotificacaoDebugSeLivre(String mensagem) {
+        if (ToastNotifications.getNotifAtual() == null) {
+            ToastNotifications.RequestNotification(mensagem, 2.0);
+        }
+    }
+
     private int getLarguraRender() {
-        return usarRenderInternoFullscreen() ? renderLarguraFullscreen : Math.max(1, getWidth());
+        return renderViewport.getLarguraCenaInterna();
     }
 
     private int getAlturaRender() {
-        return usarRenderInternoFullscreen() ? renderAlturaFullscreen : Math.max(1, getHeight());
+        return renderViewport.getAlturaCenaInterna();
+    }
+
+    private int getLarguraInterface() {
+        return renderViewport.getLarguraInterface();
+    }
+
+    private int getAlturaInterface() {
+        return renderViewport.getAlturaInterface();
+    }
+
+    private InputManager.MouseSpace espacoMouseInterface() {
+        return renderViewport.isInterfaceEmBaixaResolucao()
+                ? InputManager.MouseSpace.SCENE
+                : InputManager.MouseSpace.SCREEN;
+    }
+
+    public RenderViewport getRenderViewport() {
+        return renderViewport;
     }
 
     private void atualizarViewportRender() {
@@ -403,25 +444,21 @@ public class GameCore extends Canvas implements Runnable {
         int alturaCanvas = Math.max(1, getHeight());
         if (usarRenderInternoFullscreen()) {
             // A altura lógica permanece fixa; a largura acompanha o aspecto do monitor.
-            renderAlturaFullscreen = game_height;
-            renderLarguraFullscreen = Math.max(1, (int) Math.round(
-                    larguraCanvas * (renderAlturaFullscreen / (double) alturaCanvas)));
-            viewportX = 0;
-            viewportY = 0;
-            viewportLargura = larguraCanvas;
-            viewportAltura = alturaCanvas;
+            int alturaCenaInterna = game_height;
+            int larguraCenaInterna = Math.max(1, (int) Math.round(
+                    larguraCanvas * (alturaCenaInterna / (double) alturaCanvas)));
+            renderViewport = new RenderViewport(
+                    larguraCanvas, alturaCanvas,
+                    larguraCenaInterna, alturaCenaInterna,
+                    true, RENDERIZAR_INTERFACE_EM_BAIXA_RESOLUCAO);
         } else {
-            renderLarguraFullscreen = game_width;
-            renderAlturaFullscreen = game_height;
-            viewportX = 0;
-            viewportY = 0;
-            viewportLargura = larguraCanvas;
-            viewportAltura = alturaCanvas;
+            renderViewport = new RenderViewport(
+                    larguraCanvas, alturaCanvas,
+                    larguraCanvas, alturaCanvas,
+                    false, false);
         }
 
-        input.configurarViewport(
-                viewportX, viewportY, viewportLargura, viewportAltura,
-                getLarguraRender(), getAlturaRender());
+        input.configurarViewport(renderViewport);
     }
 
     private void invalidarRenderTargetFullscreen() {
@@ -437,16 +474,18 @@ public class GameCore extends Canvas implements Runnable {
             return null;
         }
 
+        int larguraCena = renderViewport.getLarguraCenaInterna();
+        int alturaCena = renderViewport.getAlturaCenaInterna();
         if (renderTargetFullscreen == null
-                || renderTargetFullscreen.getWidth() != renderLarguraFullscreen
-                || renderTargetFullscreen.getHeight() != renderAlturaFullscreen) {
+                || renderTargetFullscreen.getWidth() != larguraCena
+                || renderTargetFullscreen.getHeight() != alturaCena) {
             invalidarRenderTargetFullscreen();
             renderTargetFullscreen = configuracao.createCompatibleVolatileImage(
-                    renderLarguraFullscreen, renderAlturaFullscreen, Transparency.OPAQUE);
+                    larguraCena, alturaCena, Transparency.OPAQUE);
             if (getDebug()) {
                 System.out.printf(
                         "[DEBUG RENDER] Render interno fullscreen: %dx%d, acelerado=%s%n",
-                        renderLarguraFullscreen, renderAlturaFullscreen,
+                        larguraCena, alturaCena,
                         renderTargetFullscreen.getCapabilities().isAccelerated());
             }
         }
@@ -455,7 +494,7 @@ public class GameCore extends Canvas implements Runnable {
         if (validacao == VolatileImage.IMAGE_INCOMPATIBLE) {
             invalidarRenderTargetFullscreen();
             renderTargetFullscreen = configuracao.createCompatibleVolatileImage(
-                    renderLarguraFullscreen, renderAlturaFullscreen, Transparency.OPAQUE);
+                    larguraCena, alturaCena, Transparency.OPAQUE);
         }
         return renderTargetFullscreen;
     }
@@ -506,11 +545,13 @@ public class GameCore extends Canvas implements Runnable {
             toggleFullscreen();
         }
         atualizarViewportRender();
-        int telaLargura = getLarguraRender();
-        int telaAltura = getAlturaRender();
+        int telaLarguraCena = getLarguraRender();
+        int telaAlturaCena = getAlturaRender();
+        int telaLarguraInterface = getLarguraInterface();
+        int telaAlturaInterface = getAlturaInterface();
 
         input.atualizarBloqueioMouse();
-        camera.adjustForViewportResize(telaLargura, telaAltura, calculateBaseZoom(telaAltura));
+        camera.adjustForViewportResize(telaLarguraCena, telaAlturaCena, calculateBaseZoom(telaAlturaCena));
         updateCursorVisibility();
 
         if (screenTransition.isAtivo()) {
@@ -529,7 +570,8 @@ public class GameCore extends Canvas implements Runnable {
 
         switch (gameState) {
             case MAIN_MENU -> {
-                GameState next = mainMenu.update(input, telaLargura, telaAltura);
+                GameState next = mainMenu.update(input, telaLarguraInterface, telaAlturaInterface,
+                        espacoMouseInterface());
                 if (next == GameState.OPTIONS) {
                     optionsMenu.setReturnState(GameState.MAIN_MENU);
                 }
@@ -613,11 +655,13 @@ public class GameCore extends Canvas implements Runnable {
             case SHOP -> {
                 ShopMenu shop = getShopMenu();
                 if (shop != null) {
-                    shop.update(input, telaLargura, telaAltura);
+                    shop.update(input, telaLarguraInterface, telaAlturaInterface,
+                            espacoMouseInterface());
                 }
             }
             case GAME_OVER -> {
-                GameState next = gameOverScreen.update(input, telaLargura, telaAltura);
+                GameState next = gameOverScreen.update(input, telaLarguraInterface, telaAlturaInterface,
+                        espacoMouseInterface());
                 if (next == GameState.MAIN_MENU) {
                     screenTransition.start(this::voltarAoMenuPrincipalImediato);
                     next = GameState.GAME_OVER;
@@ -641,7 +685,8 @@ public class GameCore extends Canvas implements Runnable {
                 }
             }
             case PAUSED -> {
-                GameState next = pauseMenu.update(input, telaLargura, telaAltura);
+                GameState next = pauseMenu.update(input, telaLarguraInterface, telaAlturaInterface,
+                        espacoMouseInterface());
                 if (next == GameState.OPTIONS) {
                     optionsMenu.setReturnState(GameState.PAUSED);
                 }
@@ -655,9 +700,11 @@ public class GameCore extends Canvas implements Runnable {
                 gameState = next;
             }
             case OPTIONS ->
-                gameState = optionsMenu.update(input, telaLargura, telaAltura, this);
+                gameState = optionsMenu.update(input, telaLarguraInterface, telaAlturaInterface, this,
+                        espacoMouseInterface());
             case KEYBINDINGS ->
-                gameState = keyBindingsMenu.update(input, telaLargura, telaAltura);
+                gameState = keyBindingsMenu.update(input, telaLarguraInterface, telaAlturaInterface,
+                        espacoMouseInterface());
             case QUIT -> {
                 input.shutdown();
                 System.exit(0);
@@ -762,22 +809,28 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyJustPressed(KeyEvent.VK_O)) {
             setCinematicBorderAnimation(Renderer.BorderState.OUT);
         }
+        if (input.isKeyJustPressed(KeyEvent.VK_OPEN_BRACKET)) {
+            alternarRenderFullscreenEmBaixaResolucao();
+        }
+        if (input.isKeyJustPressed(KeyEvent.VK_CLOSE_BRACKET)) {
+            alternarInterfaceEmBaixaResolucao();
+        }
 
         if (debugSpawnCooldown > 0) {
             debugSpawnCooldown--;
         }
 
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_L) && debugSpawnCooldown <= 0) {
-            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+            double mouseXWorld = (input.getMouseX(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getX();
+            double mouseYWorld = (input.getMouseY(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getY();
             enemyManager.adicionarInimigo("lobo", mouseXWorld, mouseYWorld, 0, -1);
             System.out.println("DEBUG: Inimigo spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
             debugSpawnCooldown = 15;
         }
 
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_K) && debugSpawnCooldown <= 0) {
-            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+            double mouseXWorld = (input.getMouseX(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getX();
+            double mouseYWorld = (input.getMouseY(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getY();
             soundManager.playSFX(SoundManager.SFX.KEY_SPAWN);
             itemManager.spawn(new KeyItem(mouseXWorld, mouseYWorld));
             System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
@@ -785,15 +838,15 @@ public class GameCore extends Canvas implements Runnable {
         }
 
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_H) && debugSpawnCooldown <= 0) {
-            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+            double mouseXWorld = (input.getMouseX(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getX();
+            double mouseYWorld = (input.getMouseY(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getY();
             itemManager.spawn(new HealthPackItem(mouseXWorld, mouseYWorld));
             System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
             debugSpawnCooldown = 15;
         }
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_M) && debugSpawnCooldown <= 0) {
-            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+            double mouseXWorld = (input.getMouseX(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getX();
+            double mouseYWorld = (input.getMouseY(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getY();
             itemManager.spawn(new MoedaItem(mouseXWorld, mouseYWorld, 100));
             System.out.println("DEBUG: moeda milionaria spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
             debugSpawnCooldown = 15;
@@ -803,8 +856,8 @@ public class GameCore extends Canvas implements Runnable {
             player.addIscas(10);
         }
         if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_V) && debugSpawnCooldown <= 0) {
-            double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
-            double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
+            double mouseXWorld = (input.getMouseX(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getX();
+            double mouseYWorld = (input.getMouseY(InputManager.MouseSpace.SCENE) / camera.getZoom()) + camera.getY();
             itemManager.spawn(new FishingRodItem(mouseXWorld, mouseYWorld));
             System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
             debugSpawnCooldown = 15;
@@ -1398,122 +1451,151 @@ public class GameCore extends Canvas implements Runnable {
         }
     }
 
-    private void renderizarCena(Graphics2D g2, double delta, int telaLargura, int telaAltura) {
+    private void limparSuperficie(Graphics2D g2, int largura, int altura) {
+        Composite compositeAnterior = g2.getComposite();
         g2.setComposite(AlphaComposite.Src);
         g2.setColor(Color.BLACK);
-        g2.fillRect(0, 0, telaLargura, telaAltura);
-        g2.setComposite(AlphaComposite.SrcOver);
+        g2.fillRect(0, 0, largura, altura);
+        g2.setComposite(compositeAnterior);
+    }
+
+    private boolean estadoComCena() {
+        return switch (gameState) {
+            case PLAYING, MAP, SHOP, GAME_OVER, PAUSED, CUTSCENE, CREDITS -> true;
+            default -> false;
+        };
+    }
+
+    private void renderizarCenaDoEstado(Graphics2D g2, double delta,
+            int telaLargura, int telaAltura) {
+        switch (gameState) {
+            case PLAYING -> renderer.renderizarCena(g2, camera, player, input,
+                    telaLargura, telaAltura, levelManager, bulletmanager, itemManager,
+                    enemyManager, arenaManager, npcManager, delta, cutsceneManager,
+                    !estaDentroLoja, dayProgress, fishingManager);
+            case MAP -> renderer.renderizarCena(g2, camera, player, input,
+                    telaLargura, telaAltura, levelManager, bulletmanager, itemManager,
+                    enemyManager, arenaManager, npcManager, 0.0, cutsceneManager,
+                    false, dayProgress, fishingManager);
+            case SHOP -> renderer.renderizarCena(g2, camera, player, input,
+                    telaLargura, telaAltura, levelManager, bulletmanager, itemManager,
+                    enemyManager, arenaManager, npcManager, delta, cutsceneManager,
+                    false, dayProgress, fishingManager);
+            case GAME_OVER, PAUSED, CUTSCENE -> renderer.renderizarCena(g2, camera, player, input,
+                    telaLargura, telaAltura, levelManager, bulletmanager, itemManager,
+                    enemyManager, arenaManager, npcManager, delta, cutsceneManager,
+                    !estaDentroLoja, dayProgress, fishingManager);
+            case CREDITS -> renderer.renderizarCena(g2, camera, player, input,
+                    telaLargura, telaAltura, levelManager, bulletmanager, itemManager,
+                    enemyManager, arenaManager, npcManager, delta, cutsceneManager,
+                    false, dayProgress, fishingManager);
+            default -> {
+                // Estados de menu sao limpos e compostos apenas pela interface.
+            }
+        }
+    }
+
+    private boolean estadoComHud() {
+        return switch (gameState) {
+            case PLAYING, MAP, SHOP, GAME_OVER, PAUSED, CUTSCENE, CREDITS -> true;
+            default -> false;
+        };
+    }
+
+    private void renderizarInterfaceDoEstado(Graphics2D g2, double delta,
+            int telaLargura, int telaAltura) {
+        renderizarInterfaceDoEstado(g2, delta, telaLargura, telaAltura, renderViewport);
+    }
+
+    private void renderizarInterfaceDoEstado(Graphics2D g2, double delta,
+            int telaLargura, int telaAltura, RenderViewport viewport) {
+        boolean renderizarHud = estadoComHud();
+        boolean renderizarCrosshair = gameState == GameState.PLAYING;
+        boolean renderizarCutscene = gameState == GameState.CUTSCENE;
+        renderer.renderizarInterface(g2, camera, player, input, viewport,
+                telaLargura, telaAltura, hud, enemyManager, questManager, cutsceneManager,
+                delta, renderizarHud, renderizarCrosshair, renderizarCutscene,
+                renderizarHud, gameState != GameState.CUTSCENE, dayProgress);
 
         switch (gameState) {
-            case MAIN_MENU -> {
-                mainMenu.render(g2, telaLargura, telaAltura);
-            }
-            case PLAYING -> {
-                renderer.renderizar(g2, camera, player, input,
-                        telaLargura, telaAltura,
-                        levelManager, bulletmanager, itemManager,
-                        enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager,
-                        npcManager,
-                        cutsceneManager, !estaDentroLoja, dayProgress, delta,
-                        true, true);
-            }
-            case MAP -> {
-                // Desenha a cena pausada sem avancar as animacoes do mundo e do HUD.
-                renderer.renderizar(g2, camera, player, input,
-                        telaLargura, telaAltura,
-                        levelManager, bulletmanager, itemManager,
-                        enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager,
-                        npcManager,
-                        cutsceneManager, !estaDentroLoja, dayProgress, 0.0,
-                        false, false);
-                drawLateHudElements(g2, 0.0, telaLargura, telaAltura);
-                mapScreen.render(g2, telaLargura, telaAltura, player, levelManager, questManager, npcManager);
-            }
+            case MAIN_MENU -> mainMenu.render(g2, telaLargura, telaAltura);
+            case MAP -> mapScreen.render(g2, telaLargura, telaAltura, player, levelManager, questManager, npcManager);
             case SHOP -> {
-                renderer.renderizar(g2, camera, player, input,
-                        telaLargura, telaAltura,
-                        levelManager, bulletmanager, itemManager,
-                        enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager,
-                        npcManager,
-                        cutsceneManager, !estaDentroLoja, dayProgress, delta,
-                        false, false);
-                // renderizar os elementos de venda por cima
                 ShopMenu shop = getShopMenu();
                 if (shop != null) {
                     shop.render(g2, telaLargura, telaAltura);
                 }
             }
-            case GAME_OVER -> {
-                renderer.renderizar(g2, camera, player, input,
-                        telaLargura, telaAltura,
-                        levelManager, bulletmanager, itemManager,
-                        enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager,
-                        npcManager,
-                        cutsceneManager, !estaDentroLoja, dayProgress, delta,
-                        true, false);
-
-                gameOverScreen.render(g2, telaLargura, telaAltura);
-            }
-            case PAUSED -> {
-                renderer.renderizar(g2, camera, player, input,
-                        telaLargura, telaAltura,
-                        levelManager, bulletmanager, itemManager,
-                        enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager,
-                        npcManager,
-                        cutsceneManager, !estaDentroLoja, dayProgress, delta,
-                        true, false);
-
-                pauseMenu.render(g2, telaLargura, telaAltura);
-            }
-            case CUTSCENE -> {
-                renderer.renderizar(g2, camera, player, input,
-                        telaLargura, telaAltura,
-                        levelManager, bulletmanager, itemManager,
-                        enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager,
-                        npcManager,
-                        cutsceneManager, !estaDentroLoja, dayProgress, delta,
-                        true, false);
-            }
-            case OPTIONS -> {
-                optionsMenu.render(g2, telaLargura, telaAltura);
-            }
-            case KEYBINDINGS -> {
-                keyBindingsMenu.render(g2, telaLargura, telaAltura);
-            }
-            case CREDITS -> {
-                renderer.renderizar(g2, camera, player, input,
-                        telaLargura, telaAltura, levelManager, bulletmanager, itemManager,
-                        enemyManager, arenaManager, questManager, hud, dialogueManager, fishingManager,
-                        npcManager,
-                        cutsceneManager, !estaDentroLoja, dayProgress, delta, false, false);
-                creditsScreen.render(g2, telaLargura, telaAltura);
-            }
-            case QUIT -> {
+            case GAME_OVER -> gameOverScreen.render(g2, telaLargura, telaAltura);
+            case PAUSED -> pauseMenu.render(g2, telaLargura, telaAltura);
+            case OPTIONS -> optionsMenu.render(g2, telaLargura, telaAltura);
+            case KEYBINDINGS -> keyBindingsMenu.render(g2, telaLargura, telaAltura);
+            case CREDITS -> creditsScreen.render(g2, telaLargura, telaAltura);
+            default -> {
             }
         }
 
         if (gameState == GameState.PLAYING || gameState == GameState.PAUSED || gameState == GameState.CUTSCENE
-                || gameState == GameState.GAME_OVER || gameState == GameState.SHOP) {
-            drawLateHudElements(g2, delta, telaLargura, telaAltura);
+                || gameState == GameState.GAME_OVER || gameState == GameState.SHOP || gameState == GameState.MAP) {
+            drawLateHudElements(g2, gameState == GameState.MAP ? 0.0 : delta, telaLargura, telaAltura);
         }
-        screenTransition.draw(g2, telaLargura, telaAltura);
         if (gameState == GameState.PLAYING && showFpsCounter) {
             drawFpsCounter(g2, telaLargura);
         }
     }
 
+    private void prepararAnimacoesDeRender(double delta) {
+        boolean hudAtivo = estadoComHud();
+        if (hudAtivo) {
+            hud.update(player, gameState == GameState.MAP ? 0.0 : delta);
+        }
+        cutsceneManager.atualizarAnimacaoDeRender(delta);
+        renderer.prepararInterface(getAlturaInterface());
+        renderer.atualizarAnimacoes(camera, delta,
+                gameState == GameState.PLAYING || gameState == GameState.PAUSED
+                        || gameState == GameState.CUTSCENE || gameState == GameState.GAME_OVER,
+                gameState == GameState.PLAYING);
+        if (gameState == GameState.PLAYING || gameState == GameState.SHOP || gameState == GameState.PAUSED
+                || gameState == GameState.CUTSCENE) {
+            ToastNotifications.update(delta);
+        }
+    }
+
     private void renderizarDireto(BufferStrategy bs, double delta) {
+        RenderViewport viewport = usarRenderInternoFullscreen()
+                ? RenderViewport.identidade(Math.max(1, getWidth()), Math.max(1, getHeight()))
+                : renderViewport;
+        renderer.prepararInterface(viewport.getAlturaInterface());
+        boolean animacaoDaFrameAplicada = false;
         do {
+            double deltaDaTentativa = animacaoDaFrameAplicada ? 0.0 : delta;
             do {
                 Graphics2D g2 = (Graphics2D) bs.getDrawGraphics();
                 try {
-                    renderizarCena(g2, delta, getLarguraRender(), getAlturaRender());
+                    limparSuperficie(g2, viewport.getLarguraCanvasFisico(), viewport.getAlturaCanvasFisico());
+                    if (estadoComCena()) {
+                        renderizarCenaDoEstado(g2, deltaDaTentativa,
+                                viewport.getLarguraCanvasFisico(), viewport.getAlturaCanvasFisico());
+                    }
+                    renderizarInterfaceDoEstado(g2, deltaDaTentativa,
+                            viewport.getLarguraCanvasFisico(), viewport.getAlturaCanvasFisico(), viewport);
+                    screenTransition.draw(g2, viewport.getLarguraCanvasFisico(), viewport.getAlturaCanvasFisico());
                 } finally {
                     g2.dispose();
                 }
+                animacaoDaFrameAplicada = true;
             } while (bs.contentsRestored());
             bs.show();
         } while (bs.contentsLost());
+    }
+
+    private void comporCenaNaTela(Graphics2D tela, VolatileImage target, RenderViewport viewport) {
+        limparSuperficie(tela, viewport.getLarguraCanvasFisico(), viewport.getAlturaCanvasFisico());
+        tela.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        tela.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+        Rectangle destino = viewport.getRetanguloDestinoFisico();
+        tela.drawImage(target, destino.x, destino.y, destino.width, destino.height, null);
     }
 
     private void renderizarFullscreenOtimizado(BufferStrategy bs, double delta) {
@@ -1523,33 +1605,44 @@ public class GameCore extends Canvas implements Runnable {
             return;
         }
 
+        RenderViewport viewport = renderViewport;
+        boolean interfaceBaixa = viewport.isInterfaceEmBaixaResolucao();
+        boolean animacaoDaFrameAplicada = false;
         boolean repetir;
         do {
-            while (true) {
-                target = obterRenderTargetFullscreen();
-                Graphics2D cena = target.createGraphics();
-                try {
-                    renderizarCena(cena, delta, renderLarguraFullscreen, renderAlturaFullscreen);
-                } finally {
-                    cena.dispose();
+            double deltaDaTentativa = animacaoDaFrameAplicada ? 0.0 : delta;
+            target = obterRenderTargetFullscreen();
+            Graphics2D cena = target.createGraphics();
+            try {
+                limparSuperficie(cena, viewport.getLarguraCenaInterna(), viewport.getAlturaCenaInterna());
+                if (estadoComCena()) {
+                    renderizarCenaDoEstado(cena, deltaDaTentativa,
+                            viewport.getLarguraCenaInterna(), viewport.getAlturaCenaInterna());
                 }
-                if (!target.contentsLost()) {
-                    break;
+                if (interfaceBaixa) {
+                    renderizarInterfaceDoEstado(cena, deltaDaTentativa,
+                            viewport.getLarguraInterface(), viewport.getAlturaInterface());
+                    screenTransition.draw(cena, viewport.getLarguraInterface(), viewport.getAlturaInterface());
                 }
+            } finally {
+                cena.dispose();
+            }
+            animacaoDaFrameAplicada = true;
+
+            if (target.contentsLost()) {
+                repetir = true;
+                continue;
             }
 
             do {
                 Graphics2D tela = (Graphics2D) bs.getDrawGraphics();
                 try {
-                    tela.setComposite(AlphaComposite.Src);
-                    tela.setColor(Color.BLACK);
-                    tela.fillRect(0, 0, Math.max(1, getWidth()), Math.max(1, getHeight()));
-                    tela.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                            RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-                    tela.setRenderingHint(RenderingHints.KEY_RENDERING,
-                            RenderingHints.VALUE_RENDER_SPEED);
-                    tela.drawImage(target,
-                            viewportX, viewportY, viewportLargura, viewportAltura, null);
+                    comporCenaNaTela(tela, target, viewport);
+                    if (!interfaceBaixa) {
+                        renderizarInterfaceDoEstado(tela, deltaDaTentativa,
+                                viewport.getLarguraInterface(), viewport.getAlturaInterface());
+                        screenTransition.draw(tela, viewport.getLarguraInterface(), viewport.getAlturaInterface());
+                    }
                 } finally {
                     tela.dispose();
                 }
@@ -1561,10 +1654,7 @@ public class GameCore extends Canvas implements Runnable {
 
     public void render(BufferStrategy bs, double delta) {
         atualizarViewportRender();
-        if (gameState == GameState.PLAYING || gameState == GameState.SHOP || gameState == GameState.PAUSED
-                || gameState == GameState.CUTSCENE) {
-            ToastNotifications.update(delta);
-        }
+        prepararAnimacoesDeRender(delta);
 
         if (usarRenderInternoFullscreen()) {
             renderizarFullscreenOtimizado(bs, delta);

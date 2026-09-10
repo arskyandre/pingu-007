@@ -38,7 +38,8 @@ public class GameOverScreen {
         mainMenuBtn.setPosition(x, y + (BTN_H + BTN_GAP));
     }
 
-    public GameState update(InputManager input, int width, int height) {
+    public GameState update(InputManager input, int width, int height,
+            InputManager.MouseSpace mouseSpace) {
         repositionButtons(width, height);
 
         boolean controleAtivo = input.isControllerActive();
@@ -57,8 +58,8 @@ public class GameOverScreen {
         int mainMenuState;
 
         if (mouseAceito) {
-            respawnState = respawnBtn.update(input);
-            mainMenuState = mainMenuBtn.update(input);
+            respawnState = respawnBtn.update(input, mouseSpace);
+            mainMenuState = mainMenuBtn.update(input, mouseSpace);
         } else {
             respawnBtn.hovered = false;
             mainMenuBtn.hovered = false;

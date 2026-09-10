@@ -100,7 +100,8 @@ public class ShopMenu {
         }
     }
 
-    public void update(InputManager input, int telaLargura, int telaAltura) {
+    public void update(InputManager input, int telaLargura, int telaAltura,
+            InputManager.MouseSpace mouseSpace) {
         if (!aberto) {
             return;
         }
@@ -132,7 +133,7 @@ public class ShopMenu {
         }
 
         for (int i = 0; i < botoes.size(); i++) {
-            int resultado = botoes.get(i).update(input);
+            int resultado = botoes.get(i).update(input, mouseSpace);
             if (botoes.get(i).isHovered()) {
                 if (selecionado != i) {
                     quantidadeSelecionada = 1;
@@ -161,11 +162,11 @@ public class ShopMenu {
                 alterarQuantidade(1, itemSelecionado);
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             }
-            if (setaQuantidadeEsquerda.update(input) == MenuButton.CLICKED) {
+            if (setaQuantidadeEsquerda.update(input, mouseSpace) == MenuButton.CLICKED) {
                 alterarQuantidade(-1, itemSelecionado);
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             }
-            if (setaQuantidadeDireita.update(input) == MenuButton.CLICKED) {
+            if (setaQuantidadeDireita.update(input, mouseSpace) == MenuButton.CLICKED) {
                 alterarQuantidade(1, itemSelecionado);
                 soundManager.playSFX(SoundManager.SFX.HUD_CLICK);
             }

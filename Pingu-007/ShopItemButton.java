@@ -102,14 +102,14 @@ public class ShopItemButton extends MenuButton {
     }
 
     @Override
-    public int update(InputManager input) {
+    public int update(InputManager input, InputManager.MouseSpace mouseSpace) {
         if (!item.disponivel) {
             held = false;
             hovered = false;
             selecionado = false;
             return IDLE;
         }
-        hovered = rect.contains(input.getMouseX(), input.getMouseY());
+        hovered = rect.contains(input.getMouseX(mouseSpace), input.getMouseY(mouseSpace));
         if (hovered && input.isMouseButtonJustPressed(MouseEvent.BUTTON1))
             return CLICKED;
         else if (hovered && input.isMouseButtonPressed(MouseEvent.BUTTON1)) {

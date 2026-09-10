@@ -42,7 +42,8 @@ public class PauseMenu {
         mainMenuBtn.setPosition(x, y + (BTN_H + BTN_GAP) * 2);
     }
 
-    public GameState update(InputManager input, int width, int height) {
+    public GameState update(InputManager input, int width, int height,
+            InputManager.MouseSpace mouseSpace) {
         repositionButtons(width, height);
 
         if (input.isKeyJustPressed(java.awt.event.KeyEvent.VK_ESCAPE)
@@ -67,9 +68,9 @@ public class PauseMenu {
         int mainMenuState;
 
         if (mouseAceito) {
-            resumeState = resumeBtn.update(input);
-            optionsState = optionsBtn.update(input);
-            mainMenuState = mainMenuBtn.update(input);
+            resumeState = resumeBtn.update(input, mouseSpace);
+            optionsState = optionsBtn.update(input, mouseSpace);
+            mainMenuState = mainMenuBtn.update(input, mouseSpace);
         } else {
             resumeBtn.hovered = false;
             optionsBtn.hovered = false;

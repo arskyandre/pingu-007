@@ -67,7 +67,8 @@ public class MainMenu {
         quitBtn.setPosition(x, y + (buttonHeight + gap) * 2);
     }
 
-    public GameState update(InputManager input, int width, int height) {
+    public GameState update(InputManager input, int width, int height,
+            InputManager.MouseSpace mouseSpace) {
         repositionButtons(width, height);
         bobTime += BOB_SPEED;
         boolean controleAtivo = input.isControllerActive();
@@ -88,9 +89,9 @@ public class MainMenu {
 
         if (mouseAceito) {
             eyes.update(input.getMouseX(), input.getMouseY(), width, height);
-            playState = playBtn.update(input);
-            optionsState = optionsBtn.update(input);
-            quitState = quitBtn.update(input);
+            playState = playBtn.update(input, mouseSpace);
+            optionsState = optionsBtn.update(input, mouseSpace);
+            quitState = quitBtn.update(input, mouseSpace);
         } else {
             playBtn.hovered = false;
             optionsBtn.hovered = false;
