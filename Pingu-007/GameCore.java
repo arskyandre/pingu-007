@@ -26,7 +26,7 @@ public class GameCore extends Canvas implements Runnable {
 
     // permite os botoes de teste(debuginputprocessing() e outros). se colocar false
     // o jogo se comporta como versao de "usuario"
-    private static boolean debugInputs = true;
+    private static boolean debugInputs = false;
 
     // Renderiza menos pixels em fullscreen e amplia apenas o quadro final.
     private static final boolean OTIMIZAR_RENDER_FULLSCREEN = true;
