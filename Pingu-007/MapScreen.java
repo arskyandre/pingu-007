@@ -94,9 +94,6 @@ public class MapScreen {
 
             g.setColor(new Color(140, 175, 195));
             g.drawRect(mapaX, mapaY, larguraMapa, alturaMapa);
-
-            // O objetivo é consultado a cada render, sem ficar gravado na miniatura.
-            // As coordenadas das arenas do vendedor pertencem ao mapa principal.
             if (LoadSave.LEVEL_1_DATA.equals(levelManager.getArquivoNivelAtual())) {
                 Shape alvo = questManager.getQuestTargetShape();
                 if (alvo != null) {
@@ -141,7 +138,6 @@ public class MapScreen {
             Rectangle2D bounds = area.getBounds2D();
             int x = (int) Math.round(bounds.getCenterX());
             int y = (int) Math.round(bounds.getCenterY());
-            // O anel continua visível quando o Pingu está no centro do objetivo.
             g.setColor(Color.BLACK);
             g.fillOval(x - 11, y - 11, 22, 22);
             g.setColor(COR_MISSAO);
@@ -182,3 +178,5 @@ public class MapScreen {
         g.drawString(texto, x + 9, y - 8);
     }
 }
+
+

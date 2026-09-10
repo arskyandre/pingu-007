@@ -1,0 +1,241 @@
+VendedorNPC.java:16: private final double moedasPorInimigo = 3.0 /* moedas */ / 5.0 /* inimigos */;
+VendedorNPC.java:25: // private BufferedImage nao_implementado =
+VendedorNPC.java:26: // LoadSave.GetSpriteAtlas("images/portrait/Corinthians_simbolo.png");
+ToastNotifications.java:6: /** Mostra notificacoes no topo da tela, util para dar dicas de jogo */
+TileProperties.java:4: int HOLEid = 9 + 1; // esse é o ID especifico dos buracos
+TileProperties.java:7: // isSolid diz o que não é atravessavel
+TileProperties.java:19: private static final java.util.Set<Integer> TILES_OPACOS_EXTRA = java.util.Set.of( // ex: 88, 89, 90
+TileProperties.java:22: // isOpaque diz o que bloqueia a LINHA DE VISÃO
+TileProperties.java:36: // isSemiSolid diz o que é atravessavel usando alguma movimentação especifica
+TileProperties.java:37: // (ex: dash)
+TileProperties.java:47: // isHole diz o que é possivel cair ou não
+TileProperties.java:70: // isIce diz o que é gelo, para aplicar a fisica "escorregadia"
+TiledObject.java:13: public double rotation = 0; // graus (horário)
+TiledObject.java:15: // Flags de Renderização e Física
+TiledObject.java:20: public boolean flipDiagonal = false; // rotação 90°
+TiledObject.java:26: // Propriedades de Jogo
+TiledObject.java:39: // public int key = 0;
+SoundManager.java:10: /**
+SoundManager.java:13: */
+SoundManager.java:34: /**
+SoundManager.java:38: */
+SoundManager.java:52: // GET_AMMO("sound/sfx/get_ammo.wav", 4),
+SoundManager.java:57: // FISHING_FISH_FOUND("sound/sfx/fishing_fish_found.wav", 2),
+SoundManager.java:58: // FISHING_CAUGHT("sound/sfx/fishing_caught.wav", 2),
+SoundManager.java:59: // FISHING_LOST("sound/sfx/fishing_lost.wav", 2),
+SoundManager.java:75: // falas completas do dialogo animal crossing
+SoundManager.java:120: // private float musicVolume = 0f;
+SoundManager.java:146: /**
+SoundManager.java:148: */
+SoundManager.java:157: stopDialogue(); // corta a fala anterior antes de comecar a nova
+Entity.java:341: // HORIZONTAL
+Entity.java:374: // VERTICAL
+Entity.java:406: // BURACOS
+Enemy.java:43: /**
+Enemy.java:47: */
+DialogueManager.java:46: private Runnable aoTerminarDialogo; // callback opcional, roda quando o diálogo normal termina
+DialogueManager.java:47: // para fazer coisas como spawnar item, fazer a camera focar em algmua coisa, etc
+DialogueCatalogo.java:113: // separador
+DialogueCatalogo.java:115: // de variaveis
+DialogueCatalogo.java:117: // Deus tenha piedade
+DialogueCatalogo.java:119: // das almas penadas
+DialogueCatalogo.java:121: // que encostarem nesse arquivo
+DialogueCatalogo.java:127: // separador
+DialogueCatalogo.java:129: // de variaveis
+DialogueCatalogo.java:131: // Deus tenha piedade
+DialogueCatalogo.java:133: // das almas penadas
+DialogueCatalogo.java:135: // que encostarem nesse arquivo
+DialogueCatalogo.java:146: // separador
+DialogueCatalogo.java:148: // de variaveis
+DialogueCatalogo.java:150: // Deus tenha piedade
+DialogueCatalogo.java:152: // das almas penadas
+DialogueCatalogo.java:154: // que encostarem nesse arquivo
+DialogueCatalogo.java:160: // separador
+DialogueCatalogo.java:162: // de variaveis
+DialogueCatalogo.java:164: // Deus tenha piedade
+DialogueCatalogo.java:166: // das almas penadas
+DialogueCatalogo.java:168: // que encostarem nesse arquivo
+DialogueCatalogo.java:175: // separador
+DialogueCatalogo.java:177: // de variaveis
+DialogueCatalogo.java:179: // Deus tenha piedade
+DialogueCatalogo.java:181: // das almas penadas
+DialogueCatalogo.java:183: // que encostarem nesse arquivo
+DebugRenderable.java:6: // Os dados originais do Tiled (tipo, posição, etc.) usados para rotular o debug.
+Dasher.java:265: isAirborne = true; // Religa a gravidade da engine
+CutsceneManager.java:36: // desenhar barra preta e nome boss
+CutsceneManager.java:271: // Nome do Boss
+CreditsScreen.java:6: // Edite livremente estes textos para colocar os creditos definitivos.
+CreditsScreen.java:21: // Coloque a imagem dentro da pasta Pingu-007 e edite estes dois caminhos.
+CreditsScreen.java:75: // Usa a altura do bloco que vai entrar, inclusive seus nomes extras.
+CollisionPolygon.java:25: // --- DEBUG DE COLISÃO ---
+CollisionPolygon.java:26: // Descomente o bloco abaixo quando for testar para ver o retângulo
+CollisionPolygon.java:27: // pintado de vermelho exatamente em cima do tronco da árvore!
+CollisionPolygon.java:28: // if (getHitbox() != null && isSolid()) {
+CollisionPolygon.java:29: //     g2.setColor(new java.awt.Color(255, 0, 0, 150));
+CollisionPolygon.java:30: //     g2.fill(getHitbox());
+CollisionPolygon.java:31: // }
+Collider.java:107: // Desenha as bordas da hitbox para debug
+Collider.java:117: // Getters
+CameraManager.java:10: // Margem da tela (em pixels) para o player nao chegar perto da borda
+CameraManager.java:46: // para o boss
+CameraManager.java:286: /** foca com tempo indefinido ate rodar desfocarCamera() */
+CameraManager.java:354: // O retangulo criado no Tiled ja representa toda a area visivel desejada.
+BulletManager.java:13: // Matriz do mapa para as balas baterem nas paredes
+BulletManager.java:40: // Hit Registration na PAREDE do Mapa (tiles)
+BulletManager.java:52: // Hit Registration nos MapObjects
+BulletManager.java:74: // Hit Registration nos Inimigos / Player
+ArenaManager.java:23: // Trigger e spawner não viram uma classe própria, então não tem como implementar DebugRenderable.
+ArenaManager.java:26: // public boolean flagArena16Ativada = false;
+ArenaManager.java:170: // flagArena16Ativada = false;
+ArenaManager.java:260: // Estas flags precisam ser restauradas antes das arenas para que
+ArenaManager.java:261: // verificarDesativacaoParedes nao repita cutscenes nem recompensas.
+ArenaManager.java:266: // cutsceneBossSolicitada = estado.cutsceneBossSolicitada;
+ArenaManager.java:301: // private int debugCooldown = 60;
+ArenaManager.java:309: /*
+ArenaManager.java:321: */
+ArenaManager.java:345: /*
+ArenaManager.java:349: */
+ArenaManager.java:359: /*
+ArenaManager.java:364: */
+ArenaManager.java:478: // Descomente e ajuste os IDs quando for usar o puzzle normal
+ArenaManager.java:479: // setWallState(idArenaNormal, false, player);
+ArenaManager.java:480: // itemManager.spawn(new KeyItem(X, Y));
+ArenaManager.java:608: // TODO: Adicionar mais Checkpoints
+ArenaManager.java:723: // pra rodar a cutscene em uma arena de verdade
+ArenaManager.java:816: // Aplica a configuração de spawns da arena.
+ArenaManager.java:827: /*
+ArenaManager.java:831: */
+ArenaManager.java:835: // inimigo.podeDropar = false;
+ArenaManager.java:844: // Reseta uma arena para o estado "não concluída"
+ArenaManager.java:863: // impedindo de spawnar varas infinitamente (vixi la ele)
+ArenaManager.java:868: // mudado para apagar todos os itens EXCETO KeyItem, mudar caso dê problema dps
+ArenaManager.java:869: // itemManager.getItems().removeIf(item -> item instanceof FishingRodItem);
+MainMenuEyes.java:15: private final Eye left = new Eye(548, 209, 41, 33); //x,y(centro) / x,y(raio maximo)
+MainMenuEyes.java:17: private final Eye right = new Eye(916, 216, 41, 33); //x,y(centro) / x,y(raio maximo)
+MainMenu.java:21: // A arte deixa livre a coluna da direita, centralizada em 79% da largura.
+LoadSave.java:36: // Chaves de custom properties
+Level.java:2: //Serve apenas para guardar os dados do level
+KeyBindingsMenu.java:94: // title
+Jumper.java:117: /*
+Jumper.java:124: */
+Jumper.java:300: // Tiro Perfeito: Sobrepõe a invulnerabilidade e pune o Jumper jogando-o no
+Jumper.java:301: // buraco
+Jumper.java:302: /*
+Jumper.java:305: * isAirborne = true; // Religa a física da fase
+Jumper.java:316: */
+InteractiveMapObject.java:24: // if ("abrir_portao".equalsIgnoreCase(this.acao)) {
+InteractiveMapObject.java:25: //     System.out.println("\n=== DEBUG PORTÃO: NASCIMENTO ===");
+InteractiveMapObject.java:26: //     System.out.println("RAW (Tiled) -> X: " + tObj.x + " | Y: " + tObj.y + " | W: " + tObj.width + " | H: " + tObj.height);
+InteractiveMapObject.java:27: //     System.out.println("SCALED (Java) -> X: " + this.getX() + " | Y: " + this.getY() + " | W: " + this.getLargura() + " | H: " + this.getAltura());
+InteractiveMapObject.java:28: //     if (this.getHitbox() != null) {
+InteractiveMapObject.java:29: //         System.out.println("Hitbox Final -> " + this.getHitbox().getBounds2D());
+InteractiveMapObject.java:30: //     } else {
+InteractiveMapObject.java:31: //         System.out.println("Hitbox Final -> NULL");
+InteractiveMapObject.java:32: //     }
+InteractiveMapObject.java:33: // }
+InteractiveMapObject.java:95: //grita e muda pra uma arvore normal
+InteractiveMapObject.java:104: // System.out.println("\n=== DEBUG PORTÃO: ABRINDO ===");
+InteractiveMapObject.java:105: // System.out.println("ANTES (Tiled) -> X: " + this.data.x + " | Y: " + this.data.y + " | GID: " + this.data.gid);
+InteractiveMapObject.java:110: // System.out.println("DEPOIS (LoadSave) -> X: " + this.data.x + " | Y: " + this.data.y + " | GID: " + this.data.gid);
+InteractiveMapObject.java:111: // if (this.data.hitbox != null) {
+InteractiveMapObject.java:112: //     System.out.println("Nova Hitbox (Raw) -> " + this.data.hitbox.getBounds2D());
+InteractiveMapObject.java:113: // }
+InteractiveMapObject.java:114: // this.updateTransformFromData();
+InteractiveMapObject.java:128: // System.out.println("Hitbox (Escalada) -> " + this.getHitbox().getBounds2D());
+InteractiveMapObject.java:132: // System.out.println("Hitbox (Escalada) -> NULL (Sem colisão)");
+InteractiveMapObject.java:162: // Desenha [E]
+InteractiveMapObject.java:171: g2.setColor(new Color(0, 0, 0, 100)); // Sombra
+InteractiveMapObject.java:174: g2.setColor(new Color(20, 77, 55)); // Cor principal
+IconButton.java:4: /** botao com icone de imagem */
+GameCore.java:15: // VARIÁVEL DO FPS CAP (0 para ilimitado)
+GameCore.java:27: // permite os botoes de teste(debuginputprocessing() e outros). se colocar false
+GameCore.java:28: // o jogo se comporta como versao de "usuario"
+GameCore.java:31: // Renderiza menos pixels em fullscreen e amplia apenas o quadro final.
+GameCore.java:84: // pro novo ciclo de dia e noite(cores/musica)
+GameCore.java:125: // public final static int game_width = tiles_size * tiles_in_width;
+GameCore.java:126: // public final static int game_height = tiles_size * tiles_in_height;
+GameCore.java:405: // A altura lógica permanece fixa; a largura acompanha o aspecto do monitor.
+GameCore.java:503: // System.out.println("Player position MapaUpdate (" + player.getX() + ", " +
+GameCore.java:504: // player.getY() + ")");
+GameCore.java:543: // A introdução não avança no modo debug.
+GameCore.java:599: // DESCOMENTAR BLOCO NO JOGO FINAL
+GameCore.java:600: // (nao mais, agora eh controlado pela flag de debug)
+GameCore.java:942: // System.out.println("Player position levelManager.carregarNivel (" +
+GameCore.java:943: // player.getX() + ", " + player.getY() + ")");
+GameCore.java:949: // System.out.println("Player position arenaManager.restaurarEstadoMapa (" +
+GameCore.java:950: // player.getX() + ", " + player.getY() + ")");
+GameCore.java:961: // System.out.println("Player position retorno (" + player.getX() + ", " +
+GameCore.java:962: // player.getY() + ")");
+GameCore.java:996: // screenTransition.start(this::entrarNivelTestImediato);
+GameCore.java:1051: // Intercepta a morte e carrega o save
+GameCore.java:1052: // Esta verificacao vem antes da sequencia final para o player vencer apenas
+GameCore.java:1053: // se ainda estiver vivo quando o boss morrer.
+GameCore.java:1069: // Cria o save se pegou chave nova ou passou num checkpoint
+GameCore.java:1296: // A lista usada pelo vendedor passa a representar exatamente o estado
+GameCore.java:1297: // deste checkpoint, e nao um estado recalculado apenas ao falar com ele.
+GameCore.java:1421: // Desenha a cena pausada sem avancar as animacoes do mundo e do HUD.
+GameCore.java:1440: // renderizar os elementos de venda por cima
+Hud.java:323: // barra clara eh o tamanho do pente total, barra escura eh as balas no pente
+Hud.java:399: double minAngle = Math.PI * 7 / 6; // 210°
+Hud.java:400: double maxAngle = Math.PI * 11 / 6; // 330°
+Hud.java:504: int chavesMax = 3; // mudar caso exista mais chave no jogo
+Hud.java:518: // preenche da direita pra esquerda conforme as chaves sao coletadas
+Hud.java:573: int group_gap = 24; // espaço entre o grupo de iscas e o grupo de moedas
+Hud.java:617: // Desenha barra de vida para inimigos que nao estao com a vida cheia
+PauseMenu.java:124: // dim game behind
+PauseMenu.java:128: // panel
+PauseMenu.java:138: // title
+PauseMenu.java:147: // buttons
+MapScreen.java:98: // O objetivo é consultado a cada render, sem ficar gravado na miniatura.
+MapScreen.java:99: // As coordenadas das arenas do vendedor pertencem ao mapa principal.
+MapScreen.java:144: // O anel continua visível quando o Pingu está no centro do objetivo.
+PathFinder.java:14: // MULTITHREADING (é sério)
+PathFinder.java:49: // Otimização : cria uma matriz para pre calcular os tiles com colisões de objetos (PERDE PRECISÃO)
+PathFinder.java:284: // Um objeto opaco no meio não pode ser atravessado pelo salto.
+NPCManager.java:11: // As descobertas sobrevivem a clearAll(), chamado ao trocar de fase.
+MorsaBoss.java:189: /*
+MorsaBoss.java:193: * player.receberDano(this.danoContato); // Herda os 10 de dano do Enemy
+MorsaBoss.java:196: */
+MorsaBoss.java:917: // mao imortal a tiros
+MorsaBoss.java:922: // ignora dano e knockback
+MorsaBoss.java:954: // BLINDAGEM DA VARA DE PESCA
+MorsaBoss.java:1176: // O Jogador fisgou a mão
+MorsaBoss.java:1245: // TODO: adicionar um som para isso, se puder
+MorsaBoss.java:1246: // soundManager.playSFX(SoundManager.SFX.SWOOSH);
+MorsaBoss.java:1257: // Velocidade estilingue
+MorsaBoss.java:1267: // Colisão mobs
+MorsaBoss.java:1306: //inv logica
+MorsaBoss.java:1342: //g.setColor(this.cor);
+MorsaBoss.java:1343: //g.fillRect((int) (x + tremorVisualX), (int) y, (int) width, (int) height);
+Renderer.java:21: private static final double MOUSE_CIRCLE_FADE_DURATION = 0.5; // segundos
+Renderer.java:23: // Cache de Strokes
+Renderer.java:28: // Cores em cache para o Bounding Box
+Renderer.java:265: // Mantem o tamanho da borda proporcional a altura da tela
+Renderer.java:270: // Anti-Aliasing e Interpolação
+Renderer.java:393: // Animacao das bordas cinematicas
+Renderer.java:465: return 0; // Substituído pelo método nativo Renderable::getProfundidade
+Renderer.java:498: // Spawners
+Renderer.java:561: // Hitbox ou Trigger
+Renderer.java:609: // TODO: talvez implementar afterimages no pingu e inimigos quando derem dash
+Renderer.java:610: /*
+Renderer.java:632: */
+Renderer.java:659: // Raw pixel scaling: no smoothing.
+MenuSlider.java:82: // posicao da direita para colocar botoes do lado do slider
+QuestManager.java:16: // Mude para false para manter somente o bonus por quantidade de hordas
+QuestManager.java:181: // Permite testar o objetivo sem ter concluído arenas nem visitado o vendedor.
+MenuButton.java:8: /**
+MenuButton.java:10: */
+PressureButton.java:14: // this.pressed = data.ativa;
+Player.java:429: // debug
+Player.java:430: /*
+Player.java:449: */
+Player.java:810: // poder do six seben
+Player.java:946: // System.out.println(angulo);
+MapObject.java:77: // --- DEBUG DE COLISÃO ---
+MapObject.java:78: // if (hitboxNoMundo != null && temColisao) {
+MapObject.java:79: //     g2.setColor(new Color(255, 0, 0, 150));
+MapObject.java:80: //     g2.fill(hitboxNoMundo);
+MapObject.java:81: // }
+Shooter.java:113: // O Atirador usa o A* para chegar até à zona de tiro
+Shooter.java:169: anguloArma = (-Math.PI) - anguloArma; // atenção
+Shooter.java:177: // System.out.println(anguloSpray);

@@ -3,7 +3,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 
 public class CreditsScreen {
-    // Edite livremente estes textos para colocar os creditos definitivos.
     private static final String[][] CREDITOS = {
             { "DIRECAO E DESIGN", "Japonets" },
             { "PROGRAMACAO", "Leonardo Lima Silva", "Kaua Victor Menezes Ferraz", "André Arsky", "Alexander Enzo Açano" },
@@ -17,8 +16,6 @@ public class CreditsScreen {
     private static final double VELOCIDADE_CREDITOS = 0.85;
     private static final int ESPACO_ENTRE_BLOCOS = 118;
     private static final int TAMANHO_IMAGEM = 112;
-
-    // Coloque a imagem dentro da pasta Pingu-007 e edite estes dois caminhos.
     private static final String CAMINHO_IMAGEM_ESQUERDA = "images/portrait/pingu_portrait_close.jpg";
     private static final String CAMINHO_IMAGEM_DIREITA = "images/portrait/Corinthians_simbolo.png";
 
@@ -72,7 +69,6 @@ public class CreditsScreen {
         for (int i = 0; i < CREDITOS.length; i++) {
             String[] credito = CREDITOS[i];
             if (i > 0) {
-                // Usa a altura do bloco que vai entrar, inclusive seus nomes extras.
                 yCredito -= calcularEspacoDoBloco(credito);
             }
             desenharBlocoComFade(g, credito, width, height, yCredito,
@@ -160,3 +156,5 @@ public class CreditsScreen {
         g.drawString(texto, (width - g.getFontMetrics().stringWidth(texto)) / 2, y);
     }
 }
+
+
