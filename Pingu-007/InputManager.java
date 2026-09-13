@@ -53,7 +53,8 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
     private boolean mouseBloqueado = false;
     private double mouseBloqueioReferenciaX = 0;
     private double mouseBloqueioReferenciaY = 0;
-    private volatile RenderViewport viewport = RenderViewport.identidade(1, 1);
+    private volatile ViewportMapping viewportMapping
+            = new ViewportMapping(RenderViewport.identidade(1, 1), 0, 0);
 
     public InputManager() {
         controllerManager = new ControllerManager();
@@ -351,39 +352,55 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
     }
 
     public int getMouseX(MouseSpace espaco) {
-        RenderViewport viewportAtual = viewport;
+        ViewportMapping mapping = viewportMapping;
+        RenderViewport viewportAtual = mapping.viewport;
         return espaco == MouseSpace.SCENE
-                ? viewportAtual.screenToSceneX(mouseX)
-                : viewportAtual.screenX(mouseX);
+                ? viewportAtual.screenToSceneX(mouseX - mapping.offsetX)
+                : viewportAtual.screenX(mouseX - mapping.offsetX);
     }
 
     public int getMouseX() {
-        return getMouseX(MouseSpace.SCREEN);
+        ViewportMapping mapping = viewportMapping;
+        return mapping.viewport.screenToInterfaceX(mouseX - mapping.offsetX);
     }
 
     public int getMouseY(MouseSpace espaco) {
-        RenderViewport viewportAtual = viewport;
+        ViewportMapping mapping = viewportMapping;
+        RenderViewport viewportAtual = mapping.viewport;
         return espaco == MouseSpace.SCENE
-                ? viewportAtual.screenToSceneY(mouseY)
-                : viewportAtual.screenY(mouseY);
+                ? viewportAtual.screenToSceneY(mouseY - mapping.offsetY)
+                : viewportAtual.screenY(mouseY - mapping.offsetY);
     }
 
     public int getMouseY() {
-        return getMouseY(MouseSpace.SCREEN);
+        ViewportMapping mapping = viewportMapping;
+        return mapping.viewport.screenToInterfaceY(mouseY - mapping.offsetY);
     }
 
     public RenderViewport getViewport() {
-        return viewport;
+        return viewportMapping.viewport;
     }
 
     public void configurarViewport(RenderViewport novoViewport) {
-        this.viewport = novoViewport == null ? RenderViewport.identidade(1, 1) : novoViewport;
+        RenderViewport viewportSeguro = novoViewport == null
+                ? RenderViewport.identidade(1, 1)
+                : novoViewport;
+        viewportMapping = new ViewportMapping(viewportSeguro, 0, 0);
     }
 
-    public void configurarViewport(int canvasWidth, int canvasHeight, int viewportX, int viewportY,
-            int viewportWidth, int viewportHeight) {
-        configurarViewport(new RenderViewport(canvasWidth, canvasHeight, viewportX, viewportY,
-                true, true));
+    public void configurarViewport(int x, int y, int largura, int altura,
+            int larguraLogica, int alturaLogica) {
+        int larguraFisica = Math.max(1, largura);
+        int alturaFisica = Math.max(1, altura);
+        int larguraInterna = Math.max(1, larguraLogica);
+        int alturaInterna = Math.max(1, alturaLogica);
+        boolean usaEscala = larguraFisica != larguraInterna || alturaFisica != alturaInterna;
+
+        RenderViewport novoViewport = new RenderViewport(
+                larguraFisica, alturaFisica,
+                larguraInterna, alturaInterna,
+                usaEscala, usaEscala);
+        viewportMapping = new ViewportMapping(novoViewport, x, y);
     }
 
     public void iniciarBloqueioMouse() {
@@ -425,5 +442,18 @@ public class InputManager extends KeyAdapter implements MouseMotionListener, Mou
 
     public void shutdown() {
         controllerManager.quitSDLGamepad();
+    }
+
+    private static final class ViewportMapping {
+
+        final RenderViewport viewport;
+        final int offsetX;
+        final int offsetY;
+
+        ViewportMapping(RenderViewport viewport, int offsetX, int offsetY) {
+            this.viewport = viewport;
+            this.offsetX = offsetX;
+            this.offsetY = offsetY;
+        }
     }
 }

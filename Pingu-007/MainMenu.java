@@ -1,3 +1,4 @@
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -7,12 +8,16 @@ import java.io.File;
 import java.util.List;
 import javax.imageio.ImageIO;
 
-/** Main-menu composition and visuals. Shared input behavior lives in MenuController. */
+/**
+ * Main-menu composition and visuals. Shared input behavior lives in
+ * MenuController.
+ */
 public final class MainMenu extends AbstractMenuScreen {
 
-    private static final int BTN_W = 220;
-    private static final int BTN_H = 46;
+    private static final int BTN_W = 280;
+    private static final int BTN_H = 52;
     private static final int BTN_GAP = 18;
+    private static final double MENU_CENTER_X = 0.79;
 
     private static final double BOB_SPEED = 0.125;
     private static final double BOB_AMP = 4.0;
@@ -48,11 +53,22 @@ public final class MainMenu extends AbstractMenuScreen {
 
     @Override
     protected void layoutContent(MenuViewport viewport) {
-        MenuLayouts.centeredVerticalStack(viewport, primaryControls(), viewport.height() / 2, BTN_GAP);
+        int buttonWidth = Math.max(180, Math.min(BTN_W, (int) (viewport.width() * 0.26)));
+        int buttonHeight = Math.max(40, Math.min(BTN_H, (int) (viewport.height() * 0.08)));
+        int gap = Math.max(12, Math.min(BTN_GAP, (int) (viewport.height() * 0.027)));
+        int x = menuCenterX(viewport) - buttonWidth / 2;
+        int y = (int) (viewport.height() * 0.44);
+
+        for (MenuEntry entry : entries) {
+            MenuButton button = (MenuButton) entry.getPrimaryControl();
+            button.setSize(buttonWidth, buttonHeight);
+            button.setPosition(x, y);
+            y += buttonHeight + gap;
+        }
     }
 
-    private List<MenuControl> primaryControls() {
-        return entries.stream().map(MenuEntry::getPrimaryControl).toList();
+    private int menuCenterX(MenuViewport viewport) {
+        return (int) (viewport.width() * MENU_CENTER_X);
     }
 
     @Override
@@ -71,7 +87,8 @@ public final class MainMenu extends AbstractMenuScreen {
         }
 
         MenuPainter.drawDimOverlay(graphics, viewport.width(), viewport.height(), new Color(0, 0, 0, 100));
-        MenuPainter.drawCenteredTextInWidth(graphics, "PINGU 007", pixelFont, viewport.width(), viewport.height() / 4,
+        MenuPainter.drawCenteredText(graphics, "PINGU 007", pixelFont, menuCenterX(viewport),
+                (int) (viewport.height() * 0.31),
                 Color.WHITE, new Color(0, 0, 0, 180), 3, 3);
 
         Font hintFont = MenuFonts.gameTextFont(12f);
@@ -86,8 +103,8 @@ public final class MainMenu extends AbstractMenuScreen {
         } finally {
             metricsGraphics.dispose();
         }
-        int hintX = viewport.width() - hintWidth;
-        int hintY = viewport.height() - 10 + (int) (Math.sin(bobTime) * BOB_AMP);
+        int hintX = menuCenterX(viewport) - hintWidth / 2;
+        int hintY = viewport.height() - 24 + (int) (Math.sin(bobTime) * BOB_AMP);
         MenuPainter.drawTextWithShadow(graphics, hint, hintX, hintY, hintFont, Color.GRAY,
                 new Color(0, 0, 0, 180), 3, 3);
 
