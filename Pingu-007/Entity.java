@@ -70,7 +70,8 @@ public abstract class Entity implements Renderable {
             return;
         }
 
-        int centroCol = (int) ((x + bodyCollider.getOffsetX() + bodyCollider.getWidth() / 2.0) / GameCore.tiles_size);
+        double centroX = x + bodyCollider.getOffsetX() + bodyCollider.getWidth() / 2.0;
+        int centroCol = (int) (centroX / GameCore.tiles_size);
         int centroRow = (int) ((y + bodyCollider.getOffsetY() + bodyCollider.getHeight() / 2.0) / GameCore.tiles_size);
 
         if (centroRow < 0 || centroRow >= lvlData.length || centroCol < 0 || centroCol >= lvlData[0].length) {
@@ -83,14 +84,14 @@ public abstract class Entity implements Renderable {
         iceFootstepTimer--;
         if (snowFootstepTimer <= 0) {
             if (!TileProperties.isHole(tile) && !TileProperties.isIce(tile)) {
-                sound.playRandomSnowStep();
+                sound.playRandomSnowStep(centroX);
             }
             snowFootstepTimer = snowFootstepInterval;
         }
         if (iceFootstepTimer <= 0) {
 
             if (!TileProperties.isHole(tile) && TileProperties.isIce(tile)) {
-                sound.playRandomIceStep();
+                sound.playRandomIceStep(centroX);
             }
             iceFootstepTimer = iceFootstepInterval;
         }

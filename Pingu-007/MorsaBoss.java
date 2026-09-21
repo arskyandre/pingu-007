@@ -329,7 +329,7 @@ public class MorsaBoss extends Enemy {
         timerMorte++;
         if (timerMorte == MORTE_BRANCA_FRAMES) {
             if (soundManager != null) {
-                soundManager.playSFX(SoundManager.SFX.MORSA_ROAR);
+                soundManager.playSpatialSFX(SoundManager.SFX.MORSA_ROAR, getCenterX());
             }
             if (gameCore != null) {
                 gameCore.shakeCamera(10, MORTE_RUGIDO_FRAMES);
@@ -502,7 +502,7 @@ public class MorsaBoss extends Enemy {
                     gameCore.shakeCamera(12, 60);
                 }
                 if (soundManager != null) {
-                    soundManager.playSFX(SoundManager.SFX.MORSA_ROAR);
+                    soundManager.playSpatialSFX(SoundManager.SFX.MORSA_ROAR, getCenterX());
                 }
             }
         }
@@ -832,7 +832,7 @@ class BossMao extends Enemy {
     public void iniciarBote(boolean duplo, boolean segundaMao) {
         if (status == MaoState.IDLE) {
             status = MaoState.BOTE_WINDUP;
-            sound.playSFX(SoundManager.SFX.HONK3);
+            sound.playSpatialSFX(SoundManager.SFX.HONK3, x + width / 2.0);
             timerEstado = 0;
             isBoteDuplo = duplo;
             isSegundaMao = segundaMao;
@@ -998,7 +998,7 @@ class BossMao extends Enemy {
                 if (timerEstado > limiteWindup) {
                     status = MaoState.BOTE_DASH;
                     timerEstado = 0;
-                    sound.playSFX(SoundManager.SFX.PLANE);
+                    sound.playSpatialSFX(SoundManager.SFX.PLANE, x + width / 2.0);
 
                     double pX = player.getX();
                     double pY = player.getY();
@@ -1095,7 +1095,7 @@ class BossMao extends Enemy {
                     slamTargetX = player.getX();
                     slamTargetY = player.getY() - (GameCore.tiles_size * 0.5);
                     this.x = slamTargetX;
-                    sound.playSFX(SoundManager.SFX.HONK3);
+                    sound.playSpatialSFX(SoundManager.SFX.HONK3, x + width / 2.0);
                 }
             }
 
@@ -1147,13 +1147,13 @@ class BossMao extends Enemy {
                     this.y = slamTargetY;
                     status = MaoState.HOVER_RECOVERY;
                     timerEstado = 0;
-                    sound.playSFX(SoundManager.SFX.BONK);
+                    sound.playSpatialSFX(SoundManager.SFX.BONK, x + width / 2.0);
 
                     if (corpoPrincipal != null && corpoPrincipal.getCamera() != null) {
                         corpoPrincipal.getCamera().tremer(14, 25);
                     }
                     if (soundManager != null) {
-                        soundManager.playSFX(SoundManager.SFX.EXPLOSION);
+                        soundManager.playSpatialSFX(SoundManager.SFX.EXPLOSION, x + width / 2.0);
                     }
 
                     if (corpoPrincipal != null && corpoPrincipal.getBulletManager() != null) {
@@ -1228,7 +1228,7 @@ class BossMao extends Enemy {
                     timerEstado = 0;
                     this.isHooked = false;
                     this.isPuxado = false;
-                    sound.playSFX(SoundManager.SFX.HONK);
+                    sound.playSpatialSFX(SoundManager.SFX.HONK, x + width / 2.0);
 
                     double alvoX = corpoPrincipal.getCenterX();
                     double alvoY = corpoPrincipal.getCenterY();
@@ -1292,7 +1292,7 @@ class BossMao extends Enemy {
                         corpoPrincipal.getCamera().tremer(20, 30);
                     }
                     if (soundManager != null) {
-                        soundManager.playSFX(SoundManager.SFX.EXPLOSION);
+                        soundManager.playSpatialSFX(SoundManager.SFX.EXPLOSION, x + width / 2.0);
                     }
                 }
             }

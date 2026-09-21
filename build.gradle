@@ -1,0 +1,48 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'pingu007'
+version = '1.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['Pingu-007']
+        }
+    }
+}
+
+dependencies {
+    implementation 'games.rednblack.miniaudio:miniaudio:0.8'
+    implementation 'com.badlogicgames.gdx:gdx:1.14.2'
+    implementation files('Pingu-007/Jamepad-1.4.0.jar', 'Pingu-007/sdl2gdx-1.0.5.jar')
+    runtimeOnly('games.rednblack.miniaudio:gdx-miniaudio-platform:0.8') {
+        artifact {
+            name = 'gdx-miniaudio-platform'
+            classifier = 'natives-desktop'
+            type = 'jar'
+        }
+    }
+}
+
+application {
+    mainClass = 'GameCore'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.named('run', JavaExec) {
+    workingDir = file('Pingu-007')
+    classpath += files('Pingu-007')
+    standardInput = System.in
+}

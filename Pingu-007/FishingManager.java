@@ -156,7 +156,7 @@ public class FishingManager {
         this.pullProgress = 0.0;
         this.startAnimTimer = START_ANIM_DURATION;
 
-        soundManager.playSFX(SoundManager.SFX.SPLASH);
+        soundManager.playSpatialSFX(SoundManager.SFX.SPLASH, targetWorldX);
         state = State.WAITING;
         waitTimer = WAIT_MIN + (int) (Math.random() * (WAIT_MAX - WAIT_MIN));
         if (player.getFasterFishing()) {
@@ -279,7 +279,7 @@ public class FishingManager {
             System.out.printf("encontrou a chave! spawnando em %f, %f\n", 114.3 * GameCore.tiles_size,
                     57.7 * GameCore.tiles_size);
             itemManager.spawn(new MoedaItem(targetWorldX, targetWorldY + 24, 30));
-            soundManager.playSFX(SoundManager.SFX.KEY_SPAWN);
+            soundManager.playSpatialSFX(SoundManager.SFX.KEY_SPAWN, targetWorldX);
             itemManager.spawn(new KeyItem(targetWorldX, targetWorldY + 32));
             setPlayerHasKey(true);
         }

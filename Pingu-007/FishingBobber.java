@@ -25,7 +25,9 @@ public class FishingBobber {
         if (!owner.hasFishingRod()) {
             return;
         }
-        soundManager.playSFX(SoundManager.SFX.LINE_CAST);
+        soundManager.playSpatialSFX(
+                SoundManager.SFX.LINE_CAST,
+                owner.getX() + owner.getLargura() / 2.0);
         this.owner = owner;
         this.x = owner.getX() + owner.getLargura() / 2.0;
         this.y = owner.getY() + owner.getAltura() / 2.0;

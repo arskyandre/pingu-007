@@ -481,7 +481,10 @@ public class ArenaManager {
             }
         }
         if (botaoLightsOutAcionado != null) {
-            soundManager.playSFX(SoundManager.SFX.CLICK);
+            TiledObject buttonData = botaoLightsOutAcionado.getData();
+            soundManager.playSpatialSFX(
+                    SoundManager.SFX.CLICK,
+                    buttonData.x + buttonData.width / 2.0);
             alternarLightsOut(botaoLightsOutAcionado, player);
         }
     }
@@ -541,7 +544,7 @@ public class ArenaManager {
             marcarArenaConcluida(arena);
             setWallState(idArena, false, player);
             camera.focarEm(5029 + 16, 4200 + 16, 90, false);
-            soundManager.playSFX(SoundManager.SFX.KEY_SPAWN);
+            soundManager.playSpatialSFX(SoundManager.SFX.KEY_SPAWN, 5029.0 + 16.0);
             itemManager.spawn(new KeyItem(5029, 4200));
         }
     }
@@ -767,7 +770,7 @@ public class ArenaManager {
 
                     if (!chave14_15_spawnada) {
                         camera.focarEm(12839 + 16, 4870 + 16, 90, false);
-                        soundManager.playSFX(SoundManager.SFX.KEY_SPAWN);
+                        soundManager.playSpatialSFX(SoundManager.SFX.KEY_SPAWN, 12839.0 + 16.0);
                         itemManager.spawn(new KeyItem(12839, 4870));
                         chave14_15_spawnada = true;
                     }

@@ -9,6 +9,8 @@ import java.awt.image.VolatileImage;
 import java.io.File;
 import java.util.ArrayList;
 import javax.swing.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class GameCore extends Canvas implements Runnable {
 
@@ -72,6 +74,7 @@ public class GameCore extends Canvas implements Runnable {
     JFrame frame;
     boolean running = true;
     private boolean isFullscreen = false;
+    private boolean shutdownComplete;
     private Rectangle windowedBounds;
     private boolean showFpsCounter = false;
     private boolean avisoPlebeu = true;
@@ -511,6 +514,7 @@ public class GameCore extends Canvas implements Runnable {
 
         input.atualizarBloqueioMouse();
         camera.adjustForViewportResize(telaLargura, telaAltura, calculateBaseZoom(telaAltura));
+        soundManager.setSpatialViewport(camera.getX(), telaLargura / camera.getZoom());
         updateCursorVisibility();
 
         MenuViewport menuViewport = new MenuViewport(telaLargura, telaAltura);
@@ -667,7 +671,7 @@ public class GameCore extends Canvas implements Runnable {
             case KEYBINDINGS ->
                 gameState = keyBindingsMenu.update(menuContext);
             case QUIT -> {
-                input.shutdown();
+                shutdownGame();
                 System.exit(0);
             }
             case CREDITS -> {
@@ -786,7 +790,7 @@ public class GameCore extends Canvas implements Runnable {
         if (input.isKeyPressed(java.awt.event.KeyEvent.VK_K) && debugSpawnCooldown <= 0) {
             double mouseXWorld = (input.getMouseX() / camera.getZoom()) + camera.getX();
             double mouseYWorld = (input.getMouseY() / camera.getZoom()) + camera.getY();
-            soundManager.playSFX(SoundManager.SFX.KEY_SPAWN);
+            soundManager.playSpatialSFX(SoundManager.SFX.KEY_SPAWN, mouseXWorld);
             itemManager.spawn(new KeyItem(mouseXWorld, mouseYWorld));
             System.out.println("DEBUG: Item spawnado na posição: " + mouseXWorld + ", " + mouseYWorld);
             debugSpawnCooldown = 15;
@@ -1732,6 +1736,22 @@ public class GameCore extends Canvas implements Runnable {
         soundManager.playBGM(SoundManager.BGM.MAIN_MENU);
     }
 
+    /** Stops native audio before the AWT window/process disappears. */
+    private synchronized void shutdownGame() {
+        if (shutdownComplete) {
+            return;
+        }
+        shutdownComplete = true;
+        running = false;
+        input.shutdown();
+        if (soundManager != null) {
+            soundManager.dispose();
+        }
+        if (frame != null) {
+            frame.dispose();
+        }
+    }
+
     public static void main(String[] args) {
         System.out.println("se aparecer algum erro de libusb.dll ignore ");
         GameCore game = new GameCore();
@@ -1744,7 +1764,14 @@ public class GameCore extends Canvas implements Runnable {
         game.frame.pack();
         game.frame.setMinimumSize(new Dimension(800, 500));
         game.frame.setLocationRelativeTo(null);
-        game.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        game.frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        game.frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent event) {
+                game.shutdownGame();
+                System.exit(0);
+            }
+        });
         game.frame.setResizable(true);
         game.frame.setVisible(true);
         game.start();

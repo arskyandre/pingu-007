@@ -1,9 +1,11 @@
 
-import java.io.File;
+import games.rednblack.miniaudio.MAGroup;
+import games.rednblack.miniaudio.MASound;
+import games.rednblack.miniaudio.MiniAudio;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import javax.sound.sampled.*;
 
 public class SoundManager {
 
@@ -119,16 +121,70 @@ public class SoundManager {
 
     private final Map<SFX, SoundPool> sfxPools = new HashMap<>();
     private final Random random = new Random();
-    private final BGMPlayer bgmPlayer = new BGMPlayer();
+    private final MiniAudio miniAudio;
+    private final MAGroup musicGroup;
+    private final MAGroup sfxGroup;
+    private final MAGroup dialogueGroup;
+    private final BGMPlayer bgmPlayer;
     private BGM currentTrack = null;
-    // private float musicVolume = 0f;
     private float musicVolume = 0.45f;
     private float sfxVolume = 0.5f;
+    private double spatialViewLeft;
+    private double spatialViewWidth;
 
-    private Clip dialogueClip;
+    private MASound dialogueSound;
+    private boolean disposed;
 
     public SoundManager() {
+        MiniAudio engine = null;
+        MAGroup music = null;
+        MAGroup sfx = null;
+        MAGroup dialogue = null;
+        try {
+            engine = new MiniAudio();
+            music = engine.createGroup((short) (
+                    MASound.Flags.MA_SOUND_FLAG_NO_SPATIALIZATION
+                            | MASound.Flags.MA_SOUND_FLAG_NO_PITCH), null);
+            sfx = engine.createGroup((short) (
+                    MASound.Flags.MA_SOUND_FLAG_NO_SPATIALIZATION
+                            | MASound.Flags.MA_SOUND_FLAG_NO_PITCH), null);
+            dialogue = engine.createGroup((short) (
+                    MASound.Flags.MA_SOUND_FLAG_NO_SPATIALIZATION
+                            | MASound.Flags.MA_SOUND_FLAG_NO_PITCH), null);
+        } catch (RuntimeException | LinkageError e) {
+            // Audio is optional for headless machines and CI; game logic still runs.
+            warnAudioUnavailable(e);
+            disposeGroup(dialogue);
+            disposeGroup(sfx);
+            disposeGroup(music);
+            if (engine != null) {
+                try {
+                    engine.dispose();
+                } catch (RuntimeException ignored) {
+                    // Native initialization may have failed before full setup.
+                }
+            }
+            engine = null;
+            music = null;
+            sfx = null;
+            dialogue = null;
+        }
+
+        miniAudio = engine;
+        musicGroup = music;
+        sfxGroup = sfx;
+        dialogueGroup = dialogue;
+        bgmPlayer = new BGMPlayer(engine, music);
         loadSFX();
+        if (musicGroup != null) {
+            musicGroup.setVolume(1f);
+        }
+        if (sfxGroup != null) {
+            sfxGroup.setVolume(1f);
+        }
+        if (dialogueGroup != null) {
+            dialogueGroup.setVolume(1f);
+        }
         setMusicVolume(musicVolume);
         setSfxVolume(sfxVolume);
     }
@@ -138,12 +194,26 @@ public class SoundManager {
     }
 
     public void BGMfadeOut(int duration) {
-        bgmPlayer.fadeOut(duration, () -> currentTrack = null);
+        bgmPlayer.fadeOut(duration, () -> {
+            if (!bgmPlayer.isPlaying()) {
+                currentTrack = null;
+            }
+        });
     }
 
     private void loadSFX() {
         for (SFX sfx : SFX.values()) {
-            sfxPools.put(sfx, new SoundPool(sfx.path, sfx.poolSize, sfxVolume));
+            boolean dialogue = sfx.path.startsWith("sound/dialogue/");
+            MAGroup group = dialogue ? dialogueGroup : sfxGroup;
+            short flags = dialogue
+                    ? (short) (MASound.Flags.MA_SOUND_FLAG_STREAM
+                            | MASound.Flags.MA_SOUND_FLAG_NO_SPATIALIZATION
+                            | MASound.Flags.MA_SOUND_FLAG_NO_PITCH)
+                    : (short) (MASound.Flags.MA_SOUND_FLAG_DECODE
+                            | MASound.Flags.MA_SOUND_FLAG_NO_SPATIALIZATION
+                            | MASound.Flags.MA_SOUND_FLAG_NO_PITCH);
+            sfxPools.put(sfx, new SoundPool(
+                    miniAudio, sfx.path, sfx.poolSize, sfxVolume, group, flags));
         }
     }
 
@@ -151,33 +221,83 @@ public class SoundManager {
      * @param sfx valor do enum SFX
      */
     public void playSFX(SFX sfx) {
+        if (disposed || sfx == null) {
+            return;
+        }
         SoundPool pool = sfxPools.get(sfx);
         if (pool != null) {
             pool.play();
         }
     }
 
+    /**
+     * Reproduz um efeito com pan estereo: -1 esquerda, 0 centro, 1 direita.
+     */
+    public void playSpatialSFX(SFX sfx, float pan) {
+        if (disposed || sfx == null) {
+            return;
+        }
+        SoundPool pool = sfxPools.get(sfx);
+        if (pool != null) {
+            pool.play(pan);
+        }
+    }
+
+    /** Reproduz um efeito usando a posicao horizontal da fonte no mundo. */
+    public void playSpatialSFX(SFX sfx, double sourceWorldX) {
+        float pan = 0f;
+        if (Double.isFinite(sourceWorldX) && spatialViewWidth > 0.0) {
+            double viewCenter = spatialViewLeft + spatialViewWidth / 2.0;
+            pan = (float) Math.clamp(
+                    (sourceWorldX - viewCenter) / (spatialViewWidth / 2.0),
+                    -1.0,
+                    1.0);
+        }
+        playSpatialSFX(sfx, pan);
+    }
+
+    public void setSpatialViewport(double viewLeft, double viewWidth) {
+        if (Double.isFinite(viewLeft) && Double.isFinite(viewWidth) && viewWidth > 0.0) {
+            spatialViewLeft = viewLeft;
+            spatialViewWidth = viewWidth;
+        }
+    }
+
+    /** Alias mantido para o nome solicitado. */
+    public void playSpatialSFXX(SFX sfx, float pan) {
+        playSpatialSFX(sfx, pan);
+    }
+
     public void playDialogue(SFX som) {
         stopDialogue(); // corta a fala anterior antes de comecar a nova
 
-        if (som != null) {
+        if (!disposed && som != null) {
             SoundPool pool = sfxPools.get(som);
             if (pool != null) {
-                dialogueClip = pool.play();
+                dialogueSound = pool.play();
             }
         }
     }
 
     public void stopDialogue() {
-        if (dialogueClip != null) {
-            dialogueClip.stop();
-            dialogueClip = null;
+        if (dialogueSound != null) {
+            try {
+                dialogueSound.stop();
+            } catch (RuntimeException ignored) {
+                // The native engine may already be stopping.
+            }
+            dialogueSound = null;
         }
     }
 
     public void playRandomSnowStep() {
         SFX[] steps = { SFX.SNOW_STEP_1, SFX.SNOW_STEP_2, SFX.SNOW_STEP_3, SFX.SNOW_STEP_4 };
         playSFX(steps[random.nextInt(steps.length)]);
+    }
+
+    public void playRandomSnowStep(double sourceWorldX) {
+        SFX[] steps = { SFX.SNOW_STEP_1, SFX.SNOW_STEP_2, SFX.SNOW_STEP_3, SFX.SNOW_STEP_4 };
+        playSpatialSFX(steps[random.nextInt(steps.length)], sourceWorldX);
     }
 
     public void playRandomDialogueSound() {
@@ -190,17 +310,32 @@ public class SoundManager {
         playSFX(steps[random.nextInt(steps.length)]);
     }
 
+    public void playRandomIceStep(double sourceWorldX) {
+        SFX[] steps = { SFX.ICE_STEP_1, SFX.ICE_STEP_2 };
+        playSpatialSFX(steps[random.nextInt(steps.length)], sourceWorldX);
+    }
+
     public void playGunshot() {
         playSFX(SFX.GUNSHOT);
     }
 
+    public void playGunshot(double sourceWorldX) {
+        playSpatialSFX(SFX.GUNSHOT, sourceWorldX);
+    }
+
     public void playBGM(BGM track) {
+        if (disposed || track == null) {
+            return;
+        }
         currentTrack = track;
         bgmPlayer.play(track.path);
         bgmPlayer.setVolume(musicVolume);
     }
 
     public void playBGM(BGM intro, BGM loop) {
+        if (disposed || intro == null || loop == null) {
+            return;
+        }
         currentTrack = loop;
         bgmPlayer.playIntroThenLoop(intro.path, loop.path);
         bgmPlayer.setVolume(musicVolume);
@@ -219,6 +354,9 @@ public class SoundManager {
     }
 
     public void crossfadeBGM(BGM track, long durationMs, boolean fade_in) {
+        if (disposed || track == null) {
+            return;
+        }
         currentTrack = track;
         bgmPlayer.crossfadeTo(
                 track.path,
@@ -245,6 +383,9 @@ public class SoundManager {
             double delay,
             boolean fade_in) {
 
+        if (disposed || track == null) {
+            return;
+        }
         currentTrack = track;
         bgmPlayer.crossfadeTo(
                 track.path,
@@ -275,6 +416,9 @@ public class SoundManager {
             boolean fade_in,
             double timestampInicial) {
 
+        if (disposed || track == null) {
+            return;
+        }
         currentTrack = track;
         bgmPlayer.crossfadeTo(
                 track.path,
@@ -303,6 +447,9 @@ public class SoundManager {
             long durationMs,
             boolean fade_in) {
 
+        if (disposed || intro == null || loop == null) {
+            return;
+        }
         currentTrack = loop;
         bgmPlayer.crossfadeToIntroThenLoop(
                 intro.path,
@@ -341,6 +488,9 @@ public class SoundManager {
             double delay,
             boolean fade_in) {
 
+        if (disposed || intro == null || loop == null) {
+            return;
+        }
         currentTrack = loop;
         bgmPlayer.crossfadeToIntroThenLoop(
                 intro.path,
@@ -390,6 +540,9 @@ public class SoundManager {
             boolean fade_in,
             double timestampInicial) {
 
+        if (disposed || intro == null || loop == null) {
+            return;
+        }
         bgmPlayer.crossfadeToIntroThenLoop(
                 intro.path,
                 loop.path,
@@ -398,8 +551,9 @@ public class SoundManager {
                 delay,
                 fade_in,
                 timestampInicial);
-
-        currentTrack = bgmPlayer.isPlaying() ? loop : null;
+        // Delayed transitions are intentionally considered current as soon as
+        // they are scheduled; the target voice starts after the requested delay.
+        currentTrack = loop;
     }
 
     public void stopMusic() {
@@ -407,30 +561,26 @@ public class SoundManager {
         currentTrack = null;
     }
 
-    public static void setVolume(Clip clip, float volume) {
-        if (clip == null || !clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+    public static void setVolume(MASound sound, float volume) {
+        if (sound == null) {
             return;
         }
-
-        FloatControl gain;
         try {
-            gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-        } catch (IllegalArgumentException | ClassCastException e) {
-            return;
+            sound.setVolume(Math.max(0f, volume));
+        } catch (RuntimeException ignored) {
+            // The native engine may be unavailable during shutdown.
         }
-
-        float curved = volume * volume;
-        float dB = (float) (Math.log10(Math.max(curved, 0.0001)) * 20);
-        gain.setValue(dB);
     }
 
     public void setMusicVolume(float volume) {
-        musicVolume = volume;
+        musicVolume = Math.max(0f, volume);
+        // Keep the routing group at unity; the per-voice volume is the public
+        // music-volume control, avoiding accidental double attenuation.
         bgmPlayer.setVolume(volume);
     }
 
     public void setSfxVolume(float volume) {
-        sfxVolume = volume;
+        sfxVolume = Math.max(0f, volume);
         for (SoundPool pool : sfxPools.values()) {
             if (pool != null) {
                 pool.setVolume(volume);
@@ -438,11 +588,28 @@ public class SoundManager {
         }
     }
 
-    public static Clip loadClip(String path) throws Exception {
-        try (AudioInputStream ais = AudioSystem.getAudioInputStream(new File(path))) {
-            Clip clip = AudioSystem.getClip();
-            clip.open(ais);
-            return clip;
+    /**
+     * Releases voices/pools/groups before the shared native MiniAudio engine.
+     * Calling dispose more than once is safe.
+     */
+    public synchronized void dispose() {
+        if (disposed) {
+            return;
+        }
+        disposed = true;
+        stopDialogue();
+        bgmPlayer.dispose();
+        for (SoundPool pool : sfxPools.values()) {
+            if (pool != null) {
+                pool.dispose();
+            }
+        }
+        sfxPools.clear();
+        disposeGroup(dialogueGroup);
+        disposeGroup(sfxGroup);
+        disposeGroup(musicGroup);
+        if (miniAudio != null) {
+            miniAudio.dispose();
         }
     }
 
@@ -456,5 +623,23 @@ public class SoundManager {
 
     public float getSfxVolume() {
         return sfxVolume;
+    }
+
+    private static void disposeGroup(MAGroup group) {
+        if (group != null) {
+            try {
+                group.dispose();
+            } catch (RuntimeException ignored) {
+                // Best effort while unwinding failed/native shutdown.
+            }
+        }
+    }
+
+    private static void warnAudioUnavailable(Throwable error) {
+        String message = error.getMessage();
+        if (message == null || message.isBlank()) {
+            message = error.getClass().getSimpleName();
+        }
+        System.err.println("SoundManager warning: audio disabled (" + message + ")");
     }
 }

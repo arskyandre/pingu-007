@@ -64,19 +64,19 @@ Além de inimigos, o jogo possui diversos *NPCs* com os quais o jogador pode int
 
 ## Como executar
 
-O jogo exige o Java JDK instalado no computador. Para executar o jogo, deve-se compilar o código fonte e executá-lo, com os comandos:
+O jogo exige um JDK 21 ou superior. O Gradle Wrapper baixa as dependências
+(libGDX 1.14.2 e gdx-miniaudio 0.8) e mantém o diretório de trabalho em
+`Pingu-007`, onde ficam os mapas, imagens e sons.
 
-Compilação:
+Na raiz do projeto:
+
 ```bash
-javac *.java
+./gradlew clean run       # Linux/macOS
+gradlew.bat clean run     # Windows
 ```
 
-Execução:
-```bash
-java GameCore
-```
-
-Os arquivos de imagens, sons, mapas e demais recursos devem permanecer na pasta raiz do projeto.
+Também é possível executar `compila_e_roda_linux.sh` ou
+`compila_e_roda.bat` dentro de `Pingu-007`.
 
 
 ## Autores

@@ -124,7 +124,7 @@ public class Player extends Entity {
         bulletmanager.shoot(centerX, centerY, Math.cos(anguloDireita), Math.sin(anguloDireita),
                 BulletOwner.PLAYER, true);
 
-        soundManager.playSFX(SoundManager.SFX.EXPLOSION);
+        soundManager.playSpatialSFX(SoundManager.SFX.EXPLOSION, centerX);
         shootCooldownTimer = shotgunShootCooldown;
     }
 
@@ -453,7 +453,7 @@ public class Player extends Entity {
             return;
         }
         if ((iFramesTimer == 0 && !emDash) || isCaindo) {
-            soundManager.playSFX(SoundManager.SFX.PLAYER_DAMAGE);
+            soundManager.playSpatialSFX(SoundManager.SFX.PLAYER_DAMAGE, x + largura / 2.0);
             int dmg = (getTemCapacete() && !isCaindo) ? (int) Math.round(dano * (2.0 / 3.0)) : dano;
             super.receberDano(dmg);
             iFramesTimer = iFramesDanoDuration;
@@ -662,7 +662,7 @@ public class Player extends Entity {
                         switch (gunType) {
                             case PISTOL -> {
                                 bulletmanager.shoot(centerX, centerY, dirTiroX, dirTiroY, BulletOwner.PLAYER);
-                                soundManager.playGunshot();
+                                soundManager.playGunshot(centerX);
                                 shootCooldownTimer = pistolShootCooldown;
                             }
                             case SHOTGUN -> {
@@ -780,7 +780,7 @@ public class Player extends Entity {
                             switch (gunType) {
                                 case PISTOL -> {
                                     bulletmanager.shoot(centerX, centerY, dirToMouseX, dirToMouseY, BulletOwner.PLAYER);
-                                    soundManager.playGunshot();
+                                    soundManager.playGunshot(centerX);
                                     shootCooldownTimer = pistolShootCooldown;
                                 }
                                 case SHOTGUN -> {
@@ -810,12 +810,12 @@ public class Player extends Entity {
                 // poder do six seben
                 if (sixSeven(input) && sixSevenCooldownTimer <= 0) {
                     if (consumeSixSeven()) {
-                        soundManager.playSFX(SoundManager.SFX.SIX_SEVEN);
                         double centerX = x + largura / 2.0;
                         double centerY = y + altura / 2.0;
+                        soundManager.playSpatialSFX(SoundManager.SFX.SIX_SEVEN, centerX);
                         dispararSixSeven(centerX, centerY);
                     } else {
-                        soundManager.playSFX(SoundManager.SFX.SEM_AURA);
+                        soundManager.playSpatialSFX(SoundManager.SFX.SEM_AURA, x + largura / 2.0);
                     }
                     sixSevenCooldownTimer = sixSevenCooldown;
                 }
@@ -1116,7 +1116,7 @@ public class Player extends Entity {
     public void curar(int qtd) {
         vida = Math.min(vidaMaxima, vida + qtd);
         System.out.println("coletou cura +" + qtd + ", vida: " + vida);
-        soundManager.playSFX(SoundManager.SFX.PLAYER_HEAL);
+        soundManager.playSpatialSFX(SoundManager.SFX.PLAYER_HEAL, x + largura / 2.0);
     }
 
     public void addChave(int qtd) {
@@ -1378,6 +1378,6 @@ public class Player extends Entity {
     public void metodoInutil() {
         ToastNotifications.RequestNotification("!neves xis o açaF", 10.0);
         setHasPoderSixSeven(true);
-        soundManager.playSFX(SoundManager.SFX.SCREAM);
+        soundManager.playSpatialSFX(SoundManager.SFX.SCREAM, x + largura / 2.0);
     }
 }

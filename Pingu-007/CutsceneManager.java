@@ -96,7 +96,7 @@ public class CutsceneManager {
         blackBarProgress = 0.0;
         this.timer = 0;
         this.bossIntroPlayer = player;
-        soundManager.playRandomSnowStep();
+        soundManager.playRandomSnowStep(player.getX() + player.getLargura() / 2.0);
 
         gameCore.setCinematicBorderAnimation(Renderer.BorderState.IN);
     }

@@ -86,7 +86,7 @@ public abstract class Enemy extends Entity {
 
     public void playDeathSound() {
         if (soundManager != null && deathSFX != null) {
-            soundManager.playSFX(deathSFX);
+            soundManager.playSpatialSFX(deathSFX, x + width / 2.0);
         }
     }
 

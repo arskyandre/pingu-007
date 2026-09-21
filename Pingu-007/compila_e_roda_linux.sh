@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -u
+set -eu
 
 # Executa sempre a partir da pasta em que este script esta localizado.
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")" || {
@@ -18,20 +18,4 @@ if ! command -v java >/dev/null 2>&1; then
     exit 1
 fi
 
-echo "Compilando..."
-if ! javac -cp ".:*" ./*.java; then
-    echo "Erro: a compilacao falhou." >&2
-    exit 1
-fi
-
-echo "Iniciando o jogo..."
-java -cp ".:*" GameCore
-game_exit_code=$?
-
-rm -f -- ./*.class
-
-if (( game_exit_code != 0 )); then
-    echo "O jogo terminou com o codigo de erro ${game_exit_code}." >&2
-fi
-
-exit "${game_exit_code}"
+exec sh ../gradlew -p .. clean run

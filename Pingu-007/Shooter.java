@@ -139,7 +139,7 @@ public class Shooter extends Enemy {
                     velY = 0;
 
                     if (modoShotgun) {
-                        soundManager.playSFX(SoundManager.SFX.EXPLOSION);
+                        soundManager.playSpatialSFX(SoundManager.SFX.EXPLOSION, centerX);
                         double angulo1 = lockedAngle;
                         double angulo2 = lockedAngle - Math.toRadians(15);
                         double angulo3 = lockedAngle + Math.toRadians(15);
@@ -157,7 +157,7 @@ public class Shooter extends Enemy {
                     } else {
                         if (sprayTimer <= 0) {
                             if (tirosDisparados == 0) {
-                                soundManager.playSFX(SoundManager.SFX.SHOOTER_METRALHADA);
+                                soundManager.playSpatialSFX(SoundManager.SFX.SHOOTER_METRALHADA, centerX);
                             }
                             double anguloSpray = lockedAngle
                                     + Math.toRadians((-20 * sinal) + (tirosDisparados * 10 * sinal));

@@ -98,9 +98,9 @@ public class Bomber extends Enemy {
             case ACIONADO -> {
                 if (!jaAvisou) {
                     if (timer == tempoPavio) {
-                        soundManager.playSFX(SoundManager.SFX.BOMBER_AVISO);
+                        soundManager.playSpatialSFX(SoundManager.SFX.BOMBER_AVISO, centerX);
                     } else {
-                        soundManager.playSFX(SoundManager.SFX.AAAHHHH);
+                        soundManager.playSpatialSFX(SoundManager.SFX.AAAHHHH, centerX);
                     }
                     jaAvisou = true;
                 }
@@ -127,7 +127,7 @@ public class Bomber extends Enemy {
     }
 
     private void detonar(Player player, double meuCenterX, double meuCenterY) {
-        soundManager.playSFX(SoundManager.SFX.EXPLOSION);
+        soundManager.playSpatialSFX(SoundManager.SFX.EXPLOSION, meuCenterX);
         jaExplodiu = true;
         double distPlayer = Math.sqrt(Math.pow(player.getX() + player.getLargura() / 2.0 - meuCenterX, 2)
                 + Math.pow(player.getY() + player.getAltura() / 2.0 - meuCenterY, 2));
